@@ -83,8 +83,3 @@ PostgreSQL是世界上最先进的开源关系型数据库！
 
 * [Introduction to PostGIS](http://workshops.boundlessgeo.com/postgis-intro/index.html)
 
-
-
-## License
-
-闷声发大财才是坠吼地。
