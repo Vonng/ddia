@@ -388,6 +388,11 @@ Couchbase不会自动重新平衡，这简化了设计。通常情况下，它�
 33.  Shivnath Babu and Herodotos Herodotou:     “[Massively Parallel Databases and MapReduce Systems](http://research.microsoft.com/pubs/206464/db-mr-survey-final.pdf),” *Foundations and Trends in Databases*,     volume 5, number 1, pages 1–104, November 2013.[doi:10.1561/1900000036](http://dx.doi.org/10.1561/1900000036)
 
 
-##### 
 
-##### 
+
+------
+
+|         上一章         |              目录               |         下一章         |
+| :--------------------: | :-----------------------------: | :--------------------: |
+| [第五章：复制](ch5.md) | [设计数据密集型应用](README.md) | [第七章：事务](ch7.md) |
+
