@@ -385,7 +385,7 @@ Twitter的第一个版本使用了方法1，但系统努力跟上主页时间线
 
 ## 参考文献
 
-[1]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.9136&amp;amp;amp;amp;amp;amp;rep=rep1&amp;amp;amp;amp;amp;amp;type=pdf	"Michael Stonebraker and Uğur Çetintemel: “'One Size Fits All': An Idea Whose Time Has Come and Gone,” at *21st International Conference on Data Engineering* (ICDE), April 2005."
+[1]: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.68.9136&amp;amp;amp;amp;amp;amp;amp;rep=rep1&amp;amp;amp;amp;amp;amp;amp;type=pdf	"Michael Stonebraker and Uğur Çetintemel: “'One Size Fits All': An Idea Whose Time Has Come and Gone,” at *21st International Conference on Data Engineering* (ICDE), April 2005."
 [2]: http://www.sei.cmu.edu/reports/92tr033.pdf	"Walter L. Heimerdinger and Charles B. Weinstock: “A Conceptual Framework for System Fault Tolerance,” Technical Report CMU/SEI-92-TR-033, Software Engineering Institute, Carnegie Mellon University, October 1992."
 [3]: https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf	"Ding Yuan, Yu Luo, Xin Zhuang, et al.: “Simple Testing Can Prevent Most Critical Failures: An Analysis of Production Failures in Distributed Data-Intensive Systems,” at 11th USENIX Symposium on Operating Systems Design and Implementation (OSDI), October 2014."
 [4]: http://techblog.netflix.com/2011/07/netflix-simian-army.html	"Yury Izrailevsky and Ariel Tseitlin: “The Netflix Simian Army,” techblog.netflix.com, July 19, 2011."
@@ -516,10 +516,8 @@ Twitter的第一个版本使用了方法1，但系统努力跟上主页时间线
      [doi:10.1109/COMPSAC.2008.50](http://dx.doi.org/10.1109/COMPSAC.2008.50)
 
 
+c
 
-
-------
-
-| 上一章                              | 目录                            | 下一章                               |
-| ----------------------------------- | ------------------------------- | ------------------------------------ |
-| [第一部分：数据系统基础](part-i.md) | [设计数据密集型应用](README.md) | [第二章：数据模型与查询语言](ch2.md) |
+|      |      |      |
+| ---- | ---- | ---- |
+|      |      |      |
