@@ -104,25 +104,25 @@ $ cat database
 每个段现在都有自己的内存散列表，将键映射到文件偏移量。为了找到一个键的值，我们首先检查最近段的哈希映射;如果键不存在，我们检查第二个最近的段，依此类推。合并过程保持细分的数量，所以查找不需要检查许多哈希映射。
 大量的细节进入实践这个简单的想法工作。简而言之，一些真正实施中重要的问题是：
 
-* 文件格式
+***文件格式***
 
-  CSV不是日志的最佳格式。使用二进制格式更快，更简单，首先以字节为单位对字符串的长度进行编码，然后使用原始字符串（不需要转义）。
+​	CSV不是日志的最佳格式。使用二进制格式更快，更简单，首先以字节为单位对字符串的长度进行编码，然后使用原始字符串（不需要转义）。
 
-* 删除记录
+***删除记录***
 
-  如果要删除一个键及其关联的值，则必须在数据文件（有时称为逻辑删除）中附加一个特殊的删除记录。当日志段被合并时，逻辑删除告诉合并过程放弃删除键的任何以前的值。
+如果要删除一个键及其关联的值，则必须在数据文件（有时称为逻辑删除）中附加一个特殊的删除记录。当日志段被合并时，逻辑删除告诉合并过程放弃删除键的任何以前的值。
 
-* 崩溃恢复
+***崩溃恢复***
 
-  如果数据库重新启动，则内存散列映射将丢失。原则上，您可以通过从头到尾读取整个段文件并在每次按键时注意每个键的最近值的偏移量来恢复每个段的哈希映射。但是，如果段文件很大，这可能需要很长时间，这将使服务器重新启动痛苦。 Bitcask通过存储加速恢复磁盘上每个段的哈希映射的快照，可以更快地加载到内存中。
+如果数据库重新启动，则内存散列映射将丢失。原则上，您可以通过从头到尾读取整个段文件并在每次按键时注意每个键的最近值的偏移量来恢复每个段的哈希映射。但是，如果段文件很大，这可能需要很长时间，这将使服务器重新启动痛苦。 Bitcask通过存储加速恢复磁盘上每个段的哈希映射的快照，可以更快地加载到内存中。
 
-* 部分书面记录
+***部分写入记录***
 
-  数据库可能随时崩溃，包括将记录附加到日志中途。 Bitcask文件包含校验和，允许检测和忽略日志的这些损坏部分。
+数据库可能随时崩溃，包括将记录附加到日志中途。 Bitcask文件包含校验和，允许检测和忽略日志的这些损坏部分。
 
-* 并发控制
+***并发控制***
 
-  由于写操作是以严格顺序的顺序附加到日志中的，所以常见的实现选择是只有一个写入器线程。数据文件段是附加的，否则是不可变的，所以它们可以被多个线程同时读取。
+由于写操作是以严格顺序的顺序附加到日志中的，所以常见的实现选择是只有一个写入器线程。数据文件段是附加的，否则是不可变的，所以它们可以被多个线程同时读取。
 
 乍一看，只有追加日志看起来很浪费：为什么不更新文件，用新值覆盖旧值？但是只能追加设计的原因有几个：
 
@@ -160,11 +160,12 @@ $ cat database
 
 2. 为了在文件中找到一个特定的键，你不再需要保存内存中所有键的索引。以[图3-5]()为例：假设你正在内存中寻找键`handiwork`，但是你不知道段文件中该关键字的确切偏移量。然而，你知道`handbag`和`handsome`的偏移，而且由于排序特性，你知道`handiwork`必须出现在这两者之间。这意味着您可以跳到`handbag`的偏移位置并从那里扫描，直到您找到`handiwork`（或没找到，如果该文件中没有该键）。
 
-![](img/fig3-5.png)
+   ![](img/fig3-5.png)
 
-**图3-5 具有内存索引的SSTable**
+   **图3-5 具有内存索引的SSTable**
 
-您仍然需要一个内存中索引来告诉您一些键的偏移量，但它可能很稀疏：每几千字节的段文件就有一个键就足够了，因为几千字节可以很快被扫描。
+   您仍然需要一个内存中索引来告诉您一些键的偏移量，但它可能很稀疏：每几千字节的段文件就有一个键就足够了，因为几千字节可以很快被扫描。
+
 
 3. 由于读取请求无论如何都需要扫描所请求范围内的多个键值对，因此可以将这些记录分组到块中，并在将其写入磁盘之前对其进行压缩（如图3-5中的阴影区域所示） 。稀疏内存中索引的每个条目都指向压缩块的开始处。除了节省磁盘空间之外，压缩还可以减少IO带宽的使用。
 
@@ -602,46 +603,27 @@ WHERE product_sk = 31 AND store_sk = 3
 ## 参考文献
 
 
-1.  Alfred V. Aho, John E. Hopcroft, and Jeffrey D. Ullman:
-    *Data Structures and Algorithms*. Addison-Wesley, 1983. ISBN: 978-0-201-00023-8
+1.  Alfred V. Aho, John E. Hopcroft, and Jeffrey D. Ullman: *Data Structures and Algorithms*. Addison-Wesley, 1983. ISBN: 978-0-201-00023-8
 
-1.  Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and
-    Clifford Stein: *Introduction to Algorithms*, 3rd edition. MIT Press, 2009.
-    ISBN: 978-0-262-53305-8
+1.  Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein: *Introduction to Algorithms*, 3rd edition. MIT Press, 2009. ISBN: 978-0-262-53305-8
 
-1.  Justin Sheehy and David Smith:
-    “[Bitcask: A Log-Structured Hash Table for Fast Key/Value Data](http://basho.com/wp-content/uploads/2015/05/bitcask-intro.pdf),” Basho Technologies, April 2010.
+1.  Justin Sheehy and David Smith: “[Bitcask: A Log-Structured Hash Table for Fast Key/Value Data](http://basho.com/wp-content/uploads/2015/05/bitcask-intro.pdf),” Basho Technologies, April 2010.
 
-1.  Yinan Li, Bingsheng He, Robin Jun Yang, et al.:
-      “[Tree Indexing on Solid State Drives](http://www.vldb.org/pvldb/vldb2010/papers/R106.pdf),”
-      *Proceedings of the VLDB Endowment*, volume 3, number 1, pages 1195–1206,
-      September 2010.
+1.  Yinan Li, Bingsheng He, Robin Jun Yang, et al.:   “[Tree Indexing on Solid State Drives](http://www.vldb.org/pvldb/vldb2010/papers/R106.pdf),”  *Proceedings of the VLDB Endowment*, volume 3, number 1, pages 1195–1206,  September 2010.
 
-1.  Goetz Graefe:
-      “[Modern B-Tree Techniques](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.219.7269&rep=rep1&type=pdf),”
-      *Foundations and Trends in Databases*, volume 3, number 4, pages 203–402, August 2011.
-      [doi:10.1561/1900000028](http://dx.doi.org/10.1561/1900000028)
+1.  Goetz Graefe:  “[Modern B-Tree Techniques](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.219.7269&rep=rep1&type=pdf),”   *Foundations and Trends in Databases*, volume 3, number 4, pages 203–402, August 2011.  [doi:10.1561/1900000028](http://dx.doi.org/10.1561/1900000028)
 
-1.  Jeffrey Dean and Sanjay Ghemawat:
-    “[LevelDB Implementation Notes](https://github.com/google/leveldb/blob/master/doc/impl.html),”
-    *leveldb.googlecode.com*.
+1.  Jeffrey Dean and Sanjay Ghemawat: “[LevelDB Implementation Notes](https://github.com/google/leveldb/blob/master/doc/impl.html),” *leveldb.googlecode.com*.
 
-1.  Dhruba Borthakur:
-    “[The History of RocksDB](http://rocksdb.blogspot.com/),”
-    *rocksdb.blogspot.com*, November 24, 2013.
+1.  Dhruba Borthakur: “[The History of RocksDB](http://rocksdb.blogspot.com/),” *rocksdb.blogspot.com*, November 24, 2013.
 
-1.  Matteo Bertozzi:
-    “[Apache HBase I/O – HFile](http://blog.cloudera.com/blog/2012/06/hbase-io-hfile-input-output/),” *blog.cloudera.com*, June, 29 2012.
+1.  Matteo Bertozzi: “[Apache HBase I/O – HFile](http://blog.cloudera.com/blog/2012/06/hbase-io-hfile-input-output/),” *blog.cloudera.com*, June, 29 2012.
 
-1.  Fay Chang, Jeffrey Dean, Sanjay Ghemawat, et al.:
-    “[Bigtable: A Distributed Storage System for Structured Data](http://research.google.com/archive/bigtable.html),” at *7th USENIX Symposium on Operating System Design and
+1.  Fay Chang, Jeffrey Dean, Sanjay Ghemawat, et al.: “[Bigtable: A Distributed Storage System for Structured Data](http://research.google.com/archive/bigtable.html),” at *7th USENIX Symposium on Operating System Design and
     Implementation* (OSDI), November 2006.
 
-1.  Patrick
-    O'Neil, Edward Cheng, Dieter Gawlick, and Elizabeth O'Neil:
-    “[The Log-Structured Merge-Tree (LSM-Tree)](http://www.cs.umb.edu/~poneil/lsmtree.pdf),”
-    *Acta Informatica*, volume 33, number 4, pages 351–385, June 1996.
-    [doi:10.1007/s002360050048](http://dx.doi.org/10.1007/s002360050048)
+1.  Patrick O'Neil, Edward Cheng, Dieter Gawlick, and Elizabeth O'Neil:
+    “[The Log-Structured Merge-Tree (LSM-Tree)](http://www.cs.umb.edu/~poneil/lsmtree.pdf),” *Acta Informatica*, volume 33, number 4, pages 351–385, June 1996. [doi:10.1007/s002360050048](http://dx.doi.org/10.1007/s002360050048)
 
 1.  Mendel Rosenblum and John K. Ousterhout:
     “[The Design and Implementation of a Log-Structured File System](http://research.cs.wisc.edu/areas/os/Qual/papers/lfs.pdf),”
