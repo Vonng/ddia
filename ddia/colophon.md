@@ -12,9 +12,11 @@ Martin是一位常规会议演讲者，博主和开源贡献者。他认为，�
 
 ## 关于译者
 
-* [冯若航](https://vonng.com/about)
+[冯若航](https://vonng.com/about)
 
-PostgreSQL DBA @ TanTan，前Alibaba+-Finplus 架构师/全栈工程师 (15.08 ~ 17.12)
+PostgreSQL DBA @ TanTan
+
+前Alibaba+-Finplus 架构师/全栈工程师 (15.08 ~ 17.12)
 
 
 
