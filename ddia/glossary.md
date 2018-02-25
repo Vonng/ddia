@@ -215,7 +215,7 @@
 
 ### 偏差（skew）
 
-脑裂（split brain）
+### 脑裂（split brain）
 
 ### 存储过程（stored procdure）
 
@@ -236,5 +236,3 @@
 ### 两阶段锁定（2PL, two-phase locking）
 
 ### 无限制（unbounded）
-
-w
