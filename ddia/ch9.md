@@ -951,127 +951,69 @@ ZooKeeper和朋友们可以看作是成员服务研究的悠久历史的一部�
 ## 参考文献
 
 
-1.  Peter Bailis and Ali Ghodsi:
-    “[Eventual Consistency Today: Limitations, Extensions, and Beyond](http://queue.acm.org/detail.cfm?id=2462076),” *ACM Queue*, volume 11, number 3, pages 55-63, March 2013.
-    [doi:10.1145/2460276.2462076](http://dx.doi.org/10.1145/2460276.2462076)
+1.  Peter Bailis and Ali Ghodsi: “[Eventual Consistency Today: Limitations, Extensions, and Beyond](http://queue.acm.org/detail.cfm?id=2462076),” *ACM Queue*, volume 11, number 3, pages 55-63, March 2013. [doi:10.1145/2460276.2462076](http://dx.doi.org/10.1145/2460276.2462076)
 
 1.  Prince Mahajan, Lorenzo Alvisi, and Mike Dahlin: “[Consistency, Availability, and Convergence](http://apps.cs.utexas.edu/tech_reports/reports/tr/TR-2036.pdf),” University of Texas at Austin, Department of Computer Science, Tech Report UTCS TR-11-22, May 2011.
 
-1.  Alex Scotti:
-    “[Adventures in Building Your Own Database](http://www.slideshare.net/AlexScotti1/allyourbase-55212398),” at *All Your Base*, November 2015.
+1.  Alex Scotti: “[Adventures in Building Your Own Database](http://www.slideshare.net/AlexScotti1/allyourbase-55212398),” at *All Your Base*, November 2015.
 
-1.  Peter Bailis, Aaron Davidson, Alan Fekete, et al.:
-    “[Highly Available Transactions: Virtues and Limitations](http://arxiv.org/pdf/1302.0309.pdf),” at *40th International Conference on Very Large Data Bases* (VLDB),
-    September 2014. Extended version published as pre-print arXiv:1302.0309 &#91;cs.DB&#93;.
+1.  Peter Bailis, Aaron Davidson, Alan Fekete, et al.: “[Highly Available Transactions: Virtues and Limitations](http://arxiv.org/pdf/1302.0309.pdf),” at *40th International Conference on Very Large Data Bases* (VLDB), September 2014. Extended version published as pre-print arXiv:1302.0309 &#91;cs.DB&#93;.
 
-1.  Paolo Viotti and Marko Vukolić:
-    “[Consistency in Non-Transactional Distributed Storage Systems](http://arxiv.org/abs/1512.00168),” arXiv:1512.00168, 12 April 2016.
+1.  Paolo Viotti and Marko Vukolić: “[Consistency in Non-Transactional Distributed Storage Systems](http://arxiv.org/abs/1512.00168),” arXiv:1512.00168, 12 April 2016.
 
-1.  Maurice P. Herlihy and Jeannette M. Wing:
-    “[Linearizability: A Correctness Condition for Concurrent Objects](http://cs.brown.edu/~mph/HerlihyW90/p463-herlihy.pdf),” *ACM Transactions on Programming
-    Languages and Systems* (TOPLAS), volume 12, number 3, pages 463–492, July 1990.
-    [doi:10.1145/78969.78972](http://dx.doi.org/10.1145/78969.78972)
+1.  Maurice P. Herlihy and Jeannette M. Wing: “[Linearizability: A Correctness Condition for Concurrent Objects](http://cs.brown.edu/~mph/HerlihyW90/p463-herlihy.pdf),” *ACM Transactions on Programming Languages and Systems* (TOPLAS), volume 12, number 3, pages 463–492, July 1990. [doi:10.1145/78969.78972](http://dx.doi.org/10.1145/78969.78972)
 
-1.  Leslie Lamport:
-    “[On interprocess communication](http://research.microsoft.com/en-us/um/people/lamport/pubs/interprocess.pdf),” *Distributed Computing*, volume 1, number 2, pages 77–101,
-    June 1986. [doi:10.1007/BF01786228](http://dx.doi.org/10.1007/BF01786228)
+1.  Leslie Lamport: “[On interprocess communication](http://research.microsoft.com/en-us/um/people/lamport/pubs/interprocess.pdf),” *Distributed Computing*, volume 1, number 2, pages 77–101, June 1986. [doi:10.1007/BF01786228](http://dx.doi.org/10.1007/BF01786228)
 
-1.  David K. Gifford:
-    “[Information Storage in a Decentralized Computer System](http://www.mirrorservice.org/sites/www.bitsavers.org/pdf/xerox/parc/techReports/CSL-81-8_Information_Storage_in_a_Decentralized_Computer_System.pdf),” Xerox Palo Alto Research Centers, CSL-81-8, June 1981.
+1.  David K. Gifford: “[Information Storage in a Decentralized Computer System](http://www.mirrorservice.org/sites/www.bitsavers.org/pdf/xerox/parc/techReports/CSL-81-8_Information_Storage_in_a_Decentralized_Computer_System.pdf),” Xerox Palo Alto Research Centers, CSL-81-8, June 1981.
 
-1.  Martin Kleppmann:
-    “[Please Stop Calling Databases CP or AP](http://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html),” *martin.kleppmann.com*, May 11, 2015.
+1.  Martin Kleppmann: “[Please Stop Calling Databases CP or AP](http://martin.kleppmann.com/2015/05/11/please-stop-calling-databases-cp-or-ap.html),” *martin.kleppmann.com*, May 11, 2015.
 
-1.  Kyle Kingsbury:
-    “[Call Me Maybe: MongoDB Stale Reads](https://aphyr.com/posts/322-call-me-maybe-mongodb-stale-reads),” *aphyr.com*, April 20, 2015.
+1.  Kyle Kingsbury: “[Call Me Maybe: MongoDB Stale Reads](https://aphyr.com/posts/322-call-me-maybe-mongodb-stale-reads),” *aphyr.com*, April 20, 2015.
 
-1.  Kyle Kingsbury:
-    “[Computational Techniques in Knossos](https://aphyr.com/posts/314-computational-techniques-in-knossos),” *aphyr.com*, May 17, 2014.
+1.  Kyle Kingsbury: “[Computational Techniques in Knossos](https://aphyr.com/posts/314-computational-techniques-in-knossos),” *aphyr.com*, May 17, 2014.
 
-1.  Peter Bailis:
-      “[Linearizability   Versus Serializability](http://www.bailis.org/blog/linearizability-versus-serializability/),” *bailis.org*, September 24, 2014.
+1.  Peter Bailis:  “[Linearizability   Versus Serializability](http://www.bailis.org/blog/linearizability-versus-serializability/),” *bailis.org*, September 24, 2014.
 
-1.  Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman:
-    <a href="http://research.microsoft.com/en-us/people/philbe/ccontrol.aspx">*Concurrency
-    Control and Recovery in Database Systems*</a>. Addison-Wesley, 1987. ISBN: 978-0-201-10715-9,
-    available online at *research.microsoft.com*.
+1.  Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman: [*Concurrency Control and Recovery in Database Systems*](http://research.microsoft.com/en-us/people/philbe/ccontrol.aspx). Addison-Wesley, 1987. ISBN: 978-0-201-10715-9, available online at *research.microsoft.com*.
 
-1.  Mike Burrows:
-    “[The Chubby Lock Service for Loosely-Coupled Distributed Systems](http://research.google.com/archive/chubby.html),” at *7th USENIX Symposium on Operating System
-    Design and Implementation* (OSDI), November 2006.
+1.  Mike Burrows: “[The Chubby Lock Service for Loosely-Coupled Distributed Systems](http://research.google.com/archive/chubby.html),” at *7th USENIX Symposium on Operating System Design and Implementation* (OSDI), November 2006.
 
-1.  Flavio P. Junqueira and Benjamin Reed:
-    *ZooKeeper: Distributed Process Coordination*. O'Reilly Media, 2013.
-    ISBN: 978-1-449-36130-3
+1.  Flavio P. Junqueira and Benjamin Reed: *ZooKeeper: Distributed Process Coordination*. O'Reilly Media, 2013. ISBN: 978-1-449-36130-3
 
 1.  “[etcd 2.0.12 Documentation](https://coreos.com/etcd/docs/2.0.12/),” CoreOS, Inc., 2015.
 
 1.  “[Apache Curator](http://curator.apache.org/),” Apache Software Foundation, *curator.apache.org*, 2015.
 
-1.  Morali Vallath:
-    *Oracle 10g RAC Grid, Services & Clustering*. Elsevier Digital Press, 2006.
-    ISBN: 978-1-555-58321-7
+1.  Morali Vallath: *Oracle 10g RAC Grid, Services & Clustering*. Elsevier Digital Press, 2006. ISBN: 978-1-555-58321-7
 
-1.  Peter Bailis, Alan Fekete, Michael J Franklin, et al.:
-    “[Coordination-Avoiding Database Systems](http://arxiv.org/pdf/1402.2237.pdf),”
-    *Proceedings of the VLDB Endowment*, volume 8, number 3, pages 185–196, November 2014.
+1.  Peter Bailis, Alan Fekete, Michael J Franklin, et al.: “[Coordination-Avoiding Database Systems](http://arxiv.org/pdf/1402.2237.pdf),” *Proceedings of the VLDB Endowment*, volume 8, number 3, pages 185–196, November 2014.
 
-1.  Kyle Kingsbury:
-    “[Call Me Maybe: etcd and Consul](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul),” *aphyr.com*, June 9, 2014.
+1.  Kyle Kingsbury: “[Call Me Maybe: etcd and Consul](https://aphyr.com/posts/316-call-me-maybe-etcd-and-consul),” *aphyr.com*, June 9, 2014.
 
-1.  Flavio P. Junqueira, Benjamin C. Reed, and Marco Serafini:
-      “[Zab: High-Performance Broadcast for   Primary-Backup Systems](https://pdfs.semanticscholar.org/b02c/6b00bd5dbdbd951fddb00b906c82fa80f0b3.pdf),” at *41st IEEE International Conference on Dependable
-      Systems and Networks* (DSN), June 2011.
-      [doi:10.1109/DSN.2011.5958223](http://dx.doi.org/10.1109/DSN.2011.5958223)
+1.  Flavio P. Junqueira, Benjamin C. Reed, and Marco Serafini:  “[Zab: High-Performance Broadcast for   Primary-Backup Systems](https://pdfs.semanticscholar.org/b02c/6b00bd5dbdbd951fddb00b906c82fa80f0b3.pdf),” at *41st IEEE International Conference on Dependable Systems and Networks* (DSN), June 2011.  [doi:10.1109/DSN.2011.5958223](http://dx.doi.org/10.1109/DSN.2011.5958223)
 
-1.  Diego Ongaro and John K. Ousterhout:
-      “[In Search of an Understandable Consensus   Algorithm (Extended Version)](http://ramcloud.stanford.edu/raft.pdf),” at *USENIX Annual Technical Conference*
-      (ATC), June 2014.
+1.  Diego Ongaro and John K. Ousterhout:  “[In Search of an Understandable Consensus   Algorithm (Extended Version)](http://ramcloud.stanford.edu/raft.pdf),” at *USENIX Annual Technical Conference*  (ATC), June 2014.
 
-1.  Hagit Attiya, Amotz Bar-Noy, and Danny Dolev:
-    “[Sharing Memory Robustly in Message-Passing Systems](http://www.cse.huji.ac.il/course/2004/dist/p124-attiya.pdf),” *Journal of the ACM*, volume 42, number 1, pages 124–142, January 1995.
-    [doi:10.1145/200836.200869](http://dx.doi.org/10.1145/200836.200869)
+1.  Hagit Attiya, Amotz Bar-Noy, and Danny Dolev: “[Sharing Memory Robustly in Message-Passing Systems](http://www.cse.huji.ac.il/course/2004/dist/p124-attiya.pdf),” *Journal of the ACM*, volume 42, number 1, pages 124–142, January 1995. [doi:10.1145/200836.200869](http://dx.doi.org/10.1145/200836.200869)
 
-1.  Nancy Lynch and Alex Shvartsman:
-    “[Robust Emulation of Shared Memory Using Dynamic Quorum-Acknowledged Broadcasts](http://groups.csail.mit.edu/tds/papers/Lynch/FTCS97.pdf),” at *27th Annual International Symposium on
-    Fault-Tolerant Computing* (FTCS), June 1997.
-    [doi:10.1109/FTCS.1997.614100](http://dx.doi.org/10.1109/FTCS.1997.614100)
+1.  Nancy Lynch and Alex Shvartsman: “[Robust Emulation of Shared Memory Using Dynamic Quorum-Acknowledged Broadcasts](http://groups.csail.mit.edu/tds/papers/Lynch/FTCS97.pdf),” at *27th Annual International Symposium on Fault-Tolerant Computing* (FTCS), June 1997. [doi:10.1109/FTCS.1997.614100](http://dx.doi.org/10.1109/FTCS.1997.614100)
 
-1.  Christian Cachin, Rachid Guerraoui, and Luís Rodrigues:
-    <a href="http://www.distributedprogramming.net/">*Introduction to Reliable and Secure Distributed
-    Programming*</a>, 2nd edition. Springer, 2011. ISBN: 978-3-642-15259-7,
-    [doi:10.1007/978-3-642-15260-3](http://dx.doi.org/10.1007/978-3-642-15260-3)
+1.  Christian Cachin, Rachid Guerraoui, and Luís Rodrigues: [*Introduction to Reliable and Secure Distributed Programming*](http://www.distributedprogramming.net/), 2nd edition. Springer, 2011. ISBN: 978-3-642-15259-7, [doi:10.1007/978-3-642-15260-3](http://dx.doi.org/10.1007/978-3-642-15260-3)
 
-1.  Sam Elliott, Mark Allen, and Martin Kleppmann:
-    [personal communication](https://twitter.com/lenary/status/654761711933648896),
-    thread on *twitter.com*, October 15, 2015.
+1.  Sam Elliott, Mark Allen, and Martin Kleppmann: [personal communication](https://twitter.com/lenary/status/654761711933648896), thread on *twitter.com*, October 15, 2015.
 
-1.  Niklas Ekström, Mikhail Panchenko, and Jonathan Ellis:
-    “[Possible Issue with Read Repair?](http://mail-archives.apache.org/mod_mbox/cassandra-dev/201210.mbox/%3CFA480D1DC3964E2C8B0A14E0880094C9%40Robotech%3E),” email thread on *cassandra-dev* mailing list, October 2012.
+1.  Niklas Ekström, Mikhail Panchenko, and Jonathan Ellis: “[Possible Issue with Read Repair?](http://mail-archives.apache.org/mod_mbox/cassandra-dev/201210.mbox/%3CFA480D1DC3964E2C8B0A14E0880094C9%40Robotech%3E),” email thread on *cassandra-dev* mailing list, October 2012.
 
-1.  Maurice P. Herlihy:
-    “[Wait-Free Synchronization](https://cs.brown.edu/~mph/Herlihy91/p124-herlihy.pdf),”
-    *ACM Transactions on Programming Languages and Systems* (TOPLAS), volume 13, number 1,
-    pages 124–149, January 1991.
-    [doi:10.1145/114005.102808](http://dx.doi.org/10.1145/114005.102808)
+1.  Maurice P. Herlihy: “[Wait-Free Synchronization](https://cs.brown.edu/~mph/Herlihy91/p124-herlihy.pdf),” *ACM Transactions on Programming Languages and Systems* (TOPLAS), volume 13, number 1, pages 124–149, January 1991. [doi:10.1145/114005.102808](http://dx.doi.org/10.1145/114005.102808)
 
-1.  Armando Fox and Eric A. Brewer:
-    “[Harvest, Yield, and Scalable Tolerant Systems](http://radlab.cs.berkeley.edu/people/fox/static/pubs/pdf/c18.pdf),” at *7th Workshop on Hot Topics in Operating
-    Systems* (HotOS), March 1999.
-    [doi:10.1109/HOTOS.1999.798396](http://dx.doi.org/10.1109/HOTOS.1999.798396)
+1.  Armando Fox and Eric A. Brewer: “[Harvest, Yield, and Scalable Tolerant Systems](http://radlab.cs.berkeley.edu/people/fox/static/pubs/pdf/c18.pdf),” at *7th Workshop on Hot Topics in Operating Systems* (HotOS), March 1999. [doi:10.1109/HOTOS.1999.798396](http://dx.doi.org/10.1109/HOTOS.1999.798396)
 
-1.  Seth Gilbert and Nancy Lynch:
-    “[Brewer’s Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services](http://www.comp.nus.edu.sg/~gilbert/pubs/BrewersConjecture-SigAct.pdf),”
-    *ACM SIGACT News*, volume 33, number 2, pages 51–59, June 2002.
-    [doi:10.1145/564585.564601](http://dx.doi.org/10.1145/564585.564601)
+1.  Seth Gilbert and Nancy Lynch: “[Brewer’s Conjecture and the Feasibility of Consistent, Available, Partition-Tolerant Web Services](http://www.comp.nus.edu.sg/~gilbert/pubs/BrewersConjecture-SigAct.pdf),” *ACM SIGACT News*, volume 33, number 2, pages 51–59, June 2002. [doi:10.1145/564585.564601](http://dx.doi.org/10.1145/564585.564601)
 
-1.  Seth Gilbert and Nancy Lynch:
-    “[Perspectives on the CAP Theorem](http://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf),” *IEEE Computer Magazine*, volume 45, number 2, pages 30–36, February 2012.
-    [doi:10.1109/MC.2011.389](http://dx.doi.org/10.1109/MC.2011.389)
+1.  Seth Gilbert and Nancy Lynch: “[Perspectives on the CAP Theorem](http://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf),” *IEEE Computer Magazine*, volume 45, number 2, pages 30–36, February 2012. [doi:10.1109/MC.2011.389](http://dx.doi.org/10.1109/MC.2011.389)
 
-1.  Eric A. Brewer:
-    “[CAP Twelve Years Later: How the 'Rules' Have Changed](http://cs609.cs.ua.edu/CAP12.pdf),” *IEEE Computer Magazine*, volume 45, number 2, pages 23–29, February 2012.
-    [doi:10.1109/MC.2012.37](http://dx.doi.org/10.1109/MC.2012.37)
+1.  Eric A. Brewer: “[CAP Twelve Years Later: How the 'Rules' Have Changed](http://cs609.cs.ua.edu/CAP12.pdf),” *IEEE Computer Magazine*, volume 45, number 2, pages 23–29, February 2012. [doi:10.1109/MC.2012.37](http://dx.doi.org/10.1109/MC.2012.37)
 
 1.  Susan B. Davidson, Hector Garcia-Molina, and Dale Skeen:
     “[Consistency in Partitioned Networks](http://delab.csd.auth.gr/~dimitris/courses/mpc_fall05/papers/invalidation/acm_csur85_partitioned_network_consistency.pdf),” *ACM Computing Surveys*, volume 17, number 3, pages 341–370, September 1985.
