@@ -3,15 +3,8 @@
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 - 原书名称：[《Designing Data-Intensive Application》](http://shop.oreilly.com/product/0636920032175.do)
 - 译者：[冯若航]( http://vonng.com/about) （fengruohang@outlook.com ）
+- Gitbook地址：[ddia-cn](https://www.gitbook.com/book/vonng/ddia-cn)（需要科学上网）
 - 建议使用[Typora](https://www.typora.io)或Gitbook以获取最佳阅读体验。
-
--------------
-
-## 法律声明
-
-译者纯粹出于学习目的与个人兴趣翻译，本译文只供学习研究参考之用，不得公开传播发行或用于商业用途。有能力阅读英文书籍者请购买正版支持。
-
-译者保留对译文的署名权，其他权利以原作者和出版社的主张为准，侵删。
 
 ## 译序
 
@@ -82,9 +75,7 @@
 
 * 机翻：只在乎结构：梳理文章结构、图片、引用、备注。
 * 初翻：保证经完全理解本章内容，人工修复显著的错误，重新组织语言。
-* 精翻：阅读相关领域文献书籍，确定术语的最终译法，修复格式瑕疵，着力信达雅。
-
-通常机翻一章1个小时左右，初翻一章6小时，精翻一章三到五天。
+* 精校：阅读相关领域文献书籍，确定术语的最终译法，修复格式瑕疵，着力信达雅。
 
 精翻可以看，机翻基本没法看，初翻对于业内人士能凑合看。
 
@@ -97,9 +88,9 @@
 |         第三章：存储与检索         |   初翻   |       |
 |         第四章：编码与演化         |   初翻   |       |
 |     第二部分：分布式数据——概览     |   精翻   |       |
-|            第五章：复制            | 精翻 30% |       |
+|            第五章：复制            | 精翻 30% | Vonng |
 |            第六章：分片            |   初翻   |       |
-|            第七章：事务            | 精翻 60% |       |
+|            第七章：事务            | 精翻 60% | Vonng |
 |     第八章：分布式系统中的问题     |   初翻   |       |
 |        第九章：一致性与共识        | 初翻 30% | Vonng |
 |           第三部分：前言           |   精翻   |       |
@@ -110,17 +101,30 @@
 |                后记                |   机翻   |       |
 
 
-计划在3月25日前完成所有章节的初翻。
+计划在3月内完成所有章节的初翻。
 
 
 
 ## CONTRIBUTION
 
-欢迎贡献，初翻后的章节，接受ISSUE指正。
 
-贡献者需要同意[法律声明](#法律声明)所叙内容，翻译请提前联系以免冲突。
 
-有人建议拉个群，也许发布更新通知或者同步翻译进度吧
+欢迎贡献，初翻后的章节，接受ISSUE指正。参与翻译前请先锁定相应章节。
+
+整章的翻译、精校请使用PR，将列入署名，少量词法、语法、译法问题请使用ISSUE，将列入致谢。
+
+All contribution will give proper credit. 贡献者需要同意[法律声明](#法律声明)所叙内容。
+
+1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
+2. [第一章语法标点修正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
+
+## 法律声明
+
+译者纯粹出于学习目的与个人兴趣翻译，本译文只供学习研究参考之用，不得公开传播发行或用于商业用途。有能力阅读英文书籍者请购买正版支持。
+
+译者保留对译文的署名权，其他权利以原作者和出版社的主张为准。
+
+## 译读者交流微信群
 
 ![](img/ddia-wexin.JPG)
 
