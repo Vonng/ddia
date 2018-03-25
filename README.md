@@ -106,16 +106,13 @@
 |            第六章：分区            |   初翻   |       |
 |            第七章：事务            | 精翻 60% | Vonng |
 |     第八章：分布式系统中的问题     |   初翻   |       |
-|        第九章：一致性与共识        | 初翻 30% | Vonng |
+|        第九章：一致性与共识        | 初翻 65% | Vonng |
 |           第三部分：前言           |   精翻   |       |
-|           第十章：批处理           |   机翻   | 于鑫  |
-|          第十一章：流处理          |   机翻   | 于鑫  |
+|           第十章：批处理           |   机翻   |       |
+|          第十一章：流处理          |   机翻   |       |
 |      第十二章：数据系统的未来      |   机翻   |       |
 |               术语表               |    -     |       |
 |                后记                |   机翻   |       |
-
-
-计划在3月内完成所有章节的初翻。
 
 
 
@@ -129,7 +126,9 @@ All contribution will give proper credit. 贡献者需要同意[法律声明](#�
 
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章语法标点校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
-3. [第六章第一部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
+3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
+
+
 
 
 
