@@ -106,9 +106,9 @@
 |     第八章：分布式系统中的问题     |   初翻   |               |
 |        第九章：一致性与共识        |   初翻   |               |
 |         第三部分：衍生数据         |   精翻   |               |
-|           第十章：批处理           |   草翻   |               |
+|           第十章：批处理           |   草翻   |     Vonng     |
 |          第十一章：流处理          |   草翻   |               |
-|      第十二章：数据系统的未来      |   草翻   |               |
+|      第十二章：数据系统的未来      | 初翻 40% |     Vonng     |
 |               术语表               |    -     |               |
 |                后记                |   初翻   |               |
 
@@ -124,9 +124,12 @@ All contribution will give proper credit. 贡献者需要同意[法律声明](#�
 
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章语法标点校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
-3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
+3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第10章的翻译](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
 4. 第一部分前言，ch2校正 by @jiajiadebug
 5. 词汇表、后记关于野猪的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+
+
+
 
 
 
