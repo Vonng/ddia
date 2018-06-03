@@ -327,7 +327,7 @@
 
 ​	在[图8-3]()中，当一个写入被复制到其他节点时，它会根据发生写入的节点上的时钟时钟标记一个时间戳。在这个例子中，时钟同步是非常好的：节点1和节点3之间的偏差小于3ms，这可能比你在实践中预期的更好。
 
-​	尽管如此，[图8-3](img/fig8-3.png)中的时间戳却无法正确排列事件：写入`x = 1`的时间戳为42.004秒，但写入`x = 2`的时间戳为42.003秒，即使`x = 2`在稍后出现。当节点2接收到这两个事件时，会错误地推断出`x = 1`是最近的值，而写入`x = 2`。效果上表现为，客户端B的增量操作会丢失。
+​	尽管如此，[图8-3](img/fig8-3.png)中的时间戳却无法正确排列事件：写入`x = 1`的时间戳为42.004秒，但写入`x = 2`的时间戳为42.003秒，即使`x = 2`在稍后出现。当节点2接收到这两个事件时，会错误地推断出`x = 1`是最近的值，而丢弃写入`x = 2`。效果上表现为，客户端B的增量操作会丢失。
 
 ​	这种冲突解决策略被称为**最后写入为准（LWW）**，它在多领导者复制和无领导者数据库（如Cassandra 【53】和Riak 【54】）中被广泛使用（参见“[最后写入为准（丢弃并发写入）](#最后写入为准（丢弃并发写入）)”一节）。有些实现会在客户端而不是服务器上生成时间戳，但这并不能改变LWW的基本问题：
 
@@ -770,7 +770,6 @@ while(true){
 1.  Jay Kreps: “[A Few Notes on Kafka and Jepsen](http://blog.empathybox.com/post/62279088548/a-few-notes-on-kafka-and-jepsen),” *blog.empathybox.com*, September 25, 2013.
 1.  Thanh Do, Mingzhe Hao, Tanakorn Leesatapornwongsa, et al.: “[Limplock: Understanding the Impact of Limpware on Scale-out Cloud Systems](http://ucare.cs.uchicago.edu/pdf/socc13-limplock.pdf),” at *4th ACM Symposium on Cloud Computing* (SoCC), October 2013. [doi:10.1145/2523616.2523627](http://dx.doi.org/10.1145/2523616.2523627)
 1.  Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
-
 
 
 
