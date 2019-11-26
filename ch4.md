@@ -47,7 +47,7 @@
 
 [^i]: 除一些特殊情况外，例如某些内存映射文件或直接在压缩数据上操作（如“[列压缩](ch4.md#列压缩)”中所述）。
 
-所以，需要在两种表示之间进行某种类型的翻译。 从内存中表示到字节序列的转换称为**编码（Encoding）**（也称为**序列化（serialization）**或**编组（marshalling）**），反过来称为**解码（Decoding）**[^ii]（**解析（Parsing）**，**反序列化（deserialization）**，**反编组() unmarshalling）**）[^译i]。
+所以，需要在两种表示之间进行某种类型的翻译。 从内存中表示到字节序列的转换称为**编码（Encoding）**（也称为**序列化（serialization）**或**编组（marshalling）**），反过来称为**解码（Decoding）**[^ii]（**解析（Parsing）**，**反序列化（deserialization）**，**反编组( unmarshalling）**）[^译i]。
 
 [^ii]: 请注意，**编码（encode）**与**加密（encryption）**无关。 本书不讨论加密。
 [^译i]: Marshal与Serialization的区别：Marshal不仅传输对象的状态，而且会一起传输对象的方法（相关代码）。
