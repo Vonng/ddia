@@ -685,8 +685,8 @@ WITH RECURSIVE
     JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
 ```
 
-* 首先，查找`name`属性为`United States`的顶点，将其作为`in_use`顶点的集合的第一个元素。
-* 从`in_use`集合的顶点出发，沿着所有的`with_in`入边，将其尾顶点加入同一集合，不断递归直到所有`with_in`入边都被访问完毕。
+* 首先，查找`name`属性为`United States`的顶点，将其作为`in_usa`顶点的集合的第一个元素。
+* 从`in_usa`集合的顶点出发，沿着所有的`with_in`入边，将其尾顶点加入同一集合，不断递归直到所有`with_in`入边都被访问完毕。
 * 同理，从`name`属性为`Europe`的顶点出发，建立`in_europe`顶点的集合。
 * 对于`in_usa`集合中的每个顶点，根据`born_in`入边来查找出生在美国某个地方的人。
 * 同样，对于`in_europe`集合中的每个顶点，根据`lives_in`入边来查找居住在欧洲的人。
@@ -843,7 +843,7 @@ SPARQL是一种很好的查询语言——哪怕语义网从未实现，它仍�
 
 [^viii]: Datomic和Cascalog使用Datalog的Clojure S表达式语法。在下面的例子中使用了一个更容易阅读的Prolog语法，但两者没有任何功能差异。
 
-Datalog的数据模型类似于三元组模式，但进行了一点泛化。把三元组写成**谓语**（**主语，宾语**），而不是写三元语（**主语，宾语，宾语**）。[例2-10]()显示了如何用Datalog写入我们的例子中的数据。
+Datalog的数据模型类似于三元组模式，但进行了一点泛化。把三元组写成**谓语**（**主语，宾语**），而不是写三元语（**主语，谓语，宾语**）。[例2-10]()显示了如何用Datalog写入我们的例子中的数据。
 
 **例2-10 用Datalog来表示图2-5中的数据子集**
 
@@ -883,7 +883,7 @@ migrated(Name, BornIn, LivingIn) :- name(Person, Name), /* Rule 3 */
 
 ```
 
-Cypher和SPARQL使用SELECT立即跳转，但是Datalog一次只进行一小步。我们定义**规则**，以将新谓语告诉数据库：在这里，我们定义了两个新的谓语，`_recursive`和`migrated`。这些谓语不是存储在数据库中的三元组中，而是它们是从数据或其他规则派生而来的。规则可以引用其他规则，就像函数可以调用其他函数或者递归地调用自己一样。像这样，复杂的查询可以一次构建其中的一小块。
+Cypher和SPARQL使用SELECT立即跳转，但是Datalog一次只进行一小步。我们定义**规则**，以将新谓语告诉数据库：在这里，我们定义了两个新的谓语，`within_recursive`和`migrated`。这些谓语不是存储在数据库中的三元组中，而是它们是从数据或其他规则派生而来的。规则可以引用其他规则，就像函数可以调用其他函数或者递归地调用自己一样。像这样，复杂的查询可以一次构建其中的一小块。
 
 在规则中，以大写字母开头的单词是变量，谓语则用Cypher和SPARQL的方式一样来匹配。例如，`name(Location, Name)`通过变量绑定`Location = namerica`和`Name ='North America'`可以匹配三元组`name(namerica, 'North America')`。
 
