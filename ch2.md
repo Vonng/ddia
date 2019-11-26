@@ -685,8 +685,8 @@ WITH RECURSIVE
     JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
 ```
 
-* 首先，查找`name`属性为`United States`的顶点，将其作为`in_use`顶点的集合的第一个元素。
-* 从`in_use`集合的顶点出发，沿着所有的`with_in`入边，将其尾顶点加入同一集合，不断递归直到所有`with_in`入边都被访问完毕。
+* 首先，查找`name`属性为`United States`的顶点，将其作为`in_usa`顶点的集合的第一个元素。
+* 从`in_usa`集合的顶点出发，沿着所有的`with_in`入边，将其尾顶点加入同一集合，不断递归直到所有`with_in`入边都被访问完毕。
 * 同理，从`name`属性为`Europe`的顶点出发，建立`in_europe`顶点的集合。
 * 对于`in_usa`集合中的每个顶点，根据`born_in`入边来查找出生在美国某个地方的人。
 * 同样，对于`in_europe`集合中的每个顶点，根据`lives_in`入边来查找居住在欧洲的人。
