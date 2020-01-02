@@ -85,7 +85,7 @@
 
 ## 参考文献
 
-1.  Ulrich Drepper: “[What Every Programmer Should Know About Memory](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” akka‐dia.org, November 21, 2007.
+1.  Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
 
 2. Ben Stopford: “[Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” benstopford.com, November 24, 2009.
 

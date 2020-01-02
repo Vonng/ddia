@@ -3,8 +3,8 @@
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 - 原书名称：[《Designing Data-Intensive Application》](http://shop.oreilly.com/product/0636920032175.do)
 - 译者：[冯若航]( http://vonng.com/about) （fengruohang@outlook.com ）
-- Gitbook地址：[ddia-cn](https://www.gitbook.com/book/vonng/ddia-cn)（需要科学上网）
-- 建议使用[Typora](https://www.typora.io)或Gitbook以获取最佳阅读体验。
+- Gitbook地址：[ddia-cn](https://www.gitbook.com/book/vonng/ddia-cn)
+- 使用[Typora](https://www.typora.io)或Gitbook以获取最佳阅读体验。
 
 
 
@@ -27,15 +27,13 @@
 
 
 
-## 
-
 ## 前言
 
 > 在我们的社会中，技术是一种强大的力量。数据、软件、通信可以用于坏的方面：不公平的阶级固化，损害公民权利，保护既得利益集团。但也可以用于好的方面：让底层人民发出自己的声音，让每个人都拥有机会，避免灾难。本书献给所有将技术用于善途的人们。
 
 ---------
 
-> ​计算是一种流行文化，流行文化鄙视历史。 流行文化关乎个体身份和参与感，但与合作无关。流行文化活在当下，也与过去和未来无关。 我认为大部分（为了钱）编写代码的人就是这样的， 他们不知道自己的文化来自哪里。                         
+> 计算是一种流行文化，流行文化鄙视历史。 流行文化关乎个体身份和参与感，但与合作无关。流行文化活在当下，也与过去和未来无关。 我认为大部分（为了钱）编写代码的人就是这样的， 他们不知道自己的文化来自哪里。                         
 >
 >  ——阿兰·凯接受Dobb博士的杂志采访时（2012年）
 
@@ -92,6 +90,9 @@
 4. 第一部分前言，ch2校正 by @jiajiadebug
 5. 词汇表、后记关于野猪的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 
+https://github.com/Vonng/ddia/pulls)
+
+感谢所有作出贡献，提出意见的朋友们：[Issues](https://github.com/Vonng/ddia/issues)，[Pull Requests](https://github.com/Vonng/ddia/pulls)
 
 
 
