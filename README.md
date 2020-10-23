@@ -3,7 +3,7 @@
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 - 原书名称：[《Designing Data-Intensive Application》](http://shop.oreilly.com/product/0636920032175.do)
 - 译者：[冯若航]( http://vonng.com/about) （fengruohang@outlook.com ）
-- Gitbook地址：[ddia-cn](https://www.gitbook.com/book/vonng/ddia-cn)
+- Gitbook地址：[ddia-cn](https://vonng.gitbooks.io/ddia-cn)
 - 使用[Typora](https://www.typora.io)或Gitbook以获取最佳阅读体验。
 
 * [繁體中文版本](zh-tw/README.md)
