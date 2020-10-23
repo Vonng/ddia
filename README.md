@@ -3,9 +3,10 @@
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 - 原书名称：[《Designing Data-Intensive Application》](http://shop.oreilly.com/product/0636920032175.do)
 - 译者：[冯若航]( http://vonng.com/about) （fengruohang@outlook.com ）
-- Gitbook地址：[ddia-cn](https://www.gitbook.com/book/vonng/ddia-cn)
+- Gitbook地址：[ddia-cn](https://vonng.gitbooks.io/ddia-cn)
 - 使用[Typora](https://www.typora.io)或Gitbook以获取最佳阅读体验。
 
+* [繁體中文版本](zh-tw/README.md)
 
 
 
@@ -89,6 +90,7 @@
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第10章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
 4. 第一部分前言，ch2校正 by @jiajiadebug
 5. 词汇表、后记关于野猪的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+6. 感謝[@afunTW](https://github.com/afunTW)提供繁體中文的版本
 
 https://github.com/Vonng/ddia/pulls)
 
