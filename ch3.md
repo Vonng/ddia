@@ -193,7 +193,7 @@ $ cat database
 
 #### 用SSTables制作LSM树
 
-这里描述的算法本质上是LevelDB 【6】和RocksDB 【7】中使用的关键值存储引擎库，被设计嵌入到其他应用程序中。除此之外，LevelDB可以在Riak中用作Bitcask的替代品。在Cassandra和HBase中使用了类似的存储引擎【8】，这两种引擎都受到了Google的Bigtable论文【9】（引入了SSTable和memtable）的启发。
+这里描述的算法本质上是LevelDB 【6】和RocksDB 【7】中使用的键值存储引擎库，被设计嵌入到其他应用程序中。除此之外，LevelDB可以在Riak中用作Bitcask的替代品。在Cassandra和HBase中使用了类似的存储引擎【8】，这两种引擎都受到了Google的Bigtable文档【9】（引入了SSTable和memtable）的启发。
 
 最初这种索引结构是由Patrick O'Neil等人描述的。在日志结构合并树（或LSM树）【10】的基础上，建立在以前的工作上日志结构的文件系统【11】。基于这种合并和压缩排序文件原理的存储引擎通常被称为LSM存储引擎。
 
