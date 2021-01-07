@@ -474,8 +474,8 @@ db.observations.mapReduce(function map() {
   family: "Sharks",
   species: "Carcharodon carcharias",
   numAnimals: 3
-{
 }
+{
   observationTimestamp: Date.parse("Tue, 12 Dec 1995 16:17:18 GMT"),
   family: "Sharks",
   species:    "Carcharias taurus",
