@@ -10,7 +10,7 @@
 >
 > 无食我数
 >
-> ​				—— Kyle Kingsbury, Carly Rae Jepsen 《网络分区的危害》（2013年）
+> ​				—— Kyle Kingsbury, Carly Rae Jepsen 《网络分区的危害》（2013年）[^译著1]
 
 ---------
 
@@ -770,6 +770,10 @@ while(true){
 1.  Jay Kreps: “[A Few Notes on Kafka and Jepsen](http://blog.empathybox.com/post/62279088548/a-few-notes-on-kafka-and-jepsen),” *blog.empathybox.com*, September 25, 2013.
 1.  Thanh Do, Mingzhe Hao, Tanakorn Leesatapornwongsa, et al.: “[Limplock: Understanding the Impact of Limpware on Scale-out Cloud Systems](http://ucare.cs.uchicago.edu/pdf/socc13-limplock.pdf),” at *4th ACM Symposium on Cloud Computing* (SoCC), October 2013. [doi:10.1145/2523616.2523627](http://dx.doi.org/10.1145/2523616.2523627)
 1.  Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
+
+[^译著1]: 原诗为：Hey I just met you. The network’s laggy. But here’s my data. So store it maybe.Hey,  应改编自《Call Me Maybe》歌词：I just met you, And this is crazy, But here's my number, So call me, maybe?
+
+
 
 
 
