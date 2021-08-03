@@ -22,9 +22,7 @@ def convert(infile: str, outfile: str, cfg: str):
     """
     converter = opencc.OpenCC(cfg)
     with open(infile, "r") as inf, open(outfile, "w+") as outf:
-        data = inf.readlines()
-        data = list(map(converter.convert, data))
-        outf.writelines(data)
+        outf.write("\n".join(converter.convert(line) for line in inf))
     print(f"Convert to {outfile}")
 
 
