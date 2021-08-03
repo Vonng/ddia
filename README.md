@@ -91,7 +91,8 @@
 4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by @jiajiadebug
 5. [词汇表](glossary.md)、[后记]()关于野猪的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [@afunTW](https://github.com/afunTW)贡献的[繁體中文](https://github.com/Vonng/ddia/pulls)版本
-7. 感谢所有作出贡献，提出意见的朋友们：
+7. [对第二三四章进行了大量翻译更正润色：](https://github.com/Vonng/ddia/pull/118) by [@yingang](https://github.com/yingang)
+8. 感谢所有作出贡献，提出意见的朋友们：
    * [Issues](https://github.com/Vonng/ddia/issues) 
    * [Pull Requests](https://github.com/Vonng/ddia/pulls)
 
