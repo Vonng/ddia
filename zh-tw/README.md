@@ -4,19 +4,13 @@
 
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 
-- 原書名稱：[《Designing Data-Intensive Applications》](http://shop.oreilly.com/product/0636920032175.do)
+- 原名：[《Designing Data-Intensive Applications》](http://shop.oreilly.com/product/0636920032175.do)
 
-- 譯者：[馮若航]( http://vonng.com/about) （fengruohang@outlook.com ）
+- 譯者：[馮若航]( https://vonng.com) （rh@vonng.com ）
 
-- Gitbook地址：[ddia-cn](https://vonng.gitbooks.io/ddia-cn)
+- 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbooks.io/ddia-cn/content/)，以及[Docsify](https://docsify.js.org/#/zh-cn/)以獲取最佳閱讀體驗。
 
-- 使用[Typora](https://www.typora.io)或Gitbook以獲取最佳閱讀體驗。
-
-
-
-* [繁體中文版本](zh-tw/README.md)
-
-
+- 繁體：[繁體中文版本](zh-tw/README.md)
 
 
 

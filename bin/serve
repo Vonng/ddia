@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PROG_DIR="$(cd $(dirname $0) && pwd)"
+HOME_DIR="$(cd $(dirname ${PROG_DIR}) && pwd)"
+
+if command -v docsify; then
+    cd ${HOME_DIR} && docsify serve
+else
+    cd ${HOME_DIR} && python -m SimpleHTTPServer 3001
+    echo "open http://localhost:3001 with your browser"
+fi

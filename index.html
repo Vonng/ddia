@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8" />
+  <title>设计数据密集型应用</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="keywords" content="设计数据密集型应用"/>
+  <meta name="description" content="A magical documentation generator." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" title="vue"/>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/dark.css" title="dark" disabled/>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/buble.css" title="buble" disabled/>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/pure.css" title="pure" disabled/>
+</head>
+
+<body>
+<div id="app">Loading ...</div>
+<script>
+  // Set html "lang" attribute based on URL
+  var lang = location.hash.match(/#\/(zh-cn)\//);
+  if (lang) {
+    document.documentElement.setAttribute('lang', lang[1]);
+  }
+
+  // configuration
+  window.$docsify = {
+    name: '设计数据密集型应用',
+    repo: 'Vonng/ddia',
+    auto2top: true,
+    coverpage: true,
+    executeScript: true,
+    loadSidebar: true,
+    loadNavbar: true,
+    mergeNavbar: true,
+    relativePath: true,
+    maxLevel: 4,
+    subMaxLevel: 3,
+    alias: {
+      '/.*/_navbar.md': '/_navbar.md',
+      '/.*/_cover.md': '/_navbar.md',
+    },
+    search: {
+      maxAge: 10000,
+      paths: 'auto',
+      noData: {
+        '/': '没有结果！',
+        '/zh-tw/': '沒有結果!',
+      },
+      placeholder: {
+        '/': '搜索',
+        '/zh-tw/': '搜索',
+      },
+      pathNamespaces: ['/zh-tw']
+    },
+    plugins: [],
+  };
+</script>
+<script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-nginx.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+<script src="//cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+</body>
+</html>
