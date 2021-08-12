@@ -1,11 +1,19 @@
 #!/bin/bash
 
 PROG_DIR="$(cd $(dirname $0) && pwd)"
-HOME_DIR="$(cd $(dirname ${PROG_DIR}) && pwd)"
+DOCS_DIR="$(cd $(dirname ${PROG_DIR}) && pwd)"
+
+# node.js (docsify) > python3 (http.server) > python2 (SimpleHTTPServer)
 
 if command -v docsify; then
-    cd ${HOME_DIR} && docsify serve
+	echo "serve with docsify (click url to view in browser)"
+    cd ${DOCS_DIR} && docsify serve
+elif command -v python3; then
+    echo "serve http://localhost:3001 (python3 http.server)"
+    cd ${DOCS_DIR} && python3 -m http.server 3001
+elif command -v python2; then
+    echo "serve http://localhost:3001 (python2 SimpleHTTPServer)"
+    cd ${DOCS_DIR} && python2 -m SimpleHTTPServer 3001
 else
-    cd ${HOME_DIR} && python -m SimpleHTTPServer 3001
-    echo "open http://localhost:3001 with your browser"
+	echo "no available server"
 fi
