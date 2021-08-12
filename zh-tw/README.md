@@ -8,9 +8,11 @@
 
 - 譯者：[馮若航]( https://vonng.com) （rh@vonng.com ）
 
-- 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbooks.io/ddia-cn/content/)，以及[Docsify](https://docsify.js.org/#/zh-cn/)以獲取最佳閱讀體驗。
+- 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbooks.io/ddia-cn/content/)，[Github Pages](https://vonng.github.io/ddia)以獲取最佳閱讀體驗。
 
 - 繁體：[繁體中文版本](zh-tw/README.md)
+
+- 本地：若無合適的Markdown編輯器，您可在專案根目錄中執行`make`，並透過瀏覽器閱讀（ Powered by [Docsify](https://docsify.js.org/#/zh-cn/) ）。
 
 
 
@@ -160,9 +162,7 @@
 
 
 
-
-
-## CONTRIBUTION
+## 貢獻
 
 
 
@@ -172,462 +172,210 @@
 
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第10章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
 
-4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by @jiajiadebug
+4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 
 5. [詞彙表](glossary.md)、[後記]()關於野豬的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 
-6. [@afunTW](https://github.com/afunTW)貢獻的[繁體中文](https://github.com/Vonng/ddia/pulls)版本
+6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 
-7. [對第各章進行了大量翻譯更正潤色：](https://github.com/Vonng/ddia/pull/118) by [@yingang](https://github.com/yingang)
+7. [對第各章進行大量翻譯更正潤色](https://github.com/Vonng/ddia/pull/118) by [@yingang](https://github.com/yingang)
 
 8. 感謝所有作出貢獻，提出意見的朋友們：
-
-   * [Issues](https://github.com/Vonng/ddia/issues) 
-
-   * [Pull Requests](https://github.com/Vonng/ddia/pulls)
 
 
 
 <details>
 
-<summary>Pull Requests & Issues</summary>
+<summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
 
 
 
-| PR | USER | TITLE |
-
-| ---- | ---- | ---- |
-
-|  [2  ](https://github.com/Vonng/ddia/pull/2)  |  [@seagullbird](https://github.com/seagullbird)  |   序言初翻  |
-
-|  [5  ](https://github.com/Vonng/ddia/pull/5)  |  [@nevertiree](https://github.com/nevertiree)  |   Chapter 01語法微調  |
-
-|  [6  ](https://github.com/Vonng/ddia/pull/6)  |  [@MuAlex](https://github.com/MuAlex)  |   Ch6 change version1  |
-
-|  [7  ](https://github.com/Vonng/ddia/pull/7)  |  [@MuAlex](https://github.com/MuAlex)  |   Ch6 translation pull request  |
-
-|  [9  ](https://github.com/Vonng/ddia/pull/9)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   Preface, ch1, part-i translation minor fixes  |
-
-|  [10 ](https://github.com/Vonng/ddia/pull/10)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   ch2 20%  |
-
-|  [11 ](https://github.com/Vonng/ddia/pull/11)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   ch2 100%  |
-
-|  [12 ](https://github.com/Vonng/ddia/pull/12)  |  [@ibyte2011](https://github.com/ibyte2011)  |   修改了部分翻譯  |
-
-|  [13 ](https://github.com/Vonng/ddia/pull/13)  |  [@cg-zhou](https://github.com/cg-zhou)  |   詳細修改了後記中和印度野豬相關的描述  |
-
-|  [14 ](https://github.com/Vonng/ddia/pull/14)  |  [@cg-zhou](https://github.com/cg-zhou)  |   Translate glossary  |
-
-|  [15 ](https://github.com/Vonng/ddia/pull/15)  |  [@cg-zhou](https://github.com/cg-zhou)  |   Update translation progress  |
-
-|  [16 ](https://github.com/Vonng/ddia/pull/16)  |  [@MuAlex](https://github.com/MuAlex)  |   Master  |
-
-|  [19 ](https://github.com/Vonng/ddia/pull/19)  |  [@LHRchina](https://github.com/LHRchina)  |   修復語句小bug  |
-
-|  [20 ](https://github.com/Vonng/ddia/pull/20)  |  [@rentiansheng](https://github.com/rentiansheng)  |   Update ch7.md  |
-
-|  [21 ](https://github.com/Vonng/ddia/pull/21)  |  [@zhtisi](https://github.com/zhtisi)  |    修正目錄和本章標題不符的情況  |
-
-|  [22 ](https://github.com/Vonng/ddia/pull/22)  |  [@artiship](https://github.com/artiship)  |   糾正翻譯錯誤  |
-
-|  [23 ](https://github.com/Vonng/ddia/pull/23)  |  [@artiship](https://github.com/artiship)  |   修正錯別字  |
-
-|  [24 ](https://github.com/Vonng/ddia/pull/24)  |  [@artiship](https://github.com/artiship)  |   修改詞語順序  |
-
-|  [25 ](https://github.com/Vonng/ddia/pull/25)  |  [@lqbilbo](https://github.com/lqbilbo)  |   修復連結錯誤  |
-
-|  [26 ](https://github.com/Vonng/ddia/pull/26)  |  [@yjhmelody](https://github.com/yjhmelody)  |   修復一些明顯錯誤  |
-
-|  [31 ](https://github.com/Vonng/ddia/pull/31)  |  [@elsonLee](https://github.com/elsonLee)  |   Update ch7.md  |
-
-|  [32 ](https://github.com/Vonng/ddia/pull/32)  |  [@JCYoky](https://github.com/JCYoky)  |   Update ch2.md  |
-
-|  [33 ](https://github.com/Vonng/ddia/pull/33)  |  [@wwek](https://github.com/wwek)  |   fix part-ii.md link error  |
-
-|  [34 ](https://github.com/Vonng/ddia/pull/34)  |  [@wwek](https://github.com/wwek)  |   Merge pull request #1 from Vonng/master  |
-
-|  [35 ](https://github.com/Vonng/ddia/pull/35)  |  [@wwek](https://github.com/wwek)  |   fix ch7.md  to ch8.md  link error  |
-
-|  [36 ](https://github.com/Vonng/ddia/pull/36)  |  [@wwek](https://github.com/wwek)  |   1.修復多個連結錯誤 2.名詞最佳化修訂 3.錯誤修訂  |
-
-|  [37 ](https://github.com/Vonng/ddia/pull/37)  |  [@tankilo](https://github.com/tankilo)  |   fix translation mistakes in ch4.md   |
-
-|  [38 ](https://github.com/Vonng/ddia/pull/38)  |  [@renjie-c](https://github.com/renjie-c)  |   糾正多處的翻譯小錯誤  |
-
-|  [42 ](https://github.com/Vonng/ddia/pull/42)  |  [@tisonkun](https://github.com/tisonkun)  |   修復 ch1 中的無序列表格式  |
-
-|  [43 ](https://github.com/Vonng/ddia/pull/43)  |  [@baijinping](https://github.com/baijinping)  |   "更假簡單"->"更加簡單"  |
-
-|  [44 ](https://github.com/Vonng/ddia/pull/44)  |  [@akxxsb](https://github.com/akxxsb)  |   修正第7章底部連結錯誤  |
-
-|  [45 ](https://github.com/Vonng/ddia/pull/45)  |  [@zenuo](https://github.com/zenuo)  |   刪除一個多餘的右括號  |
-
-|  [47 ](https://github.com/Vonng/ddia/pull/47)  |  [@lzwill](https://github.com/lzwill)  |   Fixed typos in ch2  |
-
-|  [48 ](https://github.com/Vonng/ddia/pull/48)  |  [@scaugrated](https://github.com/scaugrated)  |   fix typo  |
-
-|  [49 ](https://github.com/Vonng/ddia/pull/49)  |  [@haifeiWu](https://github.com/haifeiWu)  |   Update ch1.md  |
-
-|  [50 ](https://github.com/Vonng/ddia/pull/50)  |  [@AlexZFX](https://github.com/AlexZFX)  |   幾個疏漏和格式錯誤  |
-
-|  [51 ](https://github.com/Vonng/ddia/pull/51)  |  [@latavin243](https://github.com/latavin243)  |   fix 修正ch3 ch4幾處翻譯  |
-
-|  [52 ](https://github.com/Vonng/ddia/pull/52)  |  [@hecenjie](https://github.com/hecenjie)  |   Update ch1.md  |
-
-|  [53 ](https://github.com/Vonng/ddia/pull/53)  |  [@ibyte2011](https://github.com/ibyte2011)  |   Update ch9.md  |
-
-|  [54 ](https://github.com/Vonng/ddia/pull/54)  |  [@Panmax](https://github.com/Panmax)  |   Update ch2.md  |
-
-|  [55 ](https://github.com/Vonng/ddia/pull/55)  |  [@saintube](https://github.com/saintube)  |   ch8: 修改連結錯誤  |
-
-|  [58 ](https://github.com/Vonng/ddia/pull/58)  |  [@ibyte2011](https://github.com/ibyte2011)  |   Update ch8.md  |
-
-|  [59 ](https://github.com/Vonng/ddia/pull/59)  |  [@AlexanderMisel](https://github.com/AlexanderMisel)  |   呼叫->呼叫，顯著->顯著  |
-
-|  [60 ](https://github.com/Vonng/ddia/pull/60)  |  [@Zombo1296](https://github.com/Zombo1296)  |   否則 -> 或者  |
-
-|  [61 ](https://github.com/Vonng/ddia/pull/61)  |  [@xianlaioy](https://github.com/xianlaioy)  |   docs:鍾-->種，去掉ou  |
-
-|  [62 ](https://github.com/Vonng/ddia/pull/62)  |  [@ych](https://github.com/ych)  |   fix ch1.md typesetting problem  |
-
-|  [63 ](https://github.com/Vonng/ddia/pull/63)  |  [@haifeiWu](https://github.com/haifeiWu)  |   Update ch10.md  |
-
-|  [66 ](https://github.com/Vonng/ddia/pull/66)  |  [@blindpirate](https://github.com/blindpirate)  |   Fix typo  |
-
-|  [67 ](https://github.com/Vonng/ddia/pull/67)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   fix issues in ch2 - ch9 and glossary  |
-
-|  [70 ](https://github.com/Vonng/ddia/pull/70)  |  [@2997ms](https://github.com/2997ms)  |   Update ch7.md  |
-
-|  [74 ](https://github.com/Vonng/ddia/pull/74)  |  [@2997ms](https://github.com/2997ms)  |   Update ch9.md  |
-
-|  [75 ](https://github.com/Vonng/ddia/pull/75)  |  [@2997ms](https://github.com/2997ms)  |   Fix typo  |
-
-|  [77 ](https://github.com/Vonng/ddia/pull/77)  |  [@Ozarklake](https://github.com/Ozarklake)  |   fix typo  |
-
-|  [78 ](https://github.com/Vonng/ddia/pull/78)  |  [@hanyu2](https://github.com/hanyu2)  |   Fix unappropriated translation  |
-
-|  [82 ](https://github.com/Vonng/ddia/pull/82)  |  [@kangni](https://github.com/kangni)  |   fix gitbook url  |
-
-|  [83 ](https://github.com/Vonng/ddia/pull/83)  |  [@afunTW](https://github.com/afunTW)  |   Using OpenCC to convert from zh-cn to zh-tw  |
-
-|  [84 ](https://github.com/Vonng/ddia/pull/84)  |  [@ganler](https://github.com/ganler)  |   Fix translation: use up  |
-
-|  [85 ](https://github.com/Vonng/ddia/pull/85)  |  [@sunbuhui](https://github.com/sunbuhui)  |   fix ch2.md: fix ch2 ambiguous translation  |
-
-|  [86 ](https://github.com/Vonng/ddia/pull/86)  |  [@northmorn](https://github.com/northmorn)  |   Update ch1.md  |
-
-|  [87 ](https://github.com/Vonng/ddia/pull/87)  |  [@wynn5a](https://github.com/wynn5a)  |   Update ch3.md  |
-
-|  [88 ](https://github.com/Vonng/ddia/pull/88)  |  [@kemingy](https://github.com/kemingy)  |   fix typo for ch1, ch2, ch3, ch4  |
-
-|  [92 ](https://github.com/Vonng/ddia/pull/92)  |  [@Gilbert1024](https://github.com/Gilbert1024)  |   Merge pull request #1 from Vonng/master  |
-
-|  [93 ](https://github.com/Vonng/ddia/pull/93)  |  [@kemingy](https://github.com/kemingy)  |   ch5: fix markdown and some typos  |
-
-|  [94 ](https://github.com/Vonng/ddia/pull/94)  |  [@kemingy](https://github.com/kemingy)  |   ch6: fix markdown and punctuations  |
-
-|  [95 ](https://github.com/Vonng/ddia/pull/95)  |  [@EvanMu96](https://github.com/EvanMu96)  |   fix translation of "the battle cry" in ch5  |
-
-|  [96 ](https://github.com/Vonng/ddia/pull/96)  |  [@PragmaTwice](https://github.com/PragmaTwice)  |   ch2: fix typo about 'may or may not be'  |
-
-|  [97 ](https://github.com/Vonng/ddia/pull/97)  |  [@jenac](https://github.com/jenac)  |   96  |
-
-|  [98 ](https://github.com/Vonng/ddia/pull/98)  |  [@jacklightChen](https://github.com/jacklightChen)  |   fix ch7.md: fix wrong references  |
-
-|  [99 ](https://github.com/Vonng/ddia/pull/99)  |  [@mrdrivingduck](https://github.com/mrdrivingduck)  |   ch6: fix the word rebalancing  |
-
-|  [100](https://github.com/Vonng/ddia/pull/100)  |  [@LiminCode](https://github.com/LiminCode)  |   fix missing translation  |
-
-|  [101](https://github.com/Vonng/ddia/pull/101)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   typo in Ch4: should be "改變" rathr than "蓋面"  |
-
-|  [102](https://github.com/Vonng/ddia/pull/102)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   ch4: better-translation: 扼殺 → 破壞  |
-
-|  [103](https://github.com/Vonng/ddia/pull/103)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   typo in ch4: should be 完成 rather than 完全  |
-
-|  [104](https://github.com/Vonng/ddia/pull/104)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   several advice for better translation  |
-
-|  [105](https://github.com/Vonng/ddia/pull/105)  |  [@LiminCode](https://github.com/LiminCode)  |   Chronicle translation error  |
-
-|  [106](https://github.com/Vonng/ddia/pull/106)  |  [@enochii](https://github.com/enochii)  |   typo in ch2: fix braces typo  |
-
-|  [107](https://github.com/Vonng/ddia/pull/107)  |  [@abbychau](https://github.com/abbychau)  |   單調鐘和好死還是賴活著  |
-
-|  [110](https://github.com/Vonng/ddia/pull/110)  |  [@lpxxn](https://github.com/lpxxn)  |   讀已寫入資料  |
-
-|  [112](https://github.com/Vonng/ddia/pull/112)  |  [@ibyte2011](https://github.com/ibyte2011)  |   Update ch9.md  |
-
-|  [113](https://github.com/Vonng/ddia/pull/113)  |  [@lpxxn](https://github.com/lpxxn)  |   修改語句  |
-
-|  [114](https://github.com/Vonng/ddia/pull/114)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   Update README.md: correct the book name  |
-
-|  [115](https://github.com/Vonng/ddia/pull/115)  |  [@NageNalock](https://github.com/NageNalock)  |   第七章病句修改: 重複詞語  |
-
-|  [117](https://github.com/Vonng/ddia/pull/117)  |  [@feeeei](https://github.com/feeeei)  |   統一每章的標題格式  |
-
-
-
-
-
-| ISSUE                                           | USER                                                         | Title                                                        |
+| ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 
-| [117](https://github.com/Vonng/ddia/pull/117)   | [@feeeei](https://github.com/feeeei)                         | 統一每章的標題格式                                           |
+|  [121](https://github.com/Vonng/ddia/pull/121)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 5 to chapter 8)  |
 
-| [116](https://github.com/Vonng/ddia/issues/116) | [@2841liuhai](https://github.com/2841liuhai)                 | 有 epub 版本嗎                                               |
+|  [120](https://github.com/Vonng/ddia/pull/120)  |  [@jiong-han](https://github.com/jiong-han)  |   Typo fix: 呲之以鼻 -> 嗤之以鼻  |
 
-| [115](https://github.com/Vonng/ddia/pull/115)   | [@NageNalock](https://github.com/NageNalock)                 | 第七章病句修改: 重複詞語                                     |
+|  [119](https://github.com/Vonng/ddia/pull/119)  |  [@cclauss](https://github.com/cclauss)  |   Streamline file operations in convert()  |
 
-| [114](https://github.com/Vonng/ddia/pull/114)   | [@Sunt-ing](https://github.com/Sunt-ing)                     | Update README.md: correct the book name                      |
+|  [118](https://github.com/Vonng/ddia/pull/118)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 2 and 3)  |
 
-| [113](https://github.com/Vonng/ddia/pull/113)   | [@lpxxn](https://github.com/lpxxn)                           | 修改語句                                                     |
+|  [117](https://github.com/Vonng/ddia/pull/117)  |  [@feeeei](https://github.com/feeeei)  |   統一每章的標題格式  |
 
-| [112](https://github.com/Vonng/ddia/pull/112)   | [@ibyte2011](https://github.com/ibyte2011)                   | Update ch9.md                                                |
+|  [115](https://github.com/Vonng/ddia/pull/115)  |  [@NageNalock](https://github.com/NageNalock)  |   第七章病句修改: 重複詞語  |
 
-| [111](https://github.com/Vonng/ddia/issues/111) | [@mxdljwxx](https://github.com/mxdljwxx)                     | Ddia                                                         |
+|  [114](https://github.com/Vonng/ddia/pull/114)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   Update README.md: correct the book name  |
 
-| [110](https://github.com/Vonng/ddia/pull/110)   | [@lpxxn](https://github.com/lpxxn)                           | 讀已寫入資料                                                 |
+|  [113](https://github.com/Vonng/ddia/pull/113)  |  [@lpxxn](https://github.com/lpxxn)  |   修改語句  |
 
-| [109](https://github.com/Vonng/ddia/issues/109) | [@sunyiwei24601](https://github.com/sunyiwei24601)           | 第八章的開頭引用                                             |
+|  [112](https://github.com/Vonng/ddia/pull/112)  |  [@ibyte2011](https://github.com/ibyte2011)  |   Update ch9.md  |
 
-| [108](https://github.com/Vonng/ddia/issues/108) | [@WuHanMuMu](https://github.com/WuHanMuMu)                   | 來一個pdf版本吧                                              |
+|  [110](https://github.com/Vonng/ddia/pull/110)  |  [@lpxxn](https://github.com/lpxxn)  |   讀已寫入資料  |
 
-| [107](https://github.com/Vonng/ddia/pull/107)   | [@abbychau](https://github.com/abbychau)                     | 單調鐘和好死還是賴活著                                       |
+|  [107](https://github.com/Vonng/ddia/pull/107)  |  [@abbychau](https://github.com/abbychau)  |   單調鐘和好死還是賴活著  |
 
-| [106](https://github.com/Vonng/ddia/pull/106)   | [@enochii](https://github.com/enochii)                       | typo in ch2: fix braces typo                                 |
+|  [106](https://github.com/Vonng/ddia/pull/106)  |  [@enochii](https://github.com/enochii)  |   typo in ch2: fix braces typo  |
 
-| [105](https://github.com/Vonng/ddia/pull/105)   | [@LiminCode](https://github.com/LiminCode)                   | Chronicle translation error                                  |
+|  [105](https://github.com/Vonng/ddia/pull/105)  |  [@LiminCode](https://github.com/LiminCode)  |   Chronicle translation error  |
 
-| [104](https://github.com/Vonng/ddia/pull/104)   | [@Sunt-ing](https://github.com/Sunt-ing)                     | several advice for better translation                        |
+|  [104](https://github.com/Vonng/ddia/pull/104)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   several advice for better translation  |
 
-| [103](https://github.com/Vonng/ddia/pull/103)   | [@Sunt-ing](https://github.com/Sunt-ing)                     | typo in ch4: should be 完成 rather than 完全                 |
+|  [103](https://github.com/Vonng/ddia/pull/103)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   typo in ch4: should be 完成 rather than 完全  |
 
-| [102](https://github.com/Vonng/ddia/pull/102)   | [@Sunt-ing](https://github.com/Sunt-ing)                     | ch4: better-translation: 扼殺 → 破壞                         |
+|  [102](https://github.com/Vonng/ddia/pull/102)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   ch4: better-translation: 扼殺 → 破壞  |
 
-| [101](https://github.com/Vonng/ddia/pull/101)   | [@Sunt-ing](https://github.com/Sunt-ing)                     | typo in Ch4: should be "改變" rathr than "蓋面"              |
+|  [101](https://github.com/Vonng/ddia/pull/101)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   typo in Ch4: should be "改變" rathr than "蓋面"  |
 
-| [100](https://github.com/Vonng/ddia/pull/100)   | [@LiminCode](https://github.com/LiminCode)                   | fix missing translation                                      |
+|  [100](https://github.com/Vonng/ddia/pull/100)  |  [@LiminCode](https://github.com/LiminCode)  |   fix missing translation  |
 
-| [99 ](https://github.com/Vonng/ddia/pull/99)    | [@mrdrivingduck](https://github.com/mrdrivingduck)           | ch6: fix the word rebalancing                                |
+|  [99 ](https://github.com/Vonng/ddia/pull/99)  |  [@mrdrivingduck](https://github.com/mrdrivingduck)  |   ch6: fix the word rebalancing  |
 
-| [98 ](https://github.com/Vonng/ddia/pull/98)    | [@jacklightChen](https://github.com/jacklightChen)           | fix ch7.md: fix wrong references                             |
+|  [98 ](https://github.com/Vonng/ddia/pull/98)  |  [@jacklightChen](https://github.com/jacklightChen)  |   fix ch7.md: fix wrong references  |
 
-| [97 ](https://github.com/Vonng/ddia/pull/97)    | [@jenac](https://github.com/jenac)                           | 96                                                           |
+|  [97 ](https://github.com/Vonng/ddia/pull/97)  |  [@jenac](https://github.com/jenac)  |   96  |
 
-| [96 ](https://github.com/Vonng/ddia/pull/96)    | [@PragmaTwice](https://github.com/PragmaTwice)               | ch2: fix typo about 'may or may not be'                      |
+|  [96 ](https://github.com/Vonng/ddia/pull/96)  |  [@PragmaTwice](https://github.com/PragmaTwice)  |   ch2: fix typo about 'may or may not be'  |
 
-| [95 ](https://github.com/Vonng/ddia/pull/95)    | [@EvanMu96](https://github.com/EvanMu96)                     | fix translation of "the battle cry" in ch5                   |
+|  [95 ](https://github.com/Vonng/ddia/pull/95)  |  [@EvanMu96](https://github.com/EvanMu96)  |   fix translation of "the battle cry" in ch5  |
 
-| [94 ](https://github.com/Vonng/ddia/pull/94)    | [@kemingy](https://github.com/kemingy)                       | ch6: fix markdown and punctuations                           |
+|  [94 ](https://github.com/Vonng/ddia/pull/94)  |  [@kemingy](https://github.com/kemingy)  |   ch6: fix markdown and punctuations  |
 
-| [93 ](https://github.com/Vonng/ddia/pull/93)    | [@kemingy](https://github.com/kemingy)                       | ch5: fix markdown and some typos                             |
+|  [93 ](https://github.com/Vonng/ddia/pull/93)  |  [@kemingy](https://github.com/kemingy)  |   ch5: fix markdown and some typos  |
 
-| [92 ](https://github.com/Vonng/ddia/pull/92)    | [@Gilbert1024](https://github.com/Gilbert1024)               | Merge pull request #1 from Vonng/master                      |
+|  [92 ](https://github.com/Vonng/ddia/pull/92)  |  [@Gilbert1024](https://github.com/Gilbert1024)  |   Merge pull request #1 from Vonng/master  |
 
-| [91 ](https://github.com/Vonng/ddia/issues/91)  | [@xiekeyi98](https://github.com/xiekeyi98)                   | 事務處理還是分析，語句不通順問題。                           |
+|  [88 ](https://github.com/Vonng/ddia/pull/88)  |  [@kemingy](https://github.com/kemingy)  |   fix typo for ch1, ch2, ch3, ch4  |
 
-| [90 ](https://github.com/Vonng/ddia/issues/90)  | [@q00218426](https://github.com/q00218426)                   | ch4.md 一處翻譯錯誤                                          |
+|  [87 ](https://github.com/Vonng/ddia/pull/87)  |  [@wynn5a](https://github.com/wynn5a)  |   Update ch3.md  |
 
-| [89 ](https://github.com/Vonng/ddia/issues/89)  | [@fenghaichun](https://github.com/fenghaichun)               | 建議將第一章的可擴充套件性修改為可伸縮性                         |
+|  [86 ](https://github.com/Vonng/ddia/pull/86)  |  [@northmorn](https://github.com/northmorn)  |   Update ch1.md  |
 
-| [88 ](https://github.com/Vonng/ddia/pull/88)    | [@kemingy](https://github.com/kemingy)                       | fix typo for ch1, ch2, ch3, ch4                              |
+|  [85 ](https://github.com/Vonng/ddia/pull/85)  |  [@sunbuhui](https://github.com/sunbuhui)  |   fix ch2.md: fix ch2 ambiguous translation  |
 
-| [87 ](https://github.com/Vonng/ddia/pull/87)    | [@wynn5a](https://github.com/wynn5a)                         | Update ch3.md                                                |
+|  [84 ](https://github.com/Vonng/ddia/pull/84)  |  [@ganler](https://github.com/ganler)  |   Fix translation: use up  |
 
-| [86 ](https://github.com/Vonng/ddia/pull/86)    | [@northmorn](https://github.com/northmorn)                   | Update ch1.md                                                |
+|  [83 ](https://github.com/Vonng/ddia/pull/83)  |  [@afunTW](https://github.com/afunTW)  |   Using OpenCC to convert from zh-cn to zh-tw  |
 
-| [85 ](https://github.com/Vonng/ddia/pull/85)    | [@sunbuhui](https://github.com/sunbuhui)                     | fix ch2.md: fix ch2 ambiguous translation                    |
+|  [82 ](https://github.com/Vonng/ddia/pull/82)  |  [@kangni](https://github.com/kangni)  |   fix gitbook url  |
 
-| [84 ](https://github.com/Vonng/ddia/pull/84)    | [@ganler](https://github.com/ganler)                         | Fix translation: use up                                      |
+|  [78 ](https://github.com/Vonng/ddia/pull/78)  |  [@hanyu2](https://github.com/hanyu2)  |   Fix unappropriated translation  |
 
-| [83 ](https://github.com/Vonng/ddia/pull/83)    | [@afunTW](https://github.com/afunTW)                         | Using OpenCC to convert from zh-cn to zh-tw                  |
+|  [77 ](https://github.com/Vonng/ddia/pull/77)  |  [@Ozarklake](https://github.com/Ozarklake)  |   fix typo  |
 
-| [82 ](https://github.com/Vonng/ddia/pull/82)    | [@kangni](https://github.com/kangni)                         | fix gitbook url                                              |
+|  [75 ](https://github.com/Vonng/ddia/pull/75)  |  [@2997ms](https://github.com/2997ms)  |   Fix typo  |
 
-| [81 ](https://github.com/Vonng/ddia/issues/81)  | [@atlas927](https://github.com/atlas927)                     | gitbook無法打開了                                            |
+|  [74 ](https://github.com/Vonng/ddia/pull/74)  |  [@2997ms](https://github.com/2997ms)  |   Update ch9.md  |
 
-| [80 ](https://github.com/Vonng/ddia/issues/80)  | [@l1t1](https://github.com/l1t1)                             | suggest to reduce the picture size                           |
+|  [70 ](https://github.com/Vonng/ddia/pull/70)  |  [@2997ms](https://github.com/2997ms)  |   Update ch7.md  |
 
-| [79 ](https://github.com/Vonng/ddia/issues/79)  | [@TrafalgarRicardoLu](https://github.com/TrafalgarRicardoLu) | GitHub不支援公式，能否將數學符號轉為圖片顯示                 |
+|  [67 ](https://github.com/Vonng/ddia/pull/67)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   fix issues in ch2 - ch9 and glossary  |
 
-| [78 ](https://github.com/Vonng/ddia/pull/78)    | [@hanyu2](https://github.com/hanyu2)                         | Fix unappropriated translation                               |
+|  [66 ](https://github.com/Vonng/ddia/pull/66)  |  [@blindpirate](https://github.com/blindpirate)  |   Fix typo  |
 
-| [77 ](https://github.com/Vonng/ddia/pull/77)    | [@Ozarklake](https://github.com/Ozarklake)                   | fix typo                                                     |
+|  [63 ](https://github.com/Vonng/ddia/pull/63)  |  [@haifeiWu](https://github.com/haifeiWu)  |   Update ch10.md  |
 
-| [76 ](https://github.com/Vonng/ddia/issues/76)  | [@Stephan14](https://github.com/Stephan14)                   | 圖片看不到                                                   |
+|  [62 ](https://github.com/Vonng/ddia/pull/62)  |  [@ych](https://github.com/ych)  |   fix ch1.md typesetting problem  |
 
-| [75 ](https://github.com/Vonng/ddia/pull/75)    | [@2997ms](https://github.com/2997ms)                         | Fix typo                                                     |
+|  [61 ](https://github.com/Vonng/ddia/pull/61)  |  [@xianlaioy](https://github.com/xianlaioy)  |   docs:鍾-->種，去掉ou  |
 
-| [74 ](https://github.com/Vonng/ddia/pull/74)    | [@2997ms](https://github.com/2997ms)                         | Update ch9.md                                                |
+|  [60 ](https://github.com/Vonng/ddia/pull/60)  |  [@Zombo1296](https://github.com/Zombo1296)  |   否則 -> 或者  |
 
-| [73 ](https://github.com/Vonng/ddia/issues/73)  | [@vult137](https://github.com/vult137)                       | 第四章的錯誤翻譯                                             |
+|  [59 ](https://github.com/Vonng/ddia/pull/59)  |  [@AlexanderMisel](https://github.com/AlexanderMisel)  |   呼叫->呼叫，顯著->顯著  |
 
-| [72 ](https://github.com/Vonng/ddia/issues/72)  | [@tooloudwind](https://github.com/tooloudwind)               | 疑問：原作者或出版社是否反對這裡的翻譯？                     |
+|  [58 ](https://github.com/Vonng/ddia/pull/58)  |  [@ibyte2011](https://github.com/ibyte2011)  |   Update ch8.md  |
 
-| [71 ](https://github.com/Vonng/ddia/issues/71)  | [@huiscool](https://github.com/huiscool)                     | 建議把第四章 message broker 從 '訊息掮客' 譯為 '訊息代理'    |
+|  [55 ](https://github.com/Vonng/ddia/pull/55)  |  [@saintube](https://github.com/saintube)  |   ch8: 修改連結錯誤  |
 
-| [70 ](https://github.com/Vonng/ddia/pull/70)    | [@2997ms](https://github.com/2997ms)                         | Update ch7.md                                                |
+|  [54 ](https://github.com/Vonng/ddia/pull/54)  |  [@Panmax](https://github.com/Panmax)  |   Update ch2.md  |
 
-| [69 ](https://github.com/Vonng/ddia/issues/69)  | [@NIL-zhuang](https://github.com/NIL-zhuang)                 | 錯誤的引用格式                                               |
+|  [53 ](https://github.com/Vonng/ddia/pull/53)  |  [@ibyte2011](https://github.com/ibyte2011)  |   Update ch9.md  |
 
-| [68 ](https://github.com/Vonng/ddia/issues/68)  | [@walshzhang](https://github.com/walshzhang)                 | 將 REST 的翻譯改為 表述性狀態傳遞 更為確切                   |
+|  [52 ](https://github.com/Vonng/ddia/pull/52)  |  [@hecenjie](https://github.com/hecenjie)  |   Update ch1.md  |
 
-| [67 ](https://github.com/Vonng/ddia/pull/67)    | [@jiajiadebug](https://github.com/jiajiadebug)               | fix issues in ch2 - ch9 and glossary                         |
+|  [51 ](https://github.com/Vonng/ddia/pull/51)  |  [@latavin243](https://github.com/latavin243)  |   fix 修正ch3 ch4幾處翻譯  |
 
-| [66 ](https://github.com/Vonng/ddia/pull/66)    | [@blindpirate](https://github.com/blindpirate)               | Fix typo                                                     |
+|  [50 ](https://github.com/Vonng/ddia/pull/50)  |  [@AlexZFX](https://github.com/AlexZFX)  |   幾個疏漏和格式錯誤  |
 
-| [65 ](https://github.com/Vonng/ddia/issues/65)  | [@jasonlei-chn](https://github.com/jasonlei-chn)             | MarkDown 粗字型未轉換                                        |
+|  [49 ](https://github.com/Vonng/ddia/pull/49)  |  [@haifeiWu](https://github.com/haifeiWu)  |   Update ch1.md  |
 
-| [64 ](https://github.com/Vonng/ddia/issues/64)  | [@woodpenker](https://github.com/woodpenker)                 | 第十章似乎存在翻譯錯誤--重複語句                             |
+|  [48 ](https://github.com/Vonng/ddia/pull/48)  |  [@scaugrated](https://github.com/scaugrated)  |   fix typo  |
 
-| [63 ](https://github.com/Vonng/ddia/pull/63)    | [@haifeiWu](https://github.com/haifeiWu)                     | Update ch10.md                                               |
+|  [47 ](https://github.com/Vonng/ddia/pull/47)  |  [@lzwill](https://github.com/lzwill)  |   Fixed typos in ch2  |
 
-| [62 ](https://github.com/Vonng/ddia/pull/62)    | [@ych](https://github.com/ych)                               | fix ch1.md typesetting problem                               |
+|  [45 ](https://github.com/Vonng/ddia/pull/45)  |  [@zenuo](https://github.com/zenuo)  |   刪除一個多餘的右括號  |
 
-| [61 ](https://github.com/Vonng/ddia/pull/61)    | [@xianlaioy](https://github.com/xianlaioy)                   | docs:鍾-->種，去掉ou                                         |
+|  [44 ](https://github.com/Vonng/ddia/pull/44)  |  [@akxxsb](https://github.com/akxxsb)  |   修正第7章底部連結錯誤  |
 
-| [60 ](https://github.com/Vonng/ddia/pull/60)    | [@Zombo1296](https://github.com/Zombo1296)                   | 否則 -> 或者                                                 |
+|  [43 ](https://github.com/Vonng/ddia/pull/43)  |  [@baijinping](https://github.com/baijinping)  |   "更假簡單"->"更加簡單"  |
 
-| [59 ](https://github.com/Vonng/ddia/pull/59)    | [@AlexanderMisel](https://github.com/AlexanderMisel)         | 呼叫->呼叫，顯著->顯著                                       |
+|  [42 ](https://github.com/Vonng/ddia/pull/42)  |  [@tisonkun](https://github.com/tisonkun)  |   修復 ch1 中的無序列表格式  |
 
-| [58 ](https://github.com/Vonng/ddia/pull/58)    | [@ibyte2011](https://github.com/ibyte2011)                   | Update ch8.md                                                |
+|  [38 ](https://github.com/Vonng/ddia/pull/38)  |  [@renjie-c](https://github.com/renjie-c)  |   糾正多處的翻譯小錯誤  |
 
-| [57 ](https://github.com/Vonng/ddia/issues/57)  | [@meijies](https://github.com/meijies)                       | [第二部分]分散式系統 -- 參考文獻小節中的第一個參考文獻What Every Programmer Should Know About Memory指向的連結錯誤 |
+|  [37 ](https://github.com/Vonng/ddia/pull/37)  |  [@tankilo](https://github.com/tankilo)  |   fix translation mistakes in ch4.md   |
 
-| [56 ](https://github.com/Vonng/ddia/issues/56)  | [@Amber1990Zhang](https://github.com/Amber1990Zhang)         | 生成pdf                                                      |
+|  [36 ](https://github.com/Vonng/ddia/pull/36)  |  [@wwek](https://github.com/wwek)  |   1.修復多個連結錯誤 2.名詞最佳化修訂 3.錯誤修訂  |
 
-| [55 ](https://github.com/Vonng/ddia/pull/55)    | [@saintube](https://github.com/saintube)                     | ch8: 修改連結錯誤                                            |
+|  [35 ](https://github.com/Vonng/ddia/pull/35)  |  [@wwek](https://github.com/wwek)  |   fix ch7.md  to ch8.md  link error  |
 
-| [54 ](https://github.com/Vonng/ddia/pull/54)    | [@Panmax](https://github.com/Panmax)                         | Update ch2.md                                                |
+|  [34 ](https://github.com/Vonng/ddia/pull/34)  |  [@wwek](https://github.com/wwek)  |   Merge pull request #1 from Vonng/master  |
 
-| [53 ](https://github.com/Vonng/ddia/pull/53)    | [@ibyte2011](https://github.com/ibyte2011)                   | Update ch9.md                                                |
+|  [33 ](https://github.com/Vonng/ddia/pull/33)  |  [@wwek](https://github.com/wwek)  |   fix part-ii.md link error  |
 
-| [52 ](https://github.com/Vonng/ddia/pull/52)    | [@hecenjie](https://github.com/hecenjie)                     | Update ch1.md                                                |
+|  [32 ](https://github.com/Vonng/ddia/pull/32)  |  [@JCYoky](https://github.com/JCYoky)  |   Update ch2.md  |
 
-| [51 ](https://github.com/Vonng/ddia/pull/51)    | [@latavin243](https://github.com/latavin243)                 | fix 修正ch3 ch4幾處翻譯                                      |
+|  [31 ](https://github.com/Vonng/ddia/pull/31)  |  [@elsonLee](https://github.com/elsonLee)  |   Update ch7.md  |
 
-| [50 ](https://github.com/Vonng/ddia/pull/50)    | [@AlexZFX](https://github.com/AlexZFX)                       | 幾個疏漏和格式錯誤                                           |
+|  [26 ](https://github.com/Vonng/ddia/pull/26)  |  [@yjhmelody](https://github.com/yjhmelody)  |   修復一些明顯錯誤  |
 
-| [49 ](https://github.com/Vonng/ddia/pull/49)    | [@haifeiWu](https://github.com/haifeiWu)                     | Update ch1.md                                                |
+|  [25 ](https://github.com/Vonng/ddia/pull/25)  |  [@lqbilbo](https://github.com/lqbilbo)  |   修復連結錯誤  |
 
-| [48 ](https://github.com/Vonng/ddia/pull/48)    | [@scaugrated](https://github.com/scaugrated)                 | fix typo                                                     |
+|  [24 ](https://github.com/Vonng/ddia/pull/24)  |  [@artiship](https://github.com/artiship)  |   修改詞語順序  |
 
-| [47 ](https://github.com/Vonng/ddia/pull/47)    | [@lzwill](https://github.com/lzwill)                         | Fixed typos in ch2                                           |
+|  [23 ](https://github.com/Vonng/ddia/pull/23)  |  [@artiship](https://github.com/artiship)  |   修正錯別字  |
 
-| [46 ](https://github.com/Vonng/ddia/issues/46)  | [@afredlyj](https://github.com/afredlyj)                     | 書上的圖怎麼搞下來的？                                       |
+|  [22 ](https://github.com/Vonng/ddia/pull/22)  |  [@artiship](https://github.com/artiship)  |   糾正翻譯錯誤  |
 
-| [45 ](https://github.com/Vonng/ddia/pull/45)    | [@zenuo](https://github.com/zenuo)                           | 刪除一個多餘的右括號                                         |
+|  [21 ](https://github.com/Vonng/ddia/pull/21)  |  [@zhtisi](https://github.com/zhtisi)  |    修正目錄和本章標題不符的情況  |
 
-| [44 ](https://github.com/Vonng/ddia/pull/44)    | [@akxxsb](https://github.com/akxxsb)                         | 修正第7章底部連結錯誤                                        |
+|  [20 ](https://github.com/Vonng/ddia/pull/20)  |  [@rentiansheng](https://github.com/rentiansheng)  |   Update ch7.md  |
 
-| [43 ](https://github.com/Vonng/ddia/pull/43)    | [@baijinping](https://github.com/baijinping)                 | "更假簡單"->"更加簡單"                                       |
+|  [19 ](https://github.com/Vonng/ddia/pull/19)  |  [@LHRchina](https://github.com/LHRchina)  |   修復語句小bug  |
 
-| [42 ](https://github.com/Vonng/ddia/pull/42)    | [@tisonkun](https://github.com/tisonkun)                     | 修復 ch1 中的無序列表格式                                    |
+|  [16 ](https://github.com/Vonng/ddia/pull/16)  |  [@MuAlex](https://github.com/MuAlex)  |   Master  |
 
-| [41 ](https://github.com/Vonng/ddia/issues/41)  | [@shiyiwan](https://github.com/shiyiwan)                     | 第10章到第11章的導航連結錯誤                                 |
+|  [15 ](https://github.com/Vonng/ddia/pull/15)  |  [@cg-zhou](https://github.com/cg-zhou)  |   Update translation progress  |
 
-| [40 ](https://github.com/Vonng/ddia/issues/40)  | [@renjie-c](https://github.com/renjie-c)                     | 第十一章 傳遞事件流 部分有重複內容                           |
+|  [14 ](https://github.com/Vonng/ddia/pull/14)  |  [@cg-zhou](https://github.com/cg-zhou)  |   Translate glossary  |
 
-| [39 ](https://github.com/Vonng/ddia/issues/39)  | [@lllliuliu](https://github.com/lllliuliu)                   | 第七章到第八章的導航連結錯了                                 |
+|  [13 ](https://github.com/Vonng/ddia/pull/13)  |  [@cg-zhou](https://github.com/cg-zhou)  |   詳細修改了後記中和印度野豬相關的描述  |
 
-| [38 ](https://github.com/Vonng/ddia/pull/38)    | [@renjie-c](https://github.com/renjie-c)                     | 糾正多處的翻譯小錯誤                                         |
+|  [12 ](https://github.com/Vonng/ddia/pull/12)  |  [@ibyte2011](https://github.com/ibyte2011)  |   修改了部分翻譯  |
 
-| [37 ](https://github.com/Vonng/ddia/pull/37)    | [@tankilo](https://github.com/tankilo)                       | fix translation mistakes in ch4.md                           |
+|  [11 ](https://github.com/Vonng/ddia/pull/11)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   ch2 100%  |
 
-| [36 ](https://github.com/Vonng/ddia/pull/36)    | [@wwek](https://github.com/wwek)                             | 1.修復多個連結錯誤 2.名詞最佳化修訂 3.錯誤修訂                 |
+|  [10 ](https://github.com/Vonng/ddia/pull/10)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   ch2 20%  |
 
-| [35 ](https://github.com/Vonng/ddia/pull/35)    | [@wwek](https://github.com/wwek)                             | fix ch7.md  to ch8.md  link error                            |
+|  [9  ](https://github.com/Vonng/ddia/pull/9)  |  [@jiajiadebug](https://github.com/jiajiadebug)  |   Preface, ch1, part-i translation minor fixes  |
 
-| [34 ](https://github.com/Vonng/ddia/pull/34)    | [@wwek](https://github.com/wwek)                             | Merge pull request #1 from Vonng/master                      |
+|  [7  ](https://github.com/Vonng/ddia/pull/7)  |  [@MuAlex](https://github.com/MuAlex)  |   Ch6 translation pull request  |
 
-| [33 ](https://github.com/Vonng/ddia/pull/33)    | [@wwek](https://github.com/wwek)                             | fix part-ii.md link error                                    |
+|  [6  ](https://github.com/Vonng/ddia/pull/6)  |  [@MuAlex](https://github.com/MuAlex)  |   Ch6 change version1  |
 
-| [32 ](https://github.com/Vonng/ddia/pull/32)    | [@JCYoky](https://github.com/JCYoky)                         | Update ch2.md                                                |
+|  [5  ](https://github.com/Vonng/ddia/pull/5)  |  [@nevertiree](https://github.com/nevertiree)  |   Chapter 01語法微調  |
 
-| [31 ](https://github.com/Vonng/ddia/pull/31)    | [@elsonLee](https://github.com/elsonLee)                     | Update ch7.md                                                |
-
-| [30 ](https://github.com/Vonng/ddia/issues/30)  | [@undeflife](https://github.com/undeflife)                   | 第七章可商榷的地方                                           |
-
-| [29 ](https://github.com/Vonng/ddia/issues/29)  | [@nevertiree](https://github.com/nevertiree)                 | 希望能推出Release版本                                        |
-
-| [28 ](https://github.com/Vonng/ddia/issues/28)  | [@krisjin](https://github.com/krisjin)                       | 剛剛出版的不是該翻譯的版本嗎                                 |
-
-| [27 ](https://github.com/Vonng/ddia/issues/27)  | [@lqbilbo](https://github.com/lqbilbo)                       | 每章最後的導航連結都錯了                                     |
-
-| [26 ](https://github.com/Vonng/ddia/pull/26)    | [@yjhmelody](https://github.com/yjhmelody)                   | 修復一些明顯錯誤                                             |
-
-| [25 ](https://github.com/Vonng/ddia/pull/25)    | [@lqbilbo](https://github.com/lqbilbo)                       | 修復連結錯誤                                                 |
-
-| [24 ](https://github.com/Vonng/ddia/pull/24)    | [@artiship](https://github.com/artiship)                     | 修改詞語順序                                                 |
-
-| [23 ](https://github.com/Vonng/ddia/pull/23)    | [@artiship](https://github.com/artiship)                     | 修正錯別字                                                   |
-
-| [22 ](https://github.com/Vonng/ddia/pull/22)    | [@artiship](https://github.com/artiship)                     | 糾正翻譯錯誤                                                 |
-
-| [21 ](https://github.com/Vonng/ddia/pull/21)    | [@zhtisi](https://github.com/zhtisi)                         | 修正目錄和本章標題不符的情況                                 |
-
-| [20 ](https://github.com/Vonng/ddia/pull/20)    | [@rentiansheng](https://github.com/rentiansheng)             | Update ch7.md                                                |
-
-| [19 ](https://github.com/Vonng/ddia/pull/19)    | [@LHRchina](https://github.com/LHRchina)                     | 修復語句小bug                                                |
-
-| [18 ](https://github.com/Vonng/ddia/issues/18)  | [@patricksuo](https://github.com/patricksuo)                 | 非常感謝翻譯，但是會不會有版權問題？                         |
-
-| [17 ](https://github.com/Vonng/ddia/issues/17)  | [@KevinZhangt](https://github.com/KevinZhangt)               | [建議] GitBook 增加下載功能                                  |
-
-| [16 ](https://github.com/Vonng/ddia/pull/16)    | [@MuAlex](https://github.com/MuAlex)                         | Master                                                       |
-
-| [15 ](https://github.com/Vonng/ddia/pull/15)    | [@cg-zhou](https://github.com/cg-zhou)                       | Update translation progress                                  |
-
-| [14 ](https://github.com/Vonng/ddia/pull/14)    | [@cg-zhou](https://github.com/cg-zhou)                       | Translate glossary                                           |
-
-| [13 ](https://github.com/Vonng/ddia/pull/13)    | [@cg-zhou](https://github.com/cg-zhou)                       | 詳細修改了後記中和印度野豬相關的描述                         |
-
-| [12 ](https://github.com/Vonng/ddia/pull/12)    | [@ibyte2011](https://github.com/ibyte2011)                   | 修改了部分翻譯                                               |
-
-| [11 ](https://github.com/Vonng/ddia/pull/11)    | [@jiajiadebug](https://github.com/jiajiadebug)               | ch2 100%                                                     |
-
-| [10 ](https://github.com/Vonng/ddia/pull/10)    | [@jiajiadebug](https://github.com/jiajiadebug)               | ch2 20%                                                      |
-
-| [9  ](https://github.com/Vonng/ddia/pull/9)     | [@jiajiadebug](https://github.com/jiajiadebug)               | Preface, ch1, part-i translation minor fixes                 |
-
-| [8  ](https://github.com/Vonng/ddia/issues/8)   | [@cch123](https://github.com/cch123)                         | QRCode expired                                               |
-
-| [7  ](https://github.com/Vonng/ddia/pull/7)     | [@MuAlex](https://github.com/MuAlex)                         | Ch6 translation pull request                                 |
-
-| [6  ](https://github.com/Vonng/ddia/pull/6)     | [@MuAlex](https://github.com/MuAlex)                         | Ch6 change version1                                          |
-
-| [5  ](https://github.com/Vonng/ddia/pull/5)     | [@nevertiree](https://github.com/nevertiree)                 | Chapter 01語法微調                                           |
-
-| [4  ](https://github.com/Vonng/ddia/issues/4)   | [@nevertiree](https://github.com/nevertiree)                 | GitBook                                                      |
-
-| [3  ](https://github.com/Vonng/ddia/issues/3)   | [@mawenqi](https://github.com/mawenqi)                       | 表3-1標題行的OLTP和OLAP位置反了                              |
-
-| [2  ](https://github.com/Vonng/ddia/pull/2)     | [@seagullbird](https://github.com/seagullbird)               | 序言初翻                                                     |
-
-| [1  ](https://github.com/Vonng/ddia/issues/1)   | [@smallyard](https://github.com/smallyard)                   | 加油，期待你的完成                                           |
-
-
+|  [2  ](https://github.com/Vonng/ddia/pull/2)  |  [@seagullbird](https://github.com/seagullbird)  |   序言初翻  |
 
 </details>
 
 
 
-## Known Issues
 
 
-
-* 第二章至第四章未進行系統的精翻，因此留有不少機翻痕跡，望讀者見諒。
-
-
-
-
-
-
-
-## LICENSE
+## 協議
 
 
 
 [CC-BY 4.0](LICENSE)
-
-

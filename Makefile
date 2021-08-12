@@ -1,12 +1,12 @@
 
-default: serve
+default: doc
 
 # serve document with docsify (or python)
-serve:
-	bin/serve
+doc:
+	bin/doc
 
 # generate zh-tw version
 translate:
 	bin/zh-tw.py
 
-.PHONY: default serve translate
+.PHONY: default doc translate

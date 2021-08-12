@@ -1,5 +1,15 @@
 #!/bin/bash
 
+#==============================================================#
+# File      :   doc
+# Ctime     :   2021-08-10
+# Mtime     :   2021-08-12
+# Desc      :   Serve local doc with docsify, python3, python
+# Path      :   bin/doc
+# Deps      :   docsify or python3 or python2
+# Copyright (C) 2018-2021 Ruohang Feng
+#==============================================================#
+
 PROG_DIR="$(cd $(dirname $0) && pwd)"
 DOCS_DIR="$(cd $(dirname ${PROG_DIR}) && pwd)"
 
