@@ -15,7 +15,7 @@
 
 [^i]: 正如本章所讨论的，分区是一种有意将大型数据库分解成小型数据库的方式。它与 **网络分区（network partitions, netsplits）** 无关，这是节点之间网络故障的一种。我们将在[第8章](ch8.md)讨论这些错误。
 
-> ##### 术语澄清
+> #### 术语澄清
 >
 > ​	上文中的**分区(partition)**，在MongoDB，Elasticsearch和Solr Cloud中被称为**分片(shard)**，在HBase中称之为**区域(Region)**，Bigtable中则是 **表块（tablet）**，Cassandra和Riak中是**虚节点（vnode)**，Couchbase中叫做**虚桶(vBucket)**。但是**分区(partitioning)** 是最约定俗成的叫法。
 >
