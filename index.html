@@ -17,7 +17,7 @@
 <div id="app">Loading ...</div>
 <script>
   // Set html "lang" attribute based on URL
-  var lang = location.hash.match(/#\/(zh-cn)\//);
+  var lang = location.hash.match(/#\/(zh-tw)\//);
   if (lang) {
     document.documentElement.setAttribute('lang', lang[1]);
   }
@@ -51,8 +51,7 @@
         '/zh-tw/': '搜索',
       },
       pathNamespaces: ['/zh-tw']
-    },
-    plugins: [],
+    }
   };
 </script>
 <script src="//cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
