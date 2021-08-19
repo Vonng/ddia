@@ -1,4 +1,4 @@
-# 設計資料密集型應用 - 中文翻譯 
+# 設計資料密集型應用 - 中文翻譯
 
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 - 原名：[《Designing Data-Intensive Applications》](http://shop.oreilly.com/product/0636920032175.do)
@@ -8,7 +8,7 @@
 
 
 > 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbooks.io/ddia-cn/content/)，[Github Pages](https://vonng.github.io/ddia)以獲取最佳閱讀體驗。
-> 
+>
 > 本地：您可在專案根目錄中執行`make`，並透過瀏覽器閱讀（[線上預覽](http://ddia.vonng.com/#/)）。
 
 ## 譯序
@@ -35,7 +35,7 @@
 
 ---------
 
-> 計算是一種流行文化，流行文化鄙視歷史。 流行文化關乎個體身份和參與感，但與合作無關。流行文化活在當下，也與過去和未來無關。 我認為大部分（為了錢）編寫程式碼的人就是這樣的， 他們不知道自己的文化來自哪裡。                         
+> 計算是一種流行文化，流行文化鄙視歷史。 流行文化關乎個體身份和參與感，但與合作無關。流行文化活在當下，也與過去和未來無關。 我認為大部分（為了錢）編寫程式碼的人就是這樣的， 他們不知道自己的文化來自哪裡。
 >
 >  ——阿蘭·凱接受Dobb博士的雜誌採訪時（2012年）
 
@@ -141,7 +141,7 @@
 0. 全文校訂 by [@yingang](https://github.com/yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
-3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第10章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
+3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第10章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 5. [詞彙表](glossary.md)、[後記]()關於野豬的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
