@@ -141,7 +141,7 @@
 0. 全文校訂 by [@yingang](https://github.com/yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
-3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第10章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
+3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by @[MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 5. [詞彙表](glossary.md)、[後記]()關於野豬的部分 by @[Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
@@ -209,7 +209,7 @@
 |  [48 ](https://github.com/Vonng/ddia/pull/48)  |  [@scaugrated](https://github.com/scaugrated)  |   fix typo  |
 |  [47 ](https://github.com/Vonng/ddia/pull/47)  |  [@lzwill](https://github.com/lzwill)  |   Fixed typos in ch2  |
 |  [45 ](https://github.com/Vonng/ddia/pull/45)  |  [@zenuo](https://github.com/zenuo)  |   刪除一個多餘的右括號  |
-|  [44 ](https://github.com/Vonng/ddia/pull/44)  |  [@akxxsb](https://github.com/akxxsb)  |   修正第7章底部連結錯誤  |
+|  [44 ](https://github.com/Vonng/ddia/pull/44)  |  [@akxxsb](https://github.com/akxxsb)  |   修正第七章底部連結錯誤  |
 |  [43 ](https://github.com/Vonng/ddia/pull/43)  |  [@baijinping](https://github.com/baijinping)  |   "更假簡單"->"更加簡單"  |
 |  [42 ](https://github.com/Vonng/ddia/pull/42)  |  [@tisonkun](https://github.com/tisonkun)  |   修復 ch1 中的無序列表格式  |
 |  [38 ](https://github.com/Vonng/ddia/pull/38)  |  [@renjie-c](https://github.com/renjie-c)  |   糾正多處的翻譯小錯誤  |
