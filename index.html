@@ -36,7 +36,6 @@
     maxLevel: 4,
     subMaxLevel: 3,
     alias: {
-      '/.*/_navbar.md': '/_navbar.md',
       '/.*/_cover.md': '/_navbar.md',
     },
     search: {
@@ -45,12 +44,14 @@
       noData: {
         '/': '没有结果！',
         '/zh-tw/': '沒有結果!',
+        '/en-us/': 'No Results',
       },
       placeholder: {
         '/': '搜索',
         '/zh-tw/': '搜索',
+        '/en-us/': 'Search',
       },
-      pathNamespaces: ['/zh-tw']
+      pathNamespaces: ['/zh-tw', '/en-us']
     }
   };
 </script>
