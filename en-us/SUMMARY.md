@@ -1,0 +1,21 @@
+# Summary
+
+* [Preface](preface.md)
+* [Part I: Foundations of Data Systems](part-i.md)
+  - [1. Reliable, Scalable, and Maintainable Applications](ch1.md)
+  - [2. Data Models and Query Languages](ch2.md)
+  - [3. Storage and Retrieval](ch3.md)
+  - [4. Encoding and Evolution](ch4.md)
+* [Part II: Distributed Data](part-ii.md)
+  - [5. Replication](ch5.md)
+  - [6. Partitioning](ch6.md)
+  - [7. Transactions](ch7.md)
+  - [8. The Trouble with Distributed Systems](ch8.md)
+  - [9. Consistency and Consensus](ch9.md)
+* [Part III: Derived Data](part-iii.md)
+  - [10. Batch Processing](ch10.md)
+  - [11. Stream Processing](ch11.md)
+  - [12. The Future of Data Systems](ch12.md)
+* [Glossary](glossary.md)
+* [Colophon](colophon.md)
+
