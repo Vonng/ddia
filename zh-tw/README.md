@@ -152,11 +152,16 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [129](https://github.com/Vonng/ddia/pull/129)  |  [@anaer](https://github.com/anaer)  |   ch4: 修正兩處強調文字和四處程式碼變數名稱  |
+|  [128](https://github.com/Vonng/ddia/pull/128)  |  [@meilin96](https://github.com/meilin96)  |   ch5: 修正一處錯誤的引用  |
+|  [126](https://github.com/Vonng/ddia/pull/126)  |  [@cwr31](https://github.com/cwr31)  |   ch10: 修正一處錯誤的翻譯（功能 -> 函式）  |
+|  [125](https://github.com/Vonng/ddia/pull/125)  |  [@dch1228](https://github.com/dch1228)  |   ch2: 最佳化 how best 的翻譯（如何以最佳方式）  |
+|  [124](https://github.com/Vonng/ddia/pull/124)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 10)  |
 |  [123](https://github.com/Vonng/ddia/pull/123)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 9, TOC in readme, glossary, etc.)  |
 |  [121](https://github.com/Vonng/ddia/pull/121)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 5 to chapter 8)  |
 |  [120](https://github.com/Vonng/ddia/pull/120)  |  [@jiong-han](https://github.com/jiong-han)  |   Typo fix: 呲之以鼻 -> 嗤之以鼻  |
 |  [119](https://github.com/Vonng/ddia/pull/119)  |  [@cclauss](https://github.com/cclauss)  |   Streamline file operations in convert()  |
-|  [118](https://github.com/Vonng/ddia/pull/118)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 2 and 4)  |
+|  [118](https://github.com/Vonng/ddia/pull/118)  |  [@yingang](https://github.com/yingang)  |   translation updates (chapter 2 to chapter 4)  |
 |  [117](https://github.com/Vonng/ddia/pull/117)  |  [@feeeei](https://github.com/feeeei)  |   統一每章的標題格式  |
 |  [115](https://github.com/Vonng/ddia/pull/115)  |  [@NageNalock](https://github.com/NageNalock)  |   第七章病句修改: 重複詞語  |
 |  [114](https://github.com/Vonng/ddia/pull/114)  |  [@Sunt-ing](https://github.com/Sunt-ing)  |   Update README.md: correct the book name  |
