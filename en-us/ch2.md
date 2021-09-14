@@ -161,10 +161,3 @@ We have to leave it there for now. In the next chapter we will discuss some of t
 
 1.  Fons Rademakers:   “[ROOT   for Big Data Analysis](http://indico.cern.ch/getFile.py/access?contribId=13&resId=0&materialId=slides&confId=246453),” at *Workshop on the Future of Big Data Management*,
       London, UK, June 2013.
-
-------
-
-| 上一章                                       | 目录                            | 下一章                       |
-| -------------------------------------------- | ------------------------------- | ---------------------------- |
-| [第一章：可靠性、可伸缩性、可维护性](ch1.md) | [设计数据密集型应用](README.md) | [第三章：存储与检索](ch3.md) |
-
