@@ -152,6 +152,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [132](https://github.com/Vonng/ddia/pull/132)  |  [@fuxuemingzhu](https://github.com/fuxuemingzhu)  |   ch3: 最佳化一處容易產生歧義的翻譯  |
+|  [131](https://github.com/Vonng/ddia/pull/131)  |  [@rwwg4](https://github.com/rwwg4)  |   ch6: 修正兩處錯誤的翻譯  |
 |  [129](https://github.com/Vonng/ddia/pull/129)  |  [@anaer](https://github.com/anaer)  |   ch4: 修正兩處強調文字和四處程式碼變數名稱  |
 |  [128](https://github.com/Vonng/ddia/pull/128)  |  [@meilin96](https://github.com/meilin96)  |   ch5: 修正一處錯誤的引用  |
 |  [126](https://github.com/Vonng/ddia/pull/126)  |  [@cwr31](https://github.com/cwr31)  |   ch10: 修正一處錯誤的翻譯（功能 -> 函式）  |
