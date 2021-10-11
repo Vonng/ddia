@@ -152,6 +152,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [134](https://github.com/Vonng/ddia/pull/134)  |  [@fuxuemingzhu](https://github.com/fuxuemingzhu)  |   ch4: 优化多处不通顺的或错误的翻译  |
 |  [133](https://github.com/Vonng/ddia/pull/133)  |  [@fuxuemingzhu](https://github.com/fuxuemingzhu)  |   ch3: 优化多处错误的或不通顺的翻译  |
 |  [132](https://github.com/Vonng/ddia/pull/132)  |  [@fuxuemingzhu](https://github.com/fuxuemingzhu)  |   ch3: 优化一处容易产生歧义的翻译  |
 |  [131](https://github.com/Vonng/ddia/pull/131)  |  [@rwwg4](https://github.com/rwwg4)  |   ch6: 修正两处错误的翻译  |
