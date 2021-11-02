@@ -152,6 +152,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [140](https://github.com/Vonng/ddia/pull/140)  |  [@Bowser1704](https://github.com/Bowser1704)  |   ch5: 修正章节Summary中多处不通顺的的翻译  |
 |  [139](https://github.com/Vonng/ddia/pull/139)  |  [@Bowser1704](https://github.com/Bowser1704)  |   ch2&ch3: 修正多处不通顺的或错误的翻译  |
 |  [137](https://github.com/Vonng/ddia/pull/137)  |  [@fuxuemingzhu](https://github.com/fuxuemingzhu)  |   ch5&ch6: 优化多处不通顺的或错误的翻译  |
 |  [134](https://github.com/Vonng/ddia/pull/134)  |  [@fuxuemingzhu](https://github.com/fuxuemingzhu)  |   ch4: 优化多处不通顺的或错误的翻译  |
