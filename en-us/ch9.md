@@ -41,27 +41,27 @@ We saw that achieving consensus means deciding something in such a way that all 
 
 ***Linearizable compare-and-set registers***
 
-​	The register needs to atomically *decide* whether to set its value, based on whether its current value equals the parameter given in the operation.
+The register needs to atomically *decide* whether to set its value, based on whether its current value equals the parameter given in the operation.
 
 ***Atomic transaction commit***
 
-​	A database must *decide* whether to commit or abort a distributed transaction.
+A database must *decide* whether to commit or abort a distributed transaction.
 
 ***Total order broadcast***
 
-​	The messaging system must *decide* on the order in which to deliver messages.
+The messaging system must *decide* on the order in which to deliver messages.
 
 ***Locks and leases***
 
-​	When several clients are racing to grab a lock or lease, the lock *decides* which one successfully acquired it.
+When several clients are racing to grab a lock or lease, the lock *decides* which one successfully acquired it.
 
 ***Membership/coordination service***
 
-​	Given a failure detector (e.g., timeouts), the system must *decide* which nodes are alive, and which should be considered dead because their sessions timed out.
+Given a failure detector (e.g., timeouts), the system must *decide* which nodes are alive, and which should be considered dead because their sessions timed out.
 
 ***Uniqueness constraint***
 
-​	When several transactions concurrently try to create conflicting records with the same key, the constraint must *decide* which one to allow and which should fail with a constraint violation.
+When several transactions concurrently try to create conflicting records with the same key, the constraint must *decide* which one to allow and which should fail with a constraint violation.
 
 
 
