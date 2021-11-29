@@ -9,7 +9,7 @@
 
 > 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbooks.io/ddia-cn/content/)，[Github Pages](https://vonng.github.io/ddia)以获取最佳阅读体验。
 > 
-> 本地：您可在项目根目录中执行`make`，并通过浏览器阅读（[在线预览](http://ddia.vonng.com/#/)）。
+> 本地：你可在项目根目录中执行`make`，并通过浏览器阅读（[在线预览](http://ddia.vonng.com/#/)）。
 
 ## 译序
 

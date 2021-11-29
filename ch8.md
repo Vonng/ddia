@@ -35,7 +35,7 @@
 
 单个计算机上的软件没有根本性的不可靠原因：当硬件正常工作时，相同的操作总是产生相同的结果（这是确定性的）。如果存在硬件问题（例如，内存损坏或连接器松动），其后果通常是整个系统故障（例如，内核恐慌，“蓝屏死机”，启动失败）。装有良好软件的个人计算机通常要么功能完好，要么完全失效，而不是介于两者之间。
 
-这是计算机设计中的一个有意的选择：如果发生内部错误，我们宁愿电脑完全崩溃，而不是返回错误的结果，因为错误的结果很难处理。因为计算机隐藏了模糊不清的物理实现，并呈现出一个理想化的系统模型，并以数学一样的完美的方式运作。 CPU指令总是做同样的事情；如果您将一些数据写入内存或磁盘，那么这些数据将保持不变，并且不会被随机破坏。从第一台数字计算机开始，*始终正确地计算*这个设计目标贯穿始终【3】。
+这是计算机设计中的一个有意的选择：如果发生内部错误，我们宁愿电脑完全崩溃，而不是返回错误的结果，因为错误的结果很难处理。因为计算机隐藏了模糊不清的物理实现，并呈现出一个理想化的系统模型，并以数学一样的完美的方式运作。 CPU指令总是做同样的事情；如果你将一些数据写入内存或磁盘，那么这些数据将保持不变，并且不会被随机破坏。从第一台数字计算机开始，*始终正确地计算*这个设计目标贯穿始终【3】。
 
 当你编写运行在多台计算机上的软件时，情况有本质上的区别。在分布式系统中，我们不再处于理想化的系统模型中，我们别无选择，只能面对现实世界的混乱现实。而在现实世界中，各种各样的事情都可能会出现问题【4】，如下面的轶事所述：
 
@@ -73,13 +73,13 @@
 
 如果要使分布式系统工作，就必须接受部分故障的可能性，并在软件中建立容错机制。换句话说，我们需要从不可靠的组件构建一个可靠的系统。 （正如“[可靠性](ch1.md#可靠性)”中所讨论的那样，没有完美的可靠性，所以我们需要理解我们可以实际承诺的极限。）
 
-即使在只有少数节点的小型系统中，考虑部分故障也是很重要的。在一个小系统中，很可能大部分组件在大部分时间都正常工作。然而，迟早会有一部分系统出现故障，软件必须以某种方式处理。故障处理必须是软件设计的一部分，并且作为软件的运维，您需要知道在发生故障的情况下，软件可能会表现出怎样的行为。
+即使在只有少数节点的小型系统中，考虑部分故障也是很重要的。在一个小系统中，很可能大部分组件在大部分时间都正常工作。然而，迟早会有一部分系统出现故障，软件必须以某种方式处理。故障处理必须是软件设计的一部分，并且作为软件的运维，你需要知道在发生故障的情况下，软件可能会表现出怎样的行为。
 
 简单地假设缺陷很罕见并希望始终保持最好的状况是不明智的。考虑一系列可能的错误（甚至是不太可能的错误），并在测试环境中人为地创建这些情况来查看会发生什么是非常重要的。在分布式系统中，怀疑，悲观和偏执狂是值得的。
 
 > #### 从不可靠的组件构建可靠的系统
 >
-> 您可能想知道这是否有意义——直观地看来，系统只能像其最不可靠的组件（最薄弱的环节）一样可靠。事实并非如此：事实上，从不太可靠的潜在基础构建更可靠的系统是计算机领域的一个古老思想【11】。例如：
+> 你可能想知道这是否有意义——直观地看来，系统只能像其最不可靠的组件（最薄弱的环节）一样可靠。事实并非如此：事实上，从不太可靠的潜在基础构建更可靠的系统是计算机领域的一个古老思想【11】。例如：
 >
 > * 纠错码允许数字数据在通信信道上准确传输，偶尔会出现一些错误，例如由于无线网络上的无线电干扰【12】。
 > * **互联网协议（Internet Protocol, IP）** 不可靠：可能丢弃，延迟，重复或重排数据包。 传输控制协议（Transmission Control Protocol, TCP）在互联网协议（IP）之上提供了更可靠的传输层：它确保丢失的数据包被重新传输，消除重复，并且数据包被重新组装成它们被发送的顺序。
@@ -96,7 +96,7 @@
 
 **无共享**并不是构建系统的唯一方式，但它已经成为构建互联网服务的主要方式，其原因如下：相对便宜，因为它不需要特殊的硬件，可以利用商品化的云计算服务，通过跨多个地理分布的数据中心进行冗余可以实现高可靠性。
 
-互联网和数据中心（通常是以太网）中的大多数内部网络都是**异步分组网络（asynchronous packet networks）**。在这种网络中，一个节点可以向另一个节点发送一个消息（一个数据包），但是网络不能保证它什么时候到达，或者是否到达。如果您发送请求并期待响应，则很多事情可能会出错（其中一些如[图8-1](img/fig8-1.png)所示）：
+互联网和数据中心（通常是以太网）中的大多数内部网络都是**异步分组网络（asynchronous packet networks）**。在这种网络中，一个节点可以向另一个节点发送一个消息（一个数据包），但是网络不能保证它什么时候到达，或者是否到达。如果你发送请求并期待响应，则很多事情可能会出错（其中一些如[图8-1](img/fig8-1.png)所示）：
 
 1. 请求可能已经丢失（可能有人拔掉了网线）。
 2. 请求可能正在排队，稍后将交付（也许网络或接收方过载）。
@@ -109,7 +109,7 @@
 
 **图8-1 如果发送请求并没有得到响应，则无法区分（a）请求是否丢失，（b）远程节点是否关闭，或（c）响应是否丢失。**
 
-发送者甚至不能分辨数据包是否被发送：唯一的选择是让接收者发送响应消息，这可能会丢失或延迟。这些问题在异步网络中难以区分：您所拥有的唯一信息是，您尚未收到响应。如果您向另一个节点发送请求并且没有收到响应，则不可能判断是什么原因。
+发送者甚至不能分辨数据包是否被发送：唯一的选择是让接收者发送响应消息，这可能会丢失或延迟。这些问题在异步网络中难以区分：你所拥有的唯一信息是，你尚未收到响应。如果你向另一个节点发送请求并且没有收到响应，则不可能判断是什么原因。
 
 处理这个问题的通常方法是**超时（Timeout）**：在一段时间之后放弃等待，并且认为响应不会到达。但是，当发生超时时，你仍然不知道远程节点是否收到了请求（如果请求仍然在某个地方排队，那么即使发送者已经放弃了该请求，仍然可能会将其发送给接收者）。
 
@@ -117,7 +117,7 @@
 
 我们几十年来一直在建设计算机网络——有人可能希望现在我们已经找出了使网络变得可靠的方法。但是现在似乎还没有成功。
 
-有一些系统的研究和大量的轶事证据表明，即使在像一家公司运营的数据中心那样的受控环境中，网络问题也可能出乎意料地普遍。在一家中型数据中心进行的一项研究发现，每个月大约有12个网络故障，其中一半断开一台机器，一半断开整个机架【15】。另一项研究测量了架顶式交换机，汇聚交换机和负载平衡器等组件的故障率【16】。它发现添加冗余网络设备不会像您所希望的那样减少故障，因为它不能防范人为错误（例如，错误配置的交换机），这是造成中断的主要原因。
+有一些系统的研究和大量的轶事证据表明，即使在像一家公司运营的数据中心那样的受控环境中，网络问题也可能出乎意料地普遍。在一家中型数据中心进行的一项研究发现，每个月大约有12个网络故障，其中一半断开一台机器，一半断开整个机架【15】。另一项研究测量了架顶式交换机，汇聚交换机和负载平衡器等组件的故障率【16】。它发现添加冗余网络设备不会像你所希望的那样减少故障，因为它不能防范人为错误（例如，错误配置的交换机），这是造成中断的主要原因。
 
 诸如EC2之类的公有云服务因频繁的暂态网络故障而臭名昭着【14】，管理良好的私有数据中心网络可能是更稳定的环境。尽管如此，没有人不受网络问题的困扰：例如，交换机软件升级过程中的一个问题可能会引发网络拓扑重构，在此期间网络数据包可能会延迟超过一分钟【17】。鲨鱼可能咬住海底电缆并损坏它们 【18】。其他令人惊讶的故障包括网络接口有时会丢弃所有入站数据包，但是成功发送出站数据包 【19】：仅仅因为网络链接在一个方向上工作，并不能保证它也在相反的方向工作。
 
@@ -129,7 +129,7 @@
 
 如果网络故障的错误处理没有定义与测试，武断地讲，各种错误可能都会发生：例如，即使网络恢复【20】，集群可能会发生**死锁**，永久无法为请求提供服务，甚至可能会删除所有的数据【21】。如果软件被置于意料之外的情况下，它可能会做出出乎意料的事情。
 
-处理网络故障并不意味着容忍它们：如果你的网络通常是相当可靠的，一个有效的方法可能是当你的网络遇到问题时，简单地向用户显示一条错误信息。但是，您确实需要知道您的软件如何应对网络问题，并确保系统能够从中恢复。有意识地触发网络问题并测试系统响应（这是Chaos Monkey背后的想法；请参阅“[可靠性](ch1.md#可靠性)”）。
+处理网络故障并不意味着容忍它们：如果你的网络通常是相当可靠的，一个有效的方法可能是当你的网络遇到问题时，简单地向用户显示一条错误信息。但是，你确实需要知道你的软件如何应对网络问题，并确保系统能够从中恢复。有意识地触发网络问题并测试系统响应（这是Chaos Monkey背后的想法；请参阅“[可靠性](ch1.md#可靠性)”）。
 
 ### 检测故障
 
@@ -138,16 +138,16 @@
 * 负载平衡器需要停止向已死亡的节点转发请求（即从**移出轮询列表（out of rotation）**）。
 * 在单主复制功能的分布式数据库中，如果主库失效，则需要将从库之一升级为新主库（请参阅“[处理节点宕机](ch5.md#处理节点宕机)”）。
 
-不幸的是，网络的不确定性使得很难判断一个节点是否工作。在某些特定的情况下，您可能会收到一些反馈信息，明确告诉您某些事情没有成功：
+不幸的是，网络的不确定性使得很难判断一个节点是否工作。在某些特定的情况下，你可能会收到一些反馈信息，明确告诉你某些事情没有成功：
 
 * 如果你可以连接到运行节点的机器，但没有进程正在侦听目标端口（例如，因为进程崩溃），操作系统将通过发送FIN或RST来关闭并重用TCP连接。但是，如果节点在处理请求时发生崩溃，则无法知道远程节点实际处理了多少数据【22】。
 * 如果节点进程崩溃（或被管理员杀死），但节点的操作系统仍在运行，则脚本可以通知其他节点有关该崩溃的信息，以便另一个节点可以快速接管，而无需等待超时到期。例如，HBase就是这么做的【23】。
-* 如果您有权访问数据中心网络交换机的管理界面，则可以通过它们检测硬件级别的链路故障（例如，远程机器是否关闭电源）。如果您通过互联网连接，或者如果您处于共享数据中心而无法访问交换机，或者由于网络问题而无法访问管理界面，则排除此选项。
-* 如果路由器确认您尝试连接的IP地址不可用，则可能会使用ICMP目标不可达数据包回复您。但是，路由器不具备神奇的故障检测能力——它受到与网络其他参与者相同的限制。
+* 如果你有权访问数据中心网络交换机的管理界面，则可以通过它们检测硬件级别的链路故障（例如，远程机器是否关闭电源）。如果你通过互联网连接，或者如果你处于共享数据中心而无法访问交换机，或者由于网络问题而无法访问管理界面，则排除此选项。
+* 如果路由器确认你尝试连接的IP地址不可用，则可能会使用ICMP目标不可达数据包回复你。但是，路由器不具备神奇的故障检测能力——它受到与网络其他参与者相同的限制。
 
 关于远程节点关闭的快速反馈很有用，但是你不能指望它。即使TCP确认已经传送了一个数据包，应用程序在处理之前可能已经崩溃。如果你想确保一个请求是成功的，你需要应用程序本身的正确响应【24】。
 
-相反，如果出了什么问题，你可能会在堆栈的某个层次上得到一个错误响应，但总的来说，你必须假设你可能根本就得不到任何回应。您可以重试几次（TCP重试是透明的，但是您也可以在应用程序级别重试），等待超时过期，并且如果在超时时间内没有收到响应，则最终声明节点已经死亡。
+相反，如果出了什么问题，你可能会在堆栈的某个层次上得到一个错误响应，但总的来说，你必须假设你可能根本就得不到任何回应。你可以重试几次（TCP重试是透明的，但是你也可以在应用程序级别重试），等待超时过期，并且如果在超时时间内没有收到响应，则最终声明节点已经死亡。
 
 ### 超时与无穷的延迟
 
@@ -159,7 +159,7 @@
 
 当一个节点被宣告死亡时，它的职责需要转移到其他节点，这会给其他节点和网络带来额外的负担。如果系统已经处于高负荷状态，则过早宣告节点死亡会使问题更严重。特别是如果节点实际上没有死亡，只是由于过载导致其响应缓慢；这时将其负载转移到其他节点可能会导致**级联失效（cascading failure）**（在极端情况下，所有节点都宣告对方死亡，所有节点都将停止工作）。
 
-设想一个虚构的系统，其网络可以保证数据包的最大延迟——每个数据包要么在一段时间内传送，要么丢失，但是传递永远不会比$d$更长。此外，假设你可以保证一个非故障节点总是在一段时间内处理一个请求$r$。在这种情况下，您可以保证每个成功的请求在$2d + r$时间内都能收到响应，如果您在此时间内没有收到响应，则知道网络或远程节点不工作。如果这是成立的，$2d + r$ 会是一个合理的超时设置。
+设想一个虚构的系统，其网络可以保证数据包的最大延迟——每个数据包要么在一段时间内传送，要么丢失，但是传递永远不会比$d$更长。此外，假设你可以保证一个非故障节点总是在一段时间内处理一个请求$r$。在这种情况下，你可以保证每个成功的请求在$2d + r$时间内都能收到响应，如果你在此时间内没有收到响应，则知道网络或远程节点不工作。如果这是成立的，$2d + r$ 会是一个合理的超时设置。
 
 不幸的是，我们所使用的大多数系统都没有这些保证：异步网络具有无限的延迟（即尽可能快地传送数据包，但数据包到达可能需要的时间没有上限），并且大多数服务器实现并不能保证它们可以在一定的最大时间内处理请求（请参阅“[响应时间保证](#响应时间保证)”）。对于故障检测，即使系统大部分时间快速运行也是不够的：如果你的超时时间很短，往返时间只需要一个瞬时尖峰就可以使系统失衡。
 
@@ -189,7 +189,7 @@
 
 在公共云和多租户数据中心中，资源被许多客户共享：网络链接和交换机，甚至每个机器的网卡和CPU（在虚拟机上运行时）。批处理工作负载（如MapReduce）（请参阅[第十章](ch10.md)）能够很容易使网络链接饱和。由于无法控制或了解其他客户对共享资源的使用情况，如果附近的某个人（嘈杂的邻居）正在使用大量资源，则网络延迟可能会发生剧烈变化【28,29】。
 
-在这种环境下，您只能通过实验方式选择超时：在一段较长的时期内、在多台机器上测量网络往返时间的分布，以确定延迟的预期变化。然后，考虑到应用程序的特性，可以确定**故障检测延迟**与**过早超时风险**之间的适当折衷。
+在这种环境下，你只能通过实验方式选择超时：在一段较长的时期内、在多台机器上测量网络往返时间的分布，以确定延迟的预期变化。然后，考虑到应用程序的特性，可以确定**故障检测延迟**与**过早超时风险**之间的适当折衷。
 
 更好的一种做法是，系统不是使用配置的常量超时时间，而是连续测量响应时间及其变化（抖动），并根据观察到的响应时间分布自动调整超时时间。这可以通过Phi Accrual故障检测器【30】来完成，该检测器在例如Akka和Cassandra 【31】中使用。 TCP的超时重传机制也是以类似的方式工作【27】。
 
@@ -199,13 +199,13 @@
 
 为了回答这个问题，将数据中心网络与非常可靠的传统固定电话网络（非蜂窝，非VoIP）进行比较是很有趣的：延迟音频帧和掉话是非常罕见的。一个电话需要一个很低的端到端延迟，以及足够的带宽来传输你声音的音频采样数据。在计算机网络中有类似的可靠性和可预测性不是很好吗？
 
-当您通过电话网络拨打电话时，它会建立一个电路：在两个呼叫者之间的整个路线上为呼叫分配一个固定的，有保证的带宽量。这个电路会保持至通话结束【32】。例如，ISDN网络以每秒4000帧的固定速率运行。呼叫建立时，每个帧内（每个方向）分配16位空间。因此，在通话期间，每一方都保证能够每250微秒发送一个精确的16位音频数据【33,34】。
+当你通过电话网络拨打电话时，它会建立一个电路：在两个呼叫者之间的整个路线上为呼叫分配一个固定的，有保证的带宽量。这个电路会保持至通话结束【32】。例如，ISDN网络以每秒4000帧的固定速率运行。呼叫建立时，每个帧内（每个方向）分配16位空间。因此，在通话期间，每一方都保证能够每250微秒发送一个精确的16位音频数据【33,34】。
 
 这种网络是同步的：即使数据经过多个路由器，也不会受到排队的影响，因为呼叫的16位空间已经在网络的下一跳中保留了下来。而且由于没有排队，网络的最大端到端延迟是固定的。我们称之为**有限延迟（bounded delay）**。
 
 #### 我们不能简单地使网络延迟可预测吗？
 
-请注意，电话网络中的电路与TCP连接有很大不同：电路是固定数量的预留带宽，在电路建立时没有其他人可以使用，而TCP连接的数据包**机会性地**使用任何可用的网络带宽。您可以给TCP一个可变大小的数据块（例如，一个电子邮件或一个网页），它会尽可能在最短的时间内传输它。 TCP连接空闲时，不使用任何带宽[^ii]。
+请注意，电话网络中的电路与TCP连接有很大不同：电路是固定数量的预留带宽，在电路建立时没有其他人可以使用，而TCP连接的数据包**机会性地**使用任何可用的网络带宽。你可以给TCP一个可变大小的数据块（例如，一个电子邮件或一个网页），它会尽可能在最短的时间内传输它。 TCP连接空闲时，不使用任何带宽[^ii]。
 
 [^ii]: 除了偶尔的keepalive数据包，如果TCP keepalive被启用。
 
@@ -227,11 +227,11 @@
 >
 > ​	更一般地说，可以将**延迟变化**视为**动态资源分区**的结果。
 >
-> ​	假设两台电话交换机之间有一条线路，可以同时进行10,000个呼叫。通过此线路切换的每个电路都占用其中一个呼叫插槽。因此，您可以将线路视为可由多达10,000个并发用户共享的资源。资源以静态方式分配：即使您现在是电话上唯一的电话，并且所有其他9,999个插槽都未使用，您的电路仍将分配与导线充分利用时相同的固定数量的带宽。
+> ​	假设两台电话交换机之间有一条线路，可以同时进行10,000个呼叫。通过此线路切换的每个电路都占用其中一个呼叫插槽。因此，你可以将线路视为可由多达10,000个并发用户共享的资源。资源以静态方式分配：即使你现在是电话上唯一的电话，并且所有其他9,999个插槽都未使用，你的电路仍将分配与导线充分利用时相同的固定数量的带宽。
 >
 > ​	相比之下，互联网动态分享网络带宽。发送者互相推挤和争夺，以让他们的数据包尽可能快地通过网络，并且网络交换机决定从一个时刻到另一个时刻发送哪个分组（即，带宽分配）。这种方法有排队的缺点，但其优点是它最大限度地利用了电线。电线固定成本，所以如果你更好地利用它，你通过电线发送的每个字节都会更便宜。
 >
-> ​	CPU也会出现类似的情况：如果您在多个线程间动态共享每个CPU内核，则一个线程有时必须在操作系统的运行队列里等待，而另一个线程正在运行，这样每个线程都有可能被暂停一个不定的时间长度。但是，与为每个线程分配静态数量的CPU周期相比，这会更好地利用硬件（请参阅“[响应时间保证](#响应时间保证)”）。更好的硬件利用率也是使用虚拟机的重要动机。
+> ​	CPU也会出现类似的情况：如果你在多个线程间动态共享每个CPU内核，则一个线程有时必须在操作系统的运行队列里等待，而另一个线程正在运行，这样每个线程都有可能被暂停一个不定的时间长度。但是，与为每个线程分配静态数量的CPU周期相比，这会更好地利用硬件（请参阅“[响应时间保证](#响应时间保证)”）。更好的硬件利用率也是使用虚拟机的重要动机。
 >
 > ​	如果资源是静态分区的（例如，专用硬件和专用带宽分配），则在某些环境中可以实现**延迟保证**。但是，这是以降低利用率为代价的——换句话说，它是更昂贵的。另一方面，动态资源分配的多租户提供了更好的利用率，所以它更便宜，但它具有可变延迟的缺点。
 >
@@ -263,7 +263,7 @@
 
 #### 日历时钟
 
-日历时钟是您直观地了解时钟的依据：它根据某个日历（也称为**挂钟时间（wall-clock time）**）返回当前日期和时间。例如，Linux上的`clock_gettime(CLOCK_REALTIME)`[^v]和Java中的`System.currentTimeMillis()`返回自epoch（UTC时间1970年1月1日午夜）以来的秒数（或毫秒），根据公历（Gregorian）日历，不包括闰秒。有些系统使用其他日期作为参考点。
+日历时钟是你直观地了解时钟的依据：它根据某个日历（也称为**挂钟时间（wall-clock time）**）返回当前日期和时间。例如，Linux上的`clock_gettime(CLOCK_REALTIME)`[^v]和Java中的`System.currentTimeMillis()`返回自epoch（UTC时间1970年1月1日午夜）以来的秒数（或毫秒），根据公历（Gregorian）日历，不包括闰秒。有些系统使用其他日期作为参考点。
 
 [^v]: 虽然该时钟被称为实时时钟，但它与实时操作系统无关，如“[响应时间保证](#响应时间保证)”中所述。
 
@@ -290,11 +290,11 @@
 * 计算机中的石英钟不够精确：它会**漂移（drifts）**（运行速度快于或慢于预期）。时钟漂移取决于机器的温度。 Google假设其服务器时钟漂移为200 ppm（百万分之一）【41】，相当于每30秒与服务器重新同步一次的时钟漂移为6毫秒，或者每天重新同步的时钟漂移为17秒。即使一切工作正常，此漂移也会限制可以达到的最佳准确度。
 * 如果计算机的时钟与NTP服务器的时钟差别太大，可能会拒绝同步，或者本地时钟将被强制重置【37】。任何观察重置前后时间的应用程序都可能会看到时间倒退或突然跳跃。
 * 如果某个节点被NTP服务器的防火墙意外阻塞，有可能会持续一段时间都没有人会注意到。有证据表明，这在实践中确实发生过。
-* NTP同步只能和网络延迟一样好，所以当您在拥有可变数据包延迟的拥塞网络上时，NTP同步的准确性会受到限制。一个实验表明，当通过互联网同步时，35毫秒的最小误差是可以实现的，尽管偶尔的网络延迟峰值会导致大约一秒的误差。根据配置，较大的网络延迟会导致NTP客户端完全放弃。
+* NTP同步只能和网络延迟一样好，所以当你在拥有可变数据包延迟的拥塞网络上时，NTP同步的准确性会受到限制。一个实验表明，当通过互联网同步时，35毫秒的最小误差是可以实现的，尽管偶尔的网络延迟峰值会导致大约一秒的误差。根据配置，较大的网络延迟会导致NTP客户端完全放弃。
 * 一些NTP服务器是错误的或者配置错误的，报告的时间可能相差几个小时【43,44】。还好NTP客户端非常健壮，因为他们会查询多个服务器并忽略异常值。无论如何，依赖于互联网上的陌生人所告诉你的时间来保证你的系统的正确性，这还挺让人担忧的。
 * 闰秒导致一分钟可能有59秒或61秒，这会打破一些在设计之时未考虑闰秒的系统的时序假设【45】。闰秒已经使许多大型系统崩溃的事实【38,46】说明了，关于时钟的错误假设是多么容易偷偷溜入系统中。处理闰秒的最佳方法可能是让NTP服务器“撒谎”，并在一天中逐渐执行闰秒调整（这被称为**拖尾（smearing）**）【47,48】，虽然实际的NTP服务器表现各异【49】。
 * 在虚拟机中，硬件时钟被虚拟化，这对于需要精确计时的应用程序提出了额外的挑战【50】。当一个CPU核心在虚拟机之间共享时，每个虚拟机都会暂停几十毫秒，与此同时另一个虚拟机正在运行。从应用程序的角度来看，这种停顿表现为时钟突然向前跳跃【26】。
-* 如果您在没有完整控制权的设备（例如，移动设备或嵌入式设备）上运行软件，则可能完全不能信任该设备的硬件时钟。一些用户故意将其硬件时钟设置为不正确的日期和时间，例如，为了规避游戏中的时间限制，时钟可能会被设置到很远的过去或将来。
+* 如果你在没有完整控制权的设备（例如，移动设备或嵌入式设备）上运行软件，则可能完全不能信任该设备的硬件时钟。一些用户故意将其硬件时钟设置为不正确的日期和时间，例如，为了规避游戏中的时间限制，时钟可能会被设置到很远的过去或将来。
 
 如果你足够在乎这件事并投入大量资源，就可以达到非常好的时钟精度。例如，针对金融机构的欧洲法规草案MiFID II要求所有高频率交易基金在UTC时间100微秒内同步时钟，以便调试“闪崩”等市场异常现象，并帮助检测市场操纵【51】。
 
@@ -338,11 +338,11 @@ NTP同步是否能足够准确，以至于这种不正确的排序不会发生�
 
 #### 时钟读数存在置信区间
 
-您可能能够以微秒或甚至纳秒的精度读取机器的时钟。但即使可以得到如此细致的测量结果，这并不意味着这个值对于这样的精度实际上是准确的。实际上，大概率是不准确的——如前所述，即使您每分钟与本地网络上的NTP服务器进行同步，几毫秒的时间漂移也很容易在不精确的石英时钟上发生。使用公共互联网上的NTP服务器，最好的准确度可能达到几十毫秒，而且当网络拥塞时，误差可能会超过100毫秒【57】。
+你可能能够以微秒或甚至纳秒的精度读取机器的时钟。但即使可以得到如此细致的测量结果，这并不意味着这个值对于这样的精度实际上是准确的。实际上，大概率是不准确的——如前所述，即使你每分钟与本地网络上的NTP服务器进行同步，几毫秒的时间漂移也很容易在不精确的石英时钟上发生。使用公共互联网上的NTP服务器，最好的准确度可能达到几十毫秒，而且当网络拥塞时，误差可能会超过100毫秒【57】。
 
 因此，将时钟读数视为一个时间点是没有意义的——它更像是一段时间范围：例如，一个系统可能以95％的置信度认为当前时间处于本分钟内的第10.3秒和10.5秒之间，它可能没法比这更精确了【58】。如果我们只知道±100毫秒的时间，那么时间戳中的微秒数字部分基本上是没有意义的。
 
-不确定性界限可以根据你的时间源来计算。如果您的GPS接收器或原子（铯）时钟直接连接到您的计算机上，预期的错误范围由制造商告知。如果从服务器获得时间，则不确定性取决于自上次与服务器同步以来的石英钟漂移的期望值，加上NTP服务器的不确定性，再加上到服务器的网络往返时间（只是获取粗略近似值，并假设服务器是可信的）。
+不确定性界限可以根据你的时间源来计算。如果你的GPS接收器或原子（铯）时钟直接连接到你的计算机上，预期的错误范围由制造商告知。如果从服务器获得时间，则不确定性取决于自上次与服务器同步以来的石英钟漂移的期望值，加上NTP服务器的不确定性，再加上到服务器的网络往返时间（只是获取粗略近似值，并假设服务器是可信的）。
 
 不幸的是，大多数系统不公开这种不确定性：例如，当调用`clock_gettime()`时，返回值不会告诉你时间戳的预期错误，所以你不知道其置信区间是5毫秒还是5年。
 
@@ -360,7 +360,7 @@ NTP同步是否能足够准确，以至于这种不正确的排序不会发生�
 
 我们可以使用同步时钟的时间戳作为事务ID吗？如果我们能够获得足够好的同步性，那么这种方法将具有很合适的属性：更晚的事务会有更大的时间戳。当然，问题在于时钟精度的不确定性。
 
-Spanner以这种方式实现跨数据中心的快照隔离【59，60】。它使用TrueTime API报告的时钟置信区间，并基于以下观察结果：如果您有两个置信区间，每个置信区间包含最早和最晚可能的时间戳（  $A = [A_{earliest}, A_{latest}]$， $B=[B_{earliest}, B_{latest}]$），这两个区间不重叠（即：$A_{earliest} < A_{latest} < B_{earliest} < B_{latest}$）的话，那么B肯定发生在A之后——这是毫无疑问的。只有当区间重叠时，我们才不确定A和B发生的顺序。
+Spanner以这种方式实现跨数据中心的快照隔离【59，60】。它使用TrueTime API报告的时钟置信区间，并基于以下观察结果：如果你有两个置信区间，每个置信区间包含最早和最晚可能的时间戳（  $A = [A_{earliest}, A_{latest}]$， $B=[B_{earliest}, B_{latest}]$），这两个区间不重叠（即：$A_{earliest} < A_{latest} < B_{earliest} < B_{latest}$）的话，那么B肯定发生在A之后——这是毫无疑问的。只有当区间重叠时，我们才不确定A和B发生的顺序。
 
 为了确保事务时间戳反映因果关系，在提交读写事务之前，Spanner在提交读写事务时，会故意等待置信区间长度的时间。通过这样，它可以确保任何可能读取数据的事务处于足够晚的时间，因此它们的置信区间不会重叠。为了保持尽可能短的等待时间，Spanner需要保持尽可能小的时钟不确定性，为此，Google在每个数据中心都部署了一个GPS接收器或原子钟，这允许时钟同步到大约7毫秒以内【41】。
 
@@ -480,7 +480,7 @@ while (true) {
 
 如果一个节点继续表现为**天选者**，即使大多数节点已经声明它已经死了，则在考虑不周的系统中可能会导致问题。这样的节点能以自己赋予的权能向其他节点发送消息，如果其他节点相信，整个系统可能会做一些不正确的事情。
 
-例如，[图8-4](img/fig8-4.png)显示了由于不正确的锁实现导致的数据损坏错误。 （这个错误不仅仅是理论上的：HBase曾经有这个问题【74,75】）假设你要确保一个存储服务中的文件一次只能被一个客户访问，因为如果多个客户试图对此写入，该文件将被损坏。您尝试通过在访问文件之前要求客户端从锁定服务获取租约来实现此目的。
+例如，[图8-4](img/fig8-4.png)显示了由于不正确的锁实现导致的数据损坏错误。 （这个错误不仅仅是理论上的：HBase曾经有这个问题【74,75】）假设你要确保一个存储服务中的文件一次只能被一个客户访问，因为如果多个客户试图对此写入，该文件将被损坏。你尝试通过在访问文件之前要求客户端从锁定服务获取租约来实现此目的。
 
 ![](img/fig8-4.png)
 
@@ -531,7 +531,7 @@ while (true) {
 
 Web应用程序确实需要预期受终端用户控制的客户端（如Web浏览器）的任意和恶意行为。这就是为什么输入验证，数据清洗和输出转义如此重要：例如，防止SQL注入和跨站点脚本。然而，我们通常不在这里使用拜占庭容错协议，而只是让服务器有权决定是否允许客户端行为。但在没有这种中心机构的对等网络中，拜占庭容错更为重要。
 
-软件中的一个错误（bug）可能被认为是拜占庭式的错误，但是如果您将相同的软件部署到所有节点上，那么拜占庭式的容错算法帮不到你。大多数拜占庭式容错算法要求超过三分之二的节点能够正常工作（即，如果有四个节点，最多只能有一个故障）。要使用这种方法对付bug，你必须有四个独立的相同软件的实现，并希望一个bug只出现在四个实现之一中。
+软件中的一个错误（bug）可能被认为是拜占庭式的错误，但是如果你将相同的软件部署到所有节点上，那么拜占庭式的容错算法帮不到你。大多数拜占庭式容错算法要求超过三分之二的节点能够正常工作（即，如果有四个节点，最多只能有一个故障）。要使用这种方法对付bug，你必须有四个独立的相同软件的实现，并希望一个bug只出现在四个实现之一中。
 
 同样，如果一个协议可以保护我们免受漏洞，安全渗透和恶意攻击，那么这将是有吸引力的。不幸的是，这也是不现实的：在大多数系统中，如果攻击者可以渗透一个节点，那他们可能会渗透所有这些节点，因为它们可能都运行着相同的软件。因此，传统机制（认证，访问控制，加密，防火墙等）仍然是抵御攻击者的主要保护措施。
 
@@ -634,8 +634,8 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 
 在本章中，我们讨论了分布式系统中可能发生的各种问题，包括：
 
-* 当您尝试通过网络发送数据包时，数据包可能会丢失或任意延迟。同样，答复可能会丢失或延迟，所以如果你没有得到答复，你不知道消息是否发送成功了。
-* 节点的时钟可能会与其他节点显著不同步（尽管您尽最大努力设置NTP），它可能会突然跳转或跳回，依靠它是很危险的，因为您很可能没有好的方法来测量你的时钟的错误间隔。
+* 当你尝试通过网络发送数据包时，数据包可能会丢失或任意延迟。同样，答复可能会丢失或延迟，所以如果你没有得到答复，你不知道消息是否发送成功了。
+* 节点的时钟可能会与其他节点显著不同步（尽管你尽最大努力设置NTP），它可能会突然跳转或跳回，依靠它是很危险的，因为你很可能没有好的方法来测量你的时钟的错误间隔。
 * 一个进程可能会在其执行的任何时候暂停一段相当长的时间（可能是因为停止所有处理的垃圾收集器），被其他节点宣告死亡，然后再次复活，却没有意识到它被暂停了。
 
 这类**部分失效（partial failure）** 可能发生的事实是分布式系统的决定性特征。每当软件试图做任何涉及其他节点的事情时，偶尔就有可能会失败，或者随机变慢，或者根本没有响应（最终超时）。在分布式系统中，我们试图在软件中建立**部分失效**的容错机制，这样整个系统在即使某些组成部分被破坏的情况下，也可以继续运行。
@@ -658,9 +658,7 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 
 ## 参考文献
 
-
-1.  Mark Cavage:  Just No Getting Around It: You’re Building a Distributed System](http://queue.acm.org/detail.cfm?id=2482856),” *ACM Queue*, volume 11, number 4, pages 80-89, April 2013.
-    [doi:10.1145/2466486.2482856](http://dx.doi.org/10.1145/2466486.2482856)
+1.  Mark Cavage:  Just No Getting Around It: You’re Building a Distributed System](http://queue.acm.org/detail.cfm?id=2482856),” *ACM Queue*, volume 11, number 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](http://dx.doi.org/10.1145/2466486.2482856)
 1.  Jay Kreps: “[Getting Real About Distributed System Reliability](http://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability),” *blog.empathybox.com*, March 19, 2012.
 1.  Sydney Padua: *The Thrilling Adventures of Lovelace and Babbage: The (Mostly) True Story of the First Computer*. Particular Books, April ISBN: 978-0-141-98151-2
 1.  Coda Hale: “[You Can’t Sacrifice Partition Tolerance](http://codahale.com/you-cant-sacrifice-partition-tolerance/),” *codahale.com*, October 7, 2010.
@@ -675,11 +673,9 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 1.  Claude E. Shannon: “[A Mathematical Theory of Communication](http://cs.brynmawr.edu/Courses/cs380/fall2012/shannon1948.pdf),” *The Bell System Technical Journal*, volume 27, number 3, pages 379–423 and 623–656, July 1948.
 1.  Peter Bailis and Kyle Kingsbury: “[The Network Is Reliable](https://queue.acm.org/detail.cfm?id=2655736),” *ACM Queue*, volume 12, number 7, pages 48-55, July 2014. [doi:10.1145/2639988.2639988](http://dx.doi.org/10.1145/2639988.2639988)
 1.  Joshua B. Leners, Trinabh Gupta, Marcos K. Aguilera, and Michael Walfish: “[Taming Uncertainty in Distributed Systems with Help from the Network](http://www.cs.nyu.edu/~mwalfish/papers/albatross-eurosys15.pdf),” at *10th European Conference on Computer Systems* (EuroSys), April 2015. [doi:10.1145/2741948.2741976](http://dx.doi.org/10.1145/2741948.2741976)
-1.  Phillipa Gill, Navendu Jain, and Nachiappan Nagappan: “[Understanding Network Failures in Data Centers: Measurement, Analysis, and Implications](http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p350.pdf),” at *ACM SIGCOMM Conference*, August 2011.
-    [doi:10.1145/2018436.2018477](http://dx.doi.org/10.1145/2018436.2018477)
+1.  Phillipa Gill, Navendu Jain, and Nachiappan Nagappan: “[Understanding Network Failures in Data Centers: Measurement, Analysis, and Implications](http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p350.pdf),” at *ACM SIGCOMM Conference*, August 2011. [doi:10.1145/2018436.2018477](http://dx.doi.org/10.1145/2018436.2018477)
 1.  Mark Imbriaco: “[Downtime Last Saturday](https://github.com/blog/1364-downtime-last-saturday),” *github.com*, December 26, 2012.
-1.  Will Oremus: “[The Global Internet Is Being Attacked by Sharks, Google Confirms](http://www.slate.com/blogs/future_tense/2014/08/15/shark_attacks_threaten_google_s_undersea_internet_cables_video.html),” *slate.com*, August 15,
-    2014.
+1.  Will Oremus: “[The Global Internet Is Being Attacked by Sharks, Google Confirms](http://www.slate.com/blogs/future_tense/2014/08/15/shark_attacks_threaten_google_s_undersea_internet_cables_video.html),” *slate.com*, August 15, 2014.
 1.  Marc A. Donges: “[Re: bnx2 cards Intermittantly Going Offline](http://www.spinics.net/lists/netdev/msg210485.html),” Message to Linux *netdev* mailing list, *spinics.net*, September 13, 2012.
 1.  Kyle Kingsbury: “[Call Me Maybe: Elasticsearch](https://aphyr.com/posts/317-call-me-maybe-elasticsearch),” *aphyr.com*, June 15, 2014.
 1.  Salvatore Sanfilippo: “[A Few Arguments About Redis Sentinel Properties and Fail Scenarios](http://antirez.com/news/80),” *antirez.com*, October 21, 2014.
@@ -697,8 +693,7 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 1.  Cisco, “[Integrated Services Digital Network](http://docwiki.cisco.com/wiki/Integrated_Services_Digital_Network),” *docwiki.cisco.com*.
 1.  Othmar Kyas: *ATM Networks*. International Thomson Publishing, 1995. ISBN: 978-1-850-32128-6
 1.  “[InfiniBand FAQ](http://www.mellanox.com/related-docs/whitepapers/InfiniBandFAQ_FQ_100.pdf),” Mellanox Technologies, December 22, 2014.
-1.  Jose Renato Santos, Yoshio Turner, and G. (John) Janakiraman: “[End-to-End Congestion Control for InfiniBand](http://www.hpl.hp.com/techreports/2002/HPL-2002-359.pdf),” at *22nd Annual Joint Conference of the IEEE Computer and Communications Societies* (INFOCOM), April 2003. Also published by HP Laboratories Palo
-    Alto, Tech Report HPL-2002-359. [doi:10.1109/INFCOM.2003.1208949](http://dx.doi.org/10.1109/INFCOM.2003.1208949)
+1.  Jose Renato Santos, Yoshio Turner, and G. (John) Janakiraman: “[End-to-End Congestion Control for InfiniBand](http://www.hpl.hp.com/techreports/2002/HPL-2002-359.pdf),” at *22nd Annual Joint Conference of the IEEE Computer and Communications Societies* (INFOCOM), April 2003. Also published by HP Laboratories Palo Alto, Tech Report HPL-2002-359. [doi:10.1109/INFCOM.2003.1208949](http://dx.doi.org/10.1109/INFCOM.2003.1208949)
 1.  Ulrich Windl, David Dalton, Marc Martinec, and Dale R. Worley: “[The NTP FAQ and HOWTO](http://www.ntp.org/ntpfaq/NTP-a-faq.htm),” *ntp.org*, November 2006.
 1.  John Graham-Cumming: “[How and why the leap second affected Cloudflare DNS](https://blog.cloudflare.com/how-and-why-the-leap-second-affected-cloudflare-dns/),” *blog.cloudflare.com*, January 1, 2017.
 1.  David Holmes: “[Inside the Hotspot VM: Clocks, Timers and Scheduling Events – Part I – Windows](https://blogs.oracle.com/dholmes/entry/inside_the_hotspot_vm_clocks),” *blogs.oracle.com*, October 2, 2006.
@@ -713,8 +708,7 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 1.  Mingxue Zhao and Jeff Barr:   “[Look   Before You Leap – The Coming Leap Second and AWS](https://aws.amazon.com/blogs/aws/look-before-you-leap-the-coming-leap-second-and-aws/),” *aws.amazon.com*, May 18, 2015.
 1.  Darryl Veitch and Kanthaiah Vijayalayan:   “[Network Timing   and the 2015 Leap Second](http://crin.eng.uts.edu.au/~darryl/Publications/LeapSecond_camera.pdf),” at *17th International Conference on Passive and Active   Measurement* (PAM), April 2016.   [doi:10.1007/978-3-319-30505-9_29](http://dx.doi.org/10.1007/978-3-319-30505-9_29)
 1.  “[Timekeeping   in VMware Virtual Machines](http://www.vmware.com/resources/techresources/238),” Information Guide, VMware, Inc., December 2011.
-1.  “[MiFID II / MiFIR: Regulatory Technical and Implementing Standards – Annex I (Draft)](https://www.esma.europa.eu/sites/default/files/library/2015/11/2015-esma-1464_annex_i_-_draft_rts_and_its_on_mifid_ii_and_mifir.pdf),”
-    European Securities and Markets Authority, Report ESMA/2015/1464, September 2015.
+1.  “[MiFID II / MiFIR: Regulatory Technical and Implementing Standards – Annex I (Draft)](https://www.esma.europa.eu/sites/default/files/library/2015/11/2015-esma-1464_annex_i_-_draft_rts_and_its_on_mifid_ii_and_mifir.pdf),” European Securities and Markets Authority, Report ESMA/2015/1464, September 2015.
 1.  Luke Bigum: “[Solving MiFID II Clock Synchronisation With Minimum Spend (Part 1)](https://www.lmax.com/blog/staff-blogs/2015/11/27/solving-mifid-ii-clock-synchronisation-minimum-spend-part-1/),” *lmax.com*, November 27, 2015.
 1.  Kyle Kingsbury: “[Call Me Maybe: Cassandra](https://aphyr.com/posts/294-call-me-maybe-cassandra/),” *aphyr.com*, September 24, 2013.
 1.  John Daily: “[Clocks Are Bad, or, Welcome to the Wonderful World of Distributed Systems](http://basho.com/clocks-are-bad-or-welcome-to-distributed-systems/),” *basho.com*, November 12, 2013.
@@ -724,13 +718,10 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 1.  Justin Sheehy: “[There Is No Now: Problems With Simultaneity in Distributed Systems](https://queue.acm.org/detail.cfm?id=2745385),” *ACM Queue*, volume 13, number 3, pages 36–41, March 2015. [doi:10.1145/2733108](http://dx.doi.org/10.1145/2733108)
 1.  Murat Demirbas: “[Spanner: Google's Globally-Distributed Database](http://muratbuffalo.blogspot.co.uk/2013/07/spanner-googles-globally-distributed_4.html),” *muratbuffalo.blogspot.co.uk*, July 4, 2013.
 1.  Dahlia Malkhi and Jean-Philippe Martin: “[Spanner's Concurrency Control](http://www.cs.cornell.edu/~ie53/publications/DC-col51-Sep13.pdf),” *ACM SIGACT News*, volume 44, number 3, pages 73–77, September 2013. [doi:10.1145/2527748.2527767](http://dx.doi.org/10.1145/2527748.2527767)
-1.  Manuel Bravo, Nuno Diegues, Jingna Zeng, et al.: “[On the Use of Clocks to Enforce Consistency in the Cloud](http://sites.computer.org/debull/A15mar/p18.pdf),” *IEEE Data Engineering Bulletin*,
-    volume 38, number 1, pages 18–31, March 2015.
+1.  Manuel Bravo, Nuno Diegues, Jingna Zeng, et al.: “[On the Use of Clocks to Enforce Consistency in the Cloud](http://sites.computer.org/debull/A15mar/p18.pdf),” *IEEE Data Engineering Bulletin*, volume 38, number 1, pages 18–31, March 2015.
 1.  Spencer Kimball: “[Living Without Atomic Clocks](http://www.cockroachlabs.com/blog/living-without-atomic-clocks/),” *cockroachlabs.com*, February 17, 2016.
-1.  Cary G. Gray and David R. Cheriton:“[Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache Consistency](http://web.stanford.edu/class/cs240/readings/89-leases.pdf),” at *12th ACM Symposium on Operating Systems Principles* (SOSP), December 1989.
-    [doi:10.1145/74850.74870](http://dx.doi.org/10.1145/74850.74870)
-1.  Todd Lipcon:  “[Avoiding   Full GCs in Apache HBase with MemStore-Local Allocation Buffers: Part 1](http://blog.cloudera.com/blog/2011/02/avoiding-full-gcs-in-hbase-with-memstore-local-allocation-buffers-part-1/),”
-      *blog.cloudera.com*, February 24, 2011.
+1.  Cary G. Gray and David R. Cheriton:“[Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache Consistency](http://web.stanford.edu/class/cs240/readings/89-leases.pdf),” at *12th ACM Symposium on Operating Systems Principles* (SOSP), December 1989. [doi:10.1145/74850.74870](http://dx.doi.org/10.1145/74850.74870)
+1.  Todd Lipcon:  “[Avoiding   Full GCs in Apache HBase with MemStore-Local Allocation Buffers: Part 1](http://blog.cloudera.com/blog/2011/02/avoiding-full-gcs-in-hbase-with-memstore-local-allocation-buffers-part-1/),” *blog.cloudera.com*, February 24, 2011.
 1.  Martin Thompson:  “[Java   Garbage Collection Distilled](http://mechanical-sympathy.blogspot.co.uk/2013/07/java-garbage-collection-distilled.html),” *mechanical-sympathy.blogspot.co.uk*, July 16, 2013.
 1.  Alexey Ragozin:  “[How to Tame Java GC Pauses?   Surviving 16GiB Heap and Greater](http://java.dzone.com/articles/how-tame-java-gc-pauses),” *java.dzone.com*, June 28, 2011.
 1.  Christopher Clark, Keir Fraser, Steven Hand, et al.:  “[Live   Migration of Virtual Machines](http://www.cl.cam.ac.uk/research/srg/netos/papers/2005-nsdi-migration.pdf),” at *2nd USENIX Symposium on Symposium on Networked Systems Design & Implementation* (NSDI), May 2005.
@@ -744,9 +735,7 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 1.  Enis Söztutar: “[HBase and HDFS: Understanding Filesystem Usage in HBase](http://www.slideshare.net/enissoz/hbase-and-hdfs-understanding-filesystem-usage),” at *HBaseCon*, June 2013.
 1.  Caitie McCaffrey: “[Clients Are Jerks: AKA How Halo 4 DoSed the Services at Launch & How We Survived](http://caitiem.com/2015/06/23/clients-are-jerks-aka-how-halo-4-dosed-the-services-at-launch-how-we-survived/),” *caitiem.com*, June 23, 2015.
 1.  Leslie Lamport, Robert Shostak, and Marshall Pease: “[The Byzantine Generals Problem](http://research.microsoft.com/en-us/um/people/lamport/pubs/byz.pdf),” *ACM Transactions on Programming Languages and Systems* (TOPLAS), volume 4, number 3, pages 382–401, July 1982. [doi:10.1145/357172.357176](http://dx.doi.org/10.1145/357172.357176)
-1.  Jim N. Gray: “[Notes on Data Base Operating Systems](http://research.microsoft.com/en-us/um/people/gray/papers/DBOS.pdf),” in *Operating Systems: An Advanced Course*, Lecture
-    Notes in Computer Science, volume 60, edited by R. Bayer, R. M. Graham, and G. Seegmüller,
-    pages 393–481, Springer-Verlag, 1978. ISBN: 978-3-540-08755-7
+1.  Jim N. Gray: “[Notes on Data Base Operating Systems](http://research.microsoft.com/en-us/um/people/gray/papers/DBOS.pdf),” in *Operating Systems: An Advanced Course*, Lecture Notes in Computer Science, volume 60, edited by R. Bayer, R. M. Graham, and G. Seegmüller, pages 393–481, Springer-Verlag, 1978. ISBN: 978-3-540-08755-7
 1.  Brian Palmer: “[How Complicated Was the Byzantine Empire?](http://www.slate.com/articles/news_and_politics/explainer/2011/10/the_byzantine_tax_code_how_complicated_was_byzantium_anyway_.html),” *slate.com*, October 20, 2011.
 1.  Leslie Lamport: “[My Writings](http://research.microsoft.com/en-us/um/people/lamport/pubs/pubs.html),” *research.microsoft.com*, December 16, 2014. This page can be found by searching the web for the 23-character string obtained by removing the hyphens from the string `allla-mport-spubso-ntheweb`.
 1.  John Rushby:   “[Bus Architectures for   Safety-Critical Embedded Systems](http://www.csl.sri.com/papers/emsoft01/emsoft01.pdf),” at *1st International Workshop on Embedded Software*   (EMSOFT), October 2001.

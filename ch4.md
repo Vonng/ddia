@@ -42,7 +42,7 @@
 
 程序通常（至少）使用两种形式的数据：
 
-1. 在内存中，数据保存在对象，结构体，列表，数组，哈希表，树等中。 这些数据结构针对CPU的高效访问和操作进行了优化（通常使用指针）。
+1. 在内存中，数据保存在对象，结构体，列表，数组，散列表，树等中。 这些数据结构针对CPU的高效访问和操作进行了优化（通常使用指针）。
 2. 如果要将数据写入文件，或通过网络发送，则必须将其 **编码（encode）** 为某种自包含的字节序列（例如，JSON文档）。 由于每个进程都有自己独立的地址空间，一个进程中的指针对任何其他进程都没有意义，所以这个字节序列表示会与通常在内存中使用的数据结构完全不同[^i]。
 
 [^i]: 除一些特殊情况外，例如某些内存映射文件或直接在压缩数据上操作（如“[列压缩](ch4.md#列压缩)”中所述）。
@@ -141,7 +141,7 @@ message Person {
 }
 ```
 
-Thrift和Protocol Buffers每一个都带有一个代码生成工具，它采用了类似于这里所示的模式定义，并且生成了以各种编程语言实现模式的类【18】。您的应用程序代码可以调用此生成的代码来对模式的记录进行编码或解码。
+Thrift和Protocol Buffers每一个都带有一个代码生成工具，它采用了类似于这里所示的模式定义，并且生成了以各种编程语言实现模式的类【18】。你的应用程序代码可以调用此生成的代码来对模式的记录进行编码或解码。
 用这个模式编码的数据是什么样的？令人困惑的是，Thrift有两种不同的二进制编码格式[^iii]，分别称为BinaryProtocol和CompactProtocol。先来看看BinaryProtocol。使用这种格式的编码来编码[例4-1]()中的消息只需要59个字节，如[图4-2](img/fig4-2.png)所示【19】。
 
 ![](img/fig4-2.png)
@@ -172,13 +172,13 @@ Thrift CompactProtocol编码在语义上等同于BinaryProtocol，但是如[图4
 
 我们之前说过，模式不可避免地需要随着时间而改变。我们称之为模式演变。 Thrift和Protocol Buffers如何处理模式更改，同时保持向后兼容性？
 
-从示例中可以看出，编码的记录就是其编码字段的拼接。每个字段由其标签号码（样本模式中的数字1,2,3）标识，并用数据类型（例如字符串或整数）注释。如果没有设置字段值，则简单地从编码记录中省略。从中可以看到，字段标记对编码数据的含义至关重要。您可以更改架构中字段的名称，因为编码的数据永远不会引用字段名称，但不能更改字段的标记，因为这会使所有现有的编码数据无效。
+从示例中可以看出，编码的记录就是其编码字段的拼接。每个字段由其标签号码（样本模式中的数字1,2,3）标识，并用数据类型（例如字符串或整数）注释。如果没有设置字段值，则简单地从编码记录中省略。从中可以看到，字段标记对编码数据的含义至关重要。你可以更改架构中字段的名称，因为编码的数据永远不会引用字段名称，但不能更改字段的标记，因为这会使所有现有的编码数据无效。
 
-您可以添加新的字段到架构，只要您给每个字段一个新的标签号码。如果旧的代码（不知道你添加的新的标签号码）试图读取新代码写入的数据，包括一个新的字段，其标签号码不能识别，它可以简单地忽略该字段。数据类型注释允许解析器确定需要跳过的字节数。这保持了向前兼容性：旧代码可以读取由新代码编写的记录。
+你可以添加新的字段到架构，只要你给每个字段一个新的标签号码。如果旧的代码（不知道你添加的新的标签号码）试图读取新代码写入的数据，包括一个新的字段，其标签号码不能识别，它可以简单地忽略该字段。数据类型注释允许解析器确定需要跳过的字节数。这保持了向前兼容性：旧代码可以读取由新代码编写的记录。
 
-向后兼容性呢？只要每个字段都有一个唯一的标签号码，新的代码总是可以读取旧的数据，因为标签号码仍然具有相同的含义。唯一的细节是，如果你添加一个新的字段，你不能设置为必需。如果您要添加一个字段并将其设置为必需，那么如果新代码读取旧代码写入的数据，则该检查将失败，因为旧代码不会写入您添加的新字段。因此，为了保持向后兼容性，在模式的初始部署之后 **添加的每个字段必须是可选的或具有默认值**。
+向后兼容性呢？只要每个字段都有一个唯一的标签号码，新的代码总是可以读取旧的数据，因为标签号码仍然具有相同的含义。唯一的细节是，如果你添加一个新的字段，你不能设置为必需。如果你要添加一个字段并将其设置为必需，那么如果新代码读取旧代码写入的数据，则该检查将失败，因为旧代码不会写入你添加的新字段。因此，为了保持向后兼容性，在模式的初始部署之后 **添加的每个字段必须是可选的或具有默认值**。
 
-删除一个字段就像添加一个字段，只是这回要考虑的是向前兼容性。这意味着您只能删除一个可选的字段（必需字段永远不能删除），而且您不能再次使用相同的标签号码（因为您可能仍然有数据写在包含旧标签号码的地方，而该字段必须被新代码忽略）。
+删除一个字段就像添加一个字段，只是这回要考虑的是向前兼容性。这意味着你只能删除一个可选的字段（必需字段永远不能删除），而且你不能再次使用相同的标签号码（因为你可能仍然有数据写在包含旧标签号码的地方，而该字段必须被新代码忽略）。
 
 #### 数据类型和模式演变
 
@@ -220,13 +220,13 @@ record Person {
 
 首先，请注意模式中没有标签号码。 如果我们使用这个模式编码我们的例子记录（[例4-1]()），Avro二进制编码只有32个字节长，这是我们所见过的所有编码中最紧凑的。 编码字节序列的分解如[图4-5](img/fig4-5.png)所示。
 
-如果您检查字节序列，您可以看到没有什么可以识别字段或其数据类型。 编码只是由连在一起的值组成。 一个字符串只是一个长度前缀，后跟UTF-8字节，但是在被包含的数据中没有任何内容告诉你它是一个字符串。 它可以是一个整数，也可以是其他的整数。 整数使用可变长度编码（与Thrift的CompactProtocol相同）进行编码。
+如果你检查字节序列，你可以看到没有什么可以识别字段或其数据类型。 编码只是由连在一起的值组成。 一个字符串只是一个长度前缀，后跟UTF-8字节，但是在被包含的数据中没有任何内容告诉你它是一个字符串。 它可以是一个整数，也可以是其他的整数。 整数使用可变长度编码（与Thrift的CompactProtocol相同）进行编码。
 
 ![](img/fig4-5.png)
 
 **图4-5 使用Avro编码的记录**
 
-为了解析二进制数据，您按照它们出现在模式中的顺序遍历这些字段，并使用模式来告诉您每个字段的数据类型。这意味着如果读取数据的代码使用与写入数据的代码完全相同的模式，才能正确解码二进制数据。Reader和Writer之间的模式不匹配意味着错误地解码数据。
+为了解析二进制数据，你按照它们出现在模式中的顺序遍历这些字段，并使用模式来告诉你每个字段的数据类型。这意味着如果读取数据的代码使用与写入数据的代码完全相同的模式，才能正确解码二进制数据。Reader和Writer之间的模式不匹配意味着错误地解码数据。
 
 那么，Avro如何支持模式演变呢？
 
@@ -246,11 +246,11 @@ Avro的关键思想是Writer模式和Reader模式不必是相同的 - 他们只�
 
 #### 模式演变规则
 
-使用Avro，向前兼容性意味着您可以将新版本的模式作为Writer，并将旧版本的模式作为Reader。相反，向后兼容意味着你可以有一个作为Reader的新版本模式和作为Writer的旧版本模式。
+使用Avro，向前兼容性意味着你可以将新版本的模式作为Writer，并将旧版本的模式作为Reader。相反，向后兼容意味着你可以有一个作为Reader的新版本模式和作为Writer的旧版本模式。
 
-为了保持兼容性，您只能添加或删除具有默认值的字段。 （我们的Avro模式中的字段`favoriteNumber`的默认值为`null`）。例如，假设您添加了一个有默认值的字段，这个新的字段将存在于新模式而不是旧模式中。当使用新模式的Reader读取使用旧模式写入的记录时，将为缺少的字段填充默认值。
+为了保持兼容性，你只能添加或删除具有默认值的字段。 （我们的Avro模式中的字段`favoriteNumber`的默认值为`null`）。例如，假设你添加了一个有默认值的字段，这个新的字段将存在于新模式而不是旧模式中。当使用新模式的Reader读取使用旧模式写入的记录时，将为缺少的字段填充默认值。
 
-如果你要添加一个没有默认值的字段，新的Reader将无法读取旧Writer写的数据，所以你会破坏向后兼容性。如果您要删除没有默认值的字段，旧的Reader将无法读取新Writer写入的数据，因此您会打破向前兼容性。在一些编程语言中，null是任何变量可以接受的默认值，但在Avro中并不是这样：如果要允许一个字段为`null`，则必须使用联合类型。例如，`union {null, long, string} field;`表示field可以是数字或字符串，也可以是`null`。如果要将null作为默认值，则它必须是union的分支之一[^iv]。这样的写法比默认情况下就允许任何变量是`null`显得更加冗长，但是通过明确什么可以和什么不可以是`null`，有助于防止出错【22】。
+如果你要添加一个没有默认值的字段，新的Reader将无法读取旧Writer写的数据，所以你会破坏向后兼容性。如果你要删除没有默认值的字段，旧的Reader将无法读取新Writer写入的数据，因此你会打破向前兼容性。在一些编程语言中，null是任何变量可以接受的默认值，但在Avro中并不是这样：如果要允许一个字段为`null`，则必须使用联合类型。例如，`union {null, long, string} field;`表示field可以是数字或字符串，也可以是`null`。如果要将null作为默认值，则它必须是union的分支之一[^iv]。这样的写法比默认情况下就允许任何变量是`null`显得更加冗长，但是通过明确什么可以和什么不可以是`null`，有助于防止出错【22】。
 
 [^iv]: 确切地说，默认值必须是联合的第一个分支的类型，尽管这是Avro的特定限制，而不是联合类型的一般特征。
 
@@ -276,27 +276,27 @@ Avro的关键思想是Writer模式和Reader模式不必是相同的 - 他们只�
 
   当两个进程通过双向网络连接进行通信时，他们可以在连接设置上协商模式版本，然后在连接的生命周期中使用该模式。 Avro RPC协议（请参阅“[服务中的数据流：REST与RPC](#服务中的数据流：REST与RPC)”）就是这样工作的。
 
-具有模式版本的数据库在任何情况下都是非常有用的，因为它充当文档并为您提供了检查模式兼容性的机会【24】。作为版本号，你可以使用一个简单的递增整数，或者你可以使用模式的散列。
+具有模式版本的数据库在任何情况下都是非常有用的，因为它充当文档并为你提供了检查模式兼容性的机会【24】。作为版本号，你可以使用一个简单的递增整数，或者你可以使用模式的散列。
 
 #### 动态生成的模式
 
 与Protocol Buffers和Thrift相比，Avro方法的一个优点是架构不包含任何标签号码。但为什么这很重要？在模式中保留一些数字有什么问题？
 
-不同之处在于Avro对动态生成的模式更友善。例如，假如你有一个关系数据库，你想要把它的内容转储到一个文件中，并且你想使用二进制格式来避免前面提到的文本格式（JSON，CSV，SQL）的问题。如果你使用Avro，你可以很容易地从关系模式生成一个Avro模式（在我们之前看到的JSON表示中），并使用该模式对数据库内容进行编码，并将其全部转储到Avro对象容器文件【25】中。您为每个数据库表生成一个记录模式，每个列成为该记录中的一个字段。数据库中的列名称映射到Avro中的字段名称。
+不同之处在于Avro对动态生成的模式更友善。例如，假如你有一个关系数据库，你想要把它的内容转储到一个文件中，并且你想使用二进制格式来避免前面提到的文本格式（JSON，CSV，SQL）的问题。如果你使用Avro，你可以很容易地从关系模式生成一个Avro模式（在我们之前看到的JSON表示中），并使用该模式对数据库内容进行编码，并将其全部转储到Avro对象容器文件【25】中。你为每个数据库表生成一个记录模式，每个列成为该记录中的一个字段。数据库中的列名称映射到Avro中的字段名称。
 
 现在，如果数据库模式发生变化（例如，一个表中添加了一列，删除了一列），则可以从更新的数据库模式生成新的Avro模式，并在新的Avro模式中导出数据。数据导出过程不需要注意模式的改变 - 每次运行时都可以简单地进行模式转换。任何读取新数据文件的人都会看到记录的字段已经改变，但是由于字段是通过名字来标识的，所以更新的Writer模式仍然可以与旧的Reader模式匹配。
 
-相比之下，如果您为此使用Thrift或Protocol Buffers，则字段标签可能必须手动分配：每次数据库模式更改时，管理员都必须手动更新从数据库列名到字段标签的映射。（这可能会自动化，但模式生成器必须非常小心，不要分配以前使用的字段标签。）这种动态生成的模式根本不是Thrift或Protocol Buffers的设计目标，而是Avro的。
+相比之下，如果你为此使用Thrift或Protocol Buffers，则字段标签可能必须手动分配：每次数据库模式更改时，管理员都必须手动更新从数据库列名到字段标签的映射。（这可能会自动化，但模式生成器必须非常小心，不要分配以前使用的字段标签。）这种动态生成的模式根本不是Thrift或Protocol Buffers的设计目标，而是Avro的。
 
 #### 代码生成和动态类型的语言
 
-Thrift和Protobuf依赖于代码生成：在定义了模式之后，可以使用您选择的编程语言生成实现此模式的代码。这在Java，C ++或C＃等静态类型语言中很有用，因为它允许将高效的内存中结构用于解码的数据，并且在编写访问数据结构的程序时允许在IDE中进行类型检查和自动完成。
+Thrift和Protobuf依赖于代码生成：在定义了模式之后，可以使用你选择的编程语言生成实现此模式的代码。这在Java，C ++或C＃等静态类型语言中很有用，因为它允许将高效的内存中结构用于解码的数据，并且在编写访问数据结构的程序时允许在IDE中进行类型检查和自动完成。
 
 在动态类型编程语言（如JavaScript，Ruby或Python）中，生成代码没有太多意义，因为没有编译时类型检查器来满足。代码生成在这些语言中经常被忽视，因为它们避免了显式的编译步骤。而且，对于动态生成的模式（例如从数据库表生成的Avro模式），代码生成对获取数据是一个不必要的障碍。
 
 Avro为静态类型编程语言提供了可选的代码生成功能，但是它也可以在不生成任何代码的情况下使用。如果你有一个对象容器文件（它嵌入了Writer模式），你可以简单地使用Avro库打开它，并以与查看JSON文件相同的方式查看数据。该文件是自描述的，因为它包含所有必要的元数据。
 
-这个属性特别适用于动态类型的数据处理语言如Apache Pig 【26】。在Pig中，您可以打开一些Avro文件，开始分析它们，并编写派生数据集以Avro格式输出文件，而无需考虑模式。
+这个属性特别适用于动态类型的数据处理语言如Apache Pig 【26】。在Pig中，你可以打开一些Avro文件，开始分析它们，并编写派生数据集以Avro格式输出文件，而无需考虑模式。
 
 ### 模式的优点
 
@@ -304,13 +304,13 @@ Avro为静态类型编程语言提供了可选的代码生成功能，但是它�
 
 这些编码所基于的想法绝不是新的。例如，它们与ASN.1有很多相似之处，它是1984年首次被标准化的模式定义语言【27】。它被用来定义各种网络协议，例如其二进制编码（DER）仍然被用于编码SSL证书（X.509）【28】。 ASN.1支持使用标签号码的模式演进，类似于Protocol Buffers和Thrift 【29】。然而，它也非常复杂，而且没有好的配套文档，所以ASN.1可能不是新应用程序的好选择。
 
-许多数据系统也为其数据实现了某种专有的二进制编码。例如，大多数关系数据库都有一个网络协议，您可以通过该协议向数据库发送查询并获取响应。这些协议通常特定于特定的数据库，并且数据库供应商提供将来自数据库的网络协议的响应解码为内存数据结构的驱动程序（例如使用ODBC或JDBC API）。
+许多数据系统也为其数据实现了某种专有的二进制编码。例如，大多数关系数据库都有一个网络协议，你可以通过该协议向数据库发送查询并获取响应。这些协议通常特定于特定的数据库，并且数据库供应商提供将来自数据库的网络协议的响应解码为内存数据结构的驱动程序（例如使用ODBC或JDBC API）。
 
 所以，我们可以看到，尽管JSON，XML和CSV等文本数据格式非常普遍，但基于模式的二进制编码也是一个可行的选择。他们有一些很好的属性：
 
 * 它们可以比各种“二进制JSON”变体更紧凑，因为它们可以省略编码数据中的字段名称。
 * 模式是一种有价值的文档形式，因为模式是解码所必需的，所以可以确定它是最新的（而手动维护的文档可能很容易偏离现实）。
-* 维护一个模式的数据库允许您在部署任何内容之前检查模式更改的向前和向后兼容性。
+* 维护一个模式的数据库允许你在部署任何内容之前检查模式更改的向前和向后兼容性。
 * 对于静态类型编程语言的用户来说，从模式生成代码的能力是有用的，因为它可以在编译时进行类型检查。
 
 总而言之，模式进化允许与JSON数据库提供的无模式/读时模式相同的灵活性（请参阅“[文档模型中的模式灵活性](ch2.md#文档模型中的模式灵活性)”），同时还可以更好地保证数据和更好的工具。
@@ -319,9 +319,9 @@ Avro为静态类型编程语言提供了可选的代码生成功能，但是它�
 
 ## 数据流的类型
 
-在本章的开始部分，我们曾经说过，无论何时您想要将某些数据发送到不共享内存的另一个进程，例如，只要您想通过网络发送数据或将其写入文件，就需要将它编码为一个字节序列。然后我们讨论了做这个的各种不同的编码。
+在本章的开始部分，我们曾经说过，无论何时你想要将某些数据发送到不共享内存的另一个进程，例如，只要你想通过网络发送数据或将其写入文件，就需要将它编码为一个字节序列。然后我们讨论了做这个的各种不同的编码。
 
-我们讨论了向前和向后的兼容性，这对于可演化性来说非常重要（通过允许您独立升级系统的不同部分，而不必一次改变所有内容，可以轻松地进行更改）。兼容性是编码数据的一个进程和解码它的另一个进程之间的一种关系。
+我们讨论了向前和向后的兼容性，这对于可演化性来说非常重要（通过允许你独立升级系统的不同部分，而不必一次改变所有内容，可以轻松地进行更改）。兼容性是编码数据的一个进程和解码它的另一个进程之间的一种关系。
 
 这是一个相当抽象的概念 - 数据可以通过多种方式从一个流程流向另一个流程。谁编码数据，谁解码？在本章的其余部分中，我们将探讨数据如何在流程之间流动的一些最常见的方式：
 
@@ -333,7 +333,7 @@ Avro为静态类型编程语言提供了可选的代码生成功能，但是它�
 
 ### 数据库中的数据流
 
-在数据库中，写入数据库的过程对数据进行编码，从数据库读取的过程对数据进行解码。可能只有一个进程访问数据库，在这种情况下，读者只是相同进程的后续版本 - 在这种情况下，您可以考虑将数据库中的内容存储为向未来的自我发送消息。
+在数据库中，写入数据库的过程对数据进行编码，从数据库读取的过程对数据进行解码。可能只有一个进程访问数据库，在这种情况下，读者只是相同进程的后续版本 - 在这种情况下，你可以考虑将数据库中的内容存储为向未来的自我发送消息。
 
 向后兼容性显然是必要的。否则你未来的自己将无法解码你以前写的东西。
 
@@ -341,7 +341,7 @@ Avro为静态类型编程语言提供了可选的代码生成功能，但是它�
 
 这意味着数据库中的一个值可能会被更新版本的代码写入，然后被仍旧运行的旧版本的代码读取。因此，数据库也经常需要向前兼容。
 
-但是，还有一个额外的障碍。假设您将一个字段添加到记录模式，并且较新的代码将该新字段的值写入数据库。随后，旧版本的代码（尚不知道新字段）将读取记录，更新记录并将其写回。在这种情况下，理想的行为通常是旧代码保持新的字段不变，即使它不能被解释。
+但是，还有一个额外的障碍。假设你将一个字段添加到记录模式，并且较新的代码将该新字段的值写入数据库。随后，旧版本的代码（尚不知道新字段）将读取记录，更新记录并将其写回。在这种情况下，理想的行为通常是旧代码保持新的字段不变，即使它不能被解释。
 
 前面讨论的编码格式支持未知字段的保存，但是有时候需要在应用程序层面保持谨慎，如图4-7所示。例如，如果将数据库值解码为应用程序中的模型对象，稍后重新编码这些模型对象，那么未知字段可能会在该翻译过程中丢失。解决这个问题不是一个难题，你只需要意识到它。
 
@@ -365,7 +365,7 @@ Avro为静态类型编程语言提供了可选的代码生成功能，但是它�
 
 #### 归档存储
 
-也许您不时为数据库创建一个快照，例如备份或加载到数据仓库（请参阅“[数据仓库](ch3.md#数据仓库)”）。在这种情况下，即使源数据库中的原始编码包含来自不同时代的模式版本的混合，数据转储通常也将使用最新模式进行编码。既然你不管怎样都要拷贝数据，那么你可以对这个数据拷贝进行一致的编码。
+也许你不时为数据库创建一个快照，例如备份或加载到数据仓库（请参阅“[数据仓库](ch3.md#数据仓库)”）。在这种情况下，即使源数据库中的原始编码包含来自不同时代的模式版本的混合，数据转储通常也将使用最新模式进行编码。既然你不管怎样都要拷贝数据，那么你可以对这个数据拷贝进行一致的编码。
 
 由于数据转储是一次写入的，而且以后是不可变的，所以Avro对象容器文件等格式非常适合。这也是一个很好的机会，可以将数据编码为面向分析的列式格式，例如Parquet（请参阅“[列压缩](ch3.md#列压缩)”）。
 
@@ -375,9 +375,9 @@ Avro为静态类型编程语言提供了可选的代码生成功能，但是它�
 
 ### 服务中的数据流：REST与RPC
 
-当您需要通过网络进行通信的进程时，安排该通信的方式有几种。最常见的安排是有两个角色：客户端和服务器。服务器通过网络公开API，并且客户端可以连接到服务器以向该API发出请求。服务器公开的API被称为服务。
+当你需要通过网络进行通信的进程时，安排该通信的方式有几种。最常见的安排是有两个角色：客户端和服务器。服务器通过网络公开API，并且客户端可以连接到服务器以向该API发出请求。服务器公开的API被称为服务。
 
-Web以这种方式工作：客户（Web浏览器）向Web服务器发出请求，通过GET请求下载HTML，CSS，JavaScript，图像等，并通过POST请求提交数据到服务器。 API包含一组标准的协议和数据格式（HTTP，URL，SSL/TLS，HTML等）。由于网络浏览器，网络服务器和网站作者大多同意这些标准，您可以使用任何网络浏览器访问任何网站（至少在理论上！）。
+Web以这种方式工作：客户（Web浏览器）向Web服务器发出请求，通过GET请求下载HTML，CSS，JavaScript，图像等，并通过POST请求提交数据到服务器。 API包含一组标准的协议和数据格式（HTTP，URL，SSL/TLS，HTML等）。由于网络浏览器，网络服务器和网站作者大多同意这些标准，你可以使用任何网络浏览器访问任何网站（至少在理论上！）。
 
 Web浏览器不是唯一的客户端类型。例如，在移动设备或桌面计算机上运行的本地应用程序也可以向服务器发出网络请求，并且在Web浏览器内运行的客户端JavaScript应用程序可以使用XMLHttpRequest成为HTTP客户端（该技术被称为Ajax 【30】）。在这种情况下，服务器的响应通常不是用于显示给人的HTML，而是便于客户端应用程序代码进一步处理的编码数据（如JSON）。尽管HTTP可能被用作传输协议，但顶层实现的API是特定于应用程序的，客户端和服务器需要就该API的细节达成一致。
 
@@ -419,9 +419,9 @@ Web服务仅仅是通过网络进行API请求的一系列技术的最新版本�
 
 所有这些都是基于 **远程过程调用（RPC）** 的思想，该过程调用自20世纪70年代以来一直存在【42】。 RPC模型试图向远程网络服务发出请求，看起来与在同一进程中调用编程语言中的函数或方法相同（这种抽象称为位置透明）。尽管RPC起初看起来很方便，但这种方法根本上是有缺陷的【43,44】。网络请求与本地函数调用非常不同：
 
-* 本地函数调用是可预测的，并且成功或失败仅取决于受您控制的参数。网络请求是不可预知的：由于网络问题，请求或响应可能会丢失，或者远程计算机可能很慢或不可用，这些问题完全不在您的控制范围之内。网络问题是常见的，所以你必须预测他们，例如通过重试失败的请求。
+* 本地函数调用是可预测的，并且成功或失败仅取决于受你控制的参数。网络请求是不可预知的：由于网络问题，请求或响应可能会丢失，或者远程计算机可能很慢或不可用，这些问题完全不在你的控制范围之内。网络问题是常见的，所以你必须预测他们，例如通过重试失败的请求。
 * 本地函数调用要么返回结果，要么抛出异常，或者永远不返回（因为进入无限循环或进程崩溃）。网络请求有另一个可能的结果：由于超时，它可能会返回没有结果。在这种情况下，你根本不知道发生了什么：如果你没有得到来自远程服务的响应，你无法知道请求是否通过。 （我们将在[第八章](ch8.md)更详细地讨论这个问题。）
-* 如果您重试失败的网络请求，可能会发生请求实际上正在通过，只有响应丢失。在这种情况下，重试将导致该操作被执行多次，除非您在协议中引入除重（ **幂等（idempotence）**）机制。本地函数调用没有这个问题。 （在[第十一章](ch11.md)更详细地讨论幂等性）
+* 如果你重试失败的网络请求，可能会发生请求实际上正在通过，只有响应丢失。在这种情况下，重试将导致该操作被执行多次，除非你在协议中引入除重（ **幂等（idempotence）**）机制。本地函数调用没有这个问题。 （在[第十一章](ch11.md)更详细地讨论幂等性）
 * 每次调用本地功能时，通常需要大致相同的时间来执行。网络请求比函数调用要慢得多，而且其延迟也是非常可变的：好的时候它可能会在不到一毫秒的时间内完成，但是当网络拥塞或者远程服务超载时，可能需要几秒钟的时间完成一样的东西。
 * 调用本地函数时，可以高效地将引用（指针）传递给本地内存中的对象。当你发出一个网络请求时，所有这些参数都需要被编码成可以通过网络发送的一系列字节。如果参数是像数字或字符串这样的基本类型倒是没关系，但是对于较大的对象很快就会变成问题。
 
@@ -443,7 +443,7 @@ Web服务仅仅是通过网络进行API请求的一系列技术的最新版本�
 
 #### 数据编码与RPC的演化
 
-对于可演化性，重要的是可以独立更改和部署RPC客户端和服务器。与通过数据库流动的数据相比（如上一节所述），我们可以在通过服务进行数据流的情况下做一个简化的假设：假定所有的服务器都会先更新，其次是所有的客户端。因此，您只需要在请求上具有向后兼容性，并且对响应具有前向兼容性。
+对于可演化性，重要的是可以独立更改和部署RPC客户端和服务器。与通过数据库流动的数据相比（如上一节所述），我们可以在通过服务进行数据流的情况下做一个简化的假设：假定所有的服务器都会先更新，其次是所有的客户端。因此，你只需要在请求上具有向后兼容性，并且对响应具有前向兼容性。
 
 RPC方案的前后向兼容性属性从它使用的编码方式中继承：
 
@@ -479,7 +479,7 @@ RPC方案的前后向兼容性属性从它使用的编码方式中继承：
 
 一个主题只提供单向数据流。但是，消费者本身可能会将消息发布到另一个主题上（因此，可以将它们链接在一起，就像我们将在[第十一章](ch11.md)中看到的那样），或者发送给原始消息的发送者使用的回复队列（允许请求/响应数据流，类似于RPC）。
 
-消息代理通常不会执行任何特定的数据模型 —— 消息只是包含一些元数据的字节序列，因此您可以使用任何编码格式。如果编码是向后和向前兼容的，您可以灵活地对发布者和消费者的编码进行独立的修改，并以任意顺序进行部署。
+消息代理通常不会执行任何特定的数据模型 —— 消息只是包含一些元数据的字节序列，因此你可以使用任何编码格式。如果编码是向后和向前兼容的，你可以灵活地对发布者和消费者的编码进行独立的修改，并以任意顺序进行部署。
 
 如果消费者重新发布消息到另一个主题，则可能需要小心保留未知字段，以防止前面在数据库环境中描述的问题（[图4-7](img/fig4-7.png)）。
 
@@ -496,7 +496,7 @@ Actor模型是单个进程中并发的编程模型。逻辑被封装在actor中�
 三个流行的分布式actor框架处理消息编码如下：
 
 * 默认情况下，Akka使用Java的内置序列化，不提供前向或后向兼容性。 但是，你可以用类似Prototol Buffers的东西替代它，从而获得滚动升级的能力【50】。
-* Orleans 默认使用不支持滚动升级部署的自定义数据编码格式; 要部署新版本的应用程序，您需要设置一个新的集群，将流量从旧集群迁移到新集群，然后关闭旧集群【51,52】。 像Akka一样，可以使用自定义序列化插件。
+* Orleans 默认使用不支持滚动升级部署的自定义数据编码格式; 要部署新版本的应用程序，你需要设置一个新的集群，将流量从旧集群迁移到新集群，然后关闭旧集群【51,52】。 像Akka一样，可以使用自定义序列化插件。
 * 在Erlang OTP中，对记录模式进行更改是非常困难的（尽管系统具有许多为高可用性设计的功能）。 滚动升级是可能的，但需要仔细计划【53】。 一个新的实验性的`maps`数据类型（2014年在Erlang R17中引入的类似于JSON的结构）可能使得这个数据类型在未来更容易【54】。
 
 
@@ -513,7 +513,7 @@ Actor模型是单个进程中并发的编程模型。逻辑被封装在actor中�
 我们讨论了几种数据编码格式及其兼容性属性：
 
 * 编程语言特定的编码仅限于单一编程语言，并且往往无法提供前向和后向兼容性。
-* JSON，XML和CSV等文本格式非常普遍，其兼容性取决于您如何使用它们。他们有可选的模式语言，这有时是有用的，有时是一个障碍。这些格式对于数据类型有些模糊，所以你必须小心数字和二进制字符串。
+* JSON，XML和CSV等文本格式非常普遍，其兼容性取决于你如何使用它们。他们有可选的模式语言，这有时是有用的，有时是一个障碍。这些格式对于数据类型有些模糊，所以你必须小心数字和二进制字符串。
 * 像Thrift，Protocol Buffers和Avro这样的二进制模式驱动格式允许使用清晰定义的前向和后向兼容性语义进行紧凑，高效的编码。这些模式可以用于静态类型语言的文档和代码生成。但是，他们有一个缺点，就是在数据可读之前需要对数据进行解码。
 
 我们还讨论了数据流的几种模式，说明了数据编码重要性的不同场景：
@@ -522,122 +522,64 @@ Actor模型是单个进程中并发的编程模型。逻辑被封装在actor中�
 * RPC和REST API，客户端对请求进行编码，服务器对请求进行解码并对响应进行编码，客户端最终对响应进行解码
 * 异步消息传递（使用消息代理或参与者），其中节点之间通过发送消息进行通信，消息由发送者编码并由接收者解码
 
-我们可以小心地得出这样的结论：前向兼容性和滚动升级在某种程度上是可以实现的。愿您的应用程序的演变迅速、敏捷部署。
+我们可以小心地得出这样的结论：前向兼容性和滚动升级在某种程度上是可以实现的。愿你的应用程序的演变迅速、敏捷部署。
 
 
 
 ## 参考文献
 
-
 1.  “[Java Object Serialization Specification](http://docs.oracle.com/javase/7/docs/platform/serialization/spec/serialTOC.html),” *docs.oracle.com*, 2010.
-
 1.  “[Ruby 2.2.0 API Documentation](http://ruby-doc.org/core-2.2.0/),” *ruby-doc.org*, Dec 2014.
-
 1.  “[The Python 3.4.3 Standard Library Reference Manual](https://docs.python.org/3/library/pickle.html),” *docs.python.org*, February 2015.
-
 1.  “[EsotericSoftware/kryo](https://github.com/EsotericSoftware/kryo),” *github.com*, October 2014.
-
-1.  “[CWE-502:   Deserialization of Untrusted Data](http://cwe.mitre.org/data/definitions/502.html),” Common Weakness Enumeration, *cwe.mitre.org*,
-      July 30, 2014.
-
+1.  “[CWE-502:   Deserialization of Untrusted Data](http://cwe.mitre.org/data/definitions/502.html),” Common Weakness Enumeration, *cwe.mitre.org*, July 30, 2014.
 1.  Steve Breen:  “[What   Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This   Vulnerability](http://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/),” *foxglovesecurity.com*, November 6, 2015.
-
 1.  Patrick McKenzie:  “[What   the Rails Security Issue Means for Your Startup](http://www.kalzumeus.com/2013/01/31/what-the-rails-security-issue-means-for-your-startup/),” *kalzumeus.com*, January 31, 2013.
-
 1.  Eishay Smith:  “[jvm-serializers wiki](https://github.com/eishay/jvm-serializers/wiki),”  *github.com*, November 2014.
-
 1.  “[XML Is a Poor Copy of S-Expressions](http://c2.com/cgi/wiki?XmlIsaPoorCopyOfEssExpressions),” *c2.com* wiki.
-
 1.  Matt Harris: “[Snowflake: An Update and Some Very Important Information](https://groups.google.com/forum/#!topic/twitter-development-talk/ahbvo3VTIYI),” email to *Twitter Development Talk* mailing list, October 19, 2010.
-
 1.  Shudi (Sandy) Gao, C. M. Sperberg-McQueen, and Henry S. Thompson: “[XML Schema 1.1](http://www.w3.org/XML/Schema),” W3C Recommendation, May 2001.
-
 1.  Francis Galiegue, Kris Zyp, and Gary Court: “[JSON Schema](http://json-schema.org/),” IETF Internet-Draft, February 2013.
-
 1.  Yakov Shafranovich: “[RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files](https://tools.ietf.org/html/rfc4180),” October 2005.
-
 1.  “[MessagePack Specification](http://msgpack.org/),” *msgpack.org*. Mark Slee, Aditya Agarwal, and Marc Kwiatkowski: “[Thrift: Scalable Cross-Language Services Implementation](http://thrift.apache.org/static/files/thrift-20070401.pdf),” Facebook technical report, April 2007.
-
 1.  “[Protocol Buffers Developer Guide](https://developers.google.com/protocol-buffers/docs/overview),” Google, Inc., *developers.google.com*.
-
 1.  Igor Anishchenko: “[Thrift vs Protocol Buffers vs Avro - Biased Comparison](http://www.slideshare.net/IgorAnishchenko/pb-vs-thrift-vs-avro),” *slideshare.net*, September 17, 2012.
-
 1.  “[A Matrix of the Features Each Individual Language Library Supports](http://wiki.apache.org/thrift/LibraryFeatures),” *wiki.apache.org*.
-
 1.  Martin Kleppmann: “[Schema Evolution in Avro, Protocol Buffers and Thrift](http://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html),” *martin.kleppmann.com*, December 5, 2012.
-
 1.  “[Apache Avro 1.7.7 Documentation](http://avro.apache.org/docs/1.7.7/),” *avro.apache.org*, July 2014.
-
-1.  Doug Cutting, Chad Walters, Jim Kellerman, et al.:
-    “[&#91;PROPOSAL&#93; New Subproject: Avro](http://mail-archives.apache.org/mod_mbox/hadoop-general/200904.mbox/%3C49D53694.1050906@apache.org%3E),” email thread on *hadoop-general* mailing list,
-    *mail-archives.apache.org*, April 2009.
-
+1.  Doug Cutting, Chad Walters, Jim Kellerman, et al.: “[&#91;PROPOSAL&#93; New Subproject: Avro](http://mail-archives.apache.org/mod_mbox/hadoop-general/200904.mbox/%3C49D53694.1050906@apache.org%3E),” email thread on *hadoop-general* mailing list, *mail-archives.apache.org*, April 2009.
 1.  Tony Hoare: “[Null References: The Billion Dollar Mistake](http://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare),” at *QCon London*, March 2009.
-
 1.  Aditya Auradkar and Tom Quiggle:   “[Introducing   Espresso—LinkedIn's Hot New Distributed Document Store](https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store),” *engineering.linkedin.com*, January 21, 2015.
-
 1.  Jay Kreps: “[Putting Apache Kafka to Use: A Practical Guide to Building a Stream Data Platform (Part 2)](http://blog.confluent.io/2015/02/25/stream-data-platform-2/),” *blog.confluent.io*, February 25, 2015.
-
 1.  Gwen Shapira: “[The Problem of Managing Schemas](http://radar.oreilly.com/2014/11/the-problem-of-managing-schemas.html),” *radar.oreilly.com*, November 4, 2014.
-
 1.  “[Apache Pig 0.14.0 Documentation](http://pig.apache.org/docs/r0.14.0/),” *pig.apache.org*, November 2014.
-
 1.  John Larmouth: [*ASN.1Complete*](http://www.oss.com/asn1/resources/books-whitepapers-pubs/larmouth-asn1-book.pdf). Morgan Kaufmann, 1999. ISBN: 978-0-122-33435-1
-
-1.  Russell Housley, Warwick Ford, Tim Polk, and David Solo: “[RFC 2459: Internet X.509 Public Key Infrastructure: Certificate and CRL Profile](https://www.ietf.org/rfc/rfc2459.txt),” IETF Network Working Group, Standards Track,
-    January 1999.
-
+1.  Russell Housley, Warwick Ford, Tim Polk, and David Solo: “[RFC 2459: Internet X.509 Public Key Infrastructure: Certificate and CRL Profile](https://www.ietf.org/rfc/rfc2459.txt),” IETF Network Working Group, Standards Track, January 1999.
 1.  Lev Walkin: “[Question: Extensibility and Dropping Fields](http://lionet.info/asn1c/blog/2010/09/21/question-extensibility-removing-fields/),” *lionet.info*, September 21, 2010.
-
 1.  Jesse James Garrett: “[Ajax: A New Approach to Web Applications](http://www.adaptivepath.com/ideas/ajax-new-approach-web-applications/),” *adaptivepath.com*, February 18, 2005.
-
 1.  Sam Newman: *Building Microservices*. O'Reilly Media, 2015. ISBN: 978-1-491-95035-7
-
 1.  Chris Richardson: “[Microservices: Decomposing Applications for Deployability and Scalability](http://www.infoq.com/articles/microservices-intro),” *infoq.com*, May 25, 2014.
-
 1.  Pat Helland: “[Data on the Outside Versus Data on the Inside](http://cidrdb.org/cidr2005/papers/P12.pdf),” at *2nd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2005.
-
 1.  Roy Thomas Fielding: “[Architectural Styles and the Design of Network-Based Software Architectures](https://www.ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf),” PhD Thesis, University of California, Irvine, 2000.
-
 1.  Roy Thomas Fielding: “[REST APIs Must Be Hypertext-Driven](http://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven),” *roy.gbiv.com*, October 20 2008.
-
 1.  “[REST in Peace, SOAP](http://royal.pingdom.com/2010/10/15/rest-in-peace-soap/),” *royal.pingdom.com*, October 15, 2010.
-
 1.  “[Web Services Standards as of Q1 2007](https://www.innoq.com/resources/ws-standards-poster/),” *innoq.com*, February 2007.
-
 1.  Pete Lacey: “[The S Stands for Simple](http://harmful.cat-v.org/software/xml/soap/simple),” *harmful.cat-v.org*, November 15, 2006.
-
 1.  Stefan Tilkov: “[Interview: Pete Lacey Criticizes Web Services](http://www.infoq.com/articles/pete-lacey-ws-criticism),” *infoq.com*, December 12, 2006.
-
 1.  “[OpenAPI Specification (fka Swagger RESTful API Documentation Specification) Version 2.0](http://swagger.io/specification/),” *swagger.io*, September 8, 2014.
-
-1.  Michi Henning: “[The Rise and Fall of CORBA](http://queue.acm.org/detail.cfm?id=1142044),” *ACM Queue*, volume 4, number 5, pages 28–34, June 2006.
-    [doi:10.1145/1142031.1142044](http://dx.doi.org/10.1145/1142031.1142044)
-
+1.  Michi Henning: “[The Rise and Fall of CORBA](http://queue.acm.org/detail.cfm?id=1142044),” *ACM Queue*, volume 4, number 5, pages 28–34, June 2006. [doi:10.1145/1142031.1142044](http://dx.doi.org/10.1145/1142031.1142044)
 1.  Andrew D. Birrell and Bruce Jay Nelson: “[Implementing Remote Procedure Calls](http://www.cs.princeton.edu/courses/archive/fall03/cs518/papers/rpc.pdf),” *ACM Transactions on Computer Systems* (TOCS), volume 2, number 1, pages 39–59, February 1984. [doi:10.1145/2080.357392](http://dx.doi.org/10.1145/2080.357392)
-
 1.  Jim Waldo, Geoff Wyant, Ann Wollrath, and Sam Kendall: “[A Note on Distributed Computing](http://m.mirror.facebook.net/kde/devel/smli_tr-94-29.pdf),” Sun Microsystems Laboratories, Inc., Technical Report TR-94-29, November 1994.
-
 1.  Steve Vinoski: “[Convenience over Correctness](http://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf),” *IEEE Internet Computing*, volume 12, number 4, pages 89–92, July 2008. [doi:10.1109/MIC.2008.75](http://dx.doi.org/10.1109/MIC.2008.75)
-
 1.  Marius Eriksen: “[Your Server as a Function](http://monkey.org/~marius/funsrv.pdf),” at *7th Workshop on Programming Languages and Operating Systems* (PLOS), November 2013. [doi:10.1145/2525528.2525538](http://dx.doi.org/10.1145/2525528.2525538)
-
 1.  “[grpc-common Documentation](https://github.com/grpc/grpc-common),” Google, Inc., *github.com*, February 2015.
-
 1.  Aditya Narayan and Irina Singh:   “[Designing   and Versioning Compatible Web Services](http://www.ibm.com/developerworks/websphere/library/techarticles/0705_narayan/0705_narayan.html),” *ibm.com*, March 28, 2007.
-
 1.  Troy Hunt: “[Your API Versioning Is Wrong, Which Is Why I Decided to Do It 3 Different Wrong Ways](http://www.troyhunt.com/2014/02/your-api-versioning-is-wrong-which-is.html),” *troyhunt.com*, February 10, 2014.
-
 1.  “[API Upgrades](https://stripe.com/docs/upgrades),” Stripe, Inc., April 2015.
-
 1.  Jonas Bonér:   “[Upgrade in an   Akka Cluster](http://grokbase.com/t/gg/akka-user/138wd8j9e3/upgrade-in-an-akka-cluster),” email to *akka-user* mailing list, *grokbase.com*, August 28, 2013.
-
 1.  Philip A. Bernstein, Sergey Bykov, Alan Geller, et al.:   “[Orleans:   Distributed Virtual Actors for Programmability and Scalability](http://research.microsoft.com/pubs/210931/Orleans-MSR-TR-2014-41.pdf),” Microsoft Research Technical Report MSR-TR-2014-41, March 2014.
-
 1.  “[Microsoft Project   Orleans Documentation](http://dotnet.github.io/orleans/),” Microsoft Research, *dotnet.github.io*, 2015.
-
 1.  David Mercer, Sean Hinde, Yinso Chen, and Richard A O'Keefe:  “[beginner:   Updating Data Structures](http://erlang.org/pipermail/erlang-questions/2007-October/030318.html),” email thread on *erlang-questions* mailing list, *erlang.com*,  October 29, 2007.
-
 1.  Fred Hebert:  “[Postscript: Maps](http://learnyousomeerlang.com/maps),” *learnyousomeerlang.com*,  April 9, 2014.
 
 ------
