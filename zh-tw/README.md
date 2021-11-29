@@ -152,6 +152,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [144](https://github.com/Vonng/ddia/issues/144)  |  [@secret4233](https://github.com/secret4233)  |   ch7: 不翻譯`next-key locking`  |
+|  [143](https://github.com/Vonng/ddia/issues/143)  |  [@imcheney](https://github.com/imcheney)  |   ch3: 更新殘留的機翻段落  |
 |  [142](https://github.com/Vonng/ddia/issues/142)  |  [@XIJINIAN](https://github.com/XIJINIAN)  |   建議去除段首的製表符  |
 |  [141](https://github.com/Vonng/ddia/issues/141)  |  [@Flyraty](https://github.com/Flyraty)  |   ch5: 發現一處錯誤格式的章節引用  |
 |  [140](https://github.com/Vonng/ddia/pull/140)  |  [@Bowser1704](https://github.com/Bowser1704)  |   ch5: 修正章節Summary中多處不通順的翻譯  |
