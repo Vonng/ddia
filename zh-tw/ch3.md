@@ -26,14 +26,14 @@
 世界上最簡單的資料庫可以用兩個Bash函式實現：
 
 ```bash
-  #!/bin/bash
-  db_set () {
-    echo "$1,$2" >> database
-  }
+#!/bin/bash
+db_set () {
+  echo "$1,$2" >> database
+}
 
-  db_get () {
-    grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
-  }
+db_get () {
+  grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
+}
 ```
 
 這兩個函式實現了鍵值儲存的功能。執行 `db_set key value` 會將 **鍵（key）** 和**值（value）** 儲存在資料庫中。鍵和值（幾乎）可以是你喜歡的任何東西，例如，值可以是JSON文件。然後呼叫 `db_get key` 會查詢與該鍵關聯的最新值並將其返回。
@@ -41,26 +41,26 @@
 麻雀雖小，五臟俱全：
 
 ```bash
-  $ db_set 123456 '{"name":"London","attractions":["Big Ben","London Eye"]}'
+$ db_set 123456 '{"name":"London","attractions":["Big Ben","London Eye"]}'
 
-  $ db_set 42 '{"name":"San Francisco","attractions":["Golden Gate Bridge"]}'
+$ db_set 42 '{"name":"San Francisco","attractions":["Golden Gate Bridge"]}'
 
-  $ db_get 42
-  {"name":"San Francisco","attractions":["Golden Gate Bridge"]}
+$ db_get 42
+{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
 ```
 
 底層的儲存格式非常簡單：一個文字檔案，每行包含一條逗號分隔的鍵值對（忽略轉義問題的話，大致與CSV檔案類似）。每次對 `db_set` 的呼叫都會向檔案末尾追加記錄，所以更新鍵的時候舊版本的值不會被覆蓋 —— 因而查詢最新值的時候，需要找到檔案中鍵最後一次出現的位置（因此 `db_get` 中使用了 `tail -n 1 ` 。)
 
 ```bash
-  $ db_set 42 '{"name":"San Francisco","attractions":["Exploratorium"]}'
+$ db_set 42 '{"name":"San Francisco","attractions":["Exploratorium"]}'
 
-  $ db_get 42
-  {"name":"San Francisco","attractions":["Exploratorium"]}
+$ db_get 42
+{"name":"San Francisco","attractions":["Exploratorium"]}
 
-  $ cat database
-  123456,{"name":"London","attractions":["Big Ben","London Eye"]}
-  42,{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
-  42,{"name":"San Francisco","attractions":["Exploratorium"]}
+$ cat database
+123456,{"name":"London","attractions":["Big Ben","London Eye"]}
+42,{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
+42,{"name":"San Francisco","attractions":["Exploratorium"]}
 ```
 
 `db_set` 函式對於極其簡單的場景其實有非常好的效能，因為在檔案尾部追加寫入通常是非常高效的。與`db_set`做的事情類似，許多資料庫在內部使用了**日誌（log）**，也就是一個 **僅追加（append-only）** 的資料檔案。真正的資料庫有更多的問題需要處理（如併發控制，回收硬碟空間以避免日誌無限增長，處理錯誤與部分寫入的記錄），但基本原理是一樣的。日誌極其有用，我們還將在本書的其它部分重複見到它好幾次。
@@ -323,8 +323,8 @@ B樹在資料庫架構中是非常根深蒂固的，為許多工作負載都提�
 **多維索引（multi-dimensional index）** 是一種查詢多個列的更一般的方法，這對於地理空間資料尤為重要。例如，餐廳搜尋網站可能有一個數據庫，其中包含每個餐廳的經度和緯度。當用戶在地圖上檢視餐館時，網站需要搜尋使用者正在檢視的矩形地圖區域內的所有餐館。這需要一個二維範圍查詢，如下所示：
 
 ```sql
-  SELECT * FROM restaurants WHERE latitude > 51.4946 AND latitude < 51.5079
-                            AND longitude > -0.1162 AND longitude < -0.1004;
+SELECT * FROM restaurants WHERE latitude > 51.4946 AND latitude < 51.5079
+                          AND longitude > -0.1162 AND longitude < -0.1004;
 ```
 
 一個標準的B樹或者LSM樹索引不能夠高效地處理這種查詢：它可以返回一個緯度範圍內的所有餐館（但經度可能是任意值），或者返回在同一個經度範圍內的所有餐館（但緯度可能是北極和南極之間的任意地方），但不能同時滿足兩個條件。
@@ -454,18 +454,18 @@ Teradata、Vertica、SAP HANA和ParAccel等資料倉庫供應商通常使用昂�
 **例3-1 分析人們是否更傾向於在一週的某一天購買新鮮水果或糖果**
 
 ```sql
-  SELECT
-    dim_date.weekday,
-    dim_product.category,
-    SUM(fact_sales.quantity) AS quantity_sold
-  FROM fact_sales
-    JOIN dim_date ON fact_sales.date_key = dim_date.date_key
-    JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
-  WHERE
-    dim_date.year = 2013 AND
-    dim_product.category IN ('Fresh fruit', 'Candy')
-  GROUP BY
-    dim_date.weekday, dim_product.category;
+SELECT
+  dim_date.weekday,
+  dim_product.category,
+  SUM(fact_sales.quantity) AS quantity_sold
+FROM fact_sales
+  JOIN dim_date ON fact_sales.date_key = dim_date.date_key
+  JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
+WHERE
+  dim_date.year = 2013 AND
+  dim_product.category IN ('Fresh fruit', 'Candy')
+GROUP BY
+  dim_date.weekday, dim_product.category;
 ```
 
 我們如何有效地執行這個查詢？
@@ -502,13 +502,13 @@ Teradata、Vertica、SAP HANA和ParAccel等資料倉庫供應商通常使用昂�
 這些點陣圖索引非常適合資料倉庫中常見的各種查詢。例如：
 
 ```sql
-  WHERE product_sk IN（30，68，69）
+WHERE product_sk IN（30，68，69）
 ```
 
 載入`product_sk = 30`、`product_sk = 68`和`product_sk = 69`這三個點陣圖，並計算三個點陣圖的按位或（OR），這可以非常有效地完成。
 
 ```sql
-  WHERE product_sk = 31 AND store_sk = 3
+WHERE product_sk = 31 AND store_sk = 3
 ```
 
 載入`product_sk = 31`和`store_sk = 3`的點陣圖，並計算按位與（AND）。這是因為列按照相同的順序包含行，因此一列的點陣圖中的第k位和另一列的點陣圖中的第k位對應相同的行。

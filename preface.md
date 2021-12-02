@@ -26,7 +26,6 @@
 阅读本书后，你能很好地决定哪种技术适合哪种用途，并了解如何将工具组合起来，为一个良好应用架构奠定基础。本书并不足以使你从头开始构建自己的数据库存储引擎，不过幸运的是这基本上很少有必要。你将获得对系统底层发生事情的敏锐直觉，这样你就有能力推理它们的行为，做出优秀的设计决策，并追踪任何可能出现的问题。
 
 
-
 ## 本书的目标读者
 
 如果你开发的应用具有用于存储或处理数据的某种服务器/后端系统，而且使用网络（例如，Web应用，移动应用或连接到互联网的传感器），那么本书就是为你准备的。
@@ -43,7 +42,6 @@
 * 你对事物的运作方式有着天然的好奇心，并且希望知道一些主流网站和在线服务背后发生的事情。这本书打破了各种数据库和数据处理系统的内幕，探索这些系统设计中的智慧是非常有趣的。
 
 有时在讨论可伸缩的数据系统时，人们会说：“你又不在谷歌或亚马逊，别操心可伸缩性了，直接上关系型数据库”。这个陈述有一定的道理：为了不必要的伸缩性而设计程序，不仅会浪费不必要的精力，并且可能会把你锁死在一个不灵活的设计中。实际上这是一种“过早优化”的形式。不过，选择合适的工具确实很重要，而不同的技术各有优缺点。我们将看到，关系数据库虽然很重要，但绝不是数据处理的终章。
-
 
 
 ## 本书涉及的领域
@@ -69,12 +67,9 @@
 3. 在[第三部分](part-iii.md)中，我们讨论那些从其他数据集衍生出一些数据集的系统。衍生数据经常出现在异构系统中：当没有单个数据库可以把所有事情都做的很好时，应用需要集成几种不同的数据库，缓存，索引等。在[第十章](ch10.md)中我们将从一种衍生数据的批处理方法开始，然后在此基础上建立在[第十一章](ch11.md)中讨论的流处理。最后，在[第十二章](ch12.md)中，我们将所有内容汇总，讨论在将来构建可靠，可伸缩和可维护的应用程序的方法。
 
 
-
-
 ## 参考文献与延伸阅读
 
 本书中讨论的大部分内容已经在其它地方以某种形式出现过了 —— 会议演示文稿，研究论文，博客文章，代码，BUG跟踪器，邮件列表，以及工程习惯中。本书总结了不同来源资料中最重要的想法，并在文本中包含了指向原始文献的链接。 如果你想更深入地探索一个领域，那么每章末尾的参考文献都是很好的资源，其中大部分可以免费在线获取。
-
 
 
 ## O‘Reilly Safari
@@ -84,7 +79,6 @@
 Members have access to thousands of books, training videos, Learning Paths, interac‐ tive tutorials, and curated playlists from over 250 publishers, including O’Reilly Media, Harvard Business Review, Prentice Hall Professional, Addison-Wesley Pro‐ fessional, Microsoft Press, Sams, Que, Peachpit Press, Adobe, Focal Press, Cisco Press, John Wiley & Sons, Syngress, Morgan Kaufmann, IBM Redbooks, Packt, Adobe Press, FT Press, Apress, Manning, New Riders, McGraw-Hill, Jones & Bartlett, and Course Technology, among others.
 
 For more information, please visit http://oreilly.com/safari.
-
 
 
 ## 致谢

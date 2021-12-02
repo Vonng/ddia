@@ -311,7 +311,6 @@ Couchbase不会自动重新平衡，这简化了设计。通常情况下，它�
 通过散列进行分区时，通常先提前创建固定数量的分区，为每个节点分配多个分区，并在添加或删除节点时将整个分区从一个节点移动到另一个节点。也可以使用动态分区。
 
 
-
 两种方法搭配使用也是可行的，例如使用复合主键：使用键的一部分来标识分区，而使用另一部分作为排序顺序。
 
 我们还讨论了分区和次级索引之间的相互作用。次级索引也需要分区，有两种方法：
@@ -322,7 +321,6 @@ Couchbase不会自动重新平衡，这简化了设计。通常情况下，它�
 最后，我们讨论了将查询路由到适当的分区的技术，从简单的分区负载平衡到复杂的并行查询执行引擎。
 
 按照设计，多数情况下每个分区是独立运行的 — 这就是分区数据库可以伸缩到多台机器的原因。但是，需要写入多个分区的操作结果可能难以预料：例如，如果写入一个分区成功，但另一个分区失败，会发生什么情况？我们将在下面的章节中讨论这个问题。
-
 
 
 ## 参考文献
@@ -360,7 +358,6 @@ Couchbase不会自动重新平衡，这简化了设计。通常情况下，它�
 1.  Kishore Gopalakrishna, Shi Lu, Zhen Zhang, et al.:     “[Untangling Cluster Management with Helix](http://www.socc2012.org/helix_onecol.pdf?attredirects=0),” at *ACM Symposium on Cloud Computing* (SoCC), October 2012. [doi:10.1145/2391229.2391248](http://dx.doi.org/10.1145/2391229.2391248)
 1.  “[Moxi 1.8 Manual](http://docs.couchbase.com/moxi-manual-1.8/),” Couchbase, Inc., 2014.
 1.  Shivnath Babu and Herodotos Herodotou:     “[Massively Parallel Databases and MapReduce Systems](http://research.microsoft.com/pubs/206464/db-mr-survey-final.pdf),” *Foundations and Trends in Databases*,     volume 5, number 1, pages 1–104, November 2013.[doi:10.1561/1900000036](http://dx.doi.org/10.1561/1900000036)
-
 
 
 ------

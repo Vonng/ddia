@@ -311,7 +311,6 @@ Couchbase不會自動重新平衡，這簡化了設計。通常情況下，它�
 透過雜湊進行分割槽時，通常先提前建立固定數量的分割槽，為每個節點分配多個分割槽，並在新增或刪除節點時將整個分割槽從一個節點移動到另一個節點。也可以使用動態分割槽。
 
 
-
 兩種方法搭配使用也是可行的，例如使用複合主鍵：使用鍵的一部分來標識分割槽，而使用另一部分作為排序順序。
 
 我們還討論了分割槽和次級索引之間的相互作用。次級索引也需要分割槽，有兩種方法：
@@ -322,7 +321,6 @@ Couchbase不會自動重新平衡，這簡化了設計。通常情況下，它�
 最後，我們討論了將查詢路由到適當的分割槽的技術，從簡單的分割槽負載平衡到複雜的並行查詢執行引擎。
 
 按照設計，多數情況下每個分割槽是獨立執行的 — 這就是分割槽資料庫可以伸縮到多臺機器的原因。但是，需要寫入多個分割槽的操作結果可能難以預料：例如，如果寫入一個分割槽成功，但另一個分割槽失敗，會發生什麼情況？我們將在下面的章節中討論這個問題。
-
 
 
 ## 參考文獻
@@ -360,7 +358,6 @@ Couchbase不會自動重新平衡，這簡化了設計。通常情況下，它�
 1.  Kishore Gopalakrishna, Shi Lu, Zhen Zhang, et al.:     “[Untangling Cluster Management with Helix](http://www.socc2012.org/helix_onecol.pdf?attredirects=0),” at *ACM Symposium on Cloud Computing* (SoCC), October 2012. [doi:10.1145/2391229.2391248](http://dx.doi.org/10.1145/2391229.2391248)
 1.  “[Moxi 1.8 Manual](http://docs.couchbase.com/moxi-manual-1.8/),” Couchbase, Inc., 2014.
 1.  Shivnath Babu and Herodotos Herodotou:     “[Massively Parallel Databases and MapReduce Systems](http://research.microsoft.com/pubs/206464/db-mr-survey-final.pdf),” *Foundations and Trends in Databases*,     volume 5, number 1, pages 1–104, November 2013.[doi:10.1561/1900000036](http://dx.doi.org/10.1561/1900000036)
-
 
 
 ------

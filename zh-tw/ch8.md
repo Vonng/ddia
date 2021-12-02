@@ -89,7 +89,6 @@
 > 雖然更可靠的高階系統並不完美，但它仍然有用，因為它處理了一些棘手的低階錯誤，所以其餘的錯誤通常更容易推理和處理。我們將在“[資料庫的端到端原則](ch12.md#資料庫的端到端原則)”中進一步探討這個問題。
 
 
-
 ## 不可靠的網路
 
 正如在[第二部分](part-ii.md)的介紹中所討論的那樣，我們在本書中關注的分散式系統是無共享的系統，即透過網路連線的一堆機器。網路是這些機器可以通訊的唯一途徑——我們假設每臺機器都有自己的記憶體和磁碟，一臺機器不能訪問另一臺機器的記憶體或磁碟（除了透過網路向伺服器發出請求）。
@@ -441,7 +440,6 @@ while (true) {
 這些措施不能完全阻止垃圾回收暫停，但可以有效地減少它們對應用的影響。
 
 
-
 ## 知識、真相與謊言
 
 本章到目前為止，我們已經探索了分散式系統與執行在單臺計算機上的程式的不同之處：沒有共享記憶體，只有透過可變延遲的不可靠網路傳遞的訊息，系統可能遭受部分失效，不可靠的時鐘和處理暫停。
@@ -655,7 +653,6 @@ Web應用程式確實需要預期受終端使用者控制的客戶端（如Web�
 本章一直在講存在的問題，給我們展現了一幅黯淡的前景。在[下一章](ch9.md)中，我們將繼續討論解決方案，並討論一些旨在解決分散式系統中所有問題的演算法。
 
 
-
 ## 參考文獻
 
 1.  Mark Cavage:  Just No Getting Around It: You’re Building a Distributed System](http://queue.acm.org/detail.cfm?id=2482856),” *ACM Queue*, volume 11, number 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](http://dx.doi.org/10.1145/2466486.2482856)
@@ -755,9 +752,6 @@ Web應用程式確實需要預期受終端使用者控制的客戶端（如Web�
 1.  Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
 
 [^譯著1]: 原詩為：Hey I just met you. The network’s laggy. But here’s my data. So store it maybe.Hey,  應改編自《Call Me Maybe》歌詞：I just met you, And this is crazy, But here's my number, So call me, maybe?
-
-
-
 
 
 ------

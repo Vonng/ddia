@@ -34,7 +34,6 @@
 本章同时适用于单机数据库与分布式数据库；在[第八章](ch8.md)中将重点讨论仅出现在分布式系统中的特殊挑战。
 
 
-
 ## 事务的棘手概念
 
 现今，几乎所有的关系型数据库和一些非关系数据库都支持**事务**。其中大多数遵循IBM System R（第一个SQL数据库）在1975年引入的风格【1,2,3】。40年里，尽管一些实现细节发生了变化，但总体思路大同小异：MySQL，PostgreSQL，Oracle，SQL Server等数据库中的事务支持与System R异乎寻常地相似。
@@ -417,7 +416,7 @@ UPDATE counters SET value = value + 1 WHERE key = 'foo';
 ```plsql
 BEGIN TRANSACTION;
 SELECT * FROM figures
-	WHERE name = 'robot' AND game_id = 222
+  WHERE name = 'robot' AND game_id = 222
 FOR UPDATE;
 
 -- 检查玩家的操作是否有效，然后更新先前SELECT返回棋子的位置。
@@ -526,7 +525,7 @@ BEGIN TRANSACTION;
 -- 检查所有现存的与12:00~13:00重叠的预定
 SELECT COUNT(*) FROM bookings
 WHERE room_id = 123 AND 
-	end_time > '2015-01-01 12:00' AND start_time < '2015-01-01 13:00';
+  end_time > '2015-01-01 12:00' AND start_time < '2015-01-01 13:00';
 
 -- 如果之前的查询返回0
 INSERT INTO bookings(room_id, start_time, end_time, user_id)
@@ -875,7 +874,6 @@ WHERE room_id = 123 AND
 本章中的示例主要是在关系数据模型的上下文中。但是，正如在讨论中，无论使用哪种数据模型，如“**[多对象事务的需求](#多对象事务的需求)**”中所讨论的，事务都是有价值的数据库功能。
 
 本章主要是在单机数据库的上下文中，探讨了各种想法和算法。分布式数据库中的事务，则引入了一系列新的困难挑战，我们将在接下来的两章中讨论。
-
 
 
 ## 参考文献

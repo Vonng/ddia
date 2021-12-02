@@ -26,7 +26,6 @@
 閱讀本書後，你能很好地決定哪種技術適合哪種用途，並瞭解如何將工具組合起來，為一個良好應用架構奠定基礎。本書並不足以使你從頭開始構建自己的資料庫儲存引擎，不過幸運的是這基本上很少有必要。你將獲得對系統底層發生事情的敏銳直覺，這樣你就有能力推理它們的行為，做出優秀的設計決策，並追蹤任何可能出現的問題。
 
 
-
 ## 本書的目標讀者
 
 如果你開發的應用具有用於儲存或處理資料的某種伺服器/後端系統，而且使用網路（例如，Web應用，移動應用或連線到網際網路的感測器），那麼本書就是為你準備的。
@@ -43,7 +42,6 @@
 * 你對事物的運作方式有著天然的好奇心，並且希望知道一些主流網站和線上服務背後發生的事情。這本書打破了各種資料庫和資料處理系統的內幕，探索這些系統設計中的智慧是非常有趣的。
 
 有時在討論可伸縮的資料系統時，人們會說：“你又不在谷歌或亞馬遜，別操心可伸縮性了，直接上關係型資料庫”。這個陳述有一定的道理：為了不必要的伸縮性而設計程式，不僅會浪費不必要的精力，並且可能會把你鎖死在一個不靈活的設計中。實際上這是一種“過早最佳化”的形式。不過，選擇合適的工具確實很重要，而不同的技術各有優缺點。我們將看到，關係資料庫雖然很重要，但絕不是資料處理的終章。
-
 
 
 ## 本書涉及的領域
@@ -69,12 +67,9 @@
 3. 在[第三部分](part-iii.md)中，我們討論那些從其他資料集衍生出一些資料集的系統。衍生資料經常出現在異構系統中：當沒有單個數據庫可以把所有事情都做的很好時，應用需要整合幾種不同的資料庫，快取，索引等。在[第十章](ch10.md)中我們將從一種衍生資料的批處理方法開始，然後在此基礎上建立在[第十一章](ch11.md)中討論的流處理。最後，在[第十二章](ch12.md)中，我們將所有內容彙總，討論在將來構建可靠，可伸縮和可維護的應用程式的方法。
 
 
-
-
 ## 參考文獻與延伸閱讀
 
 本書中討論的大部分內容已經在其它地方以某種形式出現過了 —— 會議簡報，研究論文，部落格文章，程式碼，BUG跟蹤器，郵件列表，以及工程習慣中。本書總結了不同來源資料中最重要的想法，並在文字中包含了指向原始文獻的連結。 如果你想更深入地探索一個領域，那麼每章末尾的參考文獻都是很好的資源，其中大部分可以免費線上獲取。
-
 
 
 ## O‘Reilly Safari
@@ -84,7 +79,6 @@
 Members have access to thousands of books, training videos, Learning Paths, interac‐ tive tutorials, and curated playlists from over 250 publishers, including O’Reilly Media, Harvard Business Review, Prentice Hall Professional, Addison-Wesley Pro‐ fessional, Microsoft Press, Sams, Que, Peachpit Press, Adobe, Focal Press, Cisco Press, John Wiley & Sons, Syngress, Morgan Kaufmann, IBM Redbooks, Packt, Adobe Press, FT Press, Apress, Manning, New Riders, McGraw-Hill, Jones & Bartlett, and Course Technology, among others.
 
 For more information, please visit http://oreilly.com/safari.
-
 
 
 ## 致謝

@@ -29,7 +29,6 @@
 在本章中，我們將研究一系列用於資料儲存和查詢的通用資料模型（前面列表中的第2點）。特別地，我們將比較關係模型，文件模型和少量基於圖形的資料模型。我們還將檢視各種查詢語言並比較它們的用例。在[第三章](ch3.md)中，我們將討論儲存引擎是如何工作的。也就是說，這些資料模型實際上是如何實現的（列表中的第3點）。
 
 
-
 ## 關係模型與文件模型
 
 現在最著名的資料模型可能是SQL。它基於Edgar Codd在1970年提出的關係模型【1】：資料被組織成**關係**（SQL中稱作**表**），其中每個關係是**元組**（SQL中稱作**行**)的無序集合。
@@ -162,6 +161,7 @@ JSON表示比[圖2-1](../img/fig2-1.png)中的多表模式具有更好的**區�
 ***推薦***
 
 假設你想新增一個新的功能：一個使用者可以為另一個使用者寫一個推薦。在使用者的簡歷上顯示推薦，並附上推薦使用者的姓名和照片。如果推薦人更新他們的照片，那他們寫的任何推薦都需要顯示新的照片。因此，推薦應該擁有作者個人簡介的引用。
+
 ![](../img/fig2-3.png)
 
 **圖2-3 公司名不僅是字串，還是一個指向公司實體的連結（LinkedIn截圖）**
@@ -248,8 +248,8 @@ CODASYL中的查詢是透過利用遍歷記錄列和跟隨訪問路徑表在資�
 
 ```go
 if (user && user.name && !user.first_name) {
-	// Documents written before Dec 8, 2013 don't have first_name
-	user.first_name = user.name.split(" ")[0];
+  // Documents written before Dec 8, 2013 don't have first_name
+  user.first_name = user.name.split(" ")[0];
 }
 ```
 
@@ -295,7 +295,6 @@ UPDATE users SET first_name = substring_index(name, ' ', 1); 	-- MySQL
 關係模型和文件模型的混合是未來資料庫一條很好的路線。
 
 [^v]: Codd對關係模型【1】的原始描述實際上允許在關係模式中與JSON文件非常相似。他稱之為**非簡單域（nonsimple domains）**。這個想法是，一行中的值不一定是一個像數字或字串一樣的原始資料型別，也可以是一個巢狀的關係（表），因此可以把一個任意巢狀的樹結構作為一個值，這很像30年後新增到SQL中的JSON或XML支援。
-
 
 
 ## 資料查詢語言
@@ -370,7 +369,7 @@ SQL示例不確保任何特定的順序，因此不在意順序是否改變。�
 
 ```css
 li.selected > p {
-	background-color: blue;
+  background-color: blue;
 }
 ```
 
@@ -429,8 +428,8 @@ MapReduce既不是一個宣告式的查詢語言，也不是一個完全命令�
 
 ```sql
 SELECT
-	date_trunc('month', observation_timestamp) AS observation_month,
-	sum(num_animals)                           AS total_animals
+  date_trunc('month', observation_timestamp) AS observation_month,
+  sum(num_animals)                           AS total_animals
 FROM observations
 WHERE family = 'Sharks'
 GROUP BY observation_month;
@@ -506,7 +505,6 @@ db.observations.aggregate([
 ```
 
 聚合管道語言與SQL的子集具有類似表現力，但是它使用基於JSON的語法而不是SQL的英語句子式語法; 這種差異也許是口味問題。這個故事的寓意是NoSQL系統可能會發現自己意外地重新發明了SQL，儘管帶著偽裝。
-
 
 
 ## 圖資料模型
@@ -600,12 +598,12 @@ Cypher是屬性圖的宣告式查詢語言，為Neo4j圖形資料庫而發明【
 
 ```cypher
 CREATE
-	(NAmerica:Location {name:'North America', type:'continent'}),
-	(USA:Location      {name:'United States', type:'country'  }),
-	(Idaho:Location    {name:'Idaho',         type:'state'    }),
-	(Lucy:Person       {name:'Lucy' }),
-	(Idaho) -[:WITHIN]->  (USA)  -[:WITHIN]-> (NAmerica),
-	(Lucy)  -[:BORN_IN]-> (Idaho)
+  (NAmerica:Location {name:'North America', type:'continent'}),
+  (USA:Location      {name:'United States', type:'country'  }),
+  (Idaho:Location    {name:'Idaho',         type:'state'    }),
+  (Lucy:Person       {name:'Lucy' }),
+  (Idaho) -[:WITHIN]->  (USA)  -[:WITHIN]-> (NAmerica),
+  (Lucy)  -[:BORN_IN]-> (Idaho)
 ```
 
 當[圖2-5](../img/fig2-5.png)的所有頂點和邊被新增到資料庫後，讓我們提些有趣的問題：例如，找到所有從美國移民到歐洲的人的名字。更確切地說，這裡我們想要找到符合下麵條件的所有頂點，並且返回這些頂點的`name`屬性：該頂點擁有一條連到美國任一位置的`BORN_IN`邊，和一條連到歐洲的任一位置的`LIVING_IN`邊。
@@ -616,8 +614,8 @@ CREATE
 
 ```cypher
 MATCH
-	(person) -[:BORN_IN]->  () -[:WITHIN*0..]-> (us:Location {name:'United States'}),
-	(person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (eu:Location {name:'Europe'})
+  (person) -[:BORN_IN]->  () -[:WITHIN*0..]-> (us:Location {name:'United States'}),
+  (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (eu:Location {name:'Europe'})
 RETURN person.name
 ```
 
@@ -872,7 +870,7 @@ born_in(lucy, idaho).
 within_recursive(Location, Name) :- name(Location, Name). /* Rule 1 */
 
 within_recursive(Location, Name) :- within(Location, Via), /* Rule 2 */
-									within_recursive(Via, Name).
+                  within_recursive(Via, Name).
 
 migrated(Name, BornIn, LivingIn) :- name(Person, Name), /* Rule 3 */
                                     born_in(Person, BornLoc),
@@ -881,7 +879,6 @@ migrated(Name, BornIn, LivingIn) :- name(Person, Name), /* Rule 3 */
                                     within_recursive(LivingLoc, LivingIn).
 
 ?- migrated(Who, 'United States', 'Europe'). /* Who = 'Lucy'. */
-
 ```
 
 Cypher和SPARQL使用SELECT立即跳轉，但是Datalog一次只進行一小步。我們定義**規則**，以將新謂語告訴資料庫：在這裡，我們定義了兩個新的謂語，`within_recursive`和`migrated`。這些謂語不是儲存在資料庫中的三元組中，而是它們是從資料或其他規則派生而來的。規則可以引用其他規則，就像函式可以呼叫其他函式或者遞迴地呼叫自己一樣。像這樣，複雜的查詢可以一次構建其中的一小塊。
@@ -907,7 +904,6 @@ Cypher和SPARQL使用SELECT立即跳轉，但是Datalog一次只進行一小步�
 相對於本章討論的其他查詢語言，我們需要採取不同的思維方式來思考Datalog方法，但這是一種非常強大的方法，因為規則可以在不同的查詢中進行組合和重用。雖然對於簡單的一次性查詢，顯得不太方便，但是它可以更好地處理資料很複雜的情況。
 
 
-
 ## 本章小結
 
 資料模型是一個巨大的課題，在本章中，我們快速瀏覽了各種不同的模型。我們沒有足夠的空間來詳細介紹每個模型的細節，但是希望這個概述足以激起你的興趣，以更多地瞭解最適合你的應用需求的模型。
@@ -930,9 +926,6 @@ Cypher和SPARQL使用SELECT立即跳轉，但是Datalog一次只進行一小步�
 * **全文搜尋**可以說是一種經常與資料庫一起使用的資料模型。資訊檢索是一個很大的專業課題，我們不會在本書中詳細介紹，但是我們將在第三章和第三部分中介紹搜尋索引。
 
 讓我們暫時將其放在一邊。在[下一章](ch3.md)中，我們將討論在**實現**本章描述的資料模型時會遇到的一些權衡。
-
-
-
 
 
 ## 參考文獻

@@ -26,14 +26,14 @@
 世界上最简单的数据库可以用两个Bash函数实现：
 
 ```bash
-  #!/bin/bash
-  db_set () {
-    echo "$1,$2" >> database
-  }
+#!/bin/bash
+db_set () {
+  echo "$1,$2" >> database
+}
 
-  db_get () {
-    grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
-  }
+db_get () {
+  grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
+}
 ```
 
 这两个函数实现了键值存储的功能。执行 `db_set key value` 会将 **键（key）** 和**值（value）** 存储在数据库中。键和值（几乎）可以是你喜欢的任何东西，例如，值可以是JSON文档。然后调用 `db_get key` 会查找与该键关联的最新值并将其返回。
@@ -41,26 +41,26 @@
 麻雀虽小，五脏俱全：
 
 ```bash
-  $ db_set 123456 '{"name":"London","attractions":["Big Ben","London Eye"]}'
+$ db_set 123456 '{"name":"London","attractions":["Big Ben","London Eye"]}'
 
-  $ db_set 42 '{"name":"San Francisco","attractions":["Golden Gate Bridge"]}'
+$ db_set 42 '{"name":"San Francisco","attractions":["Golden Gate Bridge"]}'
 
-  $ db_get 42
-  {"name":"San Francisco","attractions":["Golden Gate Bridge"]}
+$ db_get 42
+{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
 ```
 
 底层的存储格式非常简单：一个文本文件，每行包含一条逗号分隔的键值对（忽略转义问题的话，大致与CSV文件类似）。每次对 `db_set` 的调用都会向文件末尾追加记录，所以更新键的时候旧版本的值不会被覆盖 —— 因而查找最新值的时候，需要找到文件中键最后一次出现的位置（因此 `db_get` 中使用了 `tail -n 1 ` 。)
 
 ```bash
-  $ db_set 42 '{"name":"San Francisco","attractions":["Exploratorium"]}'
+$ db_set 42 '{"name":"San Francisco","attractions":["Exploratorium"]}'
 
-  $ db_get 42
-  {"name":"San Francisco","attractions":["Exploratorium"]}
+$ db_get 42
+{"name":"San Francisco","attractions":["Exploratorium"]}
 
-  $ cat database
-  123456,{"name":"London","attractions":["Big Ben","London Eye"]}
-  42,{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
-  42,{"name":"San Francisco","attractions":["Exploratorium"]}
+$ cat database
+123456,{"name":"London","attractions":["Big Ben","London Eye"]}
+42,{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
+42,{"name":"San Francisco","attractions":["Exploratorium"]}
 ```
 
 `db_set` 函数对于极其简单的场景其实有非常好的性能，因为在文件尾部追加写入通常是非常高效的。与`db_set`做的事情类似，许多数据库在内部使用了**日志（log）**，也就是一个 **仅追加（append-only）** 的数据文件。真正的数据库有更多的问题需要处理（如并发控制，回收硬盘空间以避免日志无限增长，处理错误与部分写入的记录），但基本原理是一样的。日志极其有用，我们还将在本书的其它部分重复见到它好几次。
@@ -323,8 +323,8 @@ B树在数据库架构中是非常根深蒂固的，为许多工作负载都提�
 **多维索引（multi-dimensional index）** 是一种查询多个列的更一般的方法，这对于地理空间数据尤为重要。例如，餐厅搜索网站可能有一个数据库，其中包含每个餐厅的经度和纬度。当用户在地图上查看餐馆时，网站需要搜索用户正在查看的矩形地图区域内的所有餐馆。这需要一个二维范围查询，如下所示：
 
 ```sql
-  SELECT * FROM restaurants WHERE latitude > 51.4946 AND latitude < 51.5079
-                            AND longitude > -0.1162 AND longitude < -0.1004;
+SELECT * FROM restaurants WHERE latitude > 51.4946 AND latitude < 51.5079
+                          AND longitude > -0.1162 AND longitude < -0.1004;
 ```
 
 一个标准的B树或者LSM树索引不能够高效地处理这种查询：它可以返回一个纬度范围内的所有餐馆（但经度可能是任意值），或者返回在同一个经度范围内的所有餐馆（但纬度可能是北极和南极之间的任意地方），但不能同时满足两个条件。
@@ -454,18 +454,18 @@ Teradata、Vertica、SAP HANA和ParAccel等数据仓库供应商通常使用昂�
 **例3-1 分析人们是否更倾向于在一周的某一天购买新鲜水果或糖果**
 
 ```sql
-  SELECT
-    dim_date.weekday,
-    dim_product.category,
-    SUM(fact_sales.quantity) AS quantity_sold
-  FROM fact_sales
-    JOIN dim_date ON fact_sales.date_key = dim_date.date_key
-    JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
-  WHERE
-    dim_date.year = 2013 AND
-    dim_product.category IN ('Fresh fruit', 'Candy')
-  GROUP BY
-    dim_date.weekday, dim_product.category;
+SELECT
+  dim_date.weekday,
+  dim_product.category,
+  SUM(fact_sales.quantity) AS quantity_sold
+FROM fact_sales
+  JOIN dim_date ON fact_sales.date_key = dim_date.date_key
+  JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
+WHERE
+  dim_date.year = 2013 AND
+  dim_product.category IN ('Fresh fruit', 'Candy')
+GROUP BY
+  dim_date.weekday, dim_product.category;
 ```
 
 我们如何有效地执行这个查询？
@@ -502,13 +502,13 @@ Teradata、Vertica、SAP HANA和ParAccel等数据仓库供应商通常使用昂�
 这些位图索引非常适合数据仓库中常见的各种查询。例如：
 
 ```sql
-  WHERE product_sk IN（30，68，69）
+WHERE product_sk IN（30，68，69）
 ```
 
 加载`product_sk = 30`、`product_sk = 68`和`product_sk = 69`这三个位图，并计算三个位图的按位或（OR），这可以非常有效地完成。
 
 ```sql
-  WHERE product_sk = 31 AND store_sk = 3
+WHERE product_sk = 31 AND store_sk = 3
 ```
 
 加载`product_sk = 31`和`store_sk = 3`的位图，并计算按位与（AND）。这是因为列按照相同的顺序包含行，因此一列的位图中的第k位和另一列的位图中的第k位对应相同的行。

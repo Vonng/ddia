@@ -89,7 +89,6 @@
 > 虽然更可靠的高级系统并不完美，但它仍然有用，因为它处理了一些棘手的低级错误，所以其余的错误通常更容易推理和处理。我们将在“[数据库的端到端原则](ch12.md#数据库的端到端原则)”中进一步探讨这个问题。
 
 
-
 ## 不可靠的网络
 
 正如在[第二部分](part-ii.md)的介绍中所讨论的那样，我们在本书中关注的分布式系统是无共享的系统，即通过网络连接的一堆机器。网络是这些机器可以通信的唯一途径——我们假设每台机器都有自己的内存和磁盘，一台机器不能访问另一台机器的内存或磁盘（除了通过网络向服务器发出请求）。
@@ -441,7 +440,6 @@ while (true) {
 这些措施不能完全阻止垃圾回收暂停，但可以有效地减少它们对应用的影响。
 
 
-
 ## 知识、真相与谎言
 
 本章到目前为止，我们已经探索了分布式系统与运行在单台计算机上的程序的不同之处：没有共享内存，只有通过可变延迟的不可靠网络传递的消息，系统可能遭受部分失效，不可靠的时钟和处理暂停。
@@ -655,7 +653,6 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 本章一直在讲存在的问题，给我们展现了一幅黯淡的前景。在[下一章](ch9.md)中，我们将继续讨论解决方案，并讨论一些旨在解决分布式系统中所有问题的算法。
 
 
-
 ## 参考文献
 
 1.  Mark Cavage:  Just No Getting Around It: You’re Building a Distributed System](http://queue.acm.org/detail.cfm?id=2482856),” *ACM Queue*, volume 11, number 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](http://dx.doi.org/10.1145/2466486.2482856)
@@ -755,9 +752,6 @@ Web应用程序确实需要预期受终端用户控制的客户端（如Web浏�
 1.  Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
 
 [^译著1]: 原诗为：Hey I just met you. The network’s laggy. But here’s my data. So store it maybe.Hey,  应改编自《Call Me Maybe》歌词：I just met you, And this is crazy, But here's my number, So call me, maybe?
-
-
-
 
 
 ------

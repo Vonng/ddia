@@ -34,7 +34,6 @@
 本章同時適用於單機資料庫與分散式資料庫；在[第八章](ch8.md)中將重點討論僅出現在分散式系統中的特殊挑戰。
 
 
-
 ## 事務的棘手概念
 
 現今，幾乎所有的關係型資料庫和一些非關係資料庫都支援**事務**。其中大多數遵循IBM System R（第一個SQL資料庫）在1975年引入的風格【1,2,3】。40年裡，儘管一些實現細節發生了變化，但總體思路大同小異：MySQL，PostgreSQL，Oracle，SQL Server等資料庫中的事務支援與System R異乎尋常地相似。
@@ -417,7 +416,7 @@ UPDATE counters SET value = value + 1 WHERE key = 'foo';
 ```plsql
 BEGIN TRANSACTION;
 SELECT * FROM figures
-	WHERE name = 'robot' AND game_id = 222
+  WHERE name = 'robot' AND game_id = 222
 FOR UPDATE;
 
 -- 檢查玩家的操作是否有效，然後更新先前SELECT返回棋子的位置。
@@ -526,7 +525,7 @@ BEGIN TRANSACTION;
 -- 檢查所有現存的與12:00~13:00重疊的預定
 SELECT COUNT(*) FROM bookings
 WHERE room_id = 123 AND
-	end_time > '2015-01-01 12:00' AND start_time < '2015-01-01 13:00';
+  end_time > '2015-01-01 12:00' AND start_time < '2015-01-01 13:00';
 
 -- 如果之前的查詢返回0
 INSERT INTO bookings(room_id, start_time, end_time, user_id)
@@ -875,7 +874,6 @@ WHERE room_id = 123 AND
 本章中的示例主要是在關係資料模型的上下文中。但是，正如在討論中，無論使用哪種資料模型，如“**[多物件事務的需求](#多物件事務的需求)**”中所討論的，事務都是有價值的資料庫功能。
 
 本章主要是在單機資料庫的上下文中，探討了各種想法和演算法。分散式資料庫中的事務，則引入了一系列新的困難挑戰，我們將在接下來的兩章中討論。
-
 
 
 ## 參考文獻
