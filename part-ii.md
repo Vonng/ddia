@@ -11,17 +11,17 @@
 
 你可能会出于各种各样的原因，希望将数据库分布到多台机器上：
 
-***可伸缩性***
+* 可伸缩性
 
-如果你的数据量、读取负载、写入负载超出单台机器的处理能力，可以将负载分散到多台计算机上。
+  如果你的数据量、读取负载、写入负载超出单台机器的处理能力，可以将负载分散到多台计算机上。
 
-***容错/高可用性***
+* 容错/高可用性
 
-如果你的应用需要在单台机器（或多台机器，网络或整个数据中心）出现故障的情况下仍然能继续工作，则可使用多台机器，以提供冗余。一台故障时，另一台可以接管。
+  如果你的应用需要在单台机器（或多台机器，网络或整个数据中心）出现故障的情况下仍然能继续工作，则可使用多台机器，以提供冗余。一台故障时，另一台可以接管。
 
-***延迟***
+* 延迟
 
-如果在世界各地都有用户，你也许会考虑在全球范围部署多个服务器，从而每个用户可以从地理上最近的数据中心获取服务，避免了等待网络数据包穿越半个世界。
+  如果在世界各地都有用户，你也许会考虑在全球范围部署多个服务器，从而每个用户可以从地理上最近的数据中心获取服务，避免了等待网络数据包穿越半个世界。
 
 ## 伸缩至更高的载荷
 
@@ -51,13 +51,13 @@
 
 数据分布在多个节点上有两种常见的方式：
 
-***复制（Replication）***
+* 复制（Replication）
 
-在几个不同的节点上保存数据的相同副本，可能放在不同的位置。 复制提供了冗余：如果一些节点不可用，剩余的节点仍然可以提供数据服务。 复制也有助于改善性能。 [第五章](ch5.md)将讨论复制。
+  在几个不同的节点上保存数据的相同副本，可能放在不同的位置。 复制提供了冗余：如果一些节点不可用，剩余的节点仍然可以提供数据服务。 复制也有助于改善性能。 [第五章](ch5.md)将讨论复制。
 
-***分区 (Partitioning)***
+* 分区 (Partitioning)
 
-将一个大型数据库拆分成较小的子集（称为**分区（partitions）**），从而不同的分区可以指派给不同的**节点（node）**（亦称**分片（shard）**）。 [第六章](ch6.md)将讨论分区。
+  将一个大型数据库拆分成较小的子集（称为**分区（partitions）**），从而不同的分区可以指派给不同的**节点（node）**（亦称**分片（shard）**）。 [第六章](ch6.md)将讨论分区。
 
 复制和分区是不同的机制，但它们经常同时使用。如[图II-1](img/figii-1.png)所示。
 
@@ -81,7 +81,7 @@
 
 ## 参考文献
 
-1.  Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
+1. Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
 1. Ben Stopford: “[Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” benstopford.com, November 24, 2009.
 1. Michael Stonebraker: “[The Case for Shared Nothing](http://db.cs.berkeley.edu/papers/hpts85-nothing.pdf),” IEEE Database EngineeringBulletin, volume 9, number 1, pages 4–9, March 1986.
 1. Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at 15th USENIX Workshop on Hot Topics in Operating Systems (HotOS),May 2015.

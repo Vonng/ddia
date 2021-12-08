@@ -11,17 +11,17 @@
 
 你可能會出於各種各樣的原因，希望將資料庫分佈到多臺機器上：
 
-***可伸縮性***
+* 可伸縮性
 
-如果你的資料量、讀取負載、寫入負載超出單臺機器的處理能力，可以將負載分散到多臺計算機上。
+  如果你的資料量、讀取負載、寫入負載超出單臺機器的處理能力，可以將負載分散到多臺計算機上。
 
-***容錯/高可用性***
+* 容錯/高可用性
 
-如果你的應用需要在單臺機器（或多臺機器，網路或整個資料中心）出現故障的情況下仍然能繼續工作，則可使用多臺機器，以提供冗餘。一臺故障時，另一臺可以接管。
+  如果你的應用需要在單臺機器（或多臺機器，網路或整個資料中心）出現故障的情況下仍然能繼續工作，則可使用多臺機器，以提供冗餘。一臺故障時，另一臺可以接管。
 
-***延遲***
+* 延遲
 
-如果在世界各地都有使用者，你也許會考慮在全球範圍部署多個伺服器，從而每個使用者可以從地理上最近的資料中心獲取服務，避免了等待網路資料包穿越半個世界。
+  如果在世界各地都有使用者，你也許會考慮在全球範圍部署多個伺服器，從而每個使用者可以從地理上最近的資料中心獲取服務，避免了等待網路資料包穿越半個世界。
 
 ## 伸縮至更高的載荷
 
@@ -51,13 +51,13 @@
 
 資料分佈在多個節點上有兩種常見的方式：
 
-***複製（Replication）***
+* 複製（Replication）
 
-在幾個不同的節點上儲存資料的相同副本，可能放在不同的位置。 複製提供了冗餘：如果一些節點不可用，剩餘的節點仍然可以提供資料服務。 複製也有助於改善效能。 [第五章](ch5.md)將討論複製。
+  在幾個不同的節點上儲存資料的相同副本，可能放在不同的位置。 複製提供了冗餘：如果一些節點不可用，剩餘的節點仍然可以提供資料服務。 複製也有助於改善效能。 [第五章](ch5.md)將討論複製。
 
-***分割槽 (Partitioning)***
+* 分割槽 (Partitioning)
 
-將一個大型資料庫拆分成較小的子集（稱為**分割槽（partitions）**），從而不同的分割槽可以指派給不同的**節點（node）**（亦稱**分片（shard）**）。 [第六章](ch6.md)將討論分割槽。
+  將一個大型資料庫拆分成較小的子集（稱為**分割槽（partitions）**），從而不同的分割槽可以指派給不同的**節點（node）**（亦稱**分片（shard）**）。 [第六章](ch6.md)將討論分割槽。
 
 複製和分割槽是不同的機制，但它們經常同時使用。如[圖II-1](../img/figii-1.png)所示。
 
@@ -81,7 +81,7 @@
 
 ## 參考文獻
 
-1.  Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
+1. Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
 1. Ben Stopford: “[Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” benstopford.com, November 24, 2009.
 1. Michael Stonebraker: “[The Case for Shared Nothing](http://db.cs.berkeley.edu/papers/hpts85-nothing.pdf),” IEEE Database EngineeringBulletin, volume 9, number 1, pages 4–9, March 1986.
 1. Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at 15th USENIX Workshop on Hot Topics in Operating Systems (HotOS),May 2015.

@@ -149,6 +149,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [147](https://github.com/Vonng/ddia/pull/147)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch5: 更正一處不準確的翻譯  |
+|  [145](https://github.com/Vonng/ddia/pull/145)  |  [@Hookey](https://github.com/Hookey)  |   識別了當前簡繁轉譯過程中處理不當的地方，暫透過轉換指令碼規避  |
 |  [144](https://github.com/Vonng/ddia/issues/144)  |  [@secret4233](https://github.com/secret4233)  |   ch7: 不翻譯`next-key locking`  |
 |  [143](https://github.com/Vonng/ddia/issues/143)  |  [@imcheney](https://github.com/imcheney)  |   ch3: 更新殘留的機翻段落  |
 |  [142](https://github.com/Vonng/ddia/issues/142)  |  [@XIJINIAN](https://github.com/XIJINIAN)  |   建議去除段首的製表符  |
