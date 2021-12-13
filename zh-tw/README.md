@@ -149,6 +149,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [151](https://github.com/Vonng/ddia/pull/151)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch5: 修訂sibling相關的翻譯  |
 |  [147](https://github.com/Vonng/ddia/pull/147)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch5: 更正一處不準確的翻譯  |
 |  [145](https://github.com/Vonng/ddia/pull/145)  |  [@Hookey](https://github.com/Hookey)  |   識別了當前簡繁轉譯過程中處理不當的地方，暫透過轉換指令碼規避  |
 |  [144](https://github.com/Vonng/ddia/issues/144)  |  [@secret4233](https://github.com/secret4233)  |   ch7: 不翻譯`next-key locking`  |
