@@ -45,7 +45,7 @@
 
 ### NoSQL的誕生
 
-現在 - 2010年代，NoSQL開始了最新一輪嘗試，試圖推翻關係模型的統治地位。“NoSQL”這個名字讓人遺憾，因為實際上它並沒有涉及到任何特定的技術。最初它只是作為一個醒目的Twitter標籤，用在2009年一個關於分散式，非關係資料庫上的開源聚會上。無論如何，這個術語觸動了某些神經，並迅速在網路創業社群內外傳播開來。好些有趣的資料庫系統現在都與*#NoSQL#*標籤相關聯，並且NoSQL被追溯性地重新解釋為**不僅是SQL（Not Only SQL）** 【4】。
+現在 - 2010年代，NoSQL開始了最新一輪嘗試，試圖推翻關係模型的統治地位。“NoSQL”這個名字讓人遺憾，因為實際上它並沒有涉及到任何特定的技術。最初它只是作為一個醒目的Twitter標籤，用在2009年一個關於分散式，非關係資料庫上的開源聚會上。無論如何，這個術語觸動了某些神經，並迅速在網路創業社群內外傳播開來。好些有趣的資料庫系統現在都與 *#NoSQL* 標籤相關聯，並且NoSQL被追溯性地重新解釋為**不僅是SQL（Not Only SQL）** 【4】。
 
 採用NoSQL資料庫的背後有幾個驅動因素，其中包括：
 
@@ -257,8 +257,8 @@ if (user && user.name && !user.first_name) {
 
 ```sql
 ALTER TABLE users ADD COLUMN first_name text;
-UPDATE users SET first_name = split_part(name, ' ', 1); 		-- PostgreSQL
-UPDATE users SET first_name = substring_index(name, ' ', 1); 	-- MySQL
+UPDATE users SET first_name = split_part(name, ' ', 1);      -- PostgreSQL
+UPDATE users SET first_name = substring_index(name, ' ', 1);      -- MySQL
 ```
 
 模式變更的速度很慢，而且要求停運。它的這種壞名譽並不是完全應得的：大多數關係資料庫系統可在幾毫秒內執行`ALTER TABLE`語句。MySQL是一個值得注意的例外，它執行`ALTER TABLE`時會複製整個表，這可能意味著在更改一個大型表時會花費幾分鐘甚至幾個小時的停機時間，儘管存在各種工具來解決這個限制【24,25,26】。
@@ -412,7 +412,7 @@ for (var i = 0; i < liElements.length; i++) {
 
 在Web瀏覽器中，使用宣告式CSS樣式比使用JavaScript命令式地操作樣式要好得多。類似地，在資料庫中，使用像SQL這樣的宣告式查詢語言比使用命令式查詢API要好得多[^vi]。
 
-[^vi]: vi IMS和CODASYL都使用命令式API。應用程式通常使用COBOL程式碼遍歷資料庫中的記錄，一次一條記錄【2,16】。
+[^vi]: IMS和CODASYL都使用命令式API。應用程式通常使用COBOL程式碼遍歷資料庫中的記錄，一次一條記錄【2,16】。
 
 ### MapReduce查詢
 
