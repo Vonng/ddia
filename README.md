@@ -149,6 +149,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [153](https://github.com/Vonng/ddia/pull/153)  |  [@DavidZhiXing](https://github.com/DavidZhiXing)  |   ch9: 修正缩略图的错别字  |
+|  [152](https://github.com/Vonng/ddia/pull/152)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch7: 除重->去重  |
 |  [151](https://github.com/Vonng/ddia/pull/151)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch5: 修订sibling相关的翻译  |
 |  [147](https://github.com/Vonng/ddia/pull/147)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch5: 更正一处不准确的翻译  |
 |  [145](https://github.com/Vonng/ddia/pull/145)  |  [@Hookey](https://github.com/Hookey)  |   识别了当前简繁转译过程中处理不当的地方，暂通过转换脚本规避  |
