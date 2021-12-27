@@ -287,7 +287,7 @@
 
   从系统中消除尽可能多的**复杂度（complexity）**，使新工程师也能轻松理解系统（注意这和用户接口的简单性不一样）。
 
-* 可演化性（evolability）
+* 可演化性（evolvability）
 
   使工程师在未来能轻松地对系统进行更改，当需求变化时为新应用场景做适配。也称为**可伸缩性（extensibility）**，**可修改性（modifiability）** 或**可塑性（plasticity）**。
 
