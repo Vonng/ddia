@@ -149,6 +149,12 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [164](https://github.com/Vonng/ddia/pull/164)  |  [@DragonDriver](https://github.com/DragonDriver)  |   preface: 更正错误的标点符号  |
+|  [163](https://github.com/Vonng/ddia/pull/163)  |  [@llmmddCoder](https://github.com/llmmddCoder)  |   ch1: 更正错误字  |
+|  [160](https://github.com/Vonng/ddia/pull/160)  |  [@Zhayhp](https://github.com/Zhayhp)  |   ch2: 建议将 network model 翻译为网状模型  |
+|  [159](https://github.com/Vonng/ddia/pull/159)  |  [@1ess](https://github.com/1ess)  |   ch4: 更正错误字  |
+|  [157](https://github.com/Vonng/ddia/pull/157)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch7: 更正不太通顺的翻译  |
+|  [155](https://github.com/Vonng/ddia/pull/155)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch7: 更正不太通顺的翻译  |
 |  [153](https://github.com/Vonng/ddia/pull/153)  |  [@DavidZhiXing](https://github.com/DavidZhiXing)  |   ch9: 修正缩略图的错别字  |
 |  [152](https://github.com/Vonng/ddia/pull/152)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch7: 除重->去重  |
 |  [151](https://github.com/Vonng/ddia/pull/151)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch5: 修订sibling相关的翻译  |
