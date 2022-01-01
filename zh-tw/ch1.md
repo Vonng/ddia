@@ -107,9 +107,9 @@
 
 我們通常認為硬體故障是隨機的、相互獨立的：一臺機器的磁碟失效並不意味著另一臺機器的磁碟也會失效。大量硬體元件不可能同時發生故障，除非它們存在比較弱的相關性（同樣的原因導致關聯性錯誤，例如伺服器機架的溫度）。
 
-另一類錯誤是內部的**系統性錯誤（systematic error）**【7】。這類錯誤難以預料，而且因為是跨節點相關的，所以比起不相關的硬體故障往往可能造成更多的**系統失效**【5】。例子包括：
+另一類錯誤是內部的**系統性錯誤（systematic error）**【8】。這類錯誤難以預料，而且因為是跨節點相關的，所以比起不相關的硬體故障往往可能造成更多的**系統失效**【5】。例子包括：
 
-* 接受特定的錯誤輸入，便導致所有應用伺服器例項崩潰的BUG。例如2012年6月30日的閏秒，由於Linux核心中的一個錯誤，許多應用同時掛掉了。
+* 接受特定的錯誤輸入，便導致所有應用伺服器例項崩潰的BUG。例如2012年6月30日的閏秒，由於Linux核心中的一個錯誤【9】，許多應用同時掛掉了。
 * 失控程序會用盡一些共享資源，包括CPU時間、記憶體、磁碟空間或網路頻寬。
 * 系統依賴的服務變慢，沒有響應，或者開始返回錯誤的響應。
 * 級聯故障，一個元件中的小故障觸發另一個元件中的故障，進而觸發更多的故障【10】。
@@ -378,12 +378,12 @@
 1.  Brian Beach: “[Hard Drive Reliability Update – Sep 2014](https://www.backblaze.com/blog/hard-drive-reliability-update-september-2014/),” *backblaze.com*, September 23, 2014.
 1.  Laurie Voss: “[AWS: The Good, the Bad and the Ugly](https://web.archive.org/web/20160429075023/http://blog.awe.sm/2012/12/18/aws-the-good-the-bad-and-the-ugly/),” *blog.awe.sm*, December 18, 2012.
 1.  Haryadi S. Gunawi, Mingzhe Hao, Tanakorn Leesatapornwongsa, et al.: “[What Bugs Live in the Cloud?](http://ucare.cs.uchicago.edu/pdf/socc14-cbs.pdf),” at *5th ACM Symposium on Cloud Computing* (SoCC), November 2014. [doi:10.1145/2670979.2670986](http://dx.doi.org/10.1145/2670979.2670986)
-1.  Nelson Minar:  “[Leap Second Crashes Half   the Internet](http://www.somebits.com/weblog/tech/bad/leap-second-2012.html),” *somebits.com*, July 3, 2012.
-1.  Amazon Web Services:  “[Summary of the Amazon EC2 and Amazon RDS Service   Disruption in the US East Region](http://aws.amazon.com/message/65648/),” *aws.amazon.com*, April 29, 2011.
+1.  Nelson Minar:  “[Leap Second Crashes Half the Internet](http://www.somebits.com/weblog/tech/bad/leap-second-2012.html),” *somebits.com*, July 3, 2012.
+1.  Amazon Web Services:  “[Summary of the Amazon EC2 and Amazon RDS Service Disruption in the US East Region](http://aws.amazon.com/message/65648/),” *aws.amazon.com*, April 29, 2011.
 1.  Richard I. Cook: “[How Complex Systems Fail](http://web.mit.edu/2.75/resources/random/How%20Complex%20Systems%20Fail.pdf),” Cognitive Technologies Laboratory, April 2000.
 1.  Jay Kreps: “[Getting Real About Distributed System Reliability](http://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability),” *blog.empathybox.com*, March 19, 2012.
 1.  David Oppenheimer, Archana Ganapathi, and David A. Patterson: “[Why Do Internet Services Fail, and What Can Be Done About It?](http://static.usenix.org/legacy/events/usits03/tech/full_papers/oppenheimer/oppenheimer.pdf),” at *4th USENIX Symposium on Internet Technologies and Systems* (USITS), March 2003.
-1.  Nathan Marz:  “[Principles   of Software Engineering, Part 1](http://nathanmarz.com/blog/principles-of-software-engineering-part-1.html),” *nathanmarz.com*, April 2, 2013.
+1.  Nathan Marz:  “[Principles of Software Engineering, Part 1](http://nathanmarz.com/blog/principles-of-software-engineering-part-1.html),” *nathanmarz.com*, April 2, 2013.
 1.  Michael Jurewitz:“[The Human Impact of Bugs](http://jury.me/blog/2013/3/14/the-human-impact-of-bugs),” *jury.me*, March 15, 2013.
 1.  Raffi Krikorian: “[Timelines at Scale](http://www.infoq.com/presentations/Twitter-Timeline-Scalability),” at *QCon San Francisco*, November 2012.
 1.  Martin Fowler: *Patterns of Enterprise Application Architecture*. Addison Wesley, 2002. ISBN: 978-0-321-12742-6

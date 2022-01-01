@@ -149,6 +149,11 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [174](https://github.com/Vonng/ddia/pull/174)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   README & preface: 更正不正确的中文用词和标点符号  |
+|  [173](https://github.com/Vonng/ddia/pull/173)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正不完整的翻译  |
+|  [171](https://github.com/Vonng/ddia/pull/171)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正重复的译文  |
+|  [169](https://github.com/Vonng/ddia/pull/169)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 更正不太通顺的翻译  |
+|  [166](https://github.com/Vonng/ddia/pull/166)  |  [@bp4m4h94](https://github.com/bp4m4h94)  |   ch1: 发现错误的文献索引  |
 |  [164](https://github.com/Vonng/ddia/pull/164)  |  [@DragonDriver](https://github.com/DragonDriver)  |   preface: 更正错误的标点符号  |
 |  [163](https://github.com/Vonng/ddia/pull/163)  |  [@llmmddCoder](https://github.com/llmmddCoder)  |   ch1: 更正错误字  |
 |  [160](https://github.com/Vonng/ddia/pull/160)  |  [@Zhayhp](https://github.com/Zhayhp)  |   ch2: 建议将 network model 翻译为网状模型  |

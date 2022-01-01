@@ -7,7 +7,7 @@
 - 繁體：[繁體中文版本](zh-tw/README.md) by  [@afunTW](https://github.com/afunTW)
 
 
-> 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/)，[Github Pages](https://vonng.github.io/ddia)以獲取最佳閱讀體驗。
+> 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 或 [Github Pages](https://vonng.github.io/ddia) 以獲取最佳閱讀體驗。
 >
 > 本地：你可在專案根目錄中執行`make`，並透過瀏覽器閱讀（[線上預覽](http://ddia.vonng.com/#/)）。
 
@@ -25,7 +25,7 @@
 
 本書為資料系統的設計、實現、與評價提供了很好的概念框架。讀完並理解本書內容後，讀者可以輕鬆看破大多數的技術忽悠，與技術磚家撕起來虎虎生風🤣。
 
-這是2017年譯者讀過最好的一本技術類書籍，這麼好的書沒有中文翻譯，實在是遺憾。某不才，願為先進技術文化的傳播貢獻一分力量。既可以深入學習有趣的技術主題，又可以鍛鍊中英文語言文字功底，何樂而不為？
+這是2017年譯者讀過最好的一本技術類書籍，這麼好的書沒有中文翻譯，實在是遺憾。某不才，願為先進技術文化的傳播貢獻一份力量。既可以深入學習有趣的技術主題，又可以鍛鍊中英文語言文字功底，何樂而不為？
 
 
 ## 前言
@@ -149,6 +149,11 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [174](https://github.com/Vonng/ddia/pull/174)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   README & preface: 更正不正確的中文用詞和標點符號  |
+|  [173](https://github.com/Vonng/ddia/pull/173)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正不完整的翻譯  |
+|  [171](https://github.com/Vonng/ddia/pull/171)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正重複的譯文  |
+|  [169](https://github.com/Vonng/ddia/pull/169)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 更正不太通順的翻譯  |
+|  [166](https://github.com/Vonng/ddia/pull/166)  |  [@bp4m4h94](https://github.com/bp4m4h94)  |   ch1: 發現錯誤的文獻索引  |
 |  [164](https://github.com/Vonng/ddia/pull/164)  |  [@DragonDriver](https://github.com/DragonDriver)  |   preface: 更正錯誤的標點符號  |
 |  [163](https://github.com/Vonng/ddia/pull/163)  |  [@llmmddCoder](https://github.com/llmmddCoder)  |   ch1: 更正錯誤字  |
 |  [160](https://github.com/Vonng/ddia/pull/160)  |  [@Zhayhp](https://github.com/Zhayhp)  |   ch2: 建議將 network model 翻譯為網狀模型  |
