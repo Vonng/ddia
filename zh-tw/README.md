@@ -149,6 +149,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [177](https://github.com/Vonng/ddia/pull/177)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch2: 語義網相關翻譯更正  |
+|  [176](https://github.com/Vonng/ddia/pull/176)  |  [@cwr31](https://github.com/cwr31)  |   ch7: 不變式相關翻譯更正  |
 |  [174](https://github.com/Vonng/ddia/pull/174)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   README & preface: 更正不正確的中文用詞和標點符號  |
 |  [173](https://github.com/Vonng/ddia/pull/173)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正不完整的翻譯  |
 |  [171](https://github.com/Vonng/ddia/pull/171)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正重複的譯文  |
