@@ -60,16 +60,16 @@
 
 本书分为三部分：
 
-1. 在[第一部分](part-i.md)中，我们会讨论设计数据密集型应用所赖的基本思想。我们从[第一章](ch1.md)开始，讨论我们实际要达到的目标：可靠性，可伸缩性和可维护性；我们该如何思考这些概念；以及如何实现它们。在[第二章](ch2.md)中，我们比较了几种不同的数据模型和查询语言，看看它们如何适用于不同的场景。在[第三章](ch3.md)中将讨论存储引擎：数据库如何在磁盘上摆放数据，以便能高效地再次找到它。[第四章](ch4.md)转向数据编码（序列化），以及随时间演化的模式。
+1. 在[第一部分](part-i.md)中，我们会讨论设计数据密集型应用所赖的基本思想。我们从[第一章](ch1.md)开始，讨论我们实际要达到的目标：可靠性、可伸缩性和可维护性；我们该如何思考这些概念；以及如何实现它们。在[第二章](ch2.md)中，我们比较了几种不同的数据模型和查询语言，看看它们如何适用于不同的场景。在[第三章](ch3.md)中将讨论存储引擎：数据库如何在磁盘上摆放数据，以便能高效地再次找到它。[第四章](ch4.md)转向数据编码（序列化），以及随时间演化的模式。
 
-2. 在[第二部分](part-ii.md)中，我们从讨论存储在一台机器上的数据转向讨论分布在多台机器上的数据。这对于可伸缩性通常是必需的，但带来了各种独特的挑战。我们首先讨论复制（[第五章](ch5.md)），分区/分片（[第六章](ch6.md)）和事务（[第七章](ch7.md)）。然后我们将探索关于分布式系统问题的更多细节（[第八章](ch8.md)），以及在分布式系统中实现一致性与共识意味着什么（[第九章](ch9.md)）。
+2. 在[第二部分](part-ii.md)中，我们从讨论存储在一台机器上的数据转向讨论分布在多台机器上的数据。这对于可伸缩性通常是必需的，但带来了各种独特的挑战。我们首先讨论复制（[第五章](ch5.md)）、分区/分片（[第六章](ch6.md)）和事务（[第七章](ch7.md)）。然后我们将探索关于分布式系统问题的更多细节（[第八章](ch8.md)），以及在分布式系统中实现一致性与共识意味着什么（[第九章](ch9.md)）。
 
-3. 在[第三部分](part-iii.md)中，我们讨论那些从其他数据集衍生出一些数据集的系统。衍生数据经常出现在异构系统中：当没有单个数据库可以把所有事情都做的很好时，应用需要集成几种不同的数据库，缓存，索引等。在[第十章](ch10.md)中我们将从一种衍生数据的批处理方法开始，然后在此基础上建立在[第十一章](ch11.md)中讨论的流处理。最后，在[第十二章](ch12.md)中，我们将所有内容汇总，讨论在将来构建可靠、可伸缩和可维护的应用程序的方法。
+3. 在[第三部分](part-iii.md)中，我们讨论那些从其他数据集衍生出一些数据集的系统。衍生数据经常出现在异构系统中：当没有单个数据库可以把所有事情都做的很好时，应用需要集成几种不同的数据库、缓存、索引等。在[第十章](ch10.md)中我们将从一种衍生数据的批处理方法开始，然后在此基础上建立在[第十一章](ch11.md)中讨论的流处理。最后，在[第十二章](ch12.md)中，我们将所有内容汇总，讨论在将来构建可靠、可伸缩和可维护的应用程序的方法。
 
 
 ## 参考文献与延伸阅读
 
-本书中讨论的大部分内容已经在其它地方以某种形式出现过了 —— 会议演示文稿，研究论文，博客文章，代码，BUG跟踪器，邮件列表，以及工程习惯中。本书总结了不同来源资料中最重要的想法，并在文本中包含了指向原始文献的链接。 如果你想更深入地探索一个领域，那么每章末尾的参考文献都是很好的资源，其中大部分可以免费在线获取。
+本书中讨论的大部分内容已经在其它地方以某种形式出现过了 —— 会议演示文稿、研究论文、博客文章、代码、BUG跟踪器、邮件列表以及工程习惯中。本书总结了不同来源资料中最重要的想法，并在文本中包含了指向原始文献的链接。 如果你想更深入地探索一个领域，那么每章末尾的参考文献都是很好的资源，其中大部分可以免费在线获取。
 
 
 ## O‘Reilly Safari
@@ -83,7 +83,7 @@ For more information, please visit http://oreilly.com/safari.
 
 ## 致谢
 
-本书融合了学术研究和工业实践的经验，融合并系统化了大量其他人的想法与知识。在计算领域，我们往往会被各种新鲜花样所吸引，但我认为前人完成的工作中，有太多值得我们学习的地方了。本书有800多处引用：文章，博客，讲座，文档等，对我来说这些都是宝贵的学习资源。我非常感谢这些材料的作者分享他们的知识。
+本书融合了学术研究和工业实践的经验，融合并系统化了大量其他人的想法与知识。在计算领域，我们往往会被各种新鲜花样所吸引，但我认为前人完成的工作中，有太多值得我们学习的地方了。本书有800多处引用：文章、博客、讲座、文档等，对我来说这些都是宝贵的学习资源。我非常感谢这些材料的作者分享他们的知识。
 
 我也从与人交流中学到了很多东西，很多人花费了宝贵的时间与我讨论想法并耐心解释。特别感谢 Joe Adler, Ross Anderson, Peter Bailis, Márton Balassi, Alastair Beresford, Mark Callaghan, Mat Clayton, Patrick Collison, Sean Cribbs, Shirshanka Das, Niklas Ekström, Stephan Ewen, Alan Fekete, Gyula Fóra, Camille Fournier, Andres Freund, John Garbutt, Seth Gilbert, Tom Haggett, Pat Hel‐ land, Joe Hellerstein, Jakob Homan, Heidi Howard, John Hugg, Julian Hyde, Conrad Irwin, Evan Jones, Flavio Junqueira, Jessica Kerr, Kyle Kingsbury, Jay Kreps, Carl Lerche, Nicolas Liochon, Steve Loughran, Lee Mallabone, Nathan Marz, Caitie McCaffrey, Josie McLellan, Christopher Meiklejohn, Ian Meyers, Neha Narkhede, Neha Narula, Cathy O’Neil, Onora O’Neill, Ludovic Orban, Zoran Perkov, Julia Powles, Chris Riccomini, Henry Robinson, David Rosenthal, Jennifer Rullmann, Matthew Sackman, Martin Scholl, Amit Sela, Gwen Shapira, Greg Spurrier, Sam Stokes, Ben Stopford, Tom Stuart, Diana Vasile, Rahul Vohra, Pete Warden, 以及 Brett Wooldridge.
 

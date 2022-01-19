@@ -149,8 +149,9 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-|  [177](https://github.com/Vonng/ddia/pull/177)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch2: 语义网相关翻译更正  |
-|  [176](https://github.com/Vonng/ddia/pull/176)  |  [@cwr31](https://github.com/cwr31)  |   ch7: 不变式相关翻译更正  |
+|  [177](https://github.com/Vonng/ddia/pull/177)  |  [@exzhawk](https://github.com/exzhawk)  |   支持 Github Pages 里的公式显示  |
+|  [176](https://github.com/Vonng/ddia/pull/176)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch2: 语义网相关翻译更正  |
+|  [175](https://github.com/Vonng/ddia/pull/175)  |  [@cwr31](https://github.com/cwr31)  |   ch7: 不变式相关翻译更正  |
 |  [174](https://github.com/Vonng/ddia/pull/174)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   README & preface: 更正不正确的中文用词和标点符号  |
 |  [173](https://github.com/Vonng/ddia/pull/173)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正不完整的翻译  |
 |  [171](https://github.com/Vonng/ddia/pull/171)  |  [@ZvanYang](https://github.com/ZvanYang)  |   ch12: 修正重复的译文  |
