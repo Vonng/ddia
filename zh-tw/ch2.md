@@ -414,7 +414,7 @@ for (var i = 0; i < liElements.length; i++) {
 
 [^vi]: IMS 和 CODASYL 都使用命令式 API。應用程式通常使用 COBOL 程式碼遍歷資料庫中的記錄，一次一條記錄【2,16】。
 
-### MapReduce 查詢
+### MapReduce查詢
 
 MapReduce 是一個由 Google 推廣的程式設計模型，用於在多臺機器上批次處理大規模的資料【33】。一些 NoSQL 資料儲存（包括 MongoDB 和 CouchDB）支援有限形式的 MapReduce，作為在多個文件中執行只讀查詢的機制。
 
