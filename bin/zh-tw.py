@@ -10,6 +10,7 @@ def convert(src_path, dst_path, cfg='s2twp.json'):
                 .replace('髮布', '釋出')
                 .replace('髮生', '發生')
                 .replace('髮出', '發出')
+                .replace('嚐試', '嘗試')
                 for line in src))
     print("convert %s to %s" % (src_path, dst_path))
 
