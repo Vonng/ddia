@@ -149,6 +149,10 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [183](https://github.com/Vonng/ddia/pull/183)  |  [@OneSizeFitsQuorum](https://github.com/OneSizeFitsQuorum)  |   ch8：修正錯別字  |
+|  [182](https://github.com/Vonng/ddia/issues/182)  |  [@lroolle](https://github.com/lroolle)  |   建議docsify的主題風格  |
+|  [181](https://github.com/Vonng/ddia/pull/181)  |  [@YunfengGao](https://github.com/YunfengGao)  |   ch2：修正翻譯錯誤  |
+|  [180](https://github.com/Vonng/ddia/pull/180)  |  [@skyran1278](https://github.com/skyran1278)  |   ch3：指出繁體中文的轉譯錯誤  |
 |  [177](https://github.com/Vonng/ddia/pull/177)  |  [@exzhawk](https://github.com/exzhawk)  |   支援 Github Pages 裡的公式顯示  |
 |  [176](https://github.com/Vonng/ddia/pull/176)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch2: 語義網相關翻譯更正  |
 |  [175](https://github.com/Vonng/ddia/pull/175)  |  [@cwr31](https://github.com/cwr31)  |   ch7: 不變式相關翻譯更正  |
