@@ -149,7 +149,10 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [190](https://github.com/Vonng/ddia/pull/190)  |  [@Pcrab](https://github.com/Pcrab)  |   ch1：修正不准确的翻译  |
+|  [187](https://github.com/Vonng/ddia/pull/187)  |  [@narojay](https://github.com/narojay)  |   ch9：修正生硬的翻译  |
 |  [186](https://github.com/Vonng/ddia/pull/186)  |  [@narojay](https://github.com/narojay)  |   ch8：修正错别字  |
+|  [185](https://github.com/Vonng/ddia/issues/185)  |  [@8da2k](https://github.com/8da2k)  |   指出小标题跳转的问题  |
 |  [184](https://github.com/Vonng/ddia/pull/184)  |  [@DavidZhiXing](https://github.com/DavidZhiXing)  |   ch10：修正失效的网址  |
 |  [183](https://github.com/Vonng/ddia/pull/183)  |  [@OneSizeFitsQuorum](https://github.com/OneSizeFitsQuorum)  |   ch8：修正错别字  |
 |  [182](https://github.com/Vonng/ddia/issues/182)  |  [@lroolle](https://github.com/lroolle)  |   建议docsify的主题风格  |
