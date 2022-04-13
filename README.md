@@ -149,6 +149,12 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [197](https://github.com/Vonng/ddia/pull/197)  |  [@songzhibin97](https://github.com/songzhibin97)  |   ch2：修正不正确的翻译  |
+|  [196](https://github.com/Vonng/ddia/pull/196)  |  [@songzhibin97](https://github.com/songzhibin97)  |   ch2：修正错误字  |
+|  [194](https://github.com/Vonng/ddia/pull/194)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch4: 修正错误的翻译  |
+|  [193](https://github.com/Vonng/ddia/pull/193)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch4: 优化译文  |
+|  [192](https://github.com/Vonng/ddia/pull/192)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch4: 修正不一致和不通顺的翻译  |
+|  [191](https://github.com/Vonng/ddia/pull/191)  |  [@songzhibin97](https://github.com/songzhibin97)  |   ch1：修正不通顺的翻译  |
 |  [190](https://github.com/Vonng/ddia/pull/190)  |  [@Pcrab](https://github.com/Pcrab)  |   ch1：修正不准确的翻译  |
 |  [187](https://github.com/Vonng/ddia/pull/187)  |  [@narojay](https://github.com/narojay)  |   ch9：修正生硬的翻译  |
 |  [186](https://github.com/Vonng/ddia/pull/186)  |  [@narojay](https://github.com/narojay)  |   ch8：修正错别字  |
