@@ -120,7 +120,7 @@ JSON 比 XML 簡潔，但與二進位制格式相比還是太佔空間。這一�
 
 ### Thrift與Protocol Buffers
 
-Apache Thrift 【15】和 Protocol Buffers（protobuf）【16】是基於相同原理的二進位制編碼庫。 Protocol Buffers 最初是在 Google 開發的，Thrift 最初是在 Facebook 開發的，並且在 2007~2008 年都是開源的【17】。
+Apache Thrift 【15】和 Protocol Buffers（protobuf）【16】是基於相同原理的二進位制編碼庫。 Protocol Buffers 最初是在 Google 開發的，Thrift 最初是在 Facebook 開發的，並且都是在 2007~2008 開源的【17】。
 Thrift 和 Protocol Buffers 都需要一個模式來編碼任何資料。要在 Thrift 的 [例 4-1]() 中對資料進行編碼，可以使用 Thrift **介面定義語言（IDL）** 來描述模式，如下所示：
 
 ```c
