@@ -135,26 +135,24 @@
 
 ## 貢獻
 
-0. 全文校訂 by [@yingang](https://github.com/yingang)
+0. 全文校訂 by [@yingang](https://github.com/Vonng/ddia/commits?author=yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 5. [詞彙表](glossary.md)、[後記](colophon.md)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
-7. 感謝所有作出貢獻，提出意見的朋友們：
+7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97)
+8. 感謝所有作出貢獻，提出意見的朋友們：
 
 <details>
 <summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-|  [197](https://github.com/Vonng/ddia/pull/197)  |  [@songzhibin97](https://github.com/songzhibin97)  |   ch2: 修正不正確的翻譯  |
-|  [196](https://github.com/Vonng/ddia/pull/196)  |  [@songzhibin97](https://github.com/songzhibin97)  |   ch2: 修正錯誤字  |
 |  [194](https://github.com/Vonng/ddia/pull/194)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch4: 修正錯誤的翻譯  |
 |  [193](https://github.com/Vonng/ddia/pull/193)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch4: 最佳化譯文  |
 |  [192](https://github.com/Vonng/ddia/pull/192)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch4: 修正不一致和不通順的翻譯  |
-|  [191](https://github.com/Vonng/ddia/pull/191)  |  [@songzhibin97](https://github.com/songzhibin97)  |   ch1: 修正不通順的翻譯  |
 |  [190](https://github.com/Vonng/ddia/pull/190)  |  [@Pcrab](https://github.com/Pcrab)  |   ch1: 修正不準確的翻譯  |
 |  [187](https://github.com/Vonng/ddia/pull/187)  |  [@narojay](https://github.com/narojay)  |   ch9: 修正生硬的翻譯  |
 |  [186](https://github.com/Vonng/ddia/pull/186)  |  [@narojay](https://github.com/narojay)  |   ch8: 修正錯別字  |
