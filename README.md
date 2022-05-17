@@ -150,6 +150,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [237](https://github.com/Vonng/ddia/pull/237)  |  [@zhangnew](https://github.com/zhangnew)  |   ch3: 修正错误的图片链接  |
 |  [229](https://github.com/Vonng/ddia/pull/229)  |  [@lis186](https://github.com/lis186)  |   指出繁体中文的转译错误：复杂  |
 |  [226](https://github.com/Vonng/ddia/pull/226)  |  [@chroming](https://github.com/chroming)  |   ch1: 修正导航栏中的章节名称  |
 |  [220](https://github.com/Vonng/ddia/pull/220)  |  [@skyran1278](https://github.com/skyran1278)  |   ch9: 修正线性一致的繁体中文翻译  |
