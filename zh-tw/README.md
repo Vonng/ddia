@@ -150,6 +150,10 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [246](https://github.com/Vonng/ddia/pull/246)  |  [@derekwu0101](https://github.com/derekwu0101)  |   ch3: 修正繁體中文的轉譯錯誤  |
+|  [245](https://github.com/Vonng/ddia/pull/245)  |  [@skyran1278](https://github.com/skyran1278)  |   ch12: 修正繁體中文的轉譯錯誤  |
+|  [244](https://github.com/Vonng/ddia/pull/244)  |  [@Axlgrep](https://github.com/Axlgrep)  |   ch9: 修正不通順的翻譯  |
+|  [242](https://github.com/Vonng/ddia/pull/242)  |  [@lynkeib](https://github.com/lynkeib)  |   ch9: 修正不通順的翻譯  |
 |  [241](https://github.com/Vonng/ddia/pull/241)  |  [@lynkeib](https://github.com/lynkeib)  |   ch8: 修正不正確的公式格式  |
 |  [240](https://github.com/Vonng/ddia/pull/240)  |  [@8da2k](https://github.com/8da2k)  |   ch9: 修正不通順的翻譯  |
 |  [239](https://github.com/Vonng/ddia/pull/239)  |  [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)  |   ch7: 修正不一致的翻譯  |
