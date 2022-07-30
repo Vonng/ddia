@@ -150,6 +150,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [253](https://github.com/Vonng/ddia/pull/253)  |  [@AlphaWang](https://github.com/AlphaWang)  |   ch7: 修正“讀已提交”相關內容的多處翻譯不當  |
 |  [246](https://github.com/Vonng/ddia/pull/246)  |  [@derekwu0101](https://github.com/derekwu0101)  |   ch3: 修正繁體中文的轉譯錯誤  |
 |  [245](https://github.com/Vonng/ddia/pull/245)  |  [@skyran1278](https://github.com/skyran1278)  |   ch12: 修正繁體中文的轉譯錯誤  |
 |  [244](https://github.com/Vonng/ddia/pull/244)  |  [@Axlgrep](https://github.com/Axlgrep)  |   ch9: 修正不通順的翻譯  |
