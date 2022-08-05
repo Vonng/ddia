@@ -150,6 +150,10 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [258](https://github.com/Vonng/ddia/pull/258)  |  [@bestgrc](https://github.com/bestgrc)  |   ch3: 修正一处翻译错误  |
+|  [257](https://github.com/Vonng/ddia/pull/257)  |  [@UnderSam](https://github.com/UnderSam)  |   ch8: 修正一处拼写错误  |
+|  [256](https://github.com/Vonng/ddia/pull/256)  |  [@AlphaWang](https://github.com/AlphaWang)  |   ch7: 修正“可串行化”相关内容的多处翻译不当  |
+|  [255](https://github.com/Vonng/ddia/pull/255)  |  [@AlphaWang](https://github.com/AlphaWang)  |   ch7: 修正“可重复读”相关内容的多处翻译不当  |
 |  [253](https://github.com/Vonng/ddia/pull/253)  |  [@AlphaWang](https://github.com/AlphaWang)  |   ch7: 修正“读已提交”相关内容的多处翻译不当  |
 |  [246](https://github.com/Vonng/ddia/pull/246)  |  [@derekwu0101](https://github.com/derekwu0101)  |   ch3: 修正繁体中文的转译错误  |
 |  [245](https://github.com/Vonng/ddia/pull/245)  |  [@skyran1278](https://github.com/skyran1278)  |   ch12: 修正繁体中文的转译错误  |
