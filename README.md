@@ -150,6 +150,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [260](https://github.com/Vonng/ddia/pull/260)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch4: 修正部分不准确的翻译  |
 |  [258](https://github.com/Vonng/ddia/pull/258)  |  [@bestgrc](https://github.com/bestgrc)  |   ch3: 修正一处翻译错误  |
 |  [257](https://github.com/Vonng/ddia/pull/257)  |  [@UnderSam](https://github.com/UnderSam)  |   ch8: 修正一处拼写错误  |
 |  [256](https://github.com/Vonng/ddia/pull/256)  |  [@AlphaWang](https://github.com/AlphaWang)  |   ch7: 修正“可串行化”相关内容的多处翻译不当  |

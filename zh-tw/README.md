@@ -150,6 +150,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [260](https://github.com/Vonng/ddia/pull/260)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch4: 修正部分不準確的翻譯  |
 |  [258](https://github.com/Vonng/ddia/pull/258)  |  [@bestgrc](https://github.com/bestgrc)  |   ch3: 修正一處翻譯錯誤  |
 |  [257](https://github.com/Vonng/ddia/pull/257)  |  [@UnderSam](https://github.com/UnderSam)  |   ch8: 修正一處拼寫錯誤  |
 |  [256](https://github.com/Vonng/ddia/pull/256)  |  [@AlphaWang](https://github.com/AlphaWang)  |   ch7: 修正“可序列化”相關內容的多處翻譯不當  |
