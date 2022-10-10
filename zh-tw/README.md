@@ -143,13 +143,15 @@
 5. [詞彙表](glossary.md)、[後記](colophon.md)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97)
-8. 感謝所有作出貢獻，提出意見的朋友們：
+8. 多處翻譯修正 by [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip)
+9. 感謝所有作出貢獻，提出意見的朋友們：
 
 <details>
 <summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [263](https://github.com/Vonng/ddia/pull/263)  |  [@zydmayday](https://github.com/zydmayday)  |   ch5: 修正譯文中的重複單詞  |
 |  [260](https://github.com/Vonng/ddia/pull/260)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch4: 修正部分不準確的翻譯  |
 |  [258](https://github.com/Vonng/ddia/pull/258)  |  [@bestgrc](https://github.com/bestgrc)  |   ch3: 修正一處翻譯錯誤  |
 |  [257](https://github.com/Vonng/ddia/pull/257)  |  [@UnderSam](https://github.com/UnderSam)  |   ch8: 修正一處拼寫錯誤  |
