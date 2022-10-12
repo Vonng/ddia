@@ -151,6 +151,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [270](https://github.com/Vonng/ddia/pull/270)  |  [@Ynjxsjmh](https://github.com/Ynjxsjmh)  |   ch7: 修正不一致的翻譯  |
 |  [263](https://github.com/Vonng/ddia/pull/263)  |  [@zydmayday](https://github.com/zydmayday)  |   ch5: 修正譯文中的重複單詞  |
 |  [260](https://github.com/Vonng/ddia/pull/260)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch4: 修正部分不準確的翻譯  |
 |  [258](https://github.com/Vonng/ddia/pull/258)  |  [@bestgrc](https://github.com/bestgrc)  |   ch3: 修正一處翻譯錯誤  |
