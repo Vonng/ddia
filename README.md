@@ -151,6 +151,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [273](https://github.com/Vonng/ddia/pull/273)  |  [@Sdot-Python](https://github.com/Sdot-Python)  |   ch7: 统一了 write skew 的翻译  |
+|  [271](https://github.com/Vonng/ddia/pull/271)  |  [@Makonike](https://github.com/Makonike)  |   ch6: 统一了 rebalancing 的翻译  |
 |  [270](https://github.com/Vonng/ddia/pull/270)  |  [@Ynjxsjmh](https://github.com/Ynjxsjmh)  |   ch7: 修正不一致的翻译  |
 |  [263](https://github.com/Vonng/ddia/pull/263)  |  [@zydmayday](https://github.com/zydmayday)  |   ch5: 修正译文中的重复单词  |
 |  [260](https://github.com/Vonng/ddia/pull/260)  |  [@haifeiWu](https://github.com/haifeiWu)  |   ch4: 修正部分不准确的翻译  |
