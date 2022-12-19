@@ -151,6 +151,9 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [278](https://github.com/Vonng/ddia/pull/278)  |  [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)  |   發現了繁體中文版本中的錯誤翻譯  |
+|  [275](https://github.com/Vonng/ddia/pull/275)  |  [@117503445](https://github.com/117503445)  |   更正 LICENSE 連結  |
+|  [274](https://github.com/Vonng/ddia/pull/274)  |  [@uncle-lv](https://github.com/uncle-lv)  |   ch7: 修正錯別字  |
 |  [273](https://github.com/Vonng/ddia/pull/273)  |  [@Sdot-Python](https://github.com/Sdot-Python)  |   ch7: 統一了 write skew 的翻譯  |
 |  [271](https://github.com/Vonng/ddia/pull/271)  |  [@Makonike](https://github.com/Makonike)  |   ch6: 統一了 rebalancing 的翻譯  |
 |  [270](https://github.com/Vonng/ddia/pull/270)  |  [@Ynjxsjmh](https://github.com/Ynjxsjmh)  |   ch7: 修正不一致的翻譯  |
