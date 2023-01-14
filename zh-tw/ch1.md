@@ -175,6 +175,7 @@
       JOIN follows ON follows.followee_id = users.id
       WHERE follows.follower_id = current_user
     ```
+
     ![](../img/fig1-2.png)
 
     **圖 1-2 推特主頁時間線的關係型模式簡單實現**
