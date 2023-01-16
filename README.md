@@ -151,6 +151,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [281](https://github.com/Vonng/ddia/pull/281)  |  [@lyuxi99](https://github.com/lyuxi99)  |   更正多处内部链接错误  |
+|  [280](https://github.com/Vonng/ddia/pull/280)  |  [@lyuxi99](https://github.com/lyuxi99)  |   ch9: 更正内部链接错误  |
 |  [278](https://github.com/Vonng/ddia/pull/278)  |  [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)  |   发现了繁体中文版本中的错误翻译  |
 |  [275](https://github.com/Vonng/ddia/pull/275)  |  [@117503445](https://github.com/117503445)  |   更正 LICENSE 链接  |
 |  [274](https://github.com/Vonng/ddia/pull/274)  |  [@uncle-lv](https://github.com/uncle-lv)  |   ch7: 修正错别字  |
