@@ -315,11 +315,13 @@ function getSharks() {
 }
 ```
 
-在關係代數中：
+而在關係代數中，你可以這樣寫：
+
 $$
-sharks = σ_{family = "sharks"}(animals)
+sharks = \sigma_{family = "sharks"}(animals)
 $$
-σ（希臘字母西格瑪）是選擇運算子，只返回符合條件的動物，`family="shark"`。
+
+其中 $\sigma$（希臘字母西格瑪）是選擇運算子，只返回符合 `family="shark"` 條件的動物。
 
 定義 SQL 時，它緊密地遵循關係代數的結構：
 

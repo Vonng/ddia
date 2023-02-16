@@ -151,6 +151,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [282](https://github.com/Vonng/ddia/pull/282)  |  [@WAangzE](https://github.com/WAangzE)  |   ch2: 更正一处公式问题  |
 |  [281](https://github.com/Vonng/ddia/pull/281)  |  [@lyuxi99](https://github.com/lyuxi99)  |   更正多处内部链接错误  |
 |  [280](https://github.com/Vonng/ddia/pull/280)  |  [@lyuxi99](https://github.com/lyuxi99)  |   ch9: 更正内部链接错误  |
 |  [278](https://github.com/Vonng/ddia/pull/278)  |  [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)  |   发现了繁体中文版本中的错误翻译  |
