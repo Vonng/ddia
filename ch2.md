@@ -315,13 +315,13 @@ function getSharks() {
 }
 ```
 
-在关系代数中：
+而在关系代数中，你可以这样写：
 
 $$
 sharks = \sigma_{family = "sharks"}(animals)
 $$
 
-$\sigma$（希腊字母西格玛）是选择操作符，只返回符合条件的动物，`family="shark"`。
+其中 $\sigma$（希腊字母西格玛）是选择操作符，只返回符合 `family="shark"` 条件的动物。
 
 定义 SQL 时，它紧密地遵循关系代数的结构：
 
