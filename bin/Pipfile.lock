@@ -26,10 +26,21 @@
         },
         "opencc": {
             "hashes": [
-                "sha256:1e0d40581dd5130ac3160f97e752caff202aa22aa004d468496fa8cba81035e7"
+                "sha256:071939024231edc9eab8243555671f8def23bde978dcdbe01fa747701aba5dc3",
+                "sha256:287b42a7011fdfb10a07ba8a2f50b50c13b408f2834544c64e37f147a04a4e74",
+                "sha256:31d08223a53422884546ac81f81ad41a696c926c0b1b5ac2167c9a975352c7e0",
+                "sha256:607d1082e3c9bfd618b59b39046da72d3571f74271d85f8b1cd1ea4ebb2ceb7b",
+                "sha256:82e76828df3bd3c7e450de2bb7eafb738692225fdcce4150f3d7cb5ff7871f9e",
+                "sha256:8aefe6b6097f3696444d2e753c64663756597fddd4aa8d120a06f2ab124551ab",
+                "sha256:8d47dcd65c2f322b3153882bdea88b8cbc45faec1f5ea7b1a044a523f02afac7",
+                "sha256:95eba60ce376aef96666650abb5e08e8ac5b97fd77e35a2b652609229a901865",
+                "sha256:9af690749eceef1dba21eac9d167c98fadc834dfabdb404b38b0438fc8444df8",
+                "sha256:e2fd8b96ee02f134bf8b8b6828b058d514446d723a8a1593db526eaefb1aeaca",
+                "sha256:e3abe5926f45d83a77f888d0fe38924407ffa7d04812aa577a2eab2db7b97a1c",
+                "sha256:fefebdc24ca8eb2656103d101a21639e9759c5e54012c355805a9cdf85bb4eda"
             ],
             "index": "pypi",
-            "version": "==1.1.1.post1"
+            "version": "==1.1.2"
         }
     },
     "develop": {}
