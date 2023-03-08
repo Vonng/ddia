@@ -151,9 +151,14 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [287](https://github.com/Vonng/ddia/pull/287)  |  [@FangYuan33](https://github.com/FangYuan33)  |   ch3: 最佳化一處翻譯  |
+|  [286](https://github.com/Vonng/ddia/pull/286)  |  [@FangYuan33](https://github.com/FangYuan33)  |   ch2: 更正一處括號不匹配  |
+|  [284](https://github.com/Vonng/ddia/pull/284)  |  [@WAangzE](https://github.com/WAangzE)  |   ch4: 更正一處列表錯誤  |
+|  [283](https://github.com/Vonng/ddia/pull/283)  |  [@WAangzE](https://github.com/WAangzE)  |   ch3: 更正一處錯別字  |
 |  [282](https://github.com/Vonng/ddia/pull/282)  |  [@WAangzE](https://github.com/WAangzE)  |   ch2: 更正一處公式問題  |
 |  [281](https://github.com/Vonng/ddia/pull/281)  |  [@lyuxi99](https://github.com/lyuxi99)  |   更正多處內部連結錯誤  |
 |  [280](https://github.com/Vonng/ddia/pull/280)  |  [@lyuxi99](https://github.com/lyuxi99)  |   ch9: 更正內部連結錯誤  |
+|  [279](https://github.com/Vonng/ddia/issues/279)  |  [@codexvn](https://github.com/codexvn)  |   ch9: 指出公式在 GitHub Pages 顯示的問題  |
 |  [278](https://github.com/Vonng/ddia/pull/278)  |  [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)  |   發現了繁體中文版本中的錯誤翻譯  |
 |  [275](https://github.com/Vonng/ddia/pull/275)  |  [@117503445](https://github.com/117503445)  |   更正 LICENSE 連結  |
 |  [274](https://github.com/Vonng/ddia/pull/274)  |  [@uncle-lv](https://github.com/uncle-lv)  |   ch7: 修正錯別字  |
