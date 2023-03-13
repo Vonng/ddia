@@ -17,7 +17,7 @@
 
 > #### 術語澄清
 >
-> 上文中的 **分割槽 (partition)**，在 MongoDB，Elasticsearch 和 Solr Cloud 中被稱為 **分片 (shard)**，在 HBase 中稱之為 **區域 (Region)**，Bigtable 中則是 **表塊（tablet）**，Cassandra 和 Riak 中是 **虛節點（vnode)**，Couchbase 中叫做 **虛桶 (vBucket)**。但是 **分割槽 (partitioning)** 是最約定俗成的叫法。
+> 上文中的 **分割槽（partition）**，在 MongoDB，Elasticsearch 和 Solr Cloud 中被稱為 **分片（shard）**，在 HBase 中稱之為 **區域（Region）**，Bigtable 中則是 **表塊（tablet）**，Cassandra 和 Riak 中是 **虛節點（vnode）**，Couchbase 中叫做 **虛桶（vBucket）**。但是 **分割槽（partitioning）** 是最約定俗成的叫法。
 >
 
 通常情況下，每條資料（每條記錄，每行或每個文件）屬於且僅屬於一個分割槽。有很多方法可以實現這一點，本章將進行深入討論。實際上，每個分割槽都是自己的小型資料庫，儘管資料庫可能支援同時進行多個分割槽的操作。

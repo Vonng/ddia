@@ -17,7 +17,7 @@
 
 > #### 术语澄清
 >
-> 上文中的 **分区 (partition)**，在 MongoDB，Elasticsearch 和 Solr Cloud 中被称为 **分片 (shard)**，在 HBase 中称之为 **区域 (Region)**，Bigtable 中则是 **表块（tablet）**，Cassandra 和 Riak 中是 **虚节点（vnode)**，Couchbase 中叫做 **虚桶 (vBucket)**。但是 **分区 (partitioning)** 是最约定俗成的叫法。
+> 上文中的 **分区（partition）**，在 MongoDB，Elasticsearch 和 Solr Cloud 中被称为 **分片（shard）**，在 HBase 中称之为 **区域（Region）**，Bigtable 中则是 **表块（tablet）**，Cassandra 和 Riak 中是 **虚节点（vnode）**，Couchbase 中叫做 **虚桶（vBucket）**。但是 **分区（partitioning）** 是最约定俗成的叫法。
 >
 
 通常情况下，每条数据（每条记录，每行或每个文档）属于且仅属于一个分区。有很多方法可以实现这一点，本章将进行深入讨论。实际上，每个分区都是自己的小型数据库，尽管数据库可能支持同时进行多个分区的操作。
