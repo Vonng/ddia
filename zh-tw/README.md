@@ -142,17 +142,14 @@
 4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 5. [詞彙表](glossary.md)、[後記](colophon.md)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
-7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97)
-8. 多處翻譯修正 by [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip)
-9. 感謝所有作出貢獻，提出意見的朋友們：
+7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
+8. 感謝所有作出貢獻，提出意見的朋友們：
 
 <details>
 <summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-|  [287](https://github.com/Vonng/ddia/pull/287)  |  [@FangYuan33](https://github.com/FangYuan33)  |   ch3: 最佳化一處翻譯  |
-|  [286](https://github.com/Vonng/ddia/pull/286)  |  [@FangYuan33](https://github.com/FangYuan33)  |   ch2: 更正一處括號不匹配  |
 |  [284](https://github.com/Vonng/ddia/pull/284)  |  [@WAangzE](https://github.com/WAangzE)  |   ch4: 更正一處列表錯誤  |
 |  [283](https://github.com/Vonng/ddia/pull/283)  |  [@WAangzE](https://github.com/WAangzE)  |   ch3: 更正一處錯別字  |
 |  [282](https://github.com/Vonng/ddia/pull/282)  |  [@WAangzE](https://github.com/WAangzE)  |   ch2: 更正一處公式問題  |
