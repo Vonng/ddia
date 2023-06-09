@@ -150,6 +150,7 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [285](https://github.com/Vonng/ddia/pull/285)  |  [@spike014](https://github.com/spike014)  |   ch11: 优化一处翻译  |
 |  [284](https://github.com/Vonng/ddia/pull/284)  |  [@WAangzE](https://github.com/WAangzE)  |   ch4: 更正一处列表错误  |
 |  [283](https://github.com/Vonng/ddia/pull/283)  |  [@WAangzE](https://github.com/WAangzE)  |   ch3: 更正一处错别字  |
 |  [282](https://github.com/Vonng/ddia/pull/282)  |  [@WAangzE](https://github.com/WAangzE)  |   ch2: 更正一处公式问题  |
