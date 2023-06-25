@@ -299,7 +299,7 @@ Avro 為靜態型別程式語言提供了可選的程式碼生成功能，但是
 
 ### 模式的優點
 
-正如我們所看到的，Protocol Buffers、Thrift 和 Avro 都使用模式來描述二進位制編碼格式。他們的模式語言比 XML 模式或者 JSON 模式簡單得多，而後者支援更詳細的驗證規則（例如，“該欄位的字串值必須與該正則表示式匹配” 或 “該欄位的整數值必須在 0 和 100 之間 “）。由於 Protocol Buffers，Thrift 和 Avro 實現起來更簡單，使用起來也更簡單，所以它們已經發展到支援相當廣泛的程式語言。
+正如我們所看到的，Protocol Buffers、Thrift 和 Avro 都使用模式來描述二進位制編碼格式。他們的模式語言比 XML 模式或者 JSON 模式簡單得多，而後者支援更詳細的驗證規則（例如，“該欄位的字串值必須與該正則表示式匹配” 或 “該欄位的整數值必須在 0 和 100 之間” ）。由於 Protocol Buffers，Thrift 和 Avro 實現起來更簡單，使用起來也更簡單，所以它們已經發展到支援相當廣泛的程式語言。
 
 這些編碼所基於的想法絕不是新的。例如，它們與 ASN.1 有很多相似之處，它是 1984 年首次被標準化的模式定義語言【27】。它被用來定義各種網路協議，例如其二進位制編碼（DER）仍然被用於編碼 SSL 證書（X.509）【28】。 ASN.1 支援使用標籤號碼的模式演進，類似於 Protocol Buffers 和 Thrift 【29】。然而，它也非常複雜，而且沒有好的配套文件，所以 ASN.1 可能不是新應用程式的好選擇。
 
@@ -532,7 +532,8 @@ Actor 模型是單個程序中併發的程式設計模型。邏輯被封裝在 a
 1.  Shudi (Sandy) Gao, C. M. Sperberg-McQueen, and Henry S. Thompson: “[XML Schema 1.1](http://www.w3.org/XML/Schema),” W3C Recommendation, May 2001.
 1.  Francis Galiegue, Kris Zyp, and Gary Court: “[JSON Schema](http://json-schema.org/),” IETF Internet-Draft, February 2013.
 1.  Yakov Shafranovich: “[RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files](https://tools.ietf.org/html/rfc4180),” October 2005.
-1.  “[MessagePack Specification](http://msgpack.org/),” *msgpack.org*. Mark Slee, Aditya Agarwal, and Marc Kwiatkowski: “[Thrift: Scalable Cross-Language Services Implementation](http://thrift.apache.org/static/files/thrift-20070401.pdf),” Facebook technical report, April 2007.
+1.  “[MessagePack Specification](http://msgpack.org/),” *msgpack.org*.
+1.  Mark Slee, Aditya Agarwal, and Marc Kwiatkowski: “[Thrift: Scalable Cross-Language Services Implementation](http://thrift.apache.org/static/files/thrift-20070401.pdf),” Facebook technical report, April 2007.
 1.  “[Protocol Buffers Developer Guide](https://developers.google.com/protocol-buffers/docs/overview),” Google, Inc., *developers.google.com*.
 1.  Igor Anishchenko: “[Thrift vs Protocol Buffers vs Avro - Biased Comparison](http://www.slideshare.net/IgorAnishchenko/pb-vs-thrift-vs-avro),” *slideshare.net*, September 17, 2012.
 1.  “[A Matrix of the Features Each Individual Language Library Supports](http://wiki.apache.org/thrift/LibraryFeatures),” *wiki.apache.org*.
