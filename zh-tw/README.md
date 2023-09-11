@@ -150,6 +150,9 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [326](https://github.com/Vonng/ddia/pull/326)  |  [@liangGTY](https://github.com/liangGTY)  |   ch1: 最佳化一處翻譯  |
+|  [323](https://github.com/Vonng/ddia/pull/323)  |  [@marvin263](https://github.com/marvin263)  |   ch5: 最佳化一處翻譯  |
+|  [322](https://github.com/Vonng/ddia/pull/322)  |  [@marvin263](https://github.com/marvin263)  |   ch8: 最佳化一處翻譯  |
 |  [304](https://github.com/Vonng/ddia/pull/304)  |  [@spike014](https://github.com/spike014)  |   ch11: 最佳化一處翻譯  |
 |  [298](https://github.com/Vonng/ddia/pull/298)  |  [@Makonike](https://github.com/Makonike)  |   ch11&12: 修正兩處錯誤  |
 |  [284](https://github.com/Vonng/ddia/pull/284)  |  [@WAangzE](https://github.com/WAangzE)  |   ch4: 更正一處列表錯誤  |
