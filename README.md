@@ -150,6 +150,10 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [334](https://github.com/Vonng/ddia/pull/334)  |  [@soulrrrrr](https://github.com/soulrrrrr)  |   ch2: 修正一处繁体中文错误  |
+|  [332](https://github.com/Vonng/ddia/pull/332)  |  [@justlorain](https://github.com/justlorain)  |   ch5: 修正一处翻译错误  |
+|  [331](https://github.com/Vonng/ddia/pull/331)  |  [@Lyianu](https://github.com/Lyianu)  |   ch9: 更正几处拼写错误  |
+|  [330](https://github.com/Vonng/ddia/pull/330)  |  [@Lyianu](https://github.com/Lyianu)  |   ch7: 优化一处翻译  |
 |  [329](https://github.com/Vonng/ddia/issues/329)  |  [@Lyianu](https://github.com/Lyianu)  |   ch6: 指出一处翻译错误  |
 |  [328](https://github.com/Vonng/ddia/pull/328)  |  [@justlorain](https://github.com/justlorain)  |   ch4: 更正一处翻译遗漏  |
 |  [326](https://github.com/Vonng/ddia/pull/326)  |  [@liangGTY](https://github.com/liangGTY)  |   ch1: 优化一处翻译  |
