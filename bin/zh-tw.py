@@ -17,6 +17,7 @@ def convert(src_path, dst_path, cfg='s2twp.json'):
                 .replace('倒黴', '倒楣')
                 .replace('區域性性', '區域性')
                 .replace('下麵', '下面')
+                .replace('日志', '日誌')
                 for line in src))
     print("convert %s to %s" % (src_path, dst_path))
 
