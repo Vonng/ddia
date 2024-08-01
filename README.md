@@ -150,6 +150,8 @@
 
 | ISSUE & Pull Requests                          | USER                                                         | Title                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|  [343](https://github.com/Vonng/ddia/pull/343)  |  [@kehao-chen](https://github.com/kehao-chen)  |   ch10: 优化一处翻译  |
+|  [341](https://github.com/Vonng/ddia/pull/341)  |  [@YKIsTheBest](https://github.com/YKIsTheBest)  |   ch3: 优化两处翻译  |
 |  [340](https://github.com/Vonng/ddia/pull/340)  |  [@YKIsTheBest](https://github.com/YKIsTheBest)  |   ch2: 优化多处翻译  |
 |  [338](https://github.com/Vonng/ddia/pull/338)  |  [@YKIsTheBest](https://github.com/YKIsTheBest)  |   ch1: 优化一处翻译  |
 |  [335](https://github.com/Vonng/ddia/pull/335)  |  [@kimi0230](https://github.com/kimi0230)  |   修正一处繁体中文错误  |
