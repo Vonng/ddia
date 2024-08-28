@@ -1,6 +1,6 @@
 # 设计数据密集型应用（第二版） - 中文翻译
 
-> [v2](https://github.com/Vonng/ddia/tree/v2) 分支正在进行 DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345)，欢迎参与校对与翻译。
+> DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345) 正在 [v2](https://github.com/Vonng/ddia/tree/v2) 分支上进行，欢迎参与校对与翻译。
 
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
 - 原名：[《Designing Data-Intensive Applications》](http://shop.oreilly.com/product/0636920032175.do)
@@ -11,6 +11,8 @@
 > 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 或 [Github Pages](https://vonng.github.io/ddia) 以获取最佳阅读体验。
 >
 > 本地：你可在项目根目录中执行 `make`，并通过浏览器阅读（[在线预览](http://ddia.vonng.com/#/)）。
+
+--------
 
 ## 译序
 
@@ -46,78 +48,79 @@
 
 ### [第一部分：数据系统基础](part-i.md)
 
-* [第一章：可靠性、可伸缩性和可维护性](ch1.md)
-    * [关于数据系统的思考](ch1.md#关于数据系统的思考)
-    * [可靠性](ch1.md#可靠性)
-    * [可伸缩性](ch1.md#可伸缩性)
-    * [可维护性](ch1.md#可维护性)
-    * [本章小结](ch1.md#本章小结)
-* [第二章：数据模型与查询语言](ch2.md)
-    * [关系模型与文档模型](ch2.md#关系模型与文档模型)
-    * [数据查询语言](ch2.md#数据查询语言)
-    * [图数据模型](ch2.md#图数据模型)
+* [第一章：数据系统架构中的利弊权衡](ch1.md)
+* [第二章：定义非功能性要求](ch2.md)
+    * [关于数据系统的思考](ch2.md#关于数据系统的思考)
+    * [可靠性](ch2.md#可靠性)
+    * [可伸缩性](ch2.md#可伸缩性)
+    * [可维护性](ch2.md#可维护性)
     * [本章小结](ch2.md#本章小结)
-* [第三章：存储与检索](ch3.md)
-    * [驱动数据库的数据结构](ch3.md#驱动数据库的数据结构)
-    * [事务处理还是分析？](ch3.md#事务处理还是分析？)
-    * [列式存储](ch3.md#列式存储)
+* [第三章：数据模型与查询语言](ch3.md)
+    * [关系模型与文档模型](ch3.md#关系模型与文档模型)
+    * [数据查询语言](ch3.md#数据查询语言)
+    * [图数据模型](ch3.md#图数据模型)
     * [本章小结](ch3.md#本章小结)
-* [第四章：编码与演化](ch4.md)
-    * [编码数据的格式](ch4.md#编码数据的格式)
-    * [数据流的类型](ch4.md#数据流的类型)
+* [第四章：存储与检索](ch4.md)
+    * [驱动数据库的数据结构](ch4.md#驱动数据库的数据结构)
+    * [事务处理还是分析？](ch4.md#事务处理还是分析？)
+    * [列式存储](ch4.md#列式存储)
     * [本章小结](ch4.md#本章小结)
+* [第五章：编码与演化](ch5.md)
+    * [编码数据的格式](ch5.md#编码数据的格式)
+    * [数据流的类型](ch5.md#数据流的类型)
+    * [本章小结](ch5.md#本章小结)
 
 ### [第二部分：分布式数据](part-ii.md)
 
-* [第五章：复制](ch5.md)
-    * [领导者与追随者](ch5.md#领导者与追随者)
-    * [复制延迟问题](ch5.md#复制延迟问题)
-    * [多主复制](ch5.md#多主复制)
-    * [无主复制](ch5.md#无主复制)
-    * [本章小结](ch5.md#本章小结)
-* [第六章：分区](ch6.md)
-    * [分区与复制](ch6.md#分区与复制)
-    * [键值数据的分区](ch6.md#键值数据的分区)
-    * [分区与次级索引](ch6.md#分区与次级索引)
-    * [分区再平衡](ch6.md#分区再平衡)
-    * [请求路由](ch6.md#请求路由)
+* [第五章：复制](ch6.md)
+    * [领导者与追随者](ch6.md#领导者与追随者)
+    * [复制延迟问题](ch6.md#复制延迟问题)
+    * [多主复制](ch6.md#多主复制)
+    * [无主复制](ch6.md#无主复制)
     * [本章小结](ch6.md#本章小结)
-* [第七章：事务](ch7.md)
-    * [事务的棘手概念](ch7.md#事务的棘手概念)
-    * [弱隔离级别](ch7.md#弱隔离级别)
-    * [可串行化](ch7.md#可串行化)
+* [第六章：分区](ch7.md)
+    * [分区与复制](ch7.md#分区与复制)
+    * [键值数据的分区](ch7.md#键值数据的分区)
+    * [分区与次级索引](ch7.md#分区与次级索引)
+    * [分区再平衡](ch7.md#分区再平衡)
+    * [请求路由](ch7.md#请求路由)
     * [本章小结](ch7.md#本章小结)
-* [第八章：分布式系统的麻烦](ch8.md)
-    * [故障与部分失效](ch8.md#故障与部分失效)
-    * [不可靠的网络](ch8.md#不可靠的网络)
-    * [不可靠的时钟](ch8.md#不可靠的时钟)
-    * [知识、真相与谎言](ch8.md#知识、真相与谎言)
+* [第七章：事务](ch8.md)
+    * [事务的棘手概念](ch8.md#事务的棘手概念)
+    * [弱隔离级别](ch8.md#弱隔离级别)
+    * [可串行化](ch8.md#可串行化)
     * [本章小结](ch8.md#本章小结)
-* [第九章：一致性与共识](ch9.md)
-    * [一致性保证](ch9.md#一致性保证)
-    * [线性一致性](ch9.md#线性一致性)
-    * [顺序保证](ch9.md#顺序保证)
-    * [分布式事务与共识](ch9.md#分布式事务与共识)
+* [第八章：分布式系统的麻烦](ch9.md)
+    * [故障与部分失效](ch9.md#故障与部分失效)
+    * [不可靠的网络](ch9.md#不可靠的网络)
+    * [不可靠的时钟](ch9.md#不可靠的时钟)
+    * [知识、真相与谎言](ch9.md#知识、真相与谎言)
     * [本章小结](ch9.md#本章小结)
+* [第九章：一致性与共识](ch10.md)
+    * [一致性保证](ch10.md#一致性保证)
+    * [线性一致性](ch10.md#线性一致性)
+    * [顺序保证](ch10.md#顺序保证)
+    * [分布式事务与共识](ch10.md#分布式事务与共识)
+    * [本章小结](ch10.md#本章小结)
 
 ### [第三部分：衍生数据](part-iii.md)
 
-* [第十章：批处理](ch10.md)
-    * [使用Unix工具的批处理](ch10.md#使用Unix工具的批处理)
-    * [MapReduce和分布式文件系统](ch10.md#MapReduce和分布式文件系统)
-    * [MapReduce之后](ch10.md#MapReduce之后)
-    * [本章小结](ch10.md#本章小结)
-* [第十一章：流处理](ch11.md)
-    * [传递事件流](ch11.md#传递事件流)
-    * [数据库与流](ch11.md#数据库与流)
-    * [流处理](ch11.md#流处理)
+* [第十一章：批处理](ch11.md)
+    * [使用Unix工具的批处理](ch11.md#使用Unix工具的批处理)
+    * [MapReduce和分布式文件系统](ch11.md#MapReduce和分布式文件系统)
+    * [MapReduce之后](ch11.md#MapReduce之后)
     * [本章小结](ch11.md#本章小结)
-* [第十二章：数据系统的未来](ch12.md)
-    * [数据集成](ch12.md#数据集成)
-    * [分拆数据库](ch12.md#分拆数据库)
-    * [将事情做正确](ch12.md#将事情做正确)
-    * [做正确的事情](ch12.md#做正确的事情)
+* [第十二章：流处理](ch12.md)
+    * [传递事件流](ch12.md#传递事件流)
+    * [数据库与流](ch12.md#数据库与流)
+    * [流处理](ch12.md#流处理)
     * [本章小结](ch12.md#本章小结)
+* [第十三章：数据系统的未来](ch13.md)
+    * [数据集成](ch13.md#数据集成)
+    * [分拆数据库](ch13.md#分拆数据库)
+    * [将事情做正确](ch13.md#将事情做正确)
+    * [做正确的事情](ch13.md#做正确的事情)
+    * [本章小结](ch13.md#本章小结)
 
 ### [术语表](glossary.md)
 
@@ -140,7 +143,7 @@
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章语法标点校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
-4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
+4. [第一部分](part-i.md)前言，[ch2](ch3.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 5. [词汇表](glossary.md)、[后记](colophon.md)关于野猪的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本与转换脚本 by [@afunTW](https://github.com/afunTW)
 7. 多处翻译修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
@@ -252,7 +255,7 @@
 | [115](https://github.com/Vonng/ddia/pull/115)   | [@NageNalock](https://github.com/NageNalock)               | 第七章病句修改: 重复词语                                                  |
 | [114](https://github.com/Vonng/ddia/pull/114)   | [@Sunt-ing](https://github.com/Sunt-ing)                   | Update README.md: correct the book name                        |
 | [113](https://github.com/Vonng/ddia/pull/113)   | [@lpxxn](https://github.com/lpxxn)                         | 修改语句                                                           |
-| [112](https://github.com/Vonng/ddia/pull/112)   | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch9.md                                                  |
+| [112](https://github.com/Vonng/ddia/pull/112)   | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch10.md                                                  |
 | [110](https://github.com/Vonng/ddia/pull/110)   | [@lpxxn](https://github.com/lpxxn)                         | 读已写入数据                                                         |
 | [107](https://github.com/Vonng/ddia/pull/107)   | [@abbychau](https://github.com/abbychau)                   | 單調鐘和好死还是赖活着                                                    |
 | [106](https://github.com/Vonng/ddia/pull/106)   | [@enochii](https://github.com/enochii)                     | typo in ch2: fix braces typo                                   |
@@ -263,7 +266,7 @@
 | [101](https://github.com/Vonng/ddia/pull/101)   | [@Sunt-ing](https://github.com/Sunt-ing)                   | typo in Ch4: should be "改变" rathr than "盖面"                    |
 | [100](https://github.com/Vonng/ddia/pull/100)   | [@LiminCode](https://github.com/LiminCode)                 | fix missing translation                                        |
 | [99 ](https://github.com/Vonng/ddia/pull/99)    | [@mrdrivingduck](https://github.com/mrdrivingduck)         | ch6: fix the word rebalancing                                  |
-| [98 ](https://github.com/Vonng/ddia/pull/98)    | [@jacklightChen](https://github.com/jacklightChen)         | fix ch7.md: fix wrong references                               |
+| [98 ](https://github.com/Vonng/ddia/pull/98)    | [@jacklightChen](https://github.com/jacklightChen)         | fix ch8.md: fix wrong references                               |
 | [97 ](https://github.com/Vonng/ddia/pull/97)    | [@jenac](https://github.com/jenac)                         | 96                                                             |
 | [96 ](https://github.com/Vonng/ddia/pull/96)    | [@PragmaTwice](https://github.com/PragmaTwice)             | ch2: fix typo about 'may or may not be'                        |
 | [95 ](https://github.com/Vonng/ddia/pull/95)    | [@EvanMu96](https://github.com/EvanMu96)                   | fix translation of "the battle cry" in ch5                     |
@@ -271,32 +274,32 @@
 | [93 ](https://github.com/Vonng/ddia/pull/93)    | [@kemingy](https://github.com/kemingy)                     | ch5: fix markdown and some typos                               |
 | [92 ](https://github.com/Vonng/ddia/pull/92)    | [@Gilbert1024](https://github.com/Gilbert1024)             | Merge pull request #1 from Vonng/master                        |
 | [88 ](https://github.com/Vonng/ddia/pull/88)    | [@kemingy](https://github.com/kemingy)                     | fix typo for ch1, ch2, ch3, ch4                                |
-| [87 ](https://github.com/Vonng/ddia/pull/87)    | [@wynn5a](https://github.com/wynn5a)                       | Update ch3.md                                                  |
-| [86 ](https://github.com/Vonng/ddia/pull/86)    | [@northmorn](https://github.com/northmorn)                 | Update ch1.md                                                  |
-| [85 ](https://github.com/Vonng/ddia/pull/85)    | [@sunbuhui](https://github.com/sunbuhui)                   | fix ch2.md: fix ch2 ambiguous translation                      |
+| [87 ](https://github.com/Vonng/ddia/pull/87)    | [@wynn5a](https://github.com/wynn5a)                       | Update ch4.md                                                  |
+| [86 ](https://github.com/Vonng/ddia/pull/86)    | [@northmorn](https://github.com/northmorn)                 | Update ch2.md                                                  |
+| [85 ](https://github.com/Vonng/ddia/pull/85)    | [@sunbuhui](https://github.com/sunbuhui)                   | fix ch3.md: fix ch2 ambiguous translation                      |
 | [84 ](https://github.com/Vonng/ddia/pull/84)    | [@ganler](https://github.com/ganler)                       | Fix translation: use up                                        |
 | [83 ](https://github.com/Vonng/ddia/pull/83)    | [@afunTW](https://github.com/afunTW)                       | Using OpenCC to convert from zh-cn to zh-tw                    |
 | [82 ](https://github.com/Vonng/ddia/pull/82)    | [@kangni](https://github.com/kangni)                       | fix gitbook url                                                |
 | [78 ](https://github.com/Vonng/ddia/pull/78)    | [@hanyu2](https://github.com/hanyu2)                       | Fix unappropriated translation                                 |
 | [77 ](https://github.com/Vonng/ddia/pull/77)    | [@Ozarklake](https://github.com/Ozarklake)                 | fix typo                                                       |
 | [75 ](https://github.com/Vonng/ddia/pull/75)    | [@2997ms](https://github.com/2997ms)                       | Fix typo                                                       |
-| [74 ](https://github.com/Vonng/ddia/pull/74)    | [@2997ms](https://github.com/2997ms)                       | Update ch9.md                                                  |
-| [70 ](https://github.com/Vonng/ddia/pull/70)    | [@2997ms](https://github.com/2997ms)                       | Update ch7.md                                                  |
+| [74 ](https://github.com/Vonng/ddia/pull/74)    | [@2997ms](https://github.com/2997ms)                       | Update ch10.md                                                  |
+| [70 ](https://github.com/Vonng/ddia/pull/70)    | [@2997ms](https://github.com/2997ms)                       | Update ch8.md                                                  |
 | [67 ](https://github.com/Vonng/ddia/pull/67)    | [@jiajiadebug](https://github.com/jiajiadebug)             | fix issues in ch2 - ch9 and glossary                           |
 | [66 ](https://github.com/Vonng/ddia/pull/66)    | [@blindpirate](https://github.com/blindpirate)             | Fix typo                                                       |
-| [63 ](https://github.com/Vonng/ddia/pull/63)    | [@haifeiWu](https://github.com/haifeiWu)                   | Update ch10.md                                                 |
-| [62 ](https://github.com/Vonng/ddia/pull/62)    | [@ych](https://github.com/ych)                             | fix ch1.md typesetting problem                                 |
+| [63 ](https://github.com/Vonng/ddia/pull/63)    | [@haifeiWu](https://github.com/haifeiWu)                   | Update ch11.md                                                 |
+| [62 ](https://github.com/Vonng/ddia/pull/62)    | [@ych](https://github.com/ych)                             | fix ch2.md typesetting problem                                 |
 | [61 ](https://github.com/Vonng/ddia/pull/61)    | [@xianlaioy](https://github.com/xianlaioy)                 | docs:钟-->种，去掉ou                                                |
 | [60 ](https://github.com/Vonng/ddia/pull/60)    | [@Zombo1296](https://github.com/Zombo1296)                 | 否则 -> 或者                                                       |
 | [59 ](https://github.com/Vonng/ddia/pull/59)    | [@AlexanderMisel](https://github.com/AlexanderMisel)       | 呼叫->调用，显着->显著                                                  |
-| [58 ](https://github.com/Vonng/ddia/pull/58)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch8.md                                                  |
+| [58 ](https://github.com/Vonng/ddia/pull/58)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch9.md                                                  |
 | [55 ](https://github.com/Vonng/ddia/pull/55)    | [@saintube](https://github.com/saintube)                   | ch8: 修改链接错误                                                    |
-| [54 ](https://github.com/Vonng/ddia/pull/54)    | [@Panmax](https://github.com/Panmax)                       | Update ch2.md                                                  |
-| [53 ](https://github.com/Vonng/ddia/pull/53)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch9.md                                                  |
-| [52 ](https://github.com/Vonng/ddia/pull/52)    | [@hecenjie](https://github.com/hecenjie)                   | Update ch1.md                                                  |
+| [54 ](https://github.com/Vonng/ddia/pull/54)    | [@Panmax](https://github.com/Panmax)                       | Update ch3.md                                                  |
+| [53 ](https://github.com/Vonng/ddia/pull/53)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch10.md                                                  |
+| [52 ](https://github.com/Vonng/ddia/pull/52)    | [@hecenjie](https://github.com/hecenjie)                   | Update ch2.md                                                  |
 | [51 ](https://github.com/Vonng/ddia/pull/51)    | [@latavin243](https://github.com/latavin243)               | fix 修正ch3 ch4几处翻译                                              |
 | [50 ](https://github.com/Vonng/ddia/pull/50)    | [@AlexZFX](https://github.com/AlexZFX)                     | 几个疏漏和格式错误                                                      |
-| [49 ](https://github.com/Vonng/ddia/pull/49)    | [@haifeiWu](https://github.com/haifeiWu)                   | Update ch1.md                                                  |
+| [49 ](https://github.com/Vonng/ddia/pull/49)    | [@haifeiWu](https://github.com/haifeiWu)                   | Update ch2.md                                                  |
 | [48 ](https://github.com/Vonng/ddia/pull/48)    | [@scaugrated](https://github.com/scaugrated)               | fix typo                                                       |
 | [47 ](https://github.com/Vonng/ddia/pull/47)    | [@lzwill](https://github.com/lzwill)                       | Fixed typos in ch2                                             |
 | [45 ](https://github.com/Vonng/ddia/pull/45)    | [@zenuo](https://github.com/zenuo)                         | 删除一个多余的右括号                                                     |
@@ -304,20 +307,20 @@
 | [43 ](https://github.com/Vonng/ddia/pull/43)    | [@baijinping](https://github.com/baijinping)               | "更假简单"->"更加简单"                                                 |
 | [42 ](https://github.com/Vonng/ddia/pull/42)    | [@tisonkun](https://github.com/tisonkun)                   | 修复 ch1 中的无序列表格式                                                |
 | [38 ](https://github.com/Vonng/ddia/pull/38)    | [@renjie-c](https://github.com/renjie-c)                   | 纠正多处的翻译小错误                                                     |
-| [37 ](https://github.com/Vonng/ddia/pull/37)    | [@tankilo](https://github.com/tankilo)                     | fix translation mistakes in ch4.md                             |
+| [37 ](https://github.com/Vonng/ddia/pull/37)    | [@tankilo](https://github.com/tankilo)                     | fix translation mistakes in ch5.md                             |
 | [36 ](https://github.com/Vonng/ddia/pull/36)    | [@wwek](https://github.com/wwek)                           | 1.修复多个链接错误 2.名词优化修订 3.错误修订                                     |
-| [35 ](https://github.com/Vonng/ddia/pull/35)    | [@wwek](https://github.com/wwek)                           | fix ch7.md  to ch8.md  link error                              |
+| [35 ](https://github.com/Vonng/ddia/pull/35)    | [@wwek](https://github.com/wwek)                           | fix ch8.md  to ch9.md  link error                              |
 | [34 ](https://github.com/Vonng/ddia/pull/34)    | [@wwek](https://github.com/wwek)                           | Merge pull request #1 from Vonng/master                        |
 | [33 ](https://github.com/Vonng/ddia/pull/33)    | [@wwek](https://github.com/wwek)                           | fix part-ii.md link error                                      |
-| [32 ](https://github.com/Vonng/ddia/pull/32)    | [@JCYoky](https://github.com/JCYoky)                       | Update ch2.md                                                  |
-| [31 ](https://github.com/Vonng/ddia/pull/31)    | [@elsonLee](https://github.com/elsonLee)                   | Update ch7.md                                                  |
+| [32 ](https://github.com/Vonng/ddia/pull/32)    | [@JCYoky](https://github.com/JCYoky)                       | Update ch3.md                                                  |
+| [31 ](https://github.com/Vonng/ddia/pull/31)    | [@elsonLee](https://github.com/elsonLee)                   | Update ch8.md                                                  |
 | [26 ](https://github.com/Vonng/ddia/pull/26)    | [@yjhmelody](https://github.com/yjhmelody)                 | 修复一些明显错误                                                       |
 | [25 ](https://github.com/Vonng/ddia/pull/25)    | [@lqbilbo](https://github.com/lqbilbo)                     | 修复链接错误                                                         |
 | [24 ](https://github.com/Vonng/ddia/pull/24)    | [@artiship](https://github.com/artiship)                   | 修改词语顺序                                                         |
 | [23 ](https://github.com/Vonng/ddia/pull/23)    | [@artiship](https://github.com/artiship)                   | 修正错别字                                                          |
 | [22 ](https://github.com/Vonng/ddia/pull/22)    | [@artiship](https://github.com/artiship)                   | 纠正翻译错误                                                         |
 | [21 ](https://github.com/Vonng/ddia/pull/21)    | [@zhtisi](https://github.com/zhtisi)                       | 修正目录和本章标题不符的情况                                                 |
-| [20 ](https://github.com/Vonng/ddia/pull/20)    | [@rentiansheng](https://github.com/rentiansheng)           | Update ch7.md                                                  |
+| [20 ](https://github.com/Vonng/ddia/pull/20)    | [@rentiansheng](https://github.com/rentiansheng)           | Update ch8.md                                                  |
 | [19 ](https://github.com/Vonng/ddia/pull/19)    | [@LHRchina](https://github.com/LHRchina)                   | 修复语句小bug                                                       |
 | [16 ](https://github.com/Vonng/ddia/pull/16)    | [@MuAlex](https://github.com/MuAlex)                       | Master                                                         |
 | [15 ](https://github.com/Vonng/ddia/pull/15)    | [@cg-zhou](https://github.com/cg-zhou)                     | Update translation progress                                    |
