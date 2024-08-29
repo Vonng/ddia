@@ -37,21 +37,33 @@ The terminology introduced in this chapter will also be useful in the following 
 
 ## 案例学习：社交网络主页时间线
 
+假设你被分配了一个任务，要实现一个类似X（前身为Twitter）的社交网络，在这个网络中，用户可以发布消息并关注其他用户。这将是对这种服务实际工作方式的极大简化 [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016), [2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2012_ch2), [3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Twitter2023)]，但它将有助于说明大规模系统中出现的一些问题。
+
+假设用户每天发布 5 亿条消息，平均每秒 5700 条消息。偶尔，这个速率可能会激增至每秒 150,000 条消息 [[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2013)]。我们还假设平均每个用户关注 200 人，拥有 200 名粉丝（尽管这个范围非常广泛：大多数人只有少数几个粉丝，而像巴拉克·奥巴马这样的名人粉丝超过 1 亿）。
+
+
 Imagine you are given the task of implementing a social network in the style of X (formerly Twitter), in which users can post messages and follow other users. This will be a huge simplification of how such a service actually works [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016), [2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2012_ch2), [3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Twitter2023)], but it will help illustrate some of the issues that arise in large-scale systems.
 
 Let’s assume that users make 500 million posts per day, or 5,700 posts per second on average. Occasionally, the rate can spike as high as 150,000 posts/second [[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2013)]. Let’s also assume that the average user follows 200 people and has 200 followers (although there is a very wide range: most people have only a handful of followers, and a few celebrities such as Barack Obama have over 100 million followers).
 
-### Representing Users, Posts, and Follows
+### 用户、帖子和关注关系的表示
+
+
+设想我们将所有数据保存在关系数据库中，如 [图 2-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_relational) 所示。我们有一个用户表、一个帖子表和一个关注关系表。
 
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_relational). We have one table for users, one table for posts, and one table for follow relationships.
 
 ![ddia 0102](img/ddia_0102.png)
 
-###### Figure 2-1. Simple relational schema for a social network in which users can follow each other.
+> 图 2-1. 社交网络的简单关系模式，其中用户可以相互关注。
+
+假设我们的社交网络需要支持的主要读操作是*首页时间线*，它显示你所关注的人最近的帖子（为简单起见，我们将忽略广告、来自你未关注的人的建议帖子以及其他扩展）。我们可以编写以下 SQL 查询来获取特定用户的首页时间线：
+
+> Figure 2-1. Simple relational schema for a social network in which users can follow each other.
 
 Let’s say the main read operation that our social network must support is the *home timeline*, which displays recent posts by people you are following (for simplicity we will ignore ads, suggested posts from people you are not following, and other extensions). We could write the following SQL query to get the home timeline for a particular user:
 
-```
+```sql
 SELECT posts.*, users.* FROM posts
   JOIN follows ON posts.sender_id = follows.followee_id
   JOIN users   ON posts.sender_id = users.id
@@ -60,13 +72,25 @@ SELECT posts.*, users.* FROM posts
   LIMIT 1000
 ```
 
+为了执行这个查询，数据库将使用 `follows` 表来查找 `current_user` 正在关注的所有人，查找这些用户的最近帖子，并按时间戳排序以获得被关注用户的最新 1000 条帖子。
+
+帖子应当是及时的，因此假设某人发帖后，我们希望他们的关注者在 5 秒内能看到。一种实现这一目标的方法是，当用户在线时，其客户端每 5 秒重复上述查询一次（这被称为*轮询*）。如果我们假设有 1000 万用户同时在线并登录，这意味着每秒需要运行 200 万次查询。即使你增加轮询间隔，这也是一个庞大的数字。
+
+此外，上述查询相当昂贵：如果你关注了 200 人，它需要获取这 200 人的最近帖子列表，并合并这些列表。每秒 200 万次时间线查询意味着数据库需要每秒查找某些发送者的最近帖子 4 亿次——这是一个巨大的数字。而这只是平均情况。有些用户关注了成千上万的账户；对他们而言，这个查询非常昂贵，难以快速执行。
+
 To execute this query, the database will use the `follows` table to find everybody who `current_user` is following, look up recent posts by those users, and sort them by timestamp to get the most recent 1,000 posts by any of the followed users.
 
 Posts are supposed to be timely, so let’s assume that after somebody makes a post, we want their followers to be able to see it within 5 seconds. One way of doing that would be for the user’s client to repeat the query above every 5 seconds while the user is online (this is known as *polling*). If we assume that 10 million users are online and logged in at the same time, that would mean running the query 2 million times per second. Even if you increase the polling interval, this is a lot.
 
 Moreover, the query above is quite expensive: if you are following 200 people, it needs to fetch a list of recent posts by each of those 200 people, and merge those lists. 2 million timeline queries per second then means that the database needs to look up the recent posts from some sender 400 million times per second—a huge number. And that is the average case. Some users follow tens of thousands of accounts; for them, this query is very expensive to execute, and difficult to make fast.
 
-### Materializing and Updating Timelines
+### 物化与更新时间线
+
+我们怎样才能做得更好？首先，与其使用轮询，不如让服务器主动将新帖推送给当前在线的任何关注者。其次，我们应该预计算上述查询的结果，以便用户请求他们的首页时间线时可以从缓存中获取。
+
+想象一下，对于每个用户，我们存储一个包含他们首页时间线的数据结构，即他们所关注的人的最近帖子。每当用户发表帖子时，我们查找他们所有的关注者，并将该帖子插入到每个关注者的首页时间线中——就像将信息送达邮箱一样。现在，当用户登录时，我们可以简单地提供我们预计算的这个首页时间线。此外，为了接收其时间线上任何新帖子的通知，用户的客户端只需订阅被添加到他们首页时间线的帖子流。
+
+这种方法的缺点是，每当用户发帖时，我们都需要做更多的工作，因为首页时间线是派生数据，需要更新。这一过程在 [图 2-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_timelines) 中有所示。当一个初始请求导致执行多个下游请求时，我们使用*扩散*一词来描述请求数量的增加因素。
 
 How can we do better? Firstly, instead of polling, it would be better if the server actively pushed new posts to any followers who are currently online. Secondly, we should precompute the results of the query above so that a user’s request for their home timeline can be served from a cache.
 
@@ -76,7 +100,15 @@ The downside of this approach is that we now need to do more work every time a u
 
 ![ddia 0103](img/ddia_0103.png)
 
-###### Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post.
+> 图 2-2. 扇出: 将新推文传达给发帖用户的每个关注者
+
+以每秒 5700 帖的速率，如果平均每个帖子达到 200 个关注者（即扩散因子为 200），我们将需要每秒执行超过 100 万次首页时间线写入。这个数字虽然大，但与我们原本需要执行的每秒 4 亿次按发送者查找帖子相比，仍然是一个显著的节省。
+
+如果由于某些特殊事件导致帖子发布率激增，我们不必立即执行时间线传递——我们可以将它们排队，并接受帖子在关注者时间线上显示出来可能会暂时延迟一些。即使在此类负载激增期间，时间线的加载仍然很快，因为我们只需从缓存中提供它们。
+
+这种预计算和更新查询结果的过程被称为*实体化*，而时间线缓存则是一个*实体化视图*的例子（这是我们将进一步讨论的一个概念）。实体化的缺点是，每当一位名人发帖时，我们现在必须做大量的工作，将那篇帖子插入他们数百万关注者的首页时间线中。
+
+解决这个问题的一种方法是将名人的帖子与其他人的帖子分开处理：我们可以通过将名人的帖子单独存储并在读取时与实体化时间线合并，从而避免将它们添加到数百万时间线上的努力。尽管有此类优化，处理社交网络上的名人可能需要大量的基础设施 [[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Axon2010_ch2)]。
 
 At a rate of 5,700 posts posted per second, if the average post reaches 200 followers (i.e., a fan-out factor of 200), we will need to do just over 1 million home timeline writes per second. This is a lot, but it’s still a significant saving compared to the 400 million per-sender post lookups per second that we would otherwise have to do.
 
@@ -100,11 +132,11 @@ One way of solving this problem is to handle celebrity posts separately from eve
 
 Most discussions of software performance consider two main types of metric:
 
-- Response time
+- **响应时间**（Response Time）
 
   The elapsed time from the moment when a user makes a request until they receive the requested answer. The unit of measurement is seconds.
 
-- Throughput
+- **吞吐量**（Throughput）
 
   The number of requests per second, or the data volume per second, that the system is processing. For a given a particular allocation of hardware resources, there is a *maximum throughput* that can be handled. The unit of measurement is “somethings per second”.
 
@@ -297,6 +329,19 @@ There are situations in which we may choose to sacrifice reliability in order to
 
 ## 可伸缩性
 
+即使系统今天运行可靠，也不意味着将来一定能保持可靠。退化的一个常见原因是负载增加：可能系统从1万并发用户增长到了10万，并发用户，或从100万增加到了1000万。也许它正在处理比以前更大的数据量。
+
+可扩展性是我们用来描述系统应对增加负载能力的术语。有时，在讨论可扩展性时，人们会这样评论：“你不是谷歌或亚马逊。不用担心规模，只用关系型数据库就好。”这个格言是否适用于你，取决于你正在构建的应用类型。
+
+如果你正在为一个刚起步的公司构建一个新产品，目前只有少数用户，通常最重要的工程目标是保持系统尽可能简单和灵活，以便你可以根据对客户需求的了解轻松修改和适应产品功能[70]。在这种环境下，担心未来可能需要的假设性规模是适得其反的：在最好的情况下，投资于可扩展性是浪费努力和过早的优化；在最坏的情况下，它们会让你陷入僵化的设计，使得应用难以进化。
+
+原因是可扩展性不是一维标签：说“X可扩展”或“Y不可扩展”是没有意义的。相反，讨论可扩展性意味着考虑诸如此类的问题：
+
+“如果系统以特定方式增长，我们有哪些应对增长的选项？”
+“我们如何增加计算资源来处理额外的负载？”
+“基于当前的增长预测，我们何时会达到当前架构的极限？”
+如果你成功地让你的应用受欢迎，因此处理了越来越多的负载，你将了解你的性能瓶颈在哪里，因此你将知道你需要沿哪些维度进行扩展。到了那个时候，就是开始担心扩展技术的时候了。
+
 Even if a system is working reliably today, that doesn’t mean it will necessarily work reliably in the future. One common reason for degradation is increased load: perhaps the system has grown from 10,000 concurrent users to 100,000 concurrent users, or from 1 million to 10 million. Perhaps it is processing much larger volumes of data than it did before.
 
 *Scalability* is the term we use to describe a system’s ability to cope with increased load. Sometimes, when discussing scalability, people make comments along the lines of, “You’re not Google or Amazon. Stop worrying about scale and just use a relational database.” Whether this maxim applies to you depends on the type of application you are building.
@@ -313,6 +358,19 @@ If you succeed in making your application popular, and therefore handling a grow
 
 ### 描述负载
 
+首先，我们需要简洁地描述系统当前的负载；只有这样，我们才能讨论增长问题（如果我们的负载翻倍会发生什么？）。这通常是通过吞吐量来衡量的：例如，每秒向服务的请求数量、每天新增多少吉字节的数据，或者每小时有多少购物车结账。有时你关心某些变量的峰值，比如同时在线用户的数量，如[“案例研究：社交网络首页时间线”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_twitter)中所述。
+
+负载的其他统计特性也可能影响访问模式，从而影响可扩展性需求。例如，你可能需要知道数据库中读写的比例、缓存的命中率，或每个用户的数据项数量（例如，社交网络案例研究中的关注者数量）。也许平均情况是你关心的，或许你的瓶颈由少数极端情况主导。这一切都取决于你特定应用的细节。
+
+一旦你描述了系统的负载，你就可以探究当负载增加时会发生什么。你可以从两个方面考虑这个问题：
+
+- 当你以某种方式增加负载并保持系统资源（CPU、内存、网络带宽等）不变时，你的系统性能会受到什么影响？
+- 当你以某种方式增加负载时，如果你想保持性能不变，你需要增加多少资源？
+
+通常我们的目标是在最小化运行系统的成本的同时，保持系统性能符合SLA的要求（见[“响应时间指标的使用”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_slo_sla)）。所需的计算资源越多，成本就越高。可能某些类型的硬件比其他类型更具成本效益，随着新型硬件的出现，这些因素可能会随时间而变化。
+
+如果你可以通过加倍资源来处理双倍的负载，同时保持性能不变，我们就说你实现了*线性可扩展性*，这被认为是一件好事。偶尔也可能通过不到双倍的资源来处理双倍的负载，这得益于规模经济或更好的高峰负载分配[[71](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Warfield2023)，[72](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2023)]。更常见的情况是，成本增长超过线性，可能有许多原因导致这种低效。例如，如果你有大量数据，那么处理单个写请求可能涉及的工作量比你的数据量小的时候要多，即使请求的大小相同。
+
 First, we need to succinctly describe the current load on the system; only then can we discuss growth questions (what happens if our load doubles?). Often this will be a measure of throughput: for example, the number of requests per second to a service, how many gigabytes of new data arrive per day, or the number of shopping cart checkouts per hour. Sometimes you care about the peak of some variable quantity, such as the number of simultaneously online users in [“Case Study: Social Network Home Timelines”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_twitter).
 
 Often there are other statistical characteristics of the load that also affect the access patterns and hence the scalability requirements. For example, you may need to know the ratio of reads to writes in a database, the hit rate on a cache, or the number of data items per user (for example, the number of followers in the social network case study). Perhaps the average case is what matters for you, or perhaps your bottleneck is dominated by a small number of extreme cases. It all depends on the details of your particular application.
@@ -328,6 +386,18 @@ If you can double the resources in order to handle twice the load, while keeping
 
 ### 共享内存，共享磁盘，无共享架构
 
+增加服务的硬件资源最简单的方式是将其迁移到更强大的机器上。单个CPU核心的速度不再显著提升，但您可以购买（或租用云实例）一个拥有更多CPU核心、更多RAM和更多磁盘空间的机器。这种方法被称为*垂直扩展*或*向上扩展*。
+
+在单台机器上，您可以通过使用多个进程或线程来实现并行性。属于同一进程的所有线程可以访问同一RAM，因此这种方法也被称为*共享内存架构*。共享内存方法的问题在于成本增长超过线性：拥有双倍硬件资源的高端机器通常的成本显著高于两倍。而且由于瓶颈，一台规模加倍的机器往往处理的负载不到两倍。
+
+另一种方法是*共享磁盘架构*，它使用多台拥有独立CPU和RAM的机器，但将数据存储在一个磁盘阵列上，这些磁盘阵列在机器之间通过快速网络共享：*网络附加存储*（NAS）或*存储区域网络*（SAN）。这种架构传统上用于本地数据仓库工作负载，但争用和锁定开销限制了共享磁盘方法的可扩展性[[73](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Stopford2009)]。
+
+相比之下，*无共享架构* [[74](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Stonebraker1986)]（也称为*水平扩展*或*向外扩展*）获得了很大的流行。在这种方法中，我们使用一个具有多个节点的分布式系统，每个节点都拥有自己的CPU、RAM和磁盘。节点之间的任何协调都在软件层面通过常规网络完成。
+
+无共享的优势在于它有潜力线性扩展，它可以使用提供最佳价格/性能比的任何硬件（特别是在云中），它可以随着负载的增减更容易地调整其硬件资源，并且通过在多个数据中心和地区分布系统，它可以实现更大的容错性。缺点是它需要显式的数据分区（见[链接即将到来]），并且带来了分布式系统的所有复杂性（见[链接即将到来]）。
+
+一些云原生数据库系统使用独立的服务来执行存储和事务处理（见[“存储与计算的分离”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_storage_compute)），多个计算节点共享访问同一个存储服务。这种模型与共享磁盘架构有些相似，但它避免了旧系统的可扩展性问题：存储服务不提供文件系统（NAS）或块设备（SAN）抽象，而是提供了专门为数据库需求设计的专用API[[75](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Antonopoulos2019_ch2)]。
+
 The simplest way of increasing the hardware resources of a service is to move it to a more powerful machine. Individual CPU cores are no longer getting significantly faster, but you can buy a machine (or rent a cloud instance) with more CPU cores, more RAM, and more disk space. This approach is called *vertical scaling* or *scaling up*.
 
 You can get parallelism on a single machine by using multiple processes or threads. All the threads belonging to the same process can access the same RAM, and hence this approach is also called a *shared-memory architecture*. The problem with a shared-memory approach is that the cost grows faster than linearly: a high-end machine with twice the hardware resources typically costs significantly more than twice as much. And due to bottlenecks, a machine twice the size can often handle less than twice the load.
@@ -340,7 +410,19 @@ The advantages of shared-nothing are that it has the potential to scale linearly
 
 Some cloud-native database systems use separate services for storage and transaction execution (see [“Separation of storage and compute”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_storage_compute)), with multiple compute nodes sharing access to the same storage service. This model has some similarity to a shared-disk architecture, but it avoids the scalability problems of older systems: instead of providing a filesystem (NAS) or block device (SAN) abstraction, the storage service offers a specialized API that is designed for the specific needs of the database [[75](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Antonopoulos2019_ch2)].
 
+
+
 ### 可伸缩性原则
+
+在大规模运行的系统架构通常高度特定于应用——没有所谓的通用、一刀切的可扩展架构（非正式称为*魔法扩展酱*）。例如，一个设计为每秒处理100,000个请求，每个请求1 kB大小的系统，与一个设计为每分钟处理3个请求，每个请求2 GB大小的系统看起来完全不同——尽管这两个系统有相同的数据吞吐量（100 MB/秒）。
+
+此外，适用于某一负载水平的架构不太可能应对10倍的负载。因此，如果您正在处理一个快速增长的服务，很可能您需要在每个数量级负载增加时重新思考您的架构。由于应用的需求可能会发展变化，通常不值得提前超过一个数量级来规划未来的扩展需求。
+
+一个关于可扩展性的好的一般原则是将系统分解成可以相对独立运行的小组件。这是微服务背后的基本原则（见[“微服务与无服务器”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_microservices)）、分区（[链接即将到来]）、流处理（[链接即将到来]）和无共享架构。然而，挑战在于知道在应该在一起的事物和应该分开的事物之间划线的位置。关于微服务的设计指南可以在其他书籍中找到[[76](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Newman2021_ch2)]，我们将在[链接即将到来]中讨论无共享系统的分区。
+
+另一个好的原则是不要让事情变得比必要的更复杂。如果单机数据库可以完成工作，它可能比复杂的分布式设置更可取。自动扩展系统（根据需求自动增加或减少资源）很酷，但如果您的负载相当可预测，手动扩展的系统可能会有更少的运营惊喜（见[链接即将到来]）。一个拥有五个服务的系统比拥有五十个服务的系统简单。好的架构通常涉及到方法的实用混合。
+
+
 
 The architecture of systems that operate at large scale is usually highly specific to the application—there is no such thing as a generic, one-size-fits-all scalable architecture (informally known as *magic scaling sauce*). For example, a system that is designed to handle 100,000 requests per second, each 1 kB in size, looks very different from a system that is designed for 3 requests per minute, each 2 GB in size—even though the two systems have the same data throughput (100 MB/sec).
 
@@ -359,6 +441,14 @@ Another good principle is not to make things more complicated than necessary. If
 
 ## 可维护性
 
+软件不会磨损或遭受材料疲劳，因此它的损坏方式与机械物体不同。但应用程序的需求经常变化，软件运行的环境也在变化（如其依赖关系和底层平台），并且它有需要修复的错误。
+
+广泛认为，软件的大部分成本不在于初始开发，而在于持续的维护——修复错误、保持系统运行、调查故障、适应新平台、针对新用例修改软件、偿还技术债务以及添加新功能[77，78]。
+
+然而，维护也很困难。如果一个系统已经成功运行很长时间，它可能会使用一些今天很少有工程师理解的过时技术（如大型机和COBOL代码）；随着人员离职，关于系统如何以及为什么以某种方式设计的机构知识可能已经丢失；可能需要修复其他人的错误。此外，计算机系统往往与它支持的人类组织交织在一起，这意味着维护这种遗留系统既是一个人的问题也是一个技术问题[79]。
+
+如果一个系统足够有价值，能长时间存活，我们今天创建的每个系统终将成为遗留系统。为了最小化未来维护我们软件的后代所承受的痛苦，我们应当在设计时考虑维护问题。虽然我们无法总是预测哪些决策将在未来造成维护难题，但在本书中，我们将关注几个广泛适用的原则：
+
 Software does not wear out or suffer material fatigue, so it does not break in the same ways as mechanical objects do. But the requirements for an application frequently change, the environment that the software runs in changes (such as its dependencies and the underlying platform), and it has bugs that need fixing.
 
 It is widely recognized that the majority of the cost of software is not in its initial development, but in its ongoing maintenance—fixing bugs, keeping its systems operational, investigating failures, adapting it to new platforms, modifying it for new use cases, repaying technical debt, and adding new features [[77](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ensmenger2016), [78](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Glass2002)].
@@ -367,19 +457,46 @@ However, maintenance is also difficult. If a system has been successfully runnin
 
 Every system we create today will one day become a legacy system if it is valuable enough to survive for a long time. In order to minimize the pain for future generations who need to maintain our software, we should design it with maintenance concerns in mind. Although we cannot always predict which decisions might create maintenance headaches in the future, in this book we will pay attention to several principles that are widely applicable:
 
-- Operability
+* 可操作性（Operability）
 
-  Make it easy for the organization to keep the system running smoothly.
+  便于运维团队保持系统平稳运行。
 
-- Simplicity
+* 简单性（Simplicity）
 
-  Make it easy for new engineers to understand the system, by implementing it using well-understood, consistent patterns and structures, and avoiding unnecessary complexity.
+  让新工程师也能轻松理解系统 —— 通过使用众所周知、协调一致的模式和结构来实现系统，并避免不必要的**复杂性（Complexity）**。
 
-- Evolvability
+* 可演化性（Evolvability）
 
-  Make it easy for engineers to make changes to the system in the future, adapting it and extending it for unanticipated use cases as requirements change.
+  使工程师能够轻松地对系统进行改造，并在未来出现需求变化时，能使其适应和扩展到新的应用场景中。
+
+
 
 ### 可操作性：人生苦短，关爱运维
+
+有人认为，“良好的运维经常可以绕开垃圾（或不完整）软件的局限性，而再好的软件摊上垃圾运维也没法可靠运行”。尽管运维的某些方面可以，而且应该是自动化的，但在最初建立正确运作的自动化机制仍然取决于人。
+
+运维团队对于保持软件系统顺利运行至关重要。一个优秀运维团队的典型职责如下（或者更多）【29】：
+
+* 监控系统的运行状况，并在服务状态不佳时快速恢复服务。
+* 跟踪问题的原因，例如系统故障或性能下降。
+* 及时更新软件和平台，比如安全补丁。
+* 了解系统间的相互作用，以便在异常变更造成损失前进行规避。
+* 预测未来的问题，并在问题出现之前加以解决（例如，容量规划）。
+* 建立部署、配置、管理方面的良好实践，编写相应工具。
+* 执行复杂的维护任务，例如将应用程序从一个平台迁移到另一个平台。
+* 当配置变更时，维持系统的安全性。
+* 定义工作流程，使运维操作可预测，并保持生产环境稳定。
+* 铁打的营盘流水的兵，维持组织对系统的了解。
+
+良好的可操作性意味着更轻松的日常工作，进而运维团队能专注于高价值的事情。数据系统可以通过各种方式使日常任务更轻松：
+
+* 通过良好的监控，提供对系统内部状态和运行时行为的 **可见性（visibility）**。
+* 为自动化提供良好支持，将系统与标准化工具相集成。
+* 避免依赖单台机器（在整个系统继续不间断运行的情况下允许机器停机维护）。
+* 提供良好的文档和易于理解的操作模型（“如果做 X，会发生 Y”）。
+* 提供良好的默认行为，但需要时也允许管理员自由覆盖默认值。
+* 有条件时进行自我修复，但需要时也允许管理员手动控制系统状态。
+* 行为可预测，最大限度减少意外。
 
 We previously discussed the role of operations in [“Operations in the Cloud Era”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_operations), and we saw that human processes are at least as important for reliable operations as software tools. In fact, it has been suggested that “good operations can often work around the limitations of bad (or incomplete) software, but good software cannot run reliably with bad operations” [[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kreps2012_ch1)].
 
@@ -396,7 +513,27 @@ Good operability means making routine tasks easy, allowing the operations team t
 - Self-healing where appropriate, but also giving administrators manual control over the system state when needed
 - Exhibiting predictable behavior, minimizing surprises
 
+
+
+
+
 ### 简单性：管理复杂度
+
+小型软件项目可以使用简单讨喜的、富表现力的代码，但随着项目越来越大，代码往往变得非常复杂，难以理解。这种复杂度拖慢了所有系统相关人员，进一步增加了维护成本。一个陷入复杂泥潭的软件项目有时被描述为 **烂泥潭（a big ball of mud）** 【30】。
+
+**复杂度（complexity）** 有各种可能的症状，例如：状态空间激增、模块间紧密耦合、纠结的依赖关系、不一致的命名和术语、解决性能问题的 Hack、需要绕开的特例等等，现在已经有很多关于这个话题的讨论【31,32,33】。
+
+因为复杂度导致维护困难时，预算和时间安排通常会超支。在复杂的软件中进行变更，引入错误的风险也更大：当开发人员难以理解系统时，隐藏的假设、无意的后果和意外的交互就更容易被忽略。相反，降低复杂度能极大地提高软件的可维护性，因此简单性应该是构建系统的一个关键目标。
+
+简化系统并不一定意味着减少功能；它也可以意味着消除 **额外的（accidental）** 的复杂度。Moseley 和 Marks【32】把 **额外复杂度** 定义为：由具体实现中涌现，而非（从用户视角看，系统所解决的）问题本身固有的复杂度。
+
+用于消除 **额外复杂度** 的最好工具之一是 **抽象（abstraction）**。一个好的抽象可以将大量实现细节隐藏在一个干净，简单易懂的外观下面。一个好的抽象也可以广泛用于各类不同应用。比起重复造很多轮子，重用抽象不仅更有效率，而且有助于开发高质量的软件。抽象组件的质量改进将使所有使用它的应用受益。
+
+例如，高级编程语言是一种抽象，隐藏了机器码、CPU 寄存器和系统调用。SQL 也是一种抽象，隐藏了复杂的磁盘 / 内存数据结构、来自其他客户端的并发请求、崩溃后的不一致性。当然在用高级语言编程时，我们仍然用到了机器码；只不过没有 **直接（directly）** 使用罢了，正是因为编程语言的抽象，我们才不必去考虑这些实现细节。
+
+抽象可以帮助我们将系统的复杂度控制在可管理的水平，不过，找到好的抽象是非常困难的。在分布式系统领域虽然有许多好的算法，但我们并不清楚它们应该打包成什么样抽象。
+
+本书将紧盯那些允许我们将大型系统的部分提取为定义明确的、可重用的组件的优秀抽象。
 
 Small software projects can have delightfully simple and expressive code, but as projects get larger, they often become very complex and difficult to understand. This complexity slows down everyone who needs to work on the system, further increasing the cost of maintenance. A software project mired in complexity is sometimes described as a *big ball of mud* [[83](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Foote1997)].
 
@@ -413,6 +550,15 @@ For example, high-level programming languages are abstractions that hide machine
 Abstractions for application code, which aim to reduce its complexity, can be created using methodologies such as *design patterns* [[87](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gamma1994)] and *domain-driven design* (DDD) [[88](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Evans2003)]. This book is not about such application-specific abstractions, but rather about general-purpose abstractions on top of which you can build your applications, such as database transactions, indexes, and event logs. If you want to use techniques such as DDD, you can implement them on top of the foundations described in this book.
 
 ### 可演化性：让变更更容易
+
+系统的需求永远不变，基本是不可能的。更可能的情况是，它们处于常态的变化中，例如：你了解了新的事实、出现意想不到的应用场景、业务优先级发生变化、用户要求新功能、新平台取代旧平台、法律或监管要求发生变化、系统增长迫使架构变化等。
+
+在组织流程方面，**敏捷（agile）** 工作模式为适应变化提供了一个框架。敏捷社区还开发了对在频繁变化的环境中开发软件很有帮助的技术工具和模式，如 **测试驱动开发（TDD, test-driven development）** 和 **重构（refactoring）** 。
+
+这些敏捷技术的大部分讨论都集中在相当小的规模（同一个应用中的几个代码文件）。本书将探索在更大数据系统层面上提高敏捷性的方法，可能由几个不同的应用或服务组成。例如，为了将装配主页时间线的方法从方法 1 变为方法 2，你会如何 “重构” 推特的架构 ？
+
+修改数据系统并使其适应不断变化需求的容易程度，是与 **简单性** 和 **抽象性** 密切相关的：简单易懂的系统通常比复杂系统更容易修改。但由于这是一个非常重要的概念，我们将用一个不同的词来指代数据系统层面的敏捷性： **可演化性（evolvability）** 【34】。
+
 
 It’s extremely unlikely that your system’s requirements will remain unchanged forever. They are much more likely to be in constant flux: you learn new facts, previously unanticipated use cases emerge, business priorities change, users request new features, new platforms replace old platforms, legal or regulatory requirements change, growth of the system forces architectural changes, etc.
 
