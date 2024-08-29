@@ -38,9 +38,9 @@
 
 其次，越来越多的应用程序有着各种严格而广泛的要求，单个工具不足以满足所有的数据处理和存储需求。取而代之的是，总体工作被拆分成一系列能被单个工具高效完成的任务，并通过应用代码将它们缝合起来。
 
-例如，如果将缓存（应用管理的缓存层，Memcached 或同类产品）和全文搜索（全文搜索服务器，例如 Elasticsearch 或 Solr）功能从主数据库剥离出来，那么使缓存 / 索引与主数据库保持同步通常是应用代码的责任。[图 1-1](../img/fig1-1.png) 给出了这种架构可能的样子（细节将在后面的章节中详细介绍）。
+例如，如果将缓存（应用管理的缓存层，Memcached 或同类产品）和全文搜索（全文搜索服务器，例如 Elasticsearch 或 Solr）功能从主数据库剥离出来，那么使缓存 / 索引与主数据库保持同步通常是应用代码的责任。[图 1-1](img/fig1-1.png) 给出了这种架构可能的样子（细节将在后面的章节中详细介绍）。
 
-![](../img/fig1-1.png)
+![](img/fig1-1.png)
 
 **图 1-1 一个可能的组合使用多个组件的数据系统架构**
 
@@ -165,7 +165,7 @@
 
 大体上讲，这一对操作有两种实现方式。
 
-1. 发布推文时，只需将新推文插入全局推文集合即可。当一个用户请求自己的主页时间线时，首先查找他关注的所有人，查询这些被关注用户发布的推文并按时间顺序合并。在如 [图 1-2](../img/fig1-2.png) 所示的关系型数据库中，可以编写这样的查询：
+1. 发布推文时，只需将新推文插入全局推文集合即可。当一个用户请求自己的主页时间线时，首先查找他关注的所有人，查询这些被关注用户发布的推文并按时间顺序合并。在如 [图 1-2](img/fig1-2.png) 所示的关系型数据库中，可以编写这样的查询：
 
     ```sql
     SELECT tweets.*, users.*
@@ -175,13 +175,13 @@
       WHERE follows.follower_id = current_user
     ```
 
-   ![](../img/fig1-2.png)
+   ![](img/fig1-2.png)
 
    **图 1-2 推特主页时间线的关系型模式简单实现**
 
-2. 为每个用户的主页时间线维护一个缓存，就像每个用户的推文收件箱（[图 1-3](../img/fig1-3.png)）。当一个用户发布推文时，查找所有关注该用户的人，并将新的推文插入到每个主页时间线缓存中。因此读取主页时间线的请求开销很小，因为结果已经提前计算好了。
+2. 为每个用户的主页时间线维护一个缓存，就像每个用户的推文收件箱（[图 1-3](img/fig1-3.png)）。当一个用户发布推文时，查找所有关注该用户的人，并将新的推文插入到每个主页时间线缓存中。因此读取主页时间线的请求开销很小，因为结果已经提前计算好了。
 
-   ![](../img/fig1-3.png)
+   ![](img/fig1-3.png)
 
    **图 1-3 用于分发推特至关注者的数据流水线，2012 年 11 月的负载参数【16】**
 
@@ -191,7 +191,7 @@
 
 在推特的例子中，每个用户粉丝数的分布（可能按这些用户的发推频率来加权）是探讨可伸缩性的一个关键负载参数，因为它决定了扇出负载。你的应用程序可能具有非常不同的特征，但可以采用相似的原则来考虑它的负载。
 
-推特轶事的最终转折：现在已经稳健地实现了方法 2，推特逐步转向了两种方法的混合。大多数用户发的推文会被扇出写入其粉丝主页时间线缓存中。但是少数拥有海量粉丝的用户（即名流）会被排除在外。当用户读取主页时间线时，分别地获取出该用户所关注的每位名流的推文，再与用户的主页时间线缓存合并，如方法 1 所示。这种混合方法能始终如一地提供良好性能。在 [第十二章](../ch12.md) 中我们将重新讨论这个例子，这在覆盖更多技术层面之后。
+推特轶事的最终转折：现在已经稳健地实现了方法 2，推特逐步转向了两种方法的混合。大多数用户发的推文会被扇出写入其粉丝主页时间线缓存中。但是少数拥有海量粉丝的用户（即名流）会被排除在外。当用户读取主页时间线时，分别地获取出该用户所关注的每位名流的推文，再与用户的主页时间线缓存合并，如方法 1 所示。这种混合方法能始终如一地提供良好性能。在 [第十二章](ch12.md) 中我们将重新讨论这个例子，这在覆盖更多技术层面之后。
 
 ### 描述性能
 
@@ -212,9 +212,9 @@
 
 即使不断重复发送同样的请求，每次得到的响应时间也都会略有不同。现实世界的系统会处理各式各样的请求，响应时间可能会有很大差异。因此我们需要将响应时间视为一个可以测量的数值 **分布（distribution）**，而不是单个数值。
 
-在 [图 1-4](../img/fig1-4.png) 中，每个灰条代表一次对服务的请求，其高度表示请求花费了多长时间。大多数请求是相当快的，但偶尔会出现需要更长的时间的异常值。这也许是因为缓慢的请求实质上开销更大，例如它们可能会处理更多的数据。但即使（你认为）所有请求都花费相同时间的情况下，随机的附加延迟也会导致结果变化，例如：上下文切换到后台进程，网络数据包丢失与 TCP 重传，垃圾收集暂停，强制从磁盘读取的页面错误，服务器机架中的震动【18】，还有很多其他原因。
+在 [图 1-4](img/fig1-4.png) 中，每个灰条代表一次对服务的请求，其高度表示请求花费了多长时间。大多数请求是相当快的，但偶尔会出现需要更长的时间的异常值。这也许是因为缓慢的请求实质上开销更大，例如它们可能会处理更多的数据。但即使（你认为）所有请求都花费相同时间的情况下，随机的附加延迟也会导致结果变化，例如：上下文切换到后台进程，网络数据包丢失与 TCP 重传，垃圾收集暂停，强制从磁盘读取的页面错误，服务器机架中的震动【18】，还有很多其他原因。
 
-![](../img/fig1-4.png)
+![](img/fig1-4.png)
 
 **图 1-4 展示了一个服务 100 次请求响应时间的均值与百分位数**
 
@@ -224,7 +224,7 @@
 
 如果想知道典型场景下用户需要等待多长时间，那么中位数是一个好的度量标准：一半用户请求的响应时间少于响应时间的中位数，另一半服务时间比中位数长。中位数也被称为第 50 百分位点，有时缩写为 p50。注意中位数是关于单个请求的；如果用户同时发出几个请求（在一个会话过程中，或者由于一个页面中包含了多个资源），则至少一个请求比中位数慢的概率远大于 50%。
 
-为了弄清异常值有多糟糕，可以看看更高的百分位点，例如第 95、99 和 99.9 百分位点（缩写为 p95，p99 和 p999）。它们意味着 95%、99% 或 99.9% 的请求响应时间要比该阈值快，例如：如果第 95 百分位点响应时间是 1.5 秒，则意味着 100 个请求中的 95 个响应时间快于 1.5 秒，而 100 个请求中的 5 个响应时间超过 1.5 秒。如 [图 1-4](../img/fig1-4.png) 所示。
+为了弄清异常值有多糟糕，可以看看更高的百分位点，例如第 95、99 和 99.9 百分位点（缩写为 p95，p99 和 p999）。它们意味着 95%、99% 或 99.9% 的请求响应时间要比该阈值快，例如：如果第 95 百分位点响应时间是 1.5 秒，则意味着 100 个请求中的 95 个响应时间快于 1.5 秒，而 100 个请求中的 5 个响应时间超过 1.5 秒。如 [图 1-4](img/fig1-4.png) 所示。
 
 响应时间的高百分位点（也称为 **尾部延迟**，即 **tail latencies**）非常重要，因为它们直接影响用户的服务体验。例如亚马逊在描述内部服务的响应时间要求时是以 99.9 百分位点为准，即使它只影响一千个请求中的一个。这是因为请求响应最慢的客户往往也是数据最多的客户，也可以说是最有价值的客户 —— 因为他们掏钱了【19】。保证网站响应迅速对于保持客户的满意度非常重要，亚马逊观察到：响应时间增加 100 毫秒，销售量就减少 1%【20】；而另一些报告说：慢 1 秒钟会让客户满意度指标减少 16%【21，22】。
 
@@ -238,13 +238,13 @@
 
 > #### 实践中的百分位点
 >
-> 在多重调用的后端服务里，高百分位数变得特别重要。即使并行调用，最终用户请求仍然需要等待最慢的并行调用完成。如 [图 1-5](../img/fig1-5.png) 所示，只需要一个缓慢的调用就可以使整个最终用户请求变慢。即使只有一小部分后端调用速度较慢，如果最终用户请求需要多个后端调用，则获得较慢调用的机会也会增加，因此较高比例的最终用户请求速度会变慢（该效果称为尾部延迟放大，即 tail latency amplification【24】）。
+> 在多重调用的后端服务里，高百分位数变得特别重要。即使并行调用，最终用户请求仍然需要等待最慢的并行调用完成。如 [图 1-5](img/fig1-5.png) 所示，只需要一个缓慢的调用就可以使整个最终用户请求变慢。即使只有一小部分后端调用速度较慢，如果最终用户请求需要多个后端调用，则获得较慢调用的机会也会增加，因此较高比例的最终用户请求速度会变慢（该效果称为尾部延迟放大，即 tail latency amplification【24】）。
 >
 > 如果你想将响应时间百分点添加到你的服务的监视仪表板，则需要持续有效地计算它们。例如，你可以使用滑动窗口来跟踪连续10分钟内的请求响应时间。每一分钟，你都会计算出该窗口中的响应时间中值和各种百分数，并将这些度量值绘制在图上。
 >
 > 简单的实现是在时间窗口内保存所有请求的响应时间列表，并且每分钟对列表进行排序。如果对你来说效率太低，那么有一些算法能够以最小的 CPU 和内存成本（如前向衰减【25】、t-digest【26】或 HdrHistogram 【27】）来计算百分位数的近似值。请注意，平均百分比（例如，减少时间分辨率或合并来自多台机器的数据）在数学上没有意义 - 聚合响应时间数据的正确方法是添加直方图【28】。
 
-![](../img/fig1-5.png)
+![](img/fig1-5.png)
 
 **图 1-5 当一个请求需要多个后端请求时，单个后端慢请求就会拖慢整个终端用户的请求**
 
@@ -256,7 +256,7 @@
 
 人们经常讨论 **纵向伸缩**（scaling up，也称为垂直伸缩，即 vertical scaling，转向更强大的机器）和 **横向伸缩**（scaling out，也称为水平伸缩，即 horizontal scaling，将负载分布到多台小机器上）之间的对立。跨多台机器分配负载也称为 “**无共享（shared-nothing）**” 架构。可以在单台机器上运行的系统通常更简单，但高端机器可能非常贵，所以非常密集的负载通常无法避免地需要横向伸缩。现实世界中的优秀架构需要将这两种方法务实地结合，因为使用几台足够强大的机器可能比使用大量的小型虚拟机更简单也更便宜。
 
-有些系统是 **弹性（elastic）** 的，这意味着可以在检测到负载增加时自动增加计算资源，而其他系统则是手动伸缩（人工分析容量并决定向系统添加更多的机器）。如果负载 **极难预测（highly unpredictable）**，则弹性系统可能很有用，但手动伸缩系统更简单，并且意外操作可能会更少（请参阅 “[分区再平衡](../ch6.md#分区再平衡)”）。
+有些系统是 **弹性（elastic）** 的，这意味着可以在检测到负载增加时自动增加计算资源，而其他系统则是手动伸缩（人工分析容量并决定向系统添加更多的机器）。如果负载 **极难预测（highly unpredictable）**，则弹性系统可能很有用，但手动伸缩系统更简单，并且意外操作可能会更少（请参阅 “[分区再平衡](ch6.md#分区再平衡)”）。
 
 跨多台机器部署 **无状态服务（stateless services）** 非常简单，但将带状态的数据系统从单节点变为分布式配置则可能引入许多额外复杂度。出于这个原因，常识告诉我们应该将数据库放在单个节点上（纵向伸缩），直到伸缩成本或可用性需求迫使其改为分布式。
 
@@ -365,17 +365,10 @@
 
 不幸的是，使应用可靠、可伸缩或可维护并不容易。但是某些模式和技术会不断重新出现在不同的应用中。在接下来的几章中，我们将看到一些数据系统的例子，并分析它们如何实现这些目标。
 
-在本书后面的 [第三部分](../part-iii.md) 中，我们将看到一种模式：几个组件协同工作以构成一个完整的系统（如 [图 1-1](../img/fig1-1.png) 中的例子）
+在本书后面的 [第三部分](part-iii.md) 中，我们将看到一种模式：几个组件协同工作以构成一个完整的系统（如 [图 1-1](img/fig1-1.png) 中的例子）
 
 
-
-# A Note for Early Release Readers
-
-With Early Release ebooks, you get books in their earliest form—the author’s raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.
-
-This will be the 2nd chapter of the final book. The GitHub repo for this book is *[\*https://github.com/ept/ddia2-feedback\*](https://github.com/ept/ddia2-feedback)*.
-
-If you have comments about how we might improve the content and/or examples in this book, or if you notice missing material within this chapter, please reach out on GitHub.
+--------
 
 If you are building an application, you will be driven by a list of requirements. At the top of your list is most likely the functionality that the application must offer: what screens and what buttons you need, and what each operation is supposed to do in order to fulfill the purpose of your software. These are your *functional requirements*.
 
@@ -390,13 +383,18 @@ Not all nonfunctional requirements fall within the scope of this book, but sever
 
 The terminology introduced in this chapter will also be useful in the following chapters, when we go into the details of how data-intensive systems are implemented. However, abstract definitions can be quite dry; to make the ideas more concrete, we will start this chapter with a case study of how a social networking service might work, which will provide practical examples of performance and scalability.
 
-# Case Study: Social Network Home Timelines
+
+
+
+--------
+
+## 案例学习：社交网络主页时间线
 
 Imagine you are given the task of implementing a social network in the style of X (formerly Twitter), in which users can post messages and follow other users. This will be a huge simplification of how such a service actually works [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016), [2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2012_ch2), [3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Twitter2023)], but it will help illustrate some of the issues that arise in large-scale systems.
 
 Let’s assume that users make 500 million posts per day, or 5,700 posts per second on average. Occasionally, the rate can spike as high as 150,000 posts/second [[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2013)]. Let’s also assume that the average user follows 200 people and has 200 followers (although there is a very wide range: most people have only a handful of followers, and a few celebrities such as Barack Obama have over 100 million followers).
 
-## Representing Users, Posts, and Follows
+### Representing Users, Posts, and Follows
 
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_relational). We have one table for users, one table for posts, and one table for follow relationships.
 
@@ -421,7 +419,7 @@ Posts are supposed to be timely, so let’s assume that after somebody makes a p
 
 Moreover, the query above is quite expensive: if you are following 200 people, it needs to fetch a list of recent posts by each of those 200 people, and merge those lists. 2 million timeline queries per second then means that the database needs to look up the recent posts from some sender 400 million times per second—a huge number. And that is the average case. Some users follow tens of thousands of accounts; for them, this query is very expensive to execute, and difficult to make fast.
 
-## Materializing and Updating Timelines
+### Materializing and Updating Timelines
 
 How can we do better? Firstly, instead of polling, it would be better if the server actively pushed new posts to any followers who are currently online. Secondly, we should precompute the results of the query above so that a user’s request for their home timeline can be served from a cache.
 
@@ -441,7 +439,17 @@ This process of precomputing and updating the results of a query is called *mate
 
 One way of solving this problem is to handle celebrity posts separately from everyone else’s posts: we can save ourselves the effort of adding them to millions of timelines by storing the celebrity posts separately and merging them with the materialized timeline when it is read. Despite such optimizations, handling celebrities on a social network can require a lot of infrastructure [[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Axon2010_ch2)].
 
-# Describing Performance
+
+
+
+
+
+
+
+
+--------
+
+## 描述性能
 
 Most discussions of software performance consider two main types of metric:
 
@@ -461,7 +469,7 @@ There is often a connection between throughput and response time; an example of 
 
 ###### Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing.
 
-# When an overloaded system won’t recover
+#### When an overloaded system won’t recover
 
 If a system is close to overload, with throughput pushed close to the limit, it can sometimes enter a vicious cycle where it becomes less efficient and hence even more overloaded. For example, if there is a long queue of requests waiting to be handled, response times may increase so much that clients time out and resend their request. This causes the rate of requests to increase even further, making the problem worse—a *retry storm*. Even when the load is reduced again, such a system may remain in an overloaded state until it is rebooted or otherwise reset. This phenomenon is called a *metastable failure*, and it can cause serious outages in production systems [[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bronson2021), [7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2021)].
 
@@ -471,7 +479,7 @@ In terms of performance metrics, the response time is usually what users care ab
 
 In this section we will focus primarily on response times, and we will return to throughput and scalability in [“Scalability”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_scalability).
 
-## Latency and Response Time
+### 延迟与响应时间
 
 “Latency” and “response time” are sometimes used interchangeably, but in this book we will use the terms in a specific way (illustrated in [Figure 2-4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_response_time)):
 
@@ -488,7 +496,7 @@ The response time can vary significantly from one request to the next, even if y
 
 Queueing delays often account for a large part of the variability in response times. As a server can only process a small number of things in parallel (limited, for example, by its number of CPU cores), it only takes a small number of slow requests to hold up the processing of subsequent requests—an effect known as *head-of-line blocking*. Even if those subsequent requests have fast service times, the client will see a slow overall response time due to the time waiting for the prior request to complete. The queueing delay is not part of the service time, and for this reason it is important to measure response times on the client side.
 
-## Average, Median, and Percentiles
+### 平均数，中位数与百分位点
 
 Because the response time varies from one request to the next, we need to think of it not as a single number, but as a *distribution* of values that you can measure. In [Figure 2-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_lognormal), each gray bar represents a request to a service, and its height shows how long that request took. Most requests are reasonably fast, but there are occasional *outliers* that take much longer. Variation in network delay is also known as *jitter*.
 
@@ -506,7 +514,7 @@ High percentiles of response times, also known as *tail latencies*, are importan
 
 On the other hand, optimizing the 99.99th percentile (the slowest 1 in 10,000 requests) was deemed too expensive and to not yield enough benefit for Amazon’s purposes. Reducing response times at very high percentiles is difficult because they are easily affected by random events outside of your control, and the benefits are diminishing.
 
-# The user impact of response times
+### The user impact of response times
 
 It seems intuitively obvious that a fast service is better for users than a slow service [[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Whitenton2020)]. However, it is surprisingly difficult to get hold of reliable data to quantify the effect that latency has on user behavior.
 
@@ -516,7 +524,7 @@ A more recent Akamai study [[21](https://learning.oreilly.com/library/view/desig
 
 A study by Yahoo [[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bai2017)] compares click-through rates on fast-loading versus slow-loading search results, controlling for quality of search results. It finds 20–30% more clicks on fast searches when the difference between fast and slow responses is 1.25 seconds or more.
 
-## Use of Response Time Metrics
+#### 使用响应时间指标
 
 High percentiles are especially important in backend services that are called multiple times as part of serving a single end-user request. Even if you make the calls in parallel, the end-user request still needs to wait for the slowest of the parallel calls to complete. It takes just one slow call to make the entire end-user request slow, as illustrated in [Figure 2-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_tail_amplification). Even if only a small percentage of backend calls are slow, the chance of getting a slow call increases if an end-user request requires multiple backend calls, and so a higher proportion of end-user requests end up being slow (an effect known as *tail latency amplification* [[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dean2013)]).
 
@@ -526,7 +534,7 @@ High percentiles are especially important in backend services that are called mu
 
 Percentiles are often used in *service level objectives* (SLOs) and *service level agreements* (SLAs) as ways of defining the expected performance and availability of a service [[24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hidalgo2020)]. For example, an SLO may set a target for a service to have a median response time of less than 200 ms and a 99th percentile under 1 s, and a target that at least 99.9% of valid requests result in non-error responses. An SLA is a contract that specifies what happens if the SLO is not met (for example, customers may be entitled to a refund). That is the basic idea, at least; in practice, defining good availability metrics for SLOs and SLAs is not straightforward [[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Mogul2019), [26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hauer2020)].
 
-# Computing percentiles
+#### 计算百分位点
 
 If you want to add response time percentiles to the monitoring dashboards for your services, you need to efficiently calculate them on an ongoing basis. For example, you may want to keep a rolling window of response times of requests in the last 10 minutes. Every minute, you calculate the median and various percentiles over the values in that window and plot those metrics on a graph.
 
@@ -534,7 +542,11 @@ The simplest implementation is to keep a list of response times for all requests
 
 Beware that averaging percentiles, e.g., to reduce the time resolution or to combine data from several machines, is mathematically meaningless—the right way of aggregating response time data is to add the histograms [[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schwartz2015)].
 
-# Reliability and Fault Tolerance
+
+
+--------
+
+## 可靠性与容灾
 
 Everybody has an intuitive idea of what it means for something to be reliable or unreliable. For software, typical expectations include:
 
@@ -555,7 +567,7 @@ If all those things together mean “working correctly,” then we can understan
 
 The distinction between fault and failure can be confusing because they are the same thing, just at different levels. For example, if a hard drive stops working, we say that the hard drive has failed: if the system consists only of that one hard drive, it has stopped providing the required service. However, if the system you’re talking about contains many hard drives, then the failure of a single hard drive is only a fault from the point of view of the bigger system, and the bigger system might be able to tolerate that fault by having a copy of the data on another hard drive.
 
-## Fault Tolerance
+### 容灾
 
 We call a system *fault-tolerant* if it continues providing the required service to the user in spite of certain faults occurring. If a system cannot tolerate a certain part becoming faulty, we call that part a *single point of failure* (SPOF), because a fault in that part escalates to cause the failure of the whole system.
 
@@ -567,7 +579,7 @@ Counter-intuitively, in such fault-tolerant systems, it can make sense to *incre
 
 Although we generally prefer tolerating faults over preventing faults, there are cases where prevention is better than cure (e.g., because no cure exists). This is the case with security matters, for example: if an attacker has compromised a system and gained access to sensitive data, that event cannot be undone. However, this book mostly deals with the kinds of faults that can be cured, as described in the following sections.
 
-## Hardware and Software Faults
+### 硬件与软件缺陷
 
 When we think of causes of system failure, hardware faults quickly come to mind:
 
@@ -580,7 +592,7 @@ When we think of causes of system failure, hardware faults quickly come to mind:
 
 These events are rare enough that you often don’t need to worry about them when working on a small system, as long as you can easily replace hardware that becomes faulty. However, in a large-scale system, hardware faults happen often enough that they become part of the normal system operation.
 
-### Tolerating hardware faults through redundancy
+#### 通过冗余容忍硬件缺陷
 
 Our first response to unreliable hardware is usually to add redundancy to the individual hardware components in order to reduce the failure rate of the system. Disks may be set up in a RAID configuration (spreading data across multiple disks in the same machine so that a failed disk does not cause data loss), servers may have dual power supplies and hot-swappable CPUs, and datacenters may have batteries and diesel generators for backup power. Such redundancy can often keep a machine running uninterrupted for years.
 
@@ -592,7 +604,7 @@ The fault-tolerance techniques we discuss in this book are designed to tolerate 
 
 Systems that can tolerate the loss of entire machines also have operational advantages: a single-server system requires planned downtime if you need to reboot the machine (to apply operating system security patches, for example), whereas a multi-node fault-tolerant system can be patched by restarting one node at a time, without affecting the service for users. This is called a *rolling upgrade*, and we will discuss it further in [Link to Come].
 
-### Software faults
+#### 软件缺陷
 
 Although hardware failures can be weakly correlated, they are still mostly independent: for example, if one disk fails, it’s likely that other disks in the same machine will be fine for another while. On the other hand, software faults are often very highly correlated, because it is common for many nodes to run the same software and thus have the same bugs [[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gunawi2014), [54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kreps2012_ch1)]. Such faults are harder to anticipate, and they tend to cause many more system failures than uncorrelated hardware faults [[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ford2010)]. For example:
 
@@ -606,7 +618,7 @@ The bugs that cause these kinds of software faults often lie dormant for a long 
 
 There is no quick solution to the problem of systematic faults in software. Lots of small things can help: carefully thinking about assumptions and interactions in the system; thorough testing; process isolation; allowing processes to crash and restart; avoiding feedback loops such as retry storms (see [“When an overloaded system won’t recover”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sidebar_metastable)); measuring, monitoring, and analyzing system behavior in production.
 
-## Humans and Reliability
+### 人类与可靠性
 
 Humans design and build software systems, and the operators who keep the systems running are also human. Unlike machines, humans don’t just follow rules; their strength is being creative and adaptive in getting their job done. However, this characteristic also leads to unpredictability, and sometimes mistakes that can lead to failures, despite best intentions. For example, one study of large internet services found that configuration changes by operators were the leading cause of outages, whereas hardware faults (servers or network) played a role in only 10–25% of outages [[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Oppenheimer2003)].
 
@@ -620,7 +632,7 @@ Increasingly, organizations are adopting a culture of *blameless postmortems*: a
 
 As a general principle, when investigating an incident, you should be suspicious of simplistic answers. “Bob should have been more careful when deploying that change” is not productive, but neither is “We must rewrite the backend in Haskell.” Instead, management should take the opportunity to learn the details of how the sociotechnical system works from the point of view of the people who work with it every day, and take steps to improve it based on this feedback [[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dekker2017)].
 
-# How Important Is Reliability?
+### 可靠性到底有多重要？
 
 Reliability is not just for nuclear power stations and air traffic control—more mundane applications are also expected to work reliably. Bugs in business applications cause lost productivity (and legal risks if figures are reported incorrectly), and outages of e-commerce sites can have huge costs in terms of lost revenue and damage to reputation.
 
@@ -632,7 +644,11 @@ There are situations in which we may choose to sacrifice reliability in order to
 
 
 
-# Scalability
+
+
+--------
+
+## 可伸缩性
 
 Even if a system is working reliably today, that doesn’t mean it will necessarily work reliably in the future. One common reason for degradation is increased load: perhaps the system has grown from 10,000 concurrent users to 100,000 concurrent users, or from 1 million to 10 million. Perhaps it is processing much larger volumes of data than it did before.
 
@@ -648,7 +664,7 @@ The reason is that scalability is not a one-dimensional label: it is meaningless
 
 If you succeed in making your application popular, and therefore handling a growing amount of load, you will learn where your performance bottlenecks lie, and therefore you will know along which dimensions you need to scale. At that point it’s time to start worrying about techniques for scalability.
 
-## Describing Load
+### 描述负载
 
 First, we need to succinctly describe the current load on the system; only then can we discuss growth questions (what happens if our load doubles?). Often this will be a measure of throughput: for example, the number of requests per second to a service, how many gigabytes of new data arrive per day, or the number of shopping cart checkouts per hour. Sometimes you care about the peak of some variable quantity, such as the number of simultaneously online users in [“Case Study: Social Network Home Timelines”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_twitter).
 
@@ -663,7 +679,7 @@ Usually our goal is to keep the performance of the system within the requirement
 
 If you can double the resources in order to handle twice the load, while keeping performance the same, we say that you have *linear scalability*, and this is considered a good thing. Occasionally it is possible to handle twice the load with less than double the resources, due to economies of scale or a better distribution of peak load [[71](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Warfield2023), [72](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2023)]. Much more likely is that the cost grows faster than linearly, and there may be many reasons for the inefficiency. For example, if you have a lot of data, then processing a single write request may involve more work than if you have a small amount of data, even if the size of the request is the same.
 
-## Shared-Memory, Shared-Disk, and Shared-Nothing Architecture
+### 共享内存，共享磁盘，无共享架构
 
 The simplest way of increasing the hardware resources of a service is to move it to a more powerful machine. Individual CPU cores are no longer getting significantly faster, but you can buy a machine (or rent a cloud instance) with more CPU cores, more RAM, and more disk space. This approach is called *vertical scaling* or *scaling up*.
 
@@ -677,7 +693,7 @@ The advantages of shared-nothing are that it has the potential to scale linearly
 
 Some cloud-native database systems use separate services for storage and transaction execution (see [“Separation of storage and compute”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_storage_compute)), with multiple compute nodes sharing access to the same storage service. This model has some similarity to a shared-disk architecture, but it avoids the scalability problems of older systems: instead of providing a filesystem (NAS) or block device (SAN) abstraction, the storage service offers a specialized API that is designed for the specific needs of the database [[75](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Antonopoulos2019_ch2)].
 
-## Principles for Scalability
+### 可伸缩性原则
 
 The architecture of systems that operate at large scale is usually highly specific to the application—there is no such thing as a generic, one-size-fits-all scalable architecture (informally known as *magic scaling sauce*). For example, a system that is designed to handle 100,000 requests per second, each 1 kB in size, looks very different from a system that is designed for 3 requests per minute, each 2 GB in size—even though the two systems have the same data throughput (100 MB/sec).
 
@@ -687,7 +703,14 @@ A good general principle for scalability is to break a system down into smaller 
 
 Another good principle is not to make things more complicated than necessary. If a single-machine database will do the job, it’s probably preferable to a complicated distributed setup. Auto-scaling systems (which automatically add or remove resources in response to demand) are cool, but if your load is fairly predictable, a manually scaled system may have fewer operational surprises (see [Link to Come]). A system with five services is simpler than one with fifty. Good architectures usually involve a pragmatic mixture of approaches.
 
-# Maintainability
+
+
+
+
+
+--------
+
+## 可维护性
 
 Software does not wear out or suffer material fatigue, so it does not break in the same ways as mechanical objects do. But the requirements for an application frequently change, the environment that the software runs in changes (such as its dependencies and the underlying platform), and it has bugs that need fixing.
 
@@ -709,7 +732,7 @@ Every system we create today will one day become a legacy system if it is valuab
 
   Make it easy for engineers to make changes to the system in the future, adapting it and extending it for unanticipated use cases as requirements change.
 
-## Operability: Making Life Easy for Operations
+### 可操作性：人生苦短，关爱运维
 
 We previously discussed the role of operations in [“Operations in the Cloud Era”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_operations), and we saw that human processes are at least as important for reliable operations as software tools. In fact, it has been suggested that “good operations can often work around the limitations of bad (or incomplete) software, but good software cannot run reliably with bad operations” [[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kreps2012_ch1)].
 
@@ -726,7 +749,7 @@ Good operability means making routine tasks easy, allowing the operations team t
 - Self-healing where appropriate, but also giving administrators manual control over the system state when needed
 - Exhibiting predictable behavior, minimizing surprises
 
-## Simplicity: Managing Complexity
+### 简单性：管理复杂度
 
 Small software projects can have delightfully simple and expressive code, but as projects get larger, they often become very complex and difficult to understand. This complexity slows down everyone who needs to work on the system, further increasing the cost of maintenance. A software project mired in complexity is sometimes described as a *big ball of mud* [[83](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Foote1997)].
 
@@ -742,7 +765,7 @@ For example, high-level programming languages are abstractions that hide machine
 
 Abstractions for application code, which aim to reduce its complexity, can be created using methodologies such as *design patterns* [[87](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gamma1994)] and *domain-driven design* (DDD) [[88](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Evans2003)]. This book is not about such application-specific abstractions, but rather about general-purpose abstractions on top of which you can build your applications, such as database transactions, indexes, and event logs. If you want to use techniques such as DDD, you can implement them on top of the foundations described in this book.
 
-## Evolvability: Making Change Easy
+### 可演化性：让变更更容易
 
 It’s extremely unlikely that your system’s requirements will remain unchanged forever. They are much more likely to be in constant flux: you learn new facts, previously unanticipated use cases emerge, business priorities change, users request new features, new platforms replace old platforms, legal or regulatory requirements change, growth of the system forces architectural changes, etc.
 
@@ -752,7 +775,13 @@ The ease with which you can modify a data system, and adapt it to changing requi
 
 One major factor that makes change difficult in large systems is when some action is irreversible, and therefore that action needs to be taken very carefully [[90](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Zaninotto2002)]. For example, say you are migrating from one database to another: if you cannot switch back to the old system in case of problems wth the new one, the stakes are much higher than if you can easily go back. Minimizing irreversibility improves flexibility.
 
-# Summary
+
+
+
+
+--------
+
+## 本章小结
 
 In this chapter we examined several examples of nonfunctional requirements: performance, reliability, scalability, and maintainability. Through these topics we have also encountered principles and terminology that we will need throughout the rest of the book. We started with a case study of how one might implement home timelines in a social network, which illustrated some of the challenges that arise at scale.
 
@@ -762,9 +791,11 @@ To achieve reliability, you can use fault tolerance techniques, which allow a sy
 
 Finally, we examined several facets of maintainability, including supporting the work of operations teams, managing complexity, and making it easy to evolve an application’s functionality over time. There are no easy answers on how to achieve these things, but one thing that can help is to build applications using well-understood building blocks that provide useful abstractions. The rest of this book will cover a selection of the most important such building blocks.
 
-##### Footnotes
 
-##### References
+
+--------
+
+## 参考文献
 
 [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016-marker)] Mike Cvet. [How We Learned to Stop Worrying and Love Fan-In at Twitter](https://www.youtube.com/watch?v=WEgCjwyXvwc). At *QCon San Francisco*, December 2016.
 
