@@ -1,682 +1,1191 @@
-# 第三章：儲存與檢索
+# 第三章：資料模型與查詢語言
 
-![](../img/ch3.png)
-
-> 建立秩序，省卻搜尋
+> 語言的邊界就是思想的邊界。
 >
-> —— 德國諺語
+> —— 路德維奇・維特根斯坦，《邏輯哲學》（1922）
+
+![img](../img/ch3.png)
+
+-----------------------------
+
+
+
+Data models are perhaps the most important part of developing software, because they have such a profound effect: not only on how the software is written, but also on how we *think about the problem* that we are solving.
+
+Most applications are built by layering one data model on top of another. For each layer, the key question is: how is it *represented* in terms of the next-lower layer? For example:
+
+1. As an application developer, you look at the real world (in which there are people, organizations, goods, actions, money flows, sensors, etc.) and model it in terms of objects or data structures, and APIs that manipulate those data structures. Those structures are often specific to your application.
+2. When you want to store those data structures, you express them in terms of a general-purpose data model, such as JSON or XML documents, tables in a relational database, or vertices and edges in a graph. Those data models are the topic of this chapter.
+3. The engineers who built your database software decided on a way of representing that JSON/relational/graph data in terms of bytes in memory, on disk, or on a network. The representation may allow the data to be queried, searched, manipulated, and processed in various ways. We will discuss these storage engine designs in [Link to Come].
+4. On yet lower levels, hardware engineers have figured out how to represent bytes in terms of electrical currents, pulses of light, magnetic fields, and more.
+
+In a complex application there may be more intermediary levels, such as APIs built upon APIs, but the basic idea is still the same: each layer hides the complexity of the layers below it by providing a clean data model. These abstractions allow different groups of people—for example, the engineers at the database vendor and the application developers using their database—to work together effectively.
+
+Several different data models are widely used in practice, often for different purposes. Some types of data and some queries are easy to express in one model, and awkward in another. In this chapter we will explore those trade-offs by comparing the relational model, the document model, graph-based data models, event sourcing, and dataframes. We will also briefly look at query languages that allow you to work with these models. This comparison will help you decide when to use which model.
+
+## 術語：宣告式查詢語言
+
+Many of the query languages in this chapter (such as SQL, Cypher, SPARQL, or Datalog) are *declarative*, which means that you specify the pattern of the data you want—what conditions the results must meet, and how you want the data to be transformed (e.g., sorted, grouped, and aggregated)—but not *how* to achieve that goal. The database system’s query optimizer can decide which indexes and which join algorithms to use, and in which order to execute various parts of the query.
+
+In contrast, with most programming languages you would have to write an *algorithm*—i.e., telling the computer which operations to perform in which order. A declarative query language is attractive because it is typically more concise and easier to write than an explicit algorithm. But more importantly, it also hides implementation details of the query engine, which makes it possible for the database system to introduce performance improvements without requiring any changes to queries. [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Brandon2024)].
+
+For example, a database might be able to execute a declarative query in parallel across multiple CPU cores and machines, without you having to worry about how to implement that parallelism [[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Hellerstein2010)]. In a hand-coded algorithm it would be a lot of work to implement such parallel execution yourself.
+
+
+
+
+
+--------
+
+## 關係模型與文件模型
+
+The best-known data model today is probably that of SQL, based on the relational model proposed by Edgar Codd in 1970 [[3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Codd1970)]: data is organized into *relations* (called *tables* in SQL), where each relation is an unordered collection of *tuples* (*rows* in SQL).
+
+The relational model was originally a theoretical proposal, and many people at the time doubted whether it could be implemented efficiently. However, by the mid-1980s, relational database management systems (RDBMS) and SQL had become the tools of choice for most people who needed to store and query data with some kind of regular structure. Many data management use cases are still dominated by relational data decades later—for example, business analytics (see [“Stars and Snowflakes: Schemas for Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_analytics)).
+
+Over the years, there have been many competing approaches to data storage and querying. In the 1970s and early 1980s, the *network model* and the *hierarchical model* were the main alternatives, but the relational model came to dominate them. Object databases came and went again in the late 1980s and early 1990s. XML databases appeared in the early 2000s, but have only seen niche adoption. Each competitor to the relational model generated a lot of hype in its time, but it never lasted [[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Stonebraker2005around)]. Instead, SQL has grown to incorporate other data types besides its relational core—for example, adding support for XML, JSON, and graph data [[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Winand2015)].
+
+In the 2010s, *NoSQL* was the latest buzzword that tried to overthrow the dominance of relational databases. NoSQL refers not to a single technology, but a loose set of ideas around new data models, schema flexibility, scalability, and a move towards open source licensing models. Some databases branded themselves as *NewSQL*, as they aim to provide the scalability of NoSQL systems along with the data model and transactional guarantees of traditional relational databases. The NoSQL and NewSQL ideas have been very influential in the design of data systems, but as the principles have become widely adopted, use of those terms has faded.
+
+One lasting effect of the NoSQL movement is the popularity of the *document model*, which usually represents data as JSON. This model was originally popularized by specialized document databases such as MongoDB and Couchbase, although most relational databases have now also added JSON support. Compared to relational tables, which are often seen as having a rigid and inflexible schema, JSON documents are thought to be more flexible.
+
+The pros and cons of document and relational data have been debated extensively; let’s examine some of the key points of that debate.
+
+### 物件關係不匹配
+
+Much application development today is done in object-oriented programming languages, which leads to a common criticism of the SQL data model: if data is stored in relational tables, an awkward translation layer is required between the objects in the application code and the database model of tables, rows, and columns. The disconnect between the models is sometimes called an *impedance mismatch*.
+
+> **注意**
 >
+> The term *impedance mismatch* is borrowed from electronics. Every electric circuit has a certain impedance (resistance to alternating current) on its inputs and outputs. When you connect one circuit’s output to another one’s input, the power transfer across the connection is maximized if the output and input impedances of the two circuits match. An impedance mismatch can lead to signal reflections and other troubles.
 
--------------------
+#### 物件關係對映（ORM）
 
-[TOC]
+Object-relational mapping (ORM) frameworks like ActiveRecord and Hibernate reduce the amount of boilerplate code required for this translation layer, but they are often criticized [[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Fowler2012)]. Some commonly cited problems are:
 
-一個數據庫在最基礎的層次上需要完成兩件事情：當你把資料交給資料庫時，它應當把資料儲存起來；而後當你向資料庫要資料時，它應當把資料返回給你。
+- ORMs are complex and can’t completely hide the differences between the two models, so developers still end up having to think about both the relational and the object representations of the data.
+- ORMs are generally only used for OLTP app development (see [“Characterizing Analytical and Operational Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_oltp)); data engineers making the data available for analytics purposes still need to work with the underlying relational representation, so the design of the relational schema still matters when using an ORM.
+- Many ORMs work only with relational OLTP databases. Organizations with diverse data systems such as search engines, graph databases, and NoSQL systems might find ORM support lacking.
+- Some ORMs generate relational schemas automatically, but these might be awkward for the users who are accessing the relational data directly, and they might be inefficient on the underlying database. Customizing the ORM’s schema and query generation can be complex and negate the benefit of using the ORM in the first place.
+- ORMs often come with schema migration tools that update database schemas as model definitions change. Such tools are handy, but should be used with caution. Migrations on large or high-traffic tables can lock the entire table for an extended amount of time, resulting in downtime. Many operations teams prefer to run schema migrations manually, incrementally, during off peak hours, or with specialized tools. Safe schema migrations are discussed further in [“Schema flexibility in the document model”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_schema_flexibility).
+- ORMs make it easy to accidentally write inefficient queries, such as the *N+1 query problem* [[7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Mihalcea2023)]. For example, say you want to display a list of user comments on a page, so you perform one query that returns *N* comments, each containing the ID of its author. To show the name of the comment author you need to look up the ID in the users table. In hand-written SQL you would probably perform this join in the query and return the author name along with each comment, but with an ORM you might end up making a separate query on the users table for each of the *N* comments to look up its author, resulting in *N*+1 database queries in total, which is slower than performing the join in the database. To avoid this problem, you may need to tell the ORM to fetch the author information at the same time as fetching the comments.
 
-在 [第二章](ch2.md) 中，我們討論了資料模型和查詢語言，即程式設計師將資料錄入資料庫的格式，以及再次要回資料的機制。在本章中我們會從資料庫的視角來討論同樣的問題：資料庫如何儲存我們提供的資料，以及如何在我們需要時重新找到資料。
+Nevertheless, ORMs also have advantages:
 
-作為程式設計師，為什麼要關心資料庫內部儲存與檢索的機理？你可能不會去從頭開始實現自己的儲存引擎，但是你 **確實** 需要從許多可用的儲存引擎中選擇一個合適的。而且為了讓儲存引擎能在你的工作負載型別上執行良好，你也需要大致瞭解儲存引擎在底層究竟做了什麼。
+- For data that is well suited to a relational model, some kind of translation between the persistent relational and the in-memory object representation is inevitable, and ORMs reduce the amount of boilerplate code required for this translation. Complicated queries may still need to be handled outside of the ORM, but the ORM can help with the simple and repetitive cases.
+- Some ORMs help with caching the results of database queries, which can help reduce the load on the database.
+- ORMs can also help with managing schema migrations and other administrative activities.
 
-特別需要注意，針對 **事務性** 負載最佳化的和針對 **分析性** 負載最佳化的儲存引擎之間存在巨大差異。稍後我們將在 “[事務處理還是分析？](#事務處理還是分析？)” 一節中探討這一區別，並在 “[列式儲存](#列式儲存)” 中討論一系列針對分析性負載而最佳化的儲存引擎。
+#### The document data model for one-to-many relationships
 
-但首先，我們將從你可能已經很熟悉的兩大類資料庫（傳統的關係型資料庫和很多所謂的 “NoSQL” 資料庫）中使用的 **儲存引擎** 來開始本章的內容。我們將研究兩大類儲存引擎：**日誌結構（log-structured）** 的儲存引擎，以及 **面向頁面（page-oriented）** 的儲存引擎（例如 B 樹）。
+Not all data lends itself well to a relational representation; let’s look at an example to explore a limitation of the relational model. [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational) illustrates how a résumé (a LinkedIn profile) could be expressed in a relational schema. The profile as a whole can be identified by a unique identifier, `user_id`. Fields like `first_name` and `last_name` appear exactly once per user, so they can be modeled as columns on the `users` table.
 
-## 驅動資料庫的資料結構
+Most people have had more than one job in their career (positions), and people may have varying numbers of periods of education and any number of pieces of contact information. One way of representing such *one-to-many relationships* is to put positions, education, and contact information in separate tables, with a foreign key reference to the `users` table, as in [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational).
 
-世界上最簡單的資料庫可以用兩個 Bash 函式實現：
+![ddia 0201](../img/ddia_0201.png)
 
-```bash
-#!/bin/bash
-db_set () {
-  echo "$1,$2" >> database
+> Figure 3-1. Representing a LinkedIn profile using a relational schema.
+
+Another way of representing the same information, which is perhaps more natural and maps more closely to an object structure in application code, is as a JSON document as shown in [Example 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_json).
+
+> Example 3-1. Representing a LinkedIn profile as a JSON document
+
+```
+{
+  "user_id":     251,
+  "first_name":  "Barack",
+  "last_name":   "Obama",
+  "headline":    "Former President of the United States of America",
+  "region_id":   "us:91",
+  "photo_url":   "/p/7/000/253/05b/308dd6e.jpg",
+  "positions": [
+    {"job_title": "President", "organization": "United States of America"},
+    {"job_title": "US Senator (D-IL)", "organization": "United States Senate"}
+  ],
+  "education": [
+    {"school_name": "Harvard University",  "start": 1988, "end": 1991},
+    {"school_name": "Columbia University", "start": 1981, "end": 1983}
+  ],
+  "contact_info": {
+    "website": "https://barackobama.com",
+    "twitter": "https://twitter.com/barackobama"
+  }
 }
+```
 
-db_get () {
-  grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
+Some developers feel that the JSON model reduces the impedance mismatch between the application code and the storage layer. However, as we shall see in [Link to Come], there are also problems with JSON as a data encoding format. The lack of a schema is often cited as an advantage; we will discuss this in [“Schema flexibility in the document model”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_schema_flexibility).
+
+The JSON representation has better *locality* than the multi-table schema in [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational) (see [“Data locality for reads and writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_document_locality)). If you want to fetch a profile in the relational example, you need to either perform multiple queries (query each table by `user_id`) or perform a messy multi-way join between the `users` table and its subordinate tables [[8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Schauder2023)]. In the JSON representation, all the relevant information is in one place, making the query both faster and simpler.
+
+The one-to-many relationships from the user profile to the user’s positions, educational history, and contact information imply a tree structure in the data, and the JSON representation makes this tree structure explicit (see [Figure 3-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_json_tree)).
+
+![ddia 0202](../img/ddia_0202.png)
+
+> Figure 3-2. One-to-many relationships forming a tree structure.
+
+> **注意**
+>
+> This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé typically has a small number of positions [[9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Zola2014), [10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Andrews2023)]. In sitations where there may be a genuinely large number of related items—say, comments on a celebrity’s social media post, of which there could be many thousands—embedding them all in the same document may be too unwieldy, so the relational approach in [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational) is preferable.
+
+
+
+
+--------
+
+### 正規化化，反正規化化，連線
+
+In [Example 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_json) in the preceding section, `region_id` is given as an ID, not as the plain-text string `"Washington, DC, United States"`. Why?
+
+If the user interface has a free-text field for entering the region, it makes sense to store it as a plain-text string. But there are advantages to having standardized lists of geographic regions, and letting users choose from a drop-down list or autocompleter:
+
+- Consistent style and spelling across profiles
+- Avoiding ambiguity if there are several places with the same name (if the string were just “Washington”, would it refer to DC or to the state?)
+- Ease of updating—the name is stored in only one place, so it is easy to update across the board if it ever needs to be changed (e.g., change of a city name due to political events)
+- Localization support—when the site is translated into other languages, the standardized lists can be localized, so the region can be displayed in the viewer’s language
+- Better search—e.g., a search for people on the US East Coast can match this profile, because the list of regions can encode the fact that Washington is located on the East Coast (which is not apparent from the string `"Washington, DC"`)
+
+Whether you store an ID or a text string is a question of *normalization*. When you use an ID, your data is more normalized: the information that is meaningful to humans (such as the text *Washington, DC*) is stored in only one place, and everything that refers to it uses an ID (which only has meaning within the database). When you store the text directly, you are duplicating the human-meaningful information in every record that uses it; this representation is *denormalized*.
+
+The advantage of using an ID is that because it has no meaning to humans, it never needs to change: the ID can remain the same, even if the information it identifies changes. Anything that is meaningful to humans may need to change sometime in the future—and if that information is duplicated, all the redundant copies need to be updated. That requires more code, more write operations, and risks inconsistencies (where some copies of the information are updated but others aren’t).
+
+The downside of a normalized representation is that every time you want to display a record containing an ID, you have to do an additional lookup to resolve the ID into something human-readable. In a relational data model, this is done using a *join*, for example:
+
+```sql
+SELECT users.*, regions.region_name
+FROM users
+JOIN regions ON users.region_id = regions.id
+WHERE users.id = 251;
+```
+
+In a document database, it is more common to either use a denormalized representation that needs no join when reading, or to perform the join in application code—that is, you first fetch a document containing an ID, and then perform a second query to resolve that ID into another document. In MongoDB, it is also possible to perform a join using the `$lookup` operator in an aggregation pipeline:
+
+```mongodb-json
+db.users.aggregate([
+  { $match: { _id: 251 } },
+  { $lookup: {
+      from: "regions",
+      localField: "region_id",
+      foreignField: "_id",
+      as: "region"
+  } }
+])
+```
+
+#### Trade-offs of normalization
+
+In the résumé example, while the `region_id` field is a reference into a standardized set of regions, the name of the `organization` (the company or government where the person worked) and `school_name` (where they studied) are just strings. This representation is denormalized: many people may have worked at the same company, but there is no ID linking them.
+
+Perhaps the organization and school should be entities instead, and the profile should reference their IDs instead of their names? The same arguments for referencing the ID of a region also apply here. For example, say we wanted to include the logo of the school or company in addition to their name:
+
+- In a denormalized representation, we would include the image URL of the logo on every individual person’s profile; this makes the JSON document self-contained, but it creates a headache if we ever need to change the logo, because we now need to find all of the occurrences of the old URL and update them [[9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Zola2014)].
+- In a normalized representation, we would create an entity representing an organization or school, and store its name, logo URL, and perhaps other attributes (description, news feed, etc.) once on that entity. Every résumé that mentions the organization would then simply reference its ID, and updating the logo is easy.
+
+As a general principle, normalized data is usually faster to write (since there is only one copy), but slower to query (since it requires joins); denormalized data is usually faster to read (fewer joins), but more expensive to write (more copies to update). You might find it helpful to view denormalization as a form of derived data ([“Systems of Record and Derived Data”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_derived)), since you need to set up a process for updating the redundant copies of the data.
+
+Besides the cost of performing all these updates, you also need to consider the consistency of the database if a process crashes halfway through making its updates. Databases that offer atomic transactions (see [Link to Come]) make it easier to remain consistent, but not all databases offer atomicity across multiple documents. It is also possible to ensure consistency through stream processing, which we discuss in [Link to Come].
+
+Normalization tends to be better for OLTP systems, where both reads and updates need to be fast; analytics systems often fare better with denormalized data, since they perform updates in bulk, and the performance of read-only queries is the dominant concern. Moreover, in systems of small to moderate scale, a normalized data model is often best, because you don’t have to worry about keeping multiple copies of the data consistent with each other, and the cost of performing joins is acceptable. However, in very large-scale systems, the cost of joins can become problematic.
+
+#### Denormalization in the social networking case study
+
+In [“Case Study: Social Network Home Timelines”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_twitter) we compared a normalized representation ([Figure 2-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_relational)) and a denormalized one (precomputed, materialized timelines): here, the join between `posts` and `follows` was too expensive, and the materialized timeline is a cache of the result of that join. The fan-out process that inserts a new post into followers’ timelines was our way of keeping the denormalized representation consistent.
+
+However, the implementation of materialized timelines at X (formerly Twitter) does not store the actual text of each post: each entry actually only stores the post ID, the ID of the user who posted it, and a little bit of extra information to identify reposts and replies [[11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Krikorian2012_ch3)]. In other words, it is a precomputed result of (approximately) the following query:
+
+```
+SELECT posts.id, posts.sender_id FROM posts
+  JOIN follows ON posts.sender_id = follows.followee_id
+  WHERE follows.follower_id = current_user
+  ORDER BY posts.timestamp DESC
+  LIMIT 1000
+```
+
+This means that whenever the timeline is read, the service still needs to perform two joins: look up the post ID to fetch the actual post content (as well as statistics such as the number of likes and replies), and look up the sender’s profile by ID (to get their username, profile picture, and other details). This process of looking up the human-readable information by ID is called *hydrating* the IDs, and it is essentially a join performed in application code [[11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Krikorian2012_ch3)].
+
+The reason for storing only IDs in the precomputed timeline is that the data they refer to is fast-changing: the number of likes and replies may change multiple times per second on a popular post, and some users regularly change their username or profile photo. Since the timeline should show the latest like count and profile picture when it is viewed, it would not make sense to denormalize this information into the materialized timeline. Moreover, the storage cost would be increased significantly by such denormalization.
+
+This example shows that having to perform joins when reading data is not, as sometimes claimed, an impediment to creating high-performance, scalable services. Hydrating post ID and user ID is actually a fairly easy operation to scale, since it parallelizes well, and the cost doesn’t depend on the number of accounts you are following or the number of followers you have.
+
+If you need to decide whether to denormalize something in your application, the social network case study shows that the choice is not immediately obvious: the most scalable approach may involve denormalizing some things and leaving other things normalized. You will have to carefully consider how often the information changes, and the cost of reads and writes (which might be dominated by outliers, such as users with many follows/followers in the case of a typical social network). Normalization and denormalization are not inherently good or bad—they are just a trade-off in terms of performance of reads and writes, as well as the amount of effort to implement.
+
+
+
+
+
+--------
+
+### 多對一與多對多關係
+
+While `positions` and `education` in [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational) are examples of one-to-many or one-to-few relationships (one résumé has several positions, but each position belongs only to one résumé), the `region_id` field is an example of a *many-to-one* relationship (many people live in the same region, but we assume that each person lives in only one region at any one time).
+
+If we introduce entities for organizations and schools, and reference them by ID from the résumé, then we also have *many-to-many* relationships (one person has worked for several organizations, and an organization has several past or present employees). In a relational model, such a relationship is usually represented as an *associative table* or *join table*, as shown in [Figure 3-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_m2m_rel): each position associates one user ID with one organization ID.
+
+![ddia 0203](../img/ddia_0203.png)
+
+> Figure 3-3. Many-to-many relationships in the relational model.
+
+Many-to-one and many-to-many relationships do not easily fit within one self-contained JSON document; they lend themselves more to a normalized representation. In a document model, one possible representation is given in [Example 3-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_m2m_json) and illustrated in [Figure 3-4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_many_to_many): the data within each dotted rectangle can be grouped into one document, but the links to organizations and schools are best represented as references to other documents.
+
+> Example 3-2. A résumé that references organizations by ID.
+
+```
+{
+  "user_id":    251,
+  "first_name": "Barack",
+  "last_name":  "Obama",
+  "positions": [
+    {"start": 2009, "end": 2017, "job_title": "President",         "org_id": 513},
+    {"start": 2005, "end": 2008, "job_title": "US Senator (D-IL)", "org_id": 514}
+  ],
+  ...
 }
 ```
 
-這兩個函式實現了鍵值儲存的功能。執行 `db_set key value` 會將 **鍵（key）** 和 **值（value）** 儲存在資料庫中。鍵和值（幾乎）可以是你喜歡的任何東西，例如，值可以是 JSON 文件。然後呼叫 `db_get key` 會查詢與該鍵關聯的最新值並將其返回。
+![ddia 0204](../img/ddia_0204.png)
 
-麻雀雖小，五臟俱全：
+> Figure 3-4. Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document.
 
-```bash
-$ db_set 123456 '{"name":"London","attractions":["Big Ben","London Eye"]}'
+Many-to-many relationships often need to be queried in “both directions”: for example, finding all of the organizations that a particular person has worked for, and finding all of the people who have worked at a particular organization. One way of enabling such queries is to store ID references on both sides, i.e., a résumé includes the ID of each organization where the person has worked, and the organization document includes the IDs of the résumés that mention that organization. This representation is denormalized, since the relationship is stored in two places, which could become inconsistent with each other.
 
-$ db_set 42 '{"name":"San Francisco","attractions":["Golden Gate Bridge"]}'
+A normalized representation stores the relationship in only one place, and relies on *secondary indexes* (which we discuss in [Link to Come]) to allow the relationship to be efficiently queried in both directions. In the relational schema of [Figure 3-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_m2m_rel), we would tell the database to create indexes on both the `user_id` and the `org_id` columns of the `positions` table.
 
-$ db_get 42
-{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
+In the document model of [Example 3-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_m2m_json), the database needs to index the `org_id` field of objects inside the `positions` array. Many document databases and relational databases with JSON support are able to create such indexes on values inside a document.
+
+#### Stars and Snowflakes: Schemas for Analytics
+
+Data warehouses (see [“Data Warehousing”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_dwh)) are usually relational, and there are a few widely-used conventions for the structure of tables in a data warehouse: a *star schema*, *snowflake schema*, *dimensional modeling* [[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Kimball2013_ch3)], and *one big table* (OBT). These structures are optimized for the needs of business analysts. ETL processes translate data from operational systems into this schema.
+
+The example schema in [Figure 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dwh_schema) shows a data warehouse that might be found at a grocery retailer. At the center of the schema is a so-called *fact table* (in this example, it is called `fact_sales`). Each row of the fact table represents an event that occurred at a particular time (here, each row represents a customer’s purchase of a product). If we were analyzing website traffic rather than retail sales, each row might represent a page view or a click by a user.
+
+![ddia 0309](../img/ddia_0309.png)
+
+> Figure 3-5. Example of a star schema for use in a data warehouse.
+
+Usually, facts are captured as individual events, because this allows maximum flexibility of analysis later. However, this means that the fact table can become extremely large. A big enterprise may have many petabytes of transaction history in its data warehouse, mostly represented as fact tables.
+
+Some of the columns in the fact table are attributes, such as the price at which the product was sold and the cost of buying it from the supplier (allowing the profit margin to be calculated). Other columns in the fact table are foreign key references to other tables, called *dimension tables*. As each row in the fact table represents an event, the dimensions represent the *who*, *what*, *where*, *when*, *how*, and *why* of the event.
+
+For example, in [Figure 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dwh_schema), one of the dimensions is the product that was sold. Each row in the `dim_product` table represents one type of product that is for sale, including its stock-keeping unit (SKU), description, brand name, category, fat content, package size, etc. Each row in the `fact_sales` table uses a foreign key to indicate which product was sold in that particular transaction. Queries often involve multiple joins to multiple dimension tables.
+
+Even date and time are often represented using dimension tables, because this allows additional information about dates (such as public holidays) to be encoded, allowing queries to differentiate between sales on holidays and non-holidays.
+
+[Figure 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dwh_schema) is an example of a star schema. The name comes from the fact that when the table relationships are visualized, the fact table is in the middle, surrounded by its dimension tables; the connections to these tables are like the rays of a star.
+
+A variation of this template is known as the *snowflake schema*, where dimensions are further broken down into subdimensions. For example, there could be separate tables for brands and product categories, and each row in the `dim_product` table could reference the brand and category as foreign keys, rather than storing them as strings in the `dim_product` table. Snowflake schemas are more normalized than star schemas, but star schemas are often preferred because they are simpler for analysts to work with [[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Kimball2013_ch3)].
+
+In a typical data warehouse, tables are often quite wide: fact tables often have over 100 columns, sometimes several hundred. Dimension tables can also be wide, as they include all the metadata that may be relevant for analysis—for example, the `dim_store` table may include details of which services are offered at each store, whether it has an in-store bakery, the square footage, the date when the store was first opened, when it was last remodeled, how far it is from the nearest highway, etc.
+
+A star or snowflake schema consists mostly of many-to-one relationships (e.g., many sales occur for one particular product, in one particular store), represented as the fact table having foreign keys into dimension tables, or dimensions into sub-dimensions. In principle, other types of relationship could exist, but they are often denormalized in order to simplify queries. For example, if a customer buys several different products at once, that multi-item transaction is not represented explicitly; instead, there is a separate row in the fact table for each product purchased, and those facts all just happen to have the same customer ID, store ID, and timestamp.
+
+Some data warehouse schemas take denormalization even further and leave out the dimension tables entirely, folding the information in the dimensions into denormalized columns on the fact table instead (essentially, precomputing the join between the fact table and the dimension tables). This approach is known as *one big table* (OBT), and while it requires more storage space, it sometimes enables faster queries [[13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Kaminsky2022)].
+
+In the context of analytics, such denormalization is unproblematic, since the data typically represents a log of historical data that is not going to change (except maybe for occasionally correcting an error). The issues of data consistency and write overheads that occur with denormalization in OLTP systems are not as pressing in analytics.
+
+#### When to Use Which Model
+
+The main arguments in favor of the document data model are schema flexibility, better performance due to locality, and that for some applications it is closer to the object model used by the application. The relational model counters by providing better support for joins, many-to-one, and many-to-many relationships. Let’s examine these arguments in more detail.
+
+If the data in your application has a document-like structure (i.e., a tree of one-to-many relationships, where typically the entire tree is loaded at once), then it’s probably a good idea to use a document model. The relational technique of *shredding*—splitting a document-like structure into multiple tables (like `positions`, `education`, and `contact_info` in [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational))—can lead to cumbersome schemas and unnecessarily complicated application code.
+
+The document model has limitations: for example, you cannot refer directly to a nested item within a document, but instead you need to say something like “the second item in the list of positions for user 251”. If you do need to reference nested items, a relational approach works better, since you can refer to any item directly by its ID.
+
+Some applications allow the user to choose the order of items: for example, imagine a to-do list or issue tracker where the user can drag and drop tasks to reorder them. The document model supports such applications well, because the items (or their IDs) can simply be stored in a JSON array to determine their order. In relational databases there isn’t a standard way of representing such reorderable lists, and various tricks are used: sorting by an integer column (requiring renumbering when you insert into the middle), a linked list of IDs, or fractional indexing [[14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Nelson2018), [15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Wallace2017), [16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Greenspan2020)].
+
+#### Schema flexibility in the document model
+
+Most document databases, and the JSON support in relational databases, do not enforce any schema on the data in documents. XML support in relational databases usually comes with optional schema validation. No schema means that arbitrary keys and values can be added to a document, and when reading, clients have no guarantees as to what fields the documents may contain.
+
+Document databases are sometimes called *schemaless*, but that’s misleading, as the code that reads the data usually assumes some kind of structure—i.e., there is an implicit schema, but it is not enforced by the database [[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Schemaless)]. A more accurate term is *schema-on-read* (the structure of the data is implicit, and only interpreted when the data is read), in contrast with *schema-on-write* (the traditional approach of relational databases, where the schema is explicit and the database ensures all data conforms to it when the data is written) [[18](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Awadallah2009)].
+
+Schema-on-read is similar to dynamic (runtime) type checking in programming languages, whereas schema-on-write is similar to static (compile-time) type checking. Just as the advocates of static and dynamic type checking have big debates about their relative merits [[19](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Odersky2013)], enforcement of schemas in database is a contentious topic, and in general there’s no right or wrong answer.
+
+The difference between the approaches is particularly noticeable in situations where an application wants to change the format of its data. For example, say you are currently storing each user’s full name in one field, and you instead want to store the first name and last name separately [[20](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Irwin2013)]. In a document database, you would just start writing new documents with the new fields and have code in the application that handles the case when old documents are read. For example:
+
+```
+if (user && user.name && !user.first_name) {
+    // Documents written before Dec 8, 2023 don't have first_name
+    user.first_name = user.name.split(" ")[0];
+}
 ```
 
-底層的儲存格式非常簡單：一個文字檔案，每行包含一條逗號分隔的鍵值對（忽略轉義問題的話，大致與 CSV 檔案類似）。每次對 `db_set` 的呼叫都會向檔案末尾追加記錄，所以更新鍵的時候舊版本的值不會被覆蓋 —— 因而查詢最新值的時候，需要找到檔案中鍵最後一次出現的位置（因此 `db_get` 中使用了 `tail -n 1` )。
+The downside of this approach is that every part of your application that reads from the database now needs to deal with documents in old formats that may have been written a long time in the past. On the other hand, in a schema-on-write database, you would typically perform a *migration* along the lines of:
 
-```bash
-$ db_set 42 '{"name":"San Francisco","attractions":["Exploratorium"]}'
-
-$ db_get 42
-{"name":"San Francisco","attractions":["Exploratorium"]}
-
-$ cat database
-123456,{"name":"London","attractions":["Big Ben","London Eye"]}
-42,{"name":"San Francisco","attractions":["Golden Gate Bridge"]}
-42,{"name":"San Francisco","attractions":["Exploratorium"]}
+```
+ALTER TABLE users ADD COLUMN first_name text DEFAULT NULL;
+UPDATE users SET first_name = split_part(name, ' ', 1);      -- PostgreSQL
+UPDATE users SET first_name = substring_index(name, ' ', 1);      -- MySQL
 ```
 
-`db_set` 函式對於極其簡單的場景其實有非常好的效能，因為在檔案尾部追加寫入通常是非常高效的。與 `db_set` 做的事情類似，許多資料庫在內部使用了 **日誌（log）**，也就是一個 **僅追加（append-only）** 的資料檔案。真正的資料庫有更多的問題需要處理（如併發控制，回收硬碟空間以避免日誌無限增長，處理錯誤與部分寫入的記錄），但基本原理是一樣的。日誌極其有用，我們還將在本書的其它部分重複見到它好幾次。
+In most relational databases, adding a column with a default value is fast and unproblematic, even on large tables. However, running the `UPDATE` statement is likely to be slow on a large table, since every row needs to be rewritten, and other schema operations (such as changing the data type of a column) also typically require the entire table to be copied.
 
-> **日誌（log）** 這個詞通常指應用日誌：即應用程式輸出的描述正在發生的事情的文字。本書在更普遍的意義下使用 **日誌** 這一詞：一個僅追加的記錄序列。它可能壓根就不是給人類看的，它可以使用二進位制格式，並僅能由其他程式讀取。
+Various tools exist to allow this type of schema changes to be performed in the background without downtime [[21](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Percona2023), [22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Noach2016), [23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Mukherjee2022), [24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#PerezAradros2023)], but performing such migrations on large databases remains operationally challenging. Complicated migrations can be avoided by only adding the `first_name` column with a default value of `NULL` (which is fast), and filling it in at read time, like you would with a document database.
 
-另一方面，如果這個資料庫中有著大量記錄，則這個 `db_get` 函式的效能會非常糟糕。每次你想查詢一個鍵時，`db_get` 必須從頭到尾掃描整個資料庫檔案來查詢鍵的出現。用演算法的語言來說，查詢的開銷是 `O(n)` ：如果資料庫記錄數量 n 翻了一倍，查詢時間也要翻一倍。這就不好了。
+The schema-on-read approach is advantageous if the items in the collection don’t all have the same structure for some reason (i.e., the data is heterogeneous)—for example, because:
 
-為了高效查詢資料庫中特定鍵的值，我們需要一個數據結構：**索引（index）**。本章將介紹一系列的索引結構，並在它們之間進行比較。索引背後的大致思想是透過儲存一些額外的元資料作為路標來幫助你找到想要的資料。如果你想以幾種不同的方式搜尋同一份資料，那麼你也許需要在資料的不同部分上建立多個索引。
+- There are many different types of objects, and it is not practicable to put each type of object in its own table.
+- The structure of the data is determined by external systems over which you have no control and which may change at any time.
 
-索引是從主資料衍生的 **額外的（additional）** 結構。許多資料庫允許新增與刪除索引，這不會影響資料的內容，而只會影響查詢的效能。維護額外的結構會產生開銷，特別是在寫入時。寫入效能很難超過簡單地追加寫入檔案，因為追加寫入是最簡單的寫入操作。任何型別的索引通常都會減慢寫入速度，因為每次寫入資料時都需要更新索引。
+In situations like these, a schema may hurt more than it helps, and schemaless documents can be a much more natural data model. But in cases where all records are expected to have the same structure, schemas are a useful mechanism for documenting and enforcing that structure. We will discuss schemas and schema evolution in more detail in [Link to Come].
 
-這是儲存系統中一個重要的權衡：精心選擇的索引加快了讀查詢的速度，但是每個索引都會拖慢寫入速度。因為這個原因，資料庫預設並不會索引所有的內容，而需要你，也就是程式設計師或資料庫管理員（DBA），基於對應用的典型查詢模式的瞭解來手動選擇索引。你可以選擇那些能為應用帶來最大收益而且又不會引入超出必要開銷的索引。
+#### Data locality for reads and writes
 
+A document is usually stored as a single continuous string, encoded as JSON, XML, or a binary variant thereof (such as MongoDB’s BSON). If your application often needs to access the entire document (for example, to render it on a web page), there is a performance advantage to this *storage locality*. If data is split across multiple tables, like in [Figure 3-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_obama_relational), multiple index lookups are required to retrieve it all, which may require more disk seeks and take more time.
 
-### 雜湊索引
+The locality advantage only applies if you need large parts of the document at the same time. The database typically needs to load the entire document, which can be wasteful if you only need to access a small part of a large document. On updates to a document, the entire document usually needs to be rewritten. For these reasons, it is generally recommended that you keep documents fairly small and avoid frequent small updates to a document.
 
-讓我們從 **鍵值資料（key-value Data）** 的索引開始。這不是你可以索引的唯一資料型別，但鍵值資料是很常見的。在引入更複雜的索引之前，它是重要的第一步。
+However, the idea of storing related data together for locality is not limited to the document model. For example, Google’s Spanner database offers the same locality properties in a relational data model, by allowing the schema to declare that a table’s rows should be interleaved (nested) within a parent table [[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Corbett2012_ch2)]. Oracle allows the same, using a feature called *multi-table index cluster tables* [[26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#BurlesonCluster)]. The *column-family* concept in the Bigtable data model (used in Cassandra, HBase, and ScyllaDB), also known as a *wide-column* model, has a similar purpose of managing locality [[27](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Chang2006_ch2)].
 
-鍵值儲存與在大多數程式語言中可以找到的 **字典（dictionary）** 型別非常相似，通常字典都是用 **雜湊對映（hash map）** 或 **散列表（hash table）** 實現的。雜湊對映在許多演算法教科書中都有描述【1,2】，所以這裡我們不會討論它的工作細節。既然我們已經可以用雜湊對映來表示 **記憶體中** 的資料結構，為什麼不使用它來索引 **硬碟上** 的資料呢？
+#### Query languages for documents
 
-假設我們的資料儲存只是一個追加寫入的檔案，就像前面的例子一樣，那麼最簡單的索引策略就是：保留一個記憶體中的雜湊對映，其中每個鍵都對映到資料檔案中的一個位元組偏移量，指明瞭可以找到對應值的位置，如 [圖 3-1](../img/fig3-1.png) 所示。當你將新的鍵值對追加寫入檔案中時，還要更新雜湊對映，以反映剛剛寫入的資料的偏移量（這同時適用於插入新鍵與更新現有鍵）。當你想查詢一個值時，使用雜湊對映來查詢資料檔案中的偏移量，**尋找（seek）** 該位置並讀取該值即可。
+Another difference between a relational and a document database is the language or API that you use to query it. Most relational databases are queried using SQL, but document databases are more varied. Some allow only key-value access by primary key, while others also offer secondary indexes to query for values inside documents, and some provide rich query languages.
 
-![](../img/fig3-1.png)
+XML databases are often queried using XQuery and XPath, which are designed to allow complex queries, including joins across multiple documents, and also format their results as XML [[28](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Walmsley2015)]. JSON Pointer [[29](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Bryan2013)] and JSONPath [[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Goessner2024)] provide an equivalent to XPath for JSON. MongoDB’s aggregation pipeline, whose `$lookup` operator for joins we saw in [“Normalization, Denormalization, and Joins”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_normalization), is an example of a query language for collections of JSON documents.
 
-**圖 3-1 以類 CSV 格式儲存鍵值對的日誌，並使用記憶體雜湊對映進行索引。**
-
-聽上去簡單，但這是一個可行的方法。現實中，Bitcask 實際上就是這麼做的（Riak 中預設的儲存引擎）【3】。Bitcask 提供高效能的讀取和寫入操作，但要求所有的鍵必須能放入可用記憶體中，因為雜湊對映完全保留在記憶體中。而資料值可以使用比可用記憶體更多的空間，因為可以在硬碟上透過一次硬碟查詢操作來載入所需部分，如果資料檔案的那部分已經在檔案系統快取中，則讀取根本不需要任何硬碟 I/O。
-
-像 Bitcask 這樣的儲存引擎非常適合每個鍵的值經常更新的情況。例如，鍵可能是某個貓咪影片的網址（URL），而值可能是該影片被播放的次數（每次有人點選播放按鈕時遞增）。在這種型別的工作負載中，有很多寫操作，但是沒有太多不同的鍵 —— 每個鍵有很多的寫操作，但是將所有鍵儲存在記憶體中是可行的。
-
-到目前為止，我們只是在追加寫入一個檔案 —— 所以如何避免最終用完硬碟空間？一種好的解決方案是，將日誌分為特定大小的 **段（segment）**，當日誌增長到特定尺寸時關閉當前段檔案，並開始寫入一個新的段檔案。然後，我們就可以對這些段進行 **壓縮（compaction）**，如 [圖 3-2](../img/fig3-2.png) 所示。這裡的壓縮意味著在日誌中丟棄重複的鍵，只保留每個鍵的最近更新。
-
-![](../img/fig3-2.png)
-
-**圖 3-2 鍵值更新日誌（統計貓咪影片的播放次數）的壓縮，只保留每個鍵的最近值**
-
-而且，由於壓縮經常會使得段變得很小（假設在一個段內鍵被平均重寫了好幾次），我們也可以在執行壓縮的同時將多個段合併在一起，如 [圖 3-3](../img/fig3-3.png) 所示。段被寫入後永遠不會被修改，所以合併的段被寫入一個新的檔案。凍結段的合併和壓縮可以在後臺執行緒中完成，這個過程進行的同時，我們仍然可以繼續使用舊的段檔案來正常提供讀寫請求。合併過程完成後，我們將讀取請求轉換為使用新合併的段而不是舊的段 —— 然後舊的段檔案就可以簡單地刪除掉了。
-
-![](../img/fig3-3.png)
-
-**圖 3-3 同時執行壓縮和分段合併**
-
-每個段現在都有自己的記憶體散列表，將鍵對映到檔案偏移量。為了找到一個鍵的值，我們首先檢查最近的段的雜湊對映；如果鍵不存在，我們就檢查第二個最近的段，依此類推。合併過程將保持段的數量足夠小，所以查詢過程不需要檢查太多的雜湊對映。
-
-要讓這個簡單的想法在實際中能工作會涉及到大量的細節。簡單來說，下面幾點都是實現過程中需要認真考慮的問題：
-
-* 檔案格式
-
-  CSV 不是日誌的最佳格式。使用二進位制格式更快，更簡單：首先以位元組為單位對字串的長度進行編碼，然後是原始的字串（不需要轉義）。
-
-* 刪除記錄
-
-  如果要刪除一個鍵及其關聯的值，則必須在資料檔案中追加一個特殊的刪除記錄（邏輯刪除，有時被稱為墓碑，即 tombstone）。當日誌段被合併時，合併過程會透過這個墓碑知道要將被刪除鍵的所有歷史值都丟棄掉。
-
-* 崩潰恢復
-
-  如果資料庫重新啟動，則記憶體雜湊對映將丟失。原則上，你可以透過從頭到尾讀取整個段檔案並記錄下來每個鍵的最近值來恢復每個段的雜湊對映。但是，如果段檔案很大，可能需要很長時間，這會使服務的重啟比較痛苦。Bitcask 透過將每個段的雜湊對映的快照儲存在硬碟上來加速恢復，可以使雜湊對映更快地載入到記憶體中。
-
-* 部分寫入記錄
-
-  資料庫隨時可能崩潰，包括在將記錄追加到日誌的過程中。Bitcask 檔案包含校驗和，允許檢測和忽略日誌中的這些損壞部分。
-
-* 併發控制
-
-  由於寫操作是以嚴格的順序追加到日誌中的，所以常見的實現是隻有一個寫入執行緒。也因為資料檔案段是僅追加的或者說是不可變的，所以它們可以被多個執行緒同時讀取。
-
-乍一看，僅追加日誌似乎很浪費：為什麼不直接在檔案裡更新，用新值覆蓋舊值？僅追加的設計之所以是個好的設計，有如下幾個原因：
-
-* 追加和分段合併都是順序寫入操作，通常比隨機寫入快得多，尤其是在磁性機械硬碟上。在某種程度上，順序寫入在基於快閃記憶體的 **固態硬碟（SSD）** 上也是好的選擇【4】。我們將在“[比較 B 樹和 LSM 樹](#比較B樹和LSM樹)”中進一步討論這個問題。
-* 如果段檔案是僅追加的或不可變的，併發和崩潰恢復就簡單多了。例如，當一個數據值被更新的時候發生崩潰，你不用擔心檔案裡將會同時包含舊值和新值各自的一部分。
-* 合併舊段的處理也可以避免資料檔案隨著時間的推移而碎片化的問題。
-
-但是，散列表索引也有其侷限性：
-
-* 散列表必須能放進記憶體。如果你有非常多的鍵，那真是倒楣。原則上可以在硬碟上維護一個雜湊對映，不幸的是硬碟雜湊對映很難表現優秀。它需要大量的隨機訪問 I/O，而後者耗盡時想要再擴充是很昂貴的，並且需要很煩瑣的邏輯去解決雜湊衝突【5】。
-* 範圍查詢效率不高。例如，你無法輕鬆掃描 kitty00000 和 kitty99999 之間的所有鍵 —— 你必須在雜湊對映中單獨查詢每個鍵。
-
-在下一節中，我們將看到一個沒有這些限制的索引結構。
-
-
-### SSTables和LSM樹
-
-在 [圖 3-3](../img/fig3-3.png) 中，每個日誌結構儲存段都是一系列鍵值對。這些鍵值對按照它們寫入的順序排列，日誌中稍後的值優先於日誌中較早的相同鍵的值。除此之外，檔案中鍵值對的順序並不重要。
-
-現在我們可以對段檔案的格式做一個簡單的改變：要求鍵值對的序列按鍵排序。乍一看，這個要求似乎打破了我們使用順序寫入的能力，我們將稍後再回到這個問題。
-
-我們把這個格式稱為 **排序字串表（Sorted String Table）**，簡稱 SSTable。我們還要求每個鍵只在每個合併的段檔案中出現一次（壓縮過程已經保證）。與使用雜湊索引的日誌段相比，SSTable 有幾個大的優勢：
-
-1. 即使檔案大於可用記憶體，合併段的操作仍然是簡單而高效的。這種方法就像歸併排序演算法中使用的方法一樣，如 [圖 3-4](../img/fig3-4.png) 所示：你開始並排讀取多個輸入檔案，檢視每個檔案中的第一個鍵，複製最低的鍵（根據排序順序）到輸出檔案，不斷重複此步驟，將產生一個新的合併段檔案，而且它也是也按鍵排序的。
-
-   ![](../img/fig3-4.png)
-
-   **圖 3-4 合併幾個 SSTable 段，只保留每個鍵的最新值**
-
-   如果在幾個輸入段中出現相同的鍵，該怎麼辦？請記住，每個段都包含在一段時間內寫入資料庫的所有值。這意味著一個輸入段中的所有值一定比另一個段中的所有值都更近（假設我們總是合併相鄰的段）。當多個段包含相同的鍵時，我們可以保留最近段的值，並丟棄舊段中的值。
-
-2. 為了在檔案中找到一個特定的鍵，你不再需要在記憶體中儲存所有鍵的索引。以 [圖 3-5](../img/fig3-5.png) 為例：假設你正在記憶體中尋找鍵 `handiwork`，但是你不知道這個鍵在段檔案中的確切偏移量。然而，你知道 `handbag` 和 `handsome` 的偏移，而且由於排序特性，你知道 `handiwork` 必須出現在這兩者之間。這意味著你可以跳到 `handbag` 的偏移位置並從那裡掃描，直到你找到 `handiwork`（或沒找到，如果該檔案中沒有該鍵）。
-
-   ![](../img/fig3-5.png)
-
-   **圖 3-5 具有記憶體索引的 SSTable**
-
-   你仍然需要一個記憶體中的索引來告訴你一些鍵的偏移量，但它可以是稀疏的：每幾千位元組的段檔案有一個鍵就足夠了，因為幾千位元組可以很快地被掃描完 [^i]。
-
-[^i]: 如果所有的鍵與值都是定長的，你可以使用段檔案上的二分查詢並完全避免使用記憶體索引。然而實踐中的鍵和值通常都是變長的，因此如果沒有索引，就很難知道記錄的分界點（前一條記錄結束以及後一條記錄開始的地方）。
-
-3. 由於讀取請求無論如何都需要掃描所請求範圍內的多個鍵值對，因此可以將這些記錄分組為塊（block），並在將其寫入硬碟之前對其進行壓縮（如 [圖 3-5](../img/fig3-5.png) 中的陰影區域所示）[^ 譯註 i] 。稀疏記憶體索引中的每個條目都指向壓縮塊的開始處。除了節省硬碟空間之外，壓縮還可以減少對 I/O 頻寬的使用。
-
-[^譯註i]: 這裡的壓縮是 compression，不是前文的 compaction，請注意區分。
-
-#### 構建和維護SSTables
-
-到目前為止還不錯，但是如何讓你的資料能夠預先排好序呢？畢竟我們接收到的寫入請求可能以任何順序發生。
-
-雖然在硬碟上維護有序結構也是可能的（請參閱 “[B 樹](#B樹)”），但在記憶體儲存則要容易得多。有許多可以使用的眾所周知的樹形資料結構，例如紅黑樹或 AVL 樹【2】。使用這些資料結構，你可以按任何順序插入鍵，並按排序順序讀取它們。
-
-現在我們可以讓我們的儲存引擎以如下方式工作：
-
-* 有新寫入時，將其新增到記憶體中的平衡樹資料結構（例如紅黑樹）。這個記憶體樹有時被稱為 **記憶體表（memtable）**。
-* 當 **記憶體表** 大於某個閾值（通常為幾兆位元組）時，將其作為 SSTable 檔案寫入硬碟。這可以高效地完成，因為樹已經維護了按鍵排序的鍵值對。新的 SSTable 檔案將成為資料庫中最新的段。當該 SSTable 被寫入硬碟時，新的寫入可以在一個新的記憶體表例項上繼續進行。
-* 收到讀取請求時，首先嘗試在記憶體表中找到對應的鍵，如果沒有就在最近的硬碟段中尋找，如果還沒有就在下一個較舊的段中繼續尋找，以此類推。
-* 時不時地，在後臺執行一個合併和壓縮過程，以合併段檔案並將已覆蓋或已刪除的值丟棄掉。
-
-這個方案效果很好。它只會遇到一個問題：如果資料庫崩潰，則最近的寫入（在記憶體表中，但尚未寫入硬碟）將丟失。為了避免這個問題，我們可以在硬碟上儲存一個單獨的日誌，每個寫入都會立即被追加到這個日誌上，就像在前面的章節中所描述的那樣。這個日誌沒有按排序順序，但這並不重要，因為它的唯一目的是在崩潰後恢復記憶體表。每當記憶體表寫出到 SSTable 時，相應的日誌都可以被丟棄。
-
-#### 用SSTables製作LSM樹
-
-這裡描述的演算法本質上是 LevelDB【6】和 RocksDB【7】這些鍵值儲存引擎庫所使用的技術，這些儲存引擎被設計嵌入到其他應用程式中。除此之外，LevelDB 可以在 Riak 中用作 Bitcask 的替代品。在 Cassandra 和 HBase 中也使用了類似的儲存引擎【8】，而且他們都受到了 Google 的 Bigtable 論文【9】（引入了術語 SSTable 和 memtable ）的啟發。
-
-這種索引結構最早由 Patrick O'Neil 等人發明，且被命名為日誌結構合併樹（或 LSM 樹）【10】，它是基於更早之前的日誌結構檔案系統【11】來構建的。基於這種合併和壓縮排序檔案原理的儲存引擎通常被稱為 LSM 儲存引擎。
-
-Lucene，是一種全文搜尋的索引引擎，在 Elasticsearch 和 Solr 被使用，它使用類似的方法來儲存它的關鍵詞詞典【12,13】。全文索引比鍵值索引複雜得多，但是基於類似的想法：在搜尋查詢中，由一個給定的單詞，找到提及單詞的所有文件（網頁、產品描述等）。這也是透過鍵值結構實現的：其中鍵是 **單詞（term）**，值是所有包含該單詞的文件的 ID 列表（**postings list**）。在 Lucene 中，從詞語到記錄列表的這種對映儲存在類似於 SSTable 的有序檔案中，並根據需要在後臺執行合併【14】。
-
-#### 效能最佳化
-
-與往常一樣，要讓儲存引擎在實踐中表現良好涉及到大量設計細節。例如，當查詢資料庫中不存在的鍵時，LSM 樹演算法可能會很慢：你必須先檢查記憶體表，然後檢視從最近的到最舊的所有的段（可能還必須從硬碟讀取每一個段檔案），然後才能確定這個鍵不存在。為了最佳化這種訪問，儲存引擎通常使用額外的布隆過濾器（Bloom filters）【15】。（布隆過濾器是一種節省記憶體的資料結構，用於近似表達集合的內容，它可以告訴你資料庫中是否存在某個鍵，從而為不存在的鍵節省掉許多不必要的硬碟讀取操作。）
-
-還有一些不同的策略來確定 SSTables 被壓縮和合並的順序和時間。最常見的選擇是 size-tiered 和 leveled compaction。LevelDB 和 RocksDB 使用 leveled compaction（LevelDB 因此得名），HBase 使用 size-tiered，Cassandra 同時支援這兩種【16】。對於 sized-tiered，較新和較小的 SSTables 相繼被合併到較舊的和較大的 SSTable 中。對於 leveled compaction，key （按照分佈範圍）被拆分到較小的 SSTables，而較舊的資料被移動到單獨的層級（level），這使得壓縮（compaction）能夠更加增量地進行，並且使用較少的硬碟空間。
-
-即使有許多微妙的東西，LSM 樹的基本思想 —— 儲存一系列在後臺合併的 SSTables —— 簡單而有效。即使資料集比可用記憶體大得多，它仍能繼續正常工作。由於資料按排序順序儲存，你可以高效地執行範圍查詢（掃描所有從某個最小值到某個最大值之間的所有鍵），並且因為硬碟寫入是連續的，所以 LSM 樹可以支援非常高的寫入吞吐量。
-
-
-### B樹
-
-前面討論的日誌結構索引看起來已經相當可用了，但它們卻不是最常見的索引型別。使用最廣泛的索引結構和日誌結構索引相當不同，它就是我們接下來要討論的 B 樹。
-
-從 1970 年被引入【17】，僅不到 10 年後就變得 “無處不在”【18】，B 樹很好地經受了時間的考驗。在幾乎所有的關係資料庫中，它們仍然是標準的索引實現，許多非關係資料庫也會使用到 B 樹。
-
-像 SSTables 一樣，B 樹保持按鍵排序的鍵值對，這允許高效的鍵值查詢和範圍查詢。但這也就是僅有的相似之處了：B 樹有著非常不同的設計理念。
-
-我們前面看到的日誌結構索引將資料庫分解為可變大小的段，通常是幾兆位元組或更大的大小，並且總是按順序寫入段。相比之下，B 樹將資料庫分解成固定大小的 **塊（block）** 或 **分頁（page）**，傳統上大小為 4KB（有時會更大），並且一次只能讀取或寫入一個頁面。這種設計更接近於底層硬體，因為硬碟空間也是按固定大小的塊來組織的。
-
-每個頁面都可以使用地址或位置來標識，這允許一個頁面引用另一個頁面 —— 類似於指標，但在硬碟而不是在記憶體中。我們可以使用這些頁面引用來構建一個頁面樹，如 [圖 3-6](../img/fig3-6.png) 所示。
-
-![](../img/fig3-6.png)
-
-**圖 3-6 使用 B 樹索引查詢一個鍵**
-
-一個頁面會被指定為 B 樹的根；在索引中查詢一個鍵時，就從這裡開始。該頁面包含幾個鍵和對子頁面的引用。每個子頁面負責一段連續範圍的鍵，根頁面上每兩個引用之間的鍵，表示相鄰子頁面管理的鍵的範圍（邊界）。
-
-在 [圖 3-6](../img/fig3-6.png) 的例子中，我們正在尋找鍵 251 ，所以我們知道我們需要跟蹤邊界 200 和 300 之間的頁面引用。這將我們帶到一個類似的頁面，進一步將 200 到 300 的範圍拆分到子範圍。
-
-最終，我們將到達某個包含單個鍵的頁面（葉子頁面，leaf page），該頁面或者直接包含每個鍵的值，或者包含了對可以找到值的頁面的引用。
-
-在 B 樹的一個頁面中對子頁面的引用的數量稱為 **分支因子（branching factor）**。例如，在 [圖 3-6](../img/fig3-6.png) 中，分支因子是 6。在實踐中，分支因子的大小取決於儲存頁面引用和範圍邊界所需的空間，但這個值通常是幾百。
-
-如果要更新 B 樹中現有鍵的值，需要搜尋包含該鍵的葉子頁面，更改該頁面中的值，並將該頁面寫回到硬碟（對該頁面的任何引用都將保持有效）。如果你想新增一個新的鍵，你需要找到其範圍能包含新鍵的頁面，並將其新增到該頁面。如果頁面中沒有足夠的可用空間容納新鍵，則將其分成兩個半滿頁面，並更新父頁面以反映新的鍵範圍分割槽，如 [圖 3-7](../img/fig3-7.png) 所示 [^ii]。
-
-![](../img/fig3-7.png)
-
-**圖 3-7 透過分割頁面來生長 B 樹**
-
-[^ii]: 向 B 樹中插入一個新的鍵是相當符合直覺的，但刪除一個鍵（同時保持樹平衡）就會牽扯很多其他東西了【2】。
-
-這個演算法可以確保樹保持平衡：具有 n 個鍵的 B 樹總是具有 $O (log n)$ 的深度。大多數資料庫可以放入一個三到四層的 B 樹，所以你不需要追蹤多個頁面引用來找到你正在查詢的頁面（分支因子為 500 的 4KB 頁面的四層樹可以儲存多達 256TB 的資料）。
-
-#### 讓B樹更可靠
-
-B 樹的基本底層寫操作是用新資料覆寫硬碟上的頁面，並假定覆寫不改變頁面的位置：即，當頁面被覆寫時，對該頁面的所有引用保持完整。這與日誌結構索引（如 LSM 樹）形成鮮明對比，後者只追加到檔案（並最終刪除過時的檔案），但從不修改檔案中已有的內容。
-
-你可以把覆寫硬碟上的頁面對應為實際的硬體操作。在磁性硬碟驅動器上，這意味著將磁頭移動到正確的位置，等待旋轉盤上的正確位置出現，然後用新的資料覆寫適當的扇區。在固態硬碟上，由於 SSD 必須一次擦除和重寫相當大的儲存晶片塊，所以會發生更複雜的事情【19】。
-
-而且，一些操作需要覆寫幾個不同的頁面。例如，如果因為插入導致頁面過滿而拆分頁面，則需要寫入新拆分的兩個頁面，並覆寫其父頁面以更新對兩個子頁面的引用。這是一個危險的操作，因為如果資料庫在系列操作進行到一半時崩潰，那麼最終將導致一個損壞的索引（例如，可能有一個孤兒頁面沒有被任何頁面引用） 。
-
-為了使資料庫能處理異常崩潰的場景，B 樹實現通常會帶有一個額外的硬碟資料結構：**預寫式日誌**（WAL，即 write-ahead log，也稱為 **重做日誌**，即 redo log）。這是一個僅追加的檔案，每個 B 樹的修改在其能被應用到樹本身的頁面之前都必須先寫入到該檔案。當資料庫在崩潰後恢復時，這個日誌將被用來使 B 樹恢復到一致的狀態【5,20】。
-
-另外還有一個更新頁面的複雜情況是，如果多個執行緒要同時訪問 B 樹，則需要仔細的併發控制 —— 否則執行緒可能會看到樹處於不一致的狀態。這通常是透過使用 **鎖存器**（latches，輕量級鎖）保護樹的資料結構來完成。日誌結構化的方法在這方面更簡單，因為它們在後臺進行所有的合併，而不會干擾新接收到的查詢，並且能夠時不時地將段檔案切換為新的（該切換是原子操作）。
-
-#### B樹的最佳化
-
-由於 B 樹已經存在了很久，所以並不奇怪這麼多年下來有很多最佳化的設計被開發出來，僅舉幾例：
-
-* 不同於覆寫頁面並維護 WAL 以支援崩潰恢復，一些資料庫（如 LMDB）使用寫時複製方案【21】。經過修改的頁面被寫入到不同的位置，並且還在樹中建立了父頁面的新版本，以指向新的位置。這種方法對於併發控制也很有用，我們將在 “[快照隔離和可重複讀](ch7.md#快照隔離和可重複讀)” 中看到。
-* 我們可以透過不儲存整個鍵，而是縮短其大小，來節省頁面空間。特別是在樹內部的頁面上，鍵只需要提供足夠的資訊來充當鍵範圍之間的邊界。在頁面中包含更多的鍵允許樹具有更高的分支因子，因此也就允許更少的層級 [^iii]。
-* 通常，頁面可以放置在硬碟上的任何位置；沒有什麼要求相鄰鍵範圍的頁面也放在硬碟上相鄰的區域。如果某個查詢需要按照排序順序掃描大部分的鍵範圍，那麼這種按頁面儲存的佈局可能會效率低下，因為每個頁面的讀取都需要執行一次硬碟查詢。因此，許多 B 樹的實現在佈局樹時會盡量使葉子頁面按順序出現在硬碟上。但是，隨著樹的增長，要維持這個順序是很困難的。相比之下，由於 LSM 樹在合併過程中一次性重寫一大段儲存，所以它們更容易使順序鍵在硬碟上連續儲存。
-* 額外的指標被新增到樹中。例如，每個葉子頁面可以引用其左邊和右邊的兄弟頁面，使得不用跳回父頁面就能按順序對鍵進行掃描。
-* B 樹的變體如 **分形樹（fractal trees）**【22】借用了一些日誌結構的思想來減少硬碟查詢（而且它們與分形無關）。
-
-[^iii]: 這個變種有時被稱為 B+ 樹，但因為這個最佳化已被廣泛使用，所以經常無法區分於其它的 B 樹變種。
-
-### 比較B樹和LSM樹
-
-儘管 B 樹實現通常比 LSM 樹實現更成熟，LSM 樹由於其效能特徵的關係，仍然引起了不少關注。根據經驗，通常 LSM 樹的寫入速度更快，而 B 樹的讀取速度更快【23】。LSM 樹上的讀取通常比較慢，因為它們必須檢查幾種不同的資料結構和不同壓縮（Compaction）層級的 SSTables。
-
-然而，基準測試的結果通常和工作負載的細節相關。你需要用你特有的工作負載來測試系統，以便進行有效的比較。在本節中，我們將簡要討論一些在衡量儲存引擎效能時值得考慮的事情。
-
-#### LSM樹的優點
-
-B 樹索引中的每塊資料都必須至少寫入兩次：一次寫入預先寫入日誌（WAL），一次寫入樹頁面本身（如果有分頁還需要再寫入一次）。即使在該頁面中只有幾個位元組發生了變化，也需要接受寫入整個頁面的開銷。有些儲存引擎甚至會覆寫同一個頁面兩次，以免在電源故障的情況下頁面未完整更新【24,25】。
-
-由於反覆壓縮和合並 SSTables，日誌結構索引也會多次重寫資料。這種影響 —— 在資料庫的生命週期中每筆資料導致對硬碟的多次寫入 —— 被稱為 **寫入放大（write amplification）**。使用固態硬碟的機器需要額外關注這點，固態硬碟的快閃記憶體壽命在覆寫有限次數後就會耗盡。
-
-在寫入繁重的應用程式中，效能瓶頸可能是資料庫可以寫入硬碟的速度。在這種情況下，寫放大會導致直接的效能代價：儲存引擎寫入硬碟的次數越多，可用硬碟頻寬內它能處理的每秒寫入次數就越少。
-
-進而，LSM 樹通常能夠比 B 樹支援更高的寫入吞吐量，部分原因是它們有時具有較低的寫放大（儘管這取決於儲存引擎的配置和工作負載），部分是因為它們順序地寫入緊湊的 SSTable 檔案而不是必須覆寫樹中的幾個頁面【26】。這種差異在機械硬碟上尤其重要，其順序寫入比隨機寫入要快得多。
-
-LSM 樹可以被壓縮得更好，因此通常能比 B 樹在硬碟上產生更小的檔案。B 樹儲存引擎會由於碎片化（fragmentation）而留下一些未使用的硬碟空間：當頁面被拆分或某行不能放入現有頁面時，頁面中的某些空間仍未被使用。由於 LSM 樹不是面向頁面的，並且會透過定期重寫 SSTables 以去除碎片，所以它們具有較低的儲存開銷，特別是當使用分層壓縮（leveled compaction）時【27】。
-
-在許多固態硬碟上，韌體內部使用了日誌結構化演算法，以將隨機寫入轉變為順序寫入底層儲存晶片，因此儲存引擎寫入模式的影響不太明顯【19】。但是，較低的寫入放大率和減少的碎片仍然對固態硬碟更有利：更緊湊地表示資料允許在可用的 I/O 頻寬內處理更多的讀取和寫入請求。
-
-#### LSM樹的缺點
-
-日誌結構儲存的缺點是壓縮過程有時會干擾正在進行的讀寫操作。儘管儲存引擎嘗試增量地執行壓縮以儘量不影響併發訪問，但是硬碟資源有限，所以很容易發生某個請求需要等待硬碟先完成昂貴的壓縮操作。對吞吐量和平均響應時間的影響通常很小，但是日誌結構化儲存引擎在更高百分位的響應時間（請參閱 “[描述效能](ch1.md#描述效能)”）有時會相當長，而 B 樹的行為則相對更具有可預測性【28】。
-
-壓縮的另一個問題出現在高寫入吞吐量時：硬碟的有限寫入頻寬需要在初始寫入（記錄日誌和重新整理記憶體表到硬碟）和在後臺執行的壓縮執行緒之間共享。寫入空資料庫時，可以使用全硬碟頻寬進行初始寫入，但資料庫越大，壓縮所需的硬碟頻寬就越多。
-
-如果寫入吞吐量很高，並且壓縮沒有仔細配置好，有可能導致壓縮跟不上寫入速率。在這種情況下，硬碟上未合併段的數量不斷增加，直到硬碟空間用完，讀取速度也會減慢，因為它們需要檢查更多的段檔案。通常情況下，即使壓縮無法跟上，基於 SSTable 的儲存引擎也不會限制傳入寫入的速率，所以你需要進行明確的監控來檢測這種情況【29,30】。
-
-B 樹的一個優點是每個鍵只存在於索引中的一個位置，而日誌結構化的儲存引擎可能在不同的段中有相同鍵的多個副本。這個方面使得 B 樹在想要提供強大的事務語義的資料庫中很有吸引力：在許多關係資料庫中，事務隔離是透過在鍵範圍上使用鎖來實現的，在 B 樹索引中，這些鎖可以直接附加到樹上【5】。在 [第七章](ch7.md) 中，我們將更詳細地討論這一點。
-
-B 樹在資料庫架構中是非常根深蒂固的，為許多工作負載都提供了始終如一的良好效能，所以它們不可能在短期內消失。在新的資料庫中，日誌結構化索引變得越來越流行。沒有簡單易行的辦法來判斷哪種型別的儲存引擎對你的使用場景更好，所以需要透過一些測試來得到相關經驗。
-
-### 其他索引結構
-
-到目前為止，我們只討論了鍵值索引，它們就像關係模型中的 **主鍵（primary key）** 索引。主鍵唯一標識關係表中的一行，或文件資料庫中的一個文件或圖形資料庫中的一個頂點。資料庫中的其他記錄可以透過其主鍵（或 ID）引用該行 / 文件 / 頂點，索引就被用於解析這樣的引用。
-
-次級索引（secondary indexes）也很常見。在關係資料庫中，你可以使用 `CREATE INDEX` 命令在同一個表上建立多個次級索引，而且這些索引通常對於有效地執行聯接（join）而言至關重要。例如，在 [第二章](ch2.md) 中的 [圖 2-1](../img/fig2-1.png) 中，很可能在 `user_id` 列上有一個次級索引，以便你可以在每個表中找到屬於同一使用者的所有行。
-
-次級索引可以很容易地從鍵值索引構建。次級索引主要的不同是鍵不是唯一的，即可能有許多行（文件，頂點）具有相同的鍵。這可以透過兩種方式來解決：將匹配行識別符號的列表作為索引裡的值（就像全文索引中的記錄列表），或者透過向每個鍵新增行識別符號來使鍵唯一。無論哪種方式，B 樹和日誌結構索引都可以用作次級索引。
-
-#### 將值儲存在索引中
-
-索引中的鍵是查詢要搜尋的內容，而其值可以是以下兩種情況之一：它可以是實際的行（文件，頂點），也可以是對儲存在別處的行的引用。在後一種情況下，行被儲存的地方被稱為 **堆檔案（heap file）**，並且儲存的資料沒有特定的順序（它可以是僅追加的，或者它可以跟蹤被刪除的行以便後續可以用新的資料進行覆蓋）。堆檔案方法很常見，因為它避免了在存在多個次級索引時對資料的複製：每個索引只引用堆檔案中的一個位置，實際的資料都儲存在一個地方。
-
-在不更改鍵的情況下更新值時，堆檔案方法可以非常高效：只要新值的位元組數不大於舊值，就可以覆蓋該記錄。如果新值更大，情況會更複雜，因為它可能需要移到堆中有足夠空間的新位置。在這種情況下，要麼所有的索引都需要更新，以指向記錄的新堆位置，或者在舊堆位置留下一個轉發指標【5】。
-
-在某些情況下，從索引到堆檔案的額外跳躍對讀取來說效能損失太大，因此可能希望將被索引的行直接儲存在索引中。這被稱為聚集索引（clustered index）。例如，在 MySQL 的 InnoDB 儲存引擎中，表的主鍵總是一個聚集索引，次級索引則引用主鍵（而不是堆檔案中的位置）【31】。在 SQL Server 中，可以為每個表指定一個聚集索引【32】。
-
-在 **聚集索引**（在索引中儲存所有的行資料）和 **非聚集索引**（僅在索引中儲存對資料的引用）之間的折衷被稱為 **覆蓋索引（covering index）** 或 **包含列的索引（index with included columns）**，其在索引記憶體儲表的一部分列【33】。這允許透過單獨使用索引來處理一些查詢（這種情況下，可以說索引 **覆蓋（cover）** 了查詢）【32】。
-
-與任何型別的資料重複一樣，聚集索引和覆蓋索引可以加快讀取速度，但是它們需要額外的儲存空間，並且會增加寫入開銷。資料庫還需要額外的努力來執行事務保證，因為應用程式不應看到任何因為使用副本而導致的不一致。
-
-#### 多列索引
-
-至今討論的索引只是將一個鍵對映到一個值。如果我們需要同時查詢一個表中的多個列（或文件中的多個欄位），這顯然是不夠的。
-
-最常見的多列索引被稱為 **連線索引（concatenated index）** ，它透過將一列的值追加到另一列後面，簡單地將多個欄位組合成一個鍵（索引定義中指定了欄位的連線順序）。這就像一個老式的紙質電話簿，它提供了一個從（姓氏，名字）到電話號碼的索引。由於排序順序，索引可以用來查詢所有具有特定姓氏的人，或所有具有特定姓氏 - 名字組合的人。但如果你想找到所有具有特定名字的人，這個索引是沒有用的。
-
-**多維索引（multi-dimensional index）** 是一種查詢多個列的更一般的方法，這對於地理空間資料尤為重要。例如，餐廳搜尋網站可能有一個數據庫，其中包含每個餐廳的經度和緯度。當用戶在地圖上檢視餐館時，網站需要搜尋使用者正在檢視的矩形地圖區域內的所有餐館。這需要一個二維範圍查詢，如下所示：
+Let’s look at another example to get a feel for this language—this time an aggregation, which is especially needed for analytics. Imagine you are a marine biologist, and you add an observation record to your database every time you see animals in the ocean. Now you want to generate a report saying how many sharks you have sighted per month. In PostgreSQL you might express that query like this:
 
 ```sql
-SELECT * FROM restaurants WHERE latitude > 51.4946 AND latitude < 51.5079
-                          AND longitude > -0.1162 AND longitude < -0.1004;
+SELECT date_trunc('month', observation_timestamp) AS observation_month,
+       sum(num_animals) AS total_animals
+FROM observations
+WHERE family = 'Sharks'
+GROUP BY observation_month;
 ```
 
-一個標準的 B 樹或者 LSM 樹索引不能夠高效地處理這種查詢：它可以返回一個緯度範圍內的所有餐館（但經度可能是任意值），或者返回在同一個經度範圍內的所有餐館（但緯度可能是北極和南極之間的任意地方），但不能同時滿足兩個條件。
+- [![1](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/1.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO1-1)
 
-一種選擇是使用 **空間填充曲線（space-filling curve）** 將二維位置轉換為單個數字，然後使用常規 B 樹索引【34】。更普遍的是，使用特殊化的空間索引，例如 R 樹。例如，PostGIS 使用 PostgreSQL 的通用 GiST 工具【35】將地理空間索引實現為 R 樹。這裡我們沒有足夠的地方來描述 R 樹，但是有大量的文獻可供參考。
+  The `date_trunc('month', timestamp)` function determines the calendar month containing `timestamp`, and returns another timestamp representing the beginning of that month. In other words, it rounds a timestamp down to the nearest month.
 
-有趣的是，多維索引不僅可以用於地理位置。例如，在電子商務網站上可以使用建立在（紅，綠，藍）維度上的三維索引來搜尋特定顏色範圍內的產品，也可以在天氣觀測資料庫中建立（日期，溫度）的二維索引，以便有效地搜尋 2013 年內的溫度在 25 至 30°C 之間的所有觀測資料。如果使用一維索引，你將不得不掃描 2013 年的所有記錄（不管溫度如何），然後透過溫度進行過濾，或者反之亦然。二維索引可以同時透過時間戳和溫度來收窄資料集。這個技術被 HyperDex 所使用【36】。
+This query first filters the observations to only show species in the `Sharks` family, then groups the observations by the calendar month in which they occurred, and finally adds up the number of animals seen in all observations in that month. The same query can be expressed using MongoDB’s aggregation pipeline as follows:
 
-#### 全文搜尋和模糊索引
-
-到目前為止所討論的所有索引都假定你有確切的資料，並允許你查詢鍵的確切值或具有排序順序的鍵的值範圍。他們不允許你做的是搜尋**類似**的鍵，如拼寫錯誤的單詞。這種模糊的查詢需要不同的技術。
-
-例如，全文搜尋引擎通常允許搜尋目標從一個單詞擴充套件為包括該單詞的同義詞，忽略單詞的語法變體，搜尋在相同文件中的近義詞，並且支援各種其他取決於文字的語言分析功能。為了處理文件或查詢中的拼寫錯誤，Lucene 能夠在一定的編輯距離內搜尋文字【37】（編輯距離 1 意味著單詞內發生了 1 個字母的新增、刪除或替換）。
-
-正如 “[用 SSTables 製作 LSM 樹](#用SSTables製作LSM樹)” 中所提到的，Lucene 為其詞典使用了一個類似於 SSTable 的結構。這個結構需要一個小的記憶體索引，告訴查詢需要在排序檔案中哪個偏移量查詢鍵。在 LevelDB 中，這個記憶體中的索引是一些鍵的稀疏集合，但在 Lucene 中，記憶體中的索引是鍵中字元的有限狀態自動機，類似於 trie 【38】。這個自動機可以轉換成 Levenshtein 自動機，它支援在給定的編輯距離內有效地搜尋單詞【39】。
-
-其他的模糊搜尋技術正朝著文件分類和機器學習的方向發展。更多詳細資訊請參閱資訊檢索教科書，例如【40】。
-
-#### 在記憶體中儲存一切
-
-本章到目前為止討論的資料結構都是對硬碟限制的應對。與主記憶體相比，硬碟處理起來很麻煩。對於磁性硬碟和固態硬碟，如果要在讀取和寫入時獲得良好效能，則需要仔細地佈置硬碟上的資料。但是，我們能容忍這種麻煩，因為硬碟有兩個顯著的優點：它們是持久的（它們的內容在電源關閉時不會丟失），並且每 GB 的成本比 RAM 低。
-
-隨著 RAM 變得更便宜，每 GB 成本的論據被侵蝕了。許多資料集不是那麼大，所以將它們全部儲存在記憶體中是非常可行的，包括可能分佈在多個機器上。這導致了記憶體資料庫的發展。
-
-某些記憶體中的鍵值儲存（如 Memcached）僅用於快取，在重新啟動計算機時丟失的資料是可以接受的。但其他記憶體資料庫的目標是永續性，可以透過特殊的硬體（例如電池供電的 RAM）來實現，也可以將更改日誌寫入硬碟，還可以將定時快照寫入硬碟或者將記憶體中的狀態複製到其他機器上。
-
-記憶體資料庫重新啟動時，需要從硬碟或透過網路從副本重新載入其狀態（除非使用特殊的硬體）。儘管寫入硬碟，它仍然是一個記憶體資料庫，因為硬碟僅出於永續性目的進行日誌追加，讀取請求完全由記憶體來處理。寫入硬碟同時還有運維上的好處：硬碟上的檔案可以很容易地由外部程式進行備份、檢查和分析。
-
-諸如 VoltDB、MemSQL 和 Oracle TimesTen 等產品是具有關係模型的記憶體資料庫，供應商聲稱，透過消除與管理硬碟上的資料結構相關的所有開銷，他們可以提供巨大的效能改進【41,42】。RAM Cloud 是一個開源的記憶體鍵值儲存器，具有永續性（對記憶體和硬碟上的資料都使用日誌結構化方法）【43】。Redis 和 Couchbase 透過非同步寫入硬碟提供了較弱的永續性。
-
-反直覺的是，記憶體資料庫的效能優勢並不是因為它們不需要從硬碟讀取的事實。只要有足夠的記憶體即使是基於硬碟的儲存引擎也可能永遠不需要從硬碟讀取，因為作業系統在記憶體中快取了最近使用的硬碟塊。相反，它們更快的原因在於省去了將記憶體資料結構編碼為硬碟資料結構的開銷【44】。
-
-除了效能，記憶體資料庫的另一個有趣的地方是提供了難以用基於硬碟的索引實現的資料模型。例如，Redis 為各種資料結構（如優先順序佇列和集合）提供了類似資料庫的介面。因為它將所有資料儲存在記憶體中，所以它的實現相對簡單。
-
-最近的研究表明，記憶體資料庫體系結構可以擴充套件到支援比可用記憶體更大的資料集，而不必重新採用以硬碟為中心的體系結構【45】。所謂的 **反快取（anti-caching）** 方法透過在記憶體不足的情況下將最近最少使用的資料從記憶體轉移到硬碟，並在將來再次訪問時將其重新載入到記憶體中。這與作業系統對虛擬記憶體和交換檔案的操作類似，但資料庫可以比作業系統更有效地管理記憶體，因為它可以按單個記錄的粒度工作，而不是整個記憶體頁面。儘管如此，這種方法仍然需要索引能完全放入記憶體中（就像本章開頭的 Bitcask 例子）。
-
-如果 **非易失性儲存器（non-volatile memory, NVM）** 技術得到更廣泛的應用，可能還需要進一步改變儲存引擎設計【46】。目前這是一個新的研究領域，值得關注。
-
-
-## 事務處理還是分析？
-
-在早期的業務資料處理過程中，一次典型的資料庫寫入通常與一筆 *商業交易（commercial transaction）* 相對應：賣個貨、向供應商下訂單、支付員工工資等等。但隨著資料庫開始應用到那些不涉及到錢的領域，術語 **交易 / 事務（transaction）** 仍留了下來，用於指代一組讀寫操作構成的邏輯單元。
-
-> 事務不一定具有 ACID（原子性，一致性，隔離性和永續性）屬性。事務處理只是意味著允許客戶端進行低延遲的讀取和寫入 —— 而不是隻能定期執行（例如每天一次）的批處理作業。我們在 [第七章](ch7.md) 中討論 ACID 屬性，在 [第十章](ch10.md) 中討論批處理。
-
-即使資料庫開始被用於許多不同型別的資料，比如部落格文章的評論、遊戲中的動作、地址簿中的聯絡人等等，基本的訪問模式仍然類似於處理商業交易。應用程式通常使用索引透過某個鍵找少量記錄。根據使用者的輸入來插入或更新記錄。由於這些應用程式是互動式的，這種訪問模式被稱為 **線上事務處理（OLTP, OnLine Transaction Processing）**。
-
-但是，資料庫也開始越來越多地用於資料分析，這些資料分析具有非常不同的訪問模式。通常，分析查詢需要掃描大量記錄，每個記錄只讀取幾列，並計算彙總統計資訊（如計數、總和或平均值），而不是將原始資料返回給使用者。例如，如果你的資料是一個銷售交易表，那麼分析查詢可能是：
-
-* 一月份每個商店的總收入是多少？
-* 在最近的推廣活動中多賣了多少香蕉？
-* 哪個牌子的嬰兒食品最常與 X 品牌的尿布同時購買？
-
-這些查詢通常由業務分析師編寫，並提供報告以幫助公司管理層做出更好的決策（商業智慧）。為了將這種使用資料庫的模式和事務處理區分開，它被稱為 **線上分析處理（OLAP, OnLine Analytic Processing）**【47】[^iv]。OLTP 和 OLAP 之間的區別並不總是清晰的，但是一些典型的特徵在 [表 3-1]() 中列出。
-
-**表 3-1 比較事務處理和分析系統的特點**
-
-|     屬性     |      事務處理系統 OLTP       |      分析系統 OLAP       |
-| :----------: | :--------------------------: | :----------------------: |
-| 主要讀取模式 |    查詢少量記錄，按鍵讀取    |    在大批次記錄上聚合    |
-| 主要寫入模式 |   隨機訪問，寫入要求低延時   | 批次匯入（ETL）或者事件流  |
-|   主要使用者   |    終端使用者，透過 Web 應用     | 內部資料分析師，用於決策支援 |
-|  處理的資料  | 資料的最新狀態（當前時間點） |   隨時間推移的歷史事件   |
-|  資料集尺寸  |           GB ~ TB            |         TB ~ PB          |
-
-[^iv]: OLAP 中的首字母 O（online）的含義並不明確，它可能是指查詢並不是用來生成預定義好的報告的事實，也可能是指分析師通常是互動式地使用 OLAP 系統來進行探索式的查詢。
-
-起初，事務處理和分析查詢使用了相同的資料庫。SQL 在這方面已證明是非常靈活的：對於 OLTP 型別的查詢以及 OLAP 型別的查詢來說效果都很好。儘管如此，在二十世紀八十年代末和九十年代初期，企業有停止使用 OLTP 系統進行分析的趨勢，轉而在單獨的資料庫上執行分析。這個單獨的資料庫被稱為 **資料倉庫（data warehouse）**。
-
-### 資料倉庫
-
-一個企業可能有幾十個不同的交易處理系統：面向終端客戶的網站、控制實體商店的收銀系統、倉庫庫存跟蹤、車輛路線規劃、供應鏈管理、員工管理等。這些系統中每一個都很複雜，需要專人維護，所以最終這些系統互相之間都是獨立執行的。
-
-這些 OLTP 系統往往對業務運作至關重要，因而通常會要求 **高可用** 與 **低延遲**。所以 DBA 會密切關注他們的 OLTP 資料庫，他們通常不願意讓業務分析人員在 OLTP 資料庫上執行臨時的分析查詢，因為這些查詢通常開銷巨大，會掃描大部分資料集，這會損害同時在執行的事務的效能。
-
-相比之下，資料倉庫是一個獨立的資料庫，分析人員可以查詢他們想要的內容而不影響 OLTP 操作【48】。資料倉庫包含公司各種 OLTP 系統中所有的只讀資料副本。從 OLTP 資料庫中提取資料（使用定期的資料轉儲或連續的更新流），轉換成適合分析的模式，清理並載入到資料倉庫中。將資料存入倉庫的過程稱為 “**抽取 - 轉換 - 載入（ETL）**”，如 [圖 3-8](../img/fig3-8.png) 所示。
-
-![](../img/fig3-8.png)
-
-**圖 3-8 ETL 至資料倉庫的簡化提綱**
-
-幾乎所有的大型企業都有資料倉庫，但在小型企業中幾乎聞所未聞。這可能是因為大多數小公司沒有這麼多不同的 OLTP 系統，大多數小公司只有少量的資料 —— 可以在傳統的 SQL 資料庫中查詢，甚至可以在電子表格中分析。在一家大公司裡，要做一些在一家小公司很簡單的事情，需要很多繁重的工作。
-
-使用單獨的資料倉庫，而不是直接查詢 OLTP 系統進行分析的一大優勢是資料倉庫可針對分析類的訪問模式進行最佳化。事實證明，本章前半部分討論的索引演算法對於 OLTP 來說工作得很好，但對於處理分析查詢並不是很好。在本章的其餘部分中，我們將研究為分析而最佳化的儲存引擎。
-
-#### OLTP資料庫和資料倉庫之間的分歧
-
-資料倉庫的資料模型通常是關係型的，因為 SQL 通常很適合分析查詢。有許多圖形資料分析工具可以生成 SQL 查詢，視覺化結果，並允許分析人員探索資料（透過下鑽、切片和切塊等操作）。
-
-表面上，一個數據倉庫和一個關係型 OLTP 資料庫看起來很相似，因為它們都有一個 SQL 查詢介面。然而，系統的內部看起來可能完全不同，因為它們針對非常不同的查詢模式進行了最佳化。現在許多資料庫供應商都只是重點支援事務處理負載和分析工作負載這兩者中的一個，而不是都支援。
-
-一些資料庫（例如 Microsoft SQL Server 和 SAP HANA）支援在同一產品中進行事務處理和資料倉庫。但是，它們也正日益發展為兩套獨立的儲存和查詢引擎，只是這些引擎正好可以透過一個通用的 SQL 介面訪問【49,50,51】。
-
-Teradata、Vertica、SAP HANA 和 ParAccel 等資料倉庫供應商通常使用昂貴的商業許可證銷售他們的系統。Amazon RedShift 是 ParAccel 的託管版本。最近，大量的開源 SQL-on-Hadoop 專案已經出現，它們還很年輕，但是正在與商業資料倉庫系統競爭，包括 Apache Hive、Spark SQL、Cloudera Impala、Facebook Presto、Apache Tajo 和 Apache Drill【52,53】。其中一些基於了谷歌 Dremel 的想法【54】。
-
-### 星型和雪花型：分析的模式
-
-正如 [第二章](ch2.md) 所探討的，根據應用程式的需要，在事務處理領域中使用了大量不同的資料模型。另一方面，在分析型業務中，資料模型的多樣性則少得多。許多資料倉庫都以相當公式化的方式使用，被稱為星型模式（也稱為維度建模【55】）。
-
-[圖 3-9](../img/fig3-9.png) 中的示例模式顯示了可能在食品零售商處找到的資料倉庫。在模式的中心是一個所謂的事實表（在這個例子中，它被稱為 `fact_sales`）。事實表的每一行代表在特定時間發生的事件（這裡，每一行代表客戶購買的產品）。如果我們分析的是網站流量而不是零售量，則每行可能代表一個使用者的頁面瀏覽或點選。
-
-![](../img/fig3-9.png)
-
-**圖 3-9 用於資料倉庫的星型模式的示例**
-
-通常情況下，事實被視為單獨的事件，因為這樣可以在以後分析中獲得最大的靈活性。但是，這意味著事實表可以變得非常大。像蘋果、沃爾瑪或 eBay 這樣的大企業在其資料倉庫中可能有幾十 PB 的交易歷史，其中大部分儲存在事實表中【56】。
-
-事實表中的一些列是屬性，例如產品銷售的價格和從供應商那裡購買的成本（可以用來計算利潤率）。事實表中的其他列是對其他表（稱為維度表）的外部索引鍵引用。由於事實表中的每一行都表示一個事件，因此這些維度代表事件發生的物件、內容、地點、時間、方式和原因。
-
-例如，在 [圖 3-9](../img/fig3-9.png) 中，其中一個維度是已售出的產品。`dim_product` 表中的每一行代表一種待售產品，包括庫存單位（SKU）、產品描述、品牌名稱、類別、脂肪含量、包裝尺寸等。`fact_sales` 表中的每一行都使用外部索引鍵表明在特定交易中銷售了什麼產品。（簡單起見，如果客戶一次購買了幾種不同的產品，則它們在事實表中被表示為單獨的行）。
-
-甚至日期和時間也通常使用維度表來表示，因為這允許對日期的附加資訊（諸如公共假期）進行編碼，從而允許區分假期和非假期的銷售查詢。
-
-“星型模式” 這個名字來源於這樣一個事實，即當我們對錶之間的關係進行視覺化時，事實表在中間，被維度表包圍；與這些表的連線就像星星的光芒。
-
-這個模板的變體被稱為雪花模式，其中維度被進一步分解為子維度。例如，品牌和產品類別可能有單獨的表格，並且 `dim_product` 表格中的每一行都可以將品牌和類別作為外部索引鍵引用，而不是將它們作為字串儲存在 `dim_product` 表格中。雪花模式比星形模式更規範化，但是星形模式通常是首選，因為分析師使用它更簡單【55】。
-
-在典型的資料倉庫中，表格通常非常寬：事實表通常有 100 列以上，有時甚至有數百列【51】。維度表也可以是非常寬的，因為它們包括了所有可能與分析相關的元資料 —— 例如，`dim_store` 表可以包括在每個商店提供哪些服務的細節、它是否具有店內麵包房、店面面積、商店第一次開張的日期、最近一次改造的時間、離最近的高速公路的距離等等。
-
-
-## 列式儲存
-
-如果事實表中有萬億行和數 PB 的資料，那麼高效地儲存和查詢它們就成為一個具有挑戰性的問題。維度表通常要小得多（數百萬行），所以在本節中我們將主要關注事實表的儲存。
-
-儘管事實表通常超過 100 列，但典型的資料倉庫查詢一次只會訪問其中 4 個或 5 個列（ “`SELECT *`” 查詢很少用於分析）【51】。以 [例 3-1]() 中的查詢為例：它訪問了大量的行（在 2013 年中所有購買了水果或糖果的記錄），但只需訪問 `fact_sales` 表的三列：`date_key, product_sk, quantity`。該查詢忽略了所有其他的列。
-
-**例 3-1 分析人們是否更傾向於在一週的某一天購買新鮮水果或糖果**
-
-```sql
-SELECT
-  dim_date.weekday,
-  dim_product.category,
-  SUM(fact_sales.quantity) AS quantity_sold
-FROM fact_sales
-  JOIN dim_date ON fact_sales.date_key = dim_date.date_key
-  JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
-WHERE
-  dim_date.year = 2013 AND
-  dim_product.category IN ('Fresh fruit', 'Candy')
-GROUP BY
-  dim_date.weekday, dim_product.category;
+```
+db.observations.aggregate([
+    { $match: { family: "Sharks" } },
+    { $group: {
+        _id: {
+            year:  { $year:  "$observationTimestamp" },
+            month: { $month: "$observationTimestamp" }
+        },
+        totalAnimals: { $sum: "$numAnimals" }
+    } }
+]);
 ```
 
-我們如何有效地執行這個查詢？
+The aggregation pipeline language is similar in expressiveness to a subset of SQL, but it uses a JSON-based syntax rather than SQL’s English-sentence-style syntax; the difference is perhaps a matter of taste.
 
-在大多數 OLTP 資料庫中，儲存都是以面向行的方式進行佈局的：表格的一行中的所有值都相鄰儲存。文件資料庫也是相似的：整個文件通常儲存為一個連續的位元組序列。你可以在 [圖 3-1](../img/fig3-1.png) 的 CSV 例子中看到這個。
+#### Convergence of document and relational databases
 
-為了處理像 [例 3-1]() 這樣的查詢，你可能在 `fact_sales.date_key`、`fact_sales.product_sk` 上有索引，它們告訴儲存引擎在哪裡查詢特定日期或特定產品的所有銷售情況。但是，面向行的儲存引擎仍然需要將所有這些行（每個包含超過 100 個屬性）從硬碟載入到記憶體中，解析它們，並過濾掉那些不符合要求的屬性。這可能需要很長時間。
+Document databases and relational databases started out as very different approaches to data management, but they have grown more similar over time. Relational databases added support for JSON types and query operators, and the ability to index properties inside documents. Some document databases (such as MongoDB, Couchbase, and RethinkDB) added support for joins, secondary indexes, and declarative query languages.
 
-列式儲存背後的想法很簡單：不要將所有來自一行的值儲存在一起，而是將來自每一列的所有值儲存在一起。如果每個列式儲存在一個單獨的檔案中，查詢只需要讀取和解析查詢中使用的那些列，這可以節省大量的工作。這個原理如 [圖 3-10](../img/fig3-10.png) 所示。
+This convergence of the models is good news for application developers, because the relational model and the document model work best when you can combine both in the same database. Many document databases need relational-style references to other documents, and many relational databases have sections where schema flexibility is beneficial. Relational-document hybrids are a powerful combination.
 
-![](../img/fig3-10.png)
-
-**圖 3-10 按列儲存關係型資料，而不是行**
-
-> 列式儲存在關係資料模型中是最容易理解的，但它同樣適用於非關係資料。例如，Parquet【57】是一種列式儲存格式，支援基於 Google 的 Dremel 的文件資料模型【54】。
-
-列式儲存佈局依賴於每個列檔案包含相同順序的行。因此，如果你需要重新組裝完整的行，你可以從每個單獨的列檔案中獲取第 23 項，並將它們放在一起形成表的第 23 行。
-
-
-### 列壓縮
-
-除了僅從硬碟載入查詢所需的列以外，我們還可以透過壓縮資料來進一步降低對硬碟吞吐量的需求。幸運的是，列式儲存通常很適合壓縮。
-
-看看 [圖 3-10](../img/fig3-10.png) 中每一列的值序列：它們通常看起來是相當重複的，這是壓縮的好兆頭。根據列中的資料，可以使用不同的壓縮技術。在資料倉庫中特別有效的一種技術是點陣圖編碼，如 [圖 3-11](../img/fig3-11.png) 所示。
-
-![](../img/fig3-11.png)
-
-**圖 3-11 壓縮的點陣圖索引儲存佈局**
-
-通常情況下，一列中不同值的數量與行數相比要小得多（例如，零售商可能有數十億的銷售交易，但只有 100,000 個不同的產品）。現在我們可以拿一個有 n 個不同值的列，並把它轉換成 n 個獨立的點陣圖：每個不同值對應一個位圖，每行對應一個位元位。如果該行具有該值，則該位為 1，否則為 0。
-
-如果 n 非常小（例如，國家 / 地區列可能有大約 200 個不同的值），則這些點陣圖可以將每行儲存成一個位元位。但是，如果 n 更大，大部分點陣圖中將會有很多的零（我們說它們是稀疏的）。在這種情況下，點陣圖可以另外再進行遊程編碼（run-length encoding，一種無損資料壓縮技術），如 [圖 3-11](fig3-11.png) 底部所示。這可以使列的編碼非常緊湊。
-
-這些點陣圖索引非常適合資料倉庫中常見的各種查詢。例如：
-
-```sql
-WHERE product_sk IN（30，68，69）
-```
-
-載入 `product_sk = 30`、`product_sk = 68` 和 `product_sk = 69` 這三個點陣圖，並計算三個點陣圖的按位或（OR），這可以非常有效地完成。
-
-```sql
-WHERE product_sk = 31 AND store_sk = 3
-```
-
-載入 `product_sk = 31` 和 `store_sk = 3` 的點陣圖，並計算按位與（AND）。這是因為列按照相同的順序包含行，因此一列的點陣圖中的第 k 位和另一列的點陣圖中的第 k 位對應相同的行。
-
-對於不同種類的資料，也有各種不同的壓縮方案，但我們不會詳細討論它們，請參閱【58】的概述。
-
-> #### 列式儲存和列族
+> **注意**
 >
-> Cassandra 和 HBase 有一個列族（column families）的概念，他們從 Bigtable 繼承【9】。然而，把它們稱為列式（column-oriented）是非常具有誤導性的：在每個列族中，它們將一行中的所有列與行鍵一起儲存，並且不使用列壓縮。因此，Bigtable 模型仍然主要是面向行的。
+> Codd’s original description of the relational model [[3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Codd1970)] actually allowed something similar to JSON within a relational schema. He called it *nonsimple domains*. The idea was that a value in a row doesn’t have to just be a primitive datatype like a number or a string, but it could also be a nested relation (table)—so you can have an arbitrarily nested tree structure as a value, much like the JSON or XML support that was added to SQL over 30 years later.
+
+
+
+
+
+
+
+
+
+
+
+
+--------
+
+## 類圖資料模型
+
+We saw earlier that the type of relationships is an important distinguishing feature between different data models. If your application has mostly one-to-many relationships (tree-structured data) and few other relationships between records, the document model is appropriate.
+
+But what if many-to-many relationships are very common in your data? The relational model can handle simple cases of many-to-many relationships, but as the connections within your data become more complex, it becomes more natural to start modeling your data as a graph.
+
+A graph consists of two kinds of objects: *vertices* (also known as *nodes* or *entities*) and *edges* (also known as *relationships* or *arcs*). Many kinds of data can be modeled as a graph. Typical examples include:
+
+- Social graphs
+
+  Vertices are people, and edges indicate which people know each other.
+
+- The web graph
+
+  Vertices are web pages, and edges indicate HTML links to other pages.
+
+- Road or rail networks
+
+  Vertices are junctions, and edges represent the roads or railway lines between them.
+
+Well-known algorithms can operate on these graphs: for example, map navigation apps search for the shortest path between two points in a road network, and PageRank can be used on the web graph to determine the popularity of a web page and thus its ranking in search results [[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Page1999)].
+
+Graphs can be represented in several different ways. In the *adjacency list* model, each vertex stores the IDs of its neighbor vertices that are one edge away. Alternatively, you can use an *adjacency matrix*, a two-dimensional array where each row and each column corresponds to a vertex, where the value is zero when there is no edge between the row vertex and the column vertex, and where the value is one if there is an edge. The adjacency list is good for graph traversals, and the matrix is good for machine learning (see [“Dataframes, Matrices, and Arrays”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_dataframes)).
+
+In the examples just given, all the vertices in a graph represent the same kind of thing (people, web pages, or road junctions, respectively). However, graphs are not limited to such *homogeneous* data: an equally powerful use of graphs is to provide a consistent way of storing completely different types of objects in a single database. For example:
+
+- Facebook maintains a single graph with many different types of vertices and edges: vertices represent people, locations, events, checkins, and comments made by users; edges indicate which people are friends with each other, which checkin happened in which location, who commented on which post, who attended which event, and so on [[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Bronson2013)].
+- Knowledge graphs are used by search engines to record facts about entities that often occur in search queries, such as organizations, people, and places [[33](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Noy2019)]. This information is obtained by crawling and analyzing the text on websites; some websites, such as Wikidata, also publish graph data in a structured form.
+
+There are several different, but related, ways of structuring and querying data in graphs. In this section we will discuss the *property graph* model (implemented by Neo4j, Memgraph, KùzuDB [[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Feng2023)], and others [[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Besta2019)]) and the *triple-store* model (implemented by Datomic, AllegroGraph, Blazegraph, and others). These models are fairly similar in what they can express, and some graph databases (such as Amazon Neptune) support both models.
+
+We will also look at four query languages for graphs (Cypher, SPARQL, Datalog, and GraphQL), as well as SQL support for querying graphs. Other graph query languages exist, such as Gremlin [[36](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#TinkerPop2023)], but these will give us a representative overview.
+
+To illustrate these different languages and models, this section uses the graph shown in [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph) as running example. It could be taken from a social network or a genealogical database: it shows two people, Lucy from Idaho and Alain from Saint-Lô, France. They are married and living in London. Each person and each location is represented as a vertex, and the relationships between them as edges. This example will help demonstrate some queries that are easy in graph databases, but difficult in other models.
+
+![ddia 0205](../img/ddia_0205.png)
+
+> Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges).
+
+
+--------
+
+### 屬性圖
+
+In the *property graph* (also known as *labeled property graph*) model, each vertex consists of:
+
+- A unique identifier
+- A label (string) to describe what type of object this vertex represents
+- A set of outgoing edges
+- A set of incoming edges
+- A collection of properties (key-value pairs)
+
+Each edge consists of:
+
+- A unique identifier
+- The vertex at which the edge starts (the *tail vertex*)
+- The vertex at which the edge ends (the *head vertex*)
+- A label to describe the kind of relationship between the two vertices
+- A collection of properties (key-value pairs)
+
+You can think of a graph store as consisting of two relational tables, one for vertices and one for edges, as shown in [Example 3-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_sql_schema) (this schema uses the PostgreSQL `jsonb` datatype to store the properties of each vertex or edge). The head and tail vertex are stored for each edge; if you want the set of incoming or outgoing edges for a vertex, you can query the `edges` table by `head_vertex` or `tail_vertex`, respectively.
+
+##### Example 3-3. Representing a property graph using a relational schema
+
+```
+CREATE TABLE vertices (
+    vertex_id   integer PRIMARY KEY,
+    label       text,
+    properties  jsonb
+);
+
+CREATE TABLE edges (
+    edge_id     integer PRIMARY KEY,
+    tail_vertex integer REFERENCES vertices (vertex_id),
+    head_vertex integer REFERENCES vertices (vertex_id),
+    label       text,
+    properties  jsonb
+);
+
+CREATE INDEX edges_tails ON edges (tail_vertex);
+CREATE INDEX edges_heads ON edges (head_vertex);
+```
+
+Some important aspects of this model are:
+
+1. Any vertex can have an edge connecting it with any other vertex. There is no schema that restricts which kinds of things can or cannot be associated.
+2. Given any vertex, you can efficiently find both its incoming and its outgoing edges, and thus *traverse* the graph—i.e., follow a path through a chain of vertices—both forward and backward. (That’s why [Example 3-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_sql_schema) has indexes on both the `tail_vertex` and `head_vertex` columns.)
+3. By using different labels for different kinds of vertices and relationships, you can store several different kinds of information in a single graph, while still maintaining a clean data model.
+
+The edges table is like the many-to-many associative table/join table we saw in [“Many-to-One and Many-to-Many Relationships”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_many_to_many), generalized to allow many different types of relationship to be stored in the same table. There may also be indexes on the labels and the properties, allowing vertices or edges with certain properties to be found efficiently.
+
+> **Note**
+
+> A limitation of graph models is that an edge can only associate two vertices with each other, whereas a relational join table can represent three-way or even higher-degree relationships by having multiple foreign key references on a single row. Such relationships can be represented in a graph by creating an additional vertex corresponding to each row of the join table, and edges to/from that vertex, or by using a *hypergraph*.
+
+
+Those features give graphs a great deal of flexibility for data modeling, as illustrated in [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph). The figure shows a few things that would be difficult to express in a traditional relational schema, such as different kinds of regional structures in different countries (France has *départements* and *régions*, whereas the US has *counties* and *states*), quirks of history such as a country within a country (ignoring for now the intricacies of sovereign states and nations), and varying granularity of data (Lucy’s current residence is specified as a city, whereas her place of birth is specified only at the level of a state).
+
+You could imagine extending the graph to also include many other facts about Lucy and Alain, or other people. For instance, you could use it to indicate any food allergies they have (by introducing a vertex for each allergen, and an edge between a person and an allergen to indicate an allergy), and link the allergens with a set of vertices that show which foods contain which substances. Then you could write a query to find out what is safe for each person to eat. Graphs are good for evolvability: as you add features to your application, a graph can easily be extended to accommodate changes in your application’s data structures.
+
+
+--------
+
+### Cypher查詢語言
+
+*Cypher* is a query language for property graphs, originally created for the Neo4j graph database, and later developed into an open standard as *openCypher* [[37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Francis2018)]. Besides Neo4j, Cypher is supported by Memgraph, KùzuDB [[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Feng2023)], Amazon Neptune, Apache AGE (with storage in PostgreSQL), and others. It is named after a character in the movie *The Matrix* and is not related to ciphers in cryptography [[38](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#EifremTweet)].
+
+[Example 3-4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_cypher_create) shows the Cypher query to insert the lefthand portion of [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph) into a graph database. The rest of the graph can be added similarly. Each vertex is given a symbolic name like `usa` or `idaho`. That name is not stored in the database, but only used internally within the query to create edges between the vertices, using an arrow notation: `(idaho) -[:WITHIN]-> (usa)` creates an edge labeled `WITHIN`, with `idaho` as the tail node and `usa` as the head node.
+
+##### Example 3-4. A subset of the data in [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph), represented as a Cypher query
+
+```
+CREATE
+  (namerica :Location {name:'North America',  type:'continent'}),
+  (usa      :Location {name:'United States',  type:'country'  }),
+  (idaho    :Location {name:'Idaho',          type:'state'    }),
+  (lucy     :Person   {name:'Lucy' }),
+  (idaho) -[:WITHIN ]-> (usa)  -[:WITHIN]-> (namerica),
+  (lucy)  -[:BORN_IN]-> (idaho)
+```
+
+When all the vertices and edges of [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph) are added to the database, we can start asking interesting questions: for example, *find the names of all the people who emigrated from the United States to Europe*. That is, find all the vertices that have a `BORN_IN` edge to a location within the US, and also a `LIVING_IN` edge to a location within Europe, and return the `name` property of each of those vertices.
+
+[Example 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_cypher_query) shows how to express that query in Cypher. The same arrow notation is used in a `MATCH` clause to find patterns in the graph: `(person) -[:BORN_IN]-> ()` matches any two vertices that are related by an edge labeled `BORN_IN`. The tail vertex of that edge is bound to the variable `person`, and the head vertex is left unnamed.
+
+##### Example 3-5. Cypher query to find people who emigrated from the US to Europe
+
+```
+MATCH
+  (person) -[:BORN_IN]->  () -[:WITHIN*0..]-> (:Location {name:'United States'}),
+  (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (:Location {name:'Europe'})
+RETURN person.name
+```
+
+The query can be read as follows:
+
+> Find any vertex (call it `person`) that meets *both* of the following conditions:
 >
+> 1. `person` has an outgoing `BORN_IN` edge to some vertex. From that vertex, you can follow a chain of outgoing `WITHIN` edges until eventually you reach a vertex of type `Location`, whose `name` property is equal to `"United States"`.
+> 2. That same `person` vertex also has an outgoing `LIVES_IN` edge. Following that edge, and then a chain of outgoing `WITHIN` edges, you eventually reach a vertex of type `Location`, whose `name` property is equal to `"Europe"`.
+>
+> For each such `person` vertex, return the `name` property.
 
-#### 記憶體頻寬和向量化處理
+There are several possible ways of executing the query. The description given here suggests that you start by scanning all the people in the database, examine each person’s birthplace and residence, and return only those people who meet the criteria.
 
-對於需要掃描數百萬行的資料倉庫查詢來說，一個巨大的瓶頸是從硬盤獲取資料到記憶體的頻寬。但是，這不是唯一的瓶頸。分析型資料庫的開發人員還需要有效地利用記憶體到 CPU 快取的頻寬，避免 CPU 指令處理流水線中的分支預測錯誤和閒置等待，以及在現代 CPU 上使用單指令多資料（SIMD）指令來加速運算【59,60】。
+But equivalently, you could start with the two `Location` vertices and work backward. If there is an index on the `name` property, you can efficiently find the two vertices representing the US and Europe. Then you can proceed to find all locations (states, regions, cities, etc.) in the US and Europe respectively by following all incoming `WITHIN` edges. Finally, you can look for people who can be found through an incoming `BORN_IN` or `LIVES_IN` edge at one of the location vertices.
 
-除了減少需要從硬碟載入的資料量以外，列式儲存佈局也可以有效利用 CPU 週期。例如，查詢引擎可以將一整塊壓縮好的列資料放進 CPU 的 L1 快取中，然後在緊密的迴圈（即沒有函式呼叫）中遍歷。相比於每條記錄的處理都需要大量函式呼叫和條件判斷的程式碼，CPU 執行這樣一個迴圈要快得多。列壓縮允許列中的更多行被同時放進容量有限的 L1 快取。前面描述的按位 “與” 和 “或” 運算子可以被設計為直接在這樣的壓縮列資料塊上操作。這種技術被稱為向量化處理（vectorized processing）【58,49】。
+--------
+
+### SQL中的圖查詢
+
+[Example 3-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_sql_schema) suggested that graph data can be represented in a relational database. But if we put graph data in a relational structure, can we also query it using SQL?
+
+The answer is yes, but with some difficulty. Every edge that you traverse in a graph query is effectively a join with the `edges` table. In a relational database, you usually know in advance which joins you need in your query. On the other hand, in a graph query, you may need to traverse a variable number of edges before you find the vertex you’re looking for—that is, the number of joins is not fixed in advance.
+
+In our example, that happens in the `() -[:WITHIN*0..]-> ()` pattern in the Cypher query. A person’s `LIVES_IN` edge may point at any kind of location: a street, a city, a district, a region, a state, etc. A city may be `WITHIN` a region, a region `WITHIN` a state, a state `WITHIN` a country, etc. The `LIVES_IN` edge may point directly at the location vertex you’re looking for, or it may be several levels away in the location hierarchy.
+
+In Cypher, `:WITHIN*0..` expresses that fact very concisely: it means “follow a `WITHIN` edge, zero or more times.” It is like the `*` operator in a regular expression.
+
+Since SQL:1999, this idea of variable-length traversal paths in a query can be expressed using something called *recursive common table expressions* (the `WITH RECURSIVE` syntax). [Example 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_sql_query) shows the same query—finding the names of people who emigrated from the US to Europe—expressed in SQL using this technique. However, the syntax is very clumsy in comparison to Cypher.
+
+> Example 3-6. The same query as [Example 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_cypher_query), written in SQL using recursive common table expressions
+
+```postgresql
+WITH RECURSIVE
+
+  -- in_usa is the set of vertex IDs of all locations within the United States
+  in_usa(vertex_id) AS (
+      SELECT vertex_id FROM vertices
+        WHERE label = 'Location' AND properties->>'name' = 'United States'
+    UNION
+      SELECT edges.tail_vertex FROM edges
+        JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
+        WHERE edges.label = 'within'
+  ),
+
+  -- in_europe is the set of vertex IDs of all locations within Europe
+  in_europe(vertex_id) AS (
+      SELECT vertex_id FROM vertices
+        WHERE label = 'location' AND properties->>'name' = 'Europe'
+    UNION
+      SELECT edges.tail_vertex FROM edges
+        JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
+        WHERE edges.label = 'within'
+  ),
+
+  -- born_in_usa is the set of vertex IDs of all people born in the US
+  born_in_usa(vertex_id) AS (
+    SELECT edges.tail_vertex FROM edges
+      JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
+      WHERE edges.label = 'born_in'
+  ),
+
+  -- lives_in_europe is the set of vertex IDs of all people living in Europe
+  lives_in_europe(vertex_id) AS (
+    SELECT edges.tail_vertex FROM edges
+      JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
+      WHERE edges.label = 'lives_in'
+  )
+
+SELECT vertices.properties->>'name'
+FROM vertices
+-- join to find those people who were both born in the US *and* live in Europe
+JOIN born_in_usa     ON vertices.vertex_id = born_in_usa.vertex_id
+JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
+```
+
+- [![1](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/1.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO2-1)
+
+  First find the vertex whose `name` property has the value `"United States"`, and make it the first element of the set of vertices `in_usa`.
+
+- [![2](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/2.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO2-2)
+
+  Follow all incoming `within` edges from vertices in the set `in_usa`, and add them to the same set, until all incoming `within` edges have been visited.
+
+- [![3](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/3.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO2-3)
+
+  Do the same starting with the vertex whose `name` property has the value `"Europe"`, and build up the set of vertices `in_europe`.
+
+- [![4](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/4.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO2-4)
+
+  For each of the vertices in the set `in_usa`, follow incoming `born_in` edges to find people who were born in some place within the United States.
+
+- [![5](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/5.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO2-5)
+
+  Similarly, for each of the vertices in the set `in_europe`, follow incoming `lives_in` edges to find people who live in Europe.
+
+- [![6](https://learning.oreilly.com/api/v2/epubs/urn:orm:book:9781098119058/files/assets/6.png)](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#co_data_models_and_query_languages_CO2-6)
+
+  Finally, intersect the set of people born in the USA with the set of people living in Europe, by joining them.
+
+The fact that a 4-line Cypher query requires 31 lines in SQL shows how much of a difference the right choice of data model and query language can make. And this is just the beginning; there are more details to consider, e.g., around handling cycles, and choosing between breadth-first or depth-first traversal [[39](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Tisiot2021)]. Oracle has a different SQL extension for recursive queries, which it calls *hierarchical* [[40](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Goel2020)].
+
+However, the situation may be improving: at the time of writing, there are plans to add a graph query language called GQL to the SQL standard [[41](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Deutsch2022), [42](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Green2019)], which will provide a syntax inspired by Cypher, GSQL [[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Deutsch2018)], and PGQL [[44](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#vanRest2016)].
 
 
-### 列式儲存中的排序順序
+--------
 
-在列式儲存中，儲存行的順序並不關鍵。按插入順序儲存它們是最簡單的，因為插入一個新行只需要追加到每個列檔案。但是，我們也可以選擇按某種順序來排列資料，就像我們之前對 SSTables 所做的那樣，並將其用作索引機制。
+### 三元組與SPARQL
 
-注意，對每列分別執行排序是沒有意義的，因為那樣就沒法知道不同列中的哪些項屬於同一行。我們只能在明確一列中的第 k 項與另一列中的第 k 項屬於同一行的情況下，才能重建出完整的行。
+The triple-store model is mostly equivalent to the property graph model, using different words to describe the same ideas. It is nevertheless worth discussing, because there are various tools and languages for triple-stores that can be valuable additions to your toolbox for building applications.
 
-相反，資料的排序需要對一整行統一操作，即使它們的儲存方式是按列的。資料庫管理員可以根據他們對常用查詢的瞭解，來選擇表格中用來排序的列。例如，如果查詢通常以日期範圍為目標，例如“上個月”，則可以將 `date_key` 作為第一個排序鍵。這樣查詢最佳化器就可以只掃描近1個月範圍的行了，這比掃描所有行要快得多。
+In a triple-store, all information is stored in the form of very simple three-part statements: (*subject*, *predicate*, *object*). For example, in the triple (*Jim*, *likes*, *bananas*), *Jim* is the subject, *likes* is the predicate (verb), and *bananas* is the object.
 
-對於第一排序列中具有相同值的行，可以用第二排序列來進一步排序。例如，如果 `date_key` 是 [圖 3-10](../img/fig3-10.png) 中的第一個排序關鍵字，那麼 `product_sk` 可能是第二個排序關鍵字，以便同一天的同一產品的所有銷售資料都被儲存在相鄰位置。這將有助於需要在特定日期範圍內按產品對銷售進行分組或過濾的查詢。
+The subject of a triple is equivalent to a vertex in a graph. The object is one of two things:
 
-按順序排序的另一個好處是它可以幫助壓縮列。如果主要排序列沒有太多個不同的值，那麼在排序之後，將會得到一個相同的值連續重複多次的序列。一個簡單的遊程編碼（就像我們用於 [圖 3-11](../img/fig3-11.png) 中的點陣圖一樣）可以將該列壓縮到幾 KB —— 即使表中有數十億行。
+1. A value of a primitive datatype, such as a string or a number. In that case, the predicate and object of the triple are equivalent to the key and value of a property on the subject vertex. Using the example from [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph), (*lucy*, *birthYear*, *1989*) is like a vertex `lucy` with properties `{"birthYear": 1989}`.
+2. Another vertex in the graph. In that case, the predicate is an edge in the graph, the subject is the tail vertex, and the object is the head vertex. For example, in (*lucy*, *marriedTo*, *alain*) the subject and object *lucy* and *alain* are both vertices, and the predicate *marriedTo* is the label of the edge that connects them.
 
-第一個排序鍵的壓縮效果最強。第二和第三個排序鍵會更混亂，因此不會有這麼長的連續的重複值。排序優先順序更低的列以幾乎隨機的順序出現，所以可能不會被壓縮。但對前幾列做排序在整體上仍然是有好處的。
+> **注意**
+>
+> To be precise, databases that offer a triple-like data model often need to store some additional metadata on each tuple. For example, AWS Neptune uses quads (4-tuples) by adding a graph ID to each triple [[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#NeptuneDataModel)]; Datomic uses 5-tuples, extending each triple with a transaction ID and a boolean to indicate deletion [[46](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#DatomicDataModel)]. Since these databases retain the basic *subject-predicate-object* structure explained above, this book nevertheless calls them triple-stores.
 
-#### 幾個不同的排序順序
+[Example 3-7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_n3_triples) shows the same data as in [Example 3-4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_cypher_create), written as triples in a format called *Turtle*, a subset of *Notation3* (*N3*) [[47](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Beckett2011)].
 
-對這個想法，有一個巧妙的擴充套件被 C-Store 發現，並在商業資料倉庫 Vertica 中被採用【61,62】：既然不同的查詢受益於不同的排序順序，為什麼不以幾種不同的方式來儲存相同的資料呢？反正資料都需要做備份，以防單點故障時丟失資料。因此你可以用不同排序方式來儲存冗餘資料，以便在處理查詢時，呼叫最適合查詢模式的版本。
+> Example 3-7. A subset of the data in [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph), represented as Turtle triples
 
-在一個列式儲存中有多個排序順序有點類似於在一個面向行的儲存中有多個次級索引。但最大的區別在於面向行的儲存將每一行儲存在一個地方（在堆檔案或聚集索引中），次級索引只包含指向匹配行的指標。在列式儲存中，通常在其他地方沒有任何指向資料的指標，只有包含值的列。
+```
+@prefix : <urn:example:>.
+_:lucy     a       :Person.
+_:lucy     :name   "Lucy".
+_:lucy     :bornIn _:idaho.
+_:idaho    a       :Location.
+_:idaho    :name   "Idaho".
+_:idaho    :type   "state".
+_:idaho    :within _:usa.
+_:usa      a       :Location.
+_:usa      :name   "United States".
+_:usa      :type   "country".
+_:usa      :within _:namerica.
+_:namerica a       :Location.
+_:namerica :name   "North America".
+_:namerica :type   "continent".
+```
 
-### 寫入列式儲存
+In this example, vertices of the graph are written as `_:*someName*`. The name doesn’t mean anything outside of this file; it exists only because we otherwise wouldn’t know which triples refer to the same vertex. When the predicate represents an edge, the object is a vertex, as in `_:idaho :within _:usa`. When the predicate is a property, the object is a string literal, as in `_:usa :name "United States"`.
 
-這些最佳化在資料倉庫中是有意義的，因為其負載主要由分析人員執行的大型只讀查詢組成。列式儲存、壓縮和排序都有助於更快地讀取這些查詢。然而，他們的缺點是寫入更加困難。
+It’s quite repetitive to repeat the same subject over and over again, but fortunately you can use semicolons to say multiple things about the same subject. This makes the Turtle format quite readable: see [Example 3-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_n3_shorthand).
 
-使用 B 樹的就地更新方法對於壓縮的列是不可能的。如果你想在排序表的中間插入一行，你很可能不得不重寫所有的列檔案。由於行由列中的位置標識，因此插入必須對所有列進行一致地更新。
+> Example 3-8. A more concise way of writing the data in [Example 3-7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_n3_triples)
 
-幸運的是，本章前面已經看到了一個很好的解決方案：LSM 樹。所有的寫操作首先進入一個記憶體中的儲存，在這裡它們被新增到一個已排序的結構中，並準備寫入硬碟。記憶體中的儲存是面向行還是列的並不重要。當已經積累了足夠的寫入資料時，它們將與硬碟上的列檔案合併，並批次寫入新檔案。這基本上是 Vertica 所做的【62】。
+```
+@prefix : <urn:example:>.
+_:lucy     a :Person;   :name "Lucy";          :bornIn _:idaho.
+_:idaho    a :Location; :name "Idaho";         :type "state";   :within _:usa.
+_:usa      a :Location; :name "United States"; :type "country"; :within _:namerica.
+_:namerica a :Location; :name "North America"; :type "continent".
+```
 
-查詢操作需要檢查硬碟上的列資料和記憶體中的最近寫入，並將兩者的結果合併起來。但是，查詢最佳化器對使用者隱藏了這個細節。從分析師的角度來看，透過插入、更新或刪除操作進行修改的資料會立即反映在後續的查詢中。
+#### The Semantic Web
 
-### 聚合：資料立方體和物化檢視
+Some of the research and development effort on triple stores was motivated by the *Semantic Web*, an early-2000s effort to facilitate internet-wide data exchange by publishing data not only as human-readable web pages, but also in a standardized, machine-readable format. Although the Semantic Web as originally envisioned did not succeed [[48](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Target2018), [49](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#MendelGleason2022)], the legacy of the Semantic Web project lives on in a couple of specific technologies: *linked data* standards such as JSON-LD [[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Sporny2014)], *ontologies* used in biomedical science [[51](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#MichiganOntologies)], Facebook’s Open Graph protocol [[52](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#OpenGraph)] (which is used for link unfurling [[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Haughey2015)]), knowledge graphs such as Wikidata, and standardized vocabularies for structured data maintained by [`schema.org`](https://schema.org/).
 
-並非所有資料倉庫都需要採用列式儲存：傳統的面向行的資料庫和其他一些架構也被使用。然而，列式儲存可以顯著加快專門的分析查詢，所以它正在迅速變得流行起來【51,63】。
+Triple-stores are another Semantic Web technology that has found use outside of its original use case: even if you have no interest in the Semantic Web, triples can be a good internal data model for applications.
 
-資料倉庫的另一個值得一提的方面是物化聚合（materialized aggregates）。如前所述，資料倉庫查詢通常涉及一個聚合函式，如 SQL 中的 COUNT、SUM、AVG、MIN 或 MAX。如果相同的聚合被許多不同的查詢使用，那麼每次都透過原始資料來處理可能太浪費了。為什麼不將一些查詢使用最頻繁的計數或總和快取起來？
+#### The RDF data model
 
-建立這種快取的一種方式是物化檢視（Materialized View）。在關係資料模型中，它通常被定義為一個標準（虛擬）檢視：一個類似於表的物件，其內容是一些查詢的結果。不同的是，物化檢視是查詢結果的實際副本，會被寫入硬碟，而虛擬檢視只是編寫查詢的一個捷徑。從虛擬檢視讀取時，SQL 引擎會將其展開到檢視的底層查詢中，然後再處理展開的查詢。
+The Turtle language we used in [Example 3-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_n3_shorthand) is actually a way of encoding data in the *Resource Description Framework* (RDF) [[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#W3CRDF)], a data model that was designed for the Semantic Web. RDF data can also be encoded in other ways, for example (more verbosely) in XML, as shown in [Example 3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_rdf_xml). Tools like Apache Jena can automatically convert between different RDF encodings.
 
-當底層資料發生變化時，物化檢視需要更新，因為它是資料的非規範化副本。資料庫可以自動完成該操作，但是這樣的更新使得寫入成本更高，這就是在 OLTP 資料庫中不經常使用物化檢視的原因。在讀取繁重的資料倉庫中，它們可能更有意義（它們是否實際上改善了讀取效能取決於使用場景）。
+> Example 3-9. The data of [Example 3-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graph_n3_shorthand), expressed using RDF/XML syntax
 
-物化檢視的常見特例稱為資料立方體或 OLAP 立方【64】。它是按不同維度分組的聚合網格。[圖 3-12](../img/fig3-12.png) 顯示了一個例子。
+```
+<rdf:RDF xmlns="urn:example:"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
-![](../img/fig3-12.png)
+  <Location rdf:nodeID="idaho">
+    <name>Idaho</name>
+    <type>state</type>
+    <within>
+      <Location rdf:nodeID="usa">
+        <name>United States</name>
+        <type>country</type>
+        <within>
+          <Location rdf:nodeID="namerica">
+            <name>North America</name>
+            <type>continent</type>
+          </Location>
+        </within>
+      </Location>
+    </within>
+  </Location>
 
-**圖 3-12 資料立方的兩個維度，透過求和聚合**
+  <Person rdf:nodeID="lucy">
+    <name>Lucy</name>
+    <bornIn rdf:nodeID="idaho"/>
+  </Person>
+</rdf:RDF>
+```
 
-想象一下，現在每個事實都只有兩個維度表的外部索引鍵 —— 在 [圖 3-12](../img/fig-3-12.png) 中分別是日期和產品。你現在可以繪製一個二維表格，一個軸線上是日期，另一個軸線上是產品。每個單元格包含具有該日期 - 產品組合的所有事實的屬性（例如 `net_price`）的聚合（例如 `SUM`）。然後，你可以沿著每行或每列應用相同的彙總，並獲得減少了一個維度的彙總（按產品的銷售額，無論日期，或者按日期的銷售額，無論產品）。
+RDF has a few quirks due to the fact that it is designed for internet-wide data exchange. The subject, predicate, and object of a triple are often URIs. For example, a predicate might be an URI such as `<http://my-company.com/namespace#within>` or `<http://my-company.com/namespace#lives_in>`, rather than just `WITHIN` or `LIVES_IN`. The reasoning behind this design is that you should be able to combine your data with someone else’s data, and if they attach a different meaning to the word `within` or `lives_in`, you won’t get a conflict because their predicates are actually `<http://other.org/foo#within>` and `<http://other.org/foo#lives_in>`.
 
-一般來說，事實往往有兩個以上的維度。在圖 3-9 中有五個維度：日期、產品、商店、促銷和客戶。要想象一個五維超立方體是什麼樣子是很困難的，但是原理是一樣的：每個單元格都包含特定日期 - 產品 - 商店 - 促銷 - 客戶組合的銷售額。這些值可以在每個維度上求和彙總。
+The URL `<http://my-company.com/namespace>` doesn’t necessarily need to resolve to anything—from RDF’s point of view, it is simply a namespace. To avoid potential confusion with `http://` URLs, the examples in this section use non-resolvable URIs such as `urn:example:within`. Fortunately, you can just specify this prefix once at the top of the file, and then forget about it.
 
-物化資料立方體的優點是可以讓某些查詢變得非常快，因為它們已經被有效地預先計算了。例如，如果你想知道每個商店的總銷售額，則只需檢視合適維度的總計，而無需掃描數百萬行的原始資料。
+#### SPARQL查詢語言
 
-資料立方體的缺點是不具有查詢原始資料的靈活性。例如，沒有辦法計算有多少比例的銷售來自成本超過 100 美元的專案，因為價格不是其中的一個維度。因此，大多數資料倉庫試圖保留儘可能多的原始資料，並將聚合資料（如資料立方體）僅用作某些查詢的效能提升手段。
+*SPARQL* is a query language for triple-stores using the RDF data model [[55](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Harris2013)]. (It is an acronym for *SPARQL Protocol and RDF Query Language*, pronounced “sparkle.”) It predates Cypher, and since Cypher’s pattern matching is borrowed from SPARQL, they look quite similar.
 
+The same query as before—finding people who have moved from the US to Europe—is similarly concise in SPARQL as it is in Cypher (see [Example 3-10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_sparql_query)).
+
+> Example 3-10. The same query as [Example 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_cypher_query), expressed in SPARQL
+
+```
+PREFIX : <urn:example:>
+
+SELECT ?personName WHERE {
+  ?person :name ?personName.
+  ?person :bornIn  / :within* / :name "United States".
+  ?person :livesIn / :within* / :name "Europe".
+}
+```
+
+The structure is very similar. The following two expressions are equivalent (variables start with a question mark in SPARQL):
+
+```
+(person) -[:BORN_IN]-> () -[:WITHIN*0..]-> (location)   # Cypher
+
+?person :bornIn / :within* ?location.                   # SPARQL
+```
+
+Because RDF doesn’t distinguish between properties and edges but just uses predicates for both, you can use the same syntax for matching properties. In the following expression, the variable `usa` is bound to any vertex that has a `name` property whose value is the string `"United States"`:
+
+```
+(usa {name:'United States'})   # Cypher
+
+?usa :name "United States".    # SPARQL
+```
+
+SPARQL is supported by Amazon Neptune, AllegroGraph, Blazegraph, OpenLink Virtuoso, Apache Jena, and various other triple stores [[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Besta2019)].
+
+
+--------
+
+### Datalog：遞迴關係查詢
+
+Datalog is a much older language than SPARQL or Cypher: it arose from academic research in the 1980s [[56](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Green2013), [57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Ceri1989), [58](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Abiteboul1995)]. It is less well known among software engineers and not widely supported in mainstream databases, but it ought to be better-known since it is a very expressive language that is particularly powerful for complex queries. Several niche databases, including Datomic, LogicBlox, CozoDB, and LinkedIn’s LIquid [[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Meyer2020)] use Datalog as their query language.
+
+Datalog is actually based on a relational data model, not a graph, but it appears in the graph databases section of this book because recursive queries on graphs are a particular strength of Datalog.
+
+The contents of a Datalog database consists of *facts*, and each fact corresponds to a row in a relational table. For example, say we have a table *location* containing locations, and it has three columns: *ID*, *name*, and *type*. The fact that the US is a country could then be written as `location(2, "United States", "country")`, where `2` is the ID of the US. In general, the statement `table(val1, val2, …)` means that `table` contains a row where the first column contains `val1`, the second column contains `val2`, and so on.
+
+[Example 3-11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datalog_triples) shows how to write the data from the left-hand side of [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph) in Datalog. The edges of the graph (`within`, `born_in`, and `lives_in`) are represented as two-column join tables. For example, Lucy has the ID 100 and Idaho has the ID 3, so the relationship “Lucy was born in Idaho” is represented as `born_in(100, 3)`.
+
+> Example 3-11. A subset of the data in [Figure 3-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datamodels_graph), represented as Datalog facts
+
+```
+location(1, "North America", "continent").
+location(2, "United States", "country").
+location(3, "Idaho", "state").
+
+within(2, 1).    /* US is in North America */
+within(3, 2).    /* Idaho is in the US     */
+
+person(100, "Lucy").
+born_in(100, 3). /* Lucy was born in Idaho */
+```
+
+Now that we have defined the data, we can write the same query as before, as shown in [Example 3-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datalog_query). It looks a bit different from the equivalent in Cypher or SPARQL, but don’t let that put you off. Datalog is a subset of Prolog, a programming language that you might have seen before if you’ve studied computer science.
+
+> Example 3-12. The same query as [Example 3-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_cypher_query), expressed in Datalog
+
+```
+within_recursive(LocID, PlaceName) :- location(LocID, PlaceName, _). /* Rule 1 */
+
+within_recursive(LocID, PlaceName) :- within(LocID, ViaID),          /* Rule 2 */
+                                      within_recursive(ViaID, PlaceName).
+
+migrated(PName, BornIn, LivingIn)  :- person(PersonID, PName),       /* Rule 3 */
+                                      born_in(PersonID, BornID),
+                                      within_recursive(BornID, BornIn),
+                                      lives_in(PersonID, LivingID),
+                                      within_recursive(LivingID, LivingIn).
+
+us_to_europe(Person) :- migrated(Person, "United States", "Europe"). /* Rule 4 */
+/* us_to_europe contains the row "Lucy". */
+```
+
+Cypher and SPARQL jump in right away with `SELECT`, but Datalog takes a small step at a time. We define *rules* that derive new virtual tables from the underlying facts. These derived tables are like (virtual) SQL views: they are not stored in the database, but you can query them in the same way as a table containing stored facts.
+
+In [Example 3-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datalog_query) we define three derived tables: `within_recursive`, `migrated`, and `us_to_europe`. The name and columns of the virtual tables are defined by what appears before the `:-` symbol of each rule. For example, `migrated(PName, BornIn, LivingIn)` is a virtual table with three columns: the name of a person, the name of the place where they were born, and the name of the place where they are living.
+
+The content of a virtual table is defined by the part of the rule after the `:-` symbol, where we try to find rows that match a certain pattern in the tables. For example, `person(PersonID, PName)` matches the row `person(100, "Lucy")`, with the variable `PersonID` bound to the value `100` and the variable `PName` bound to the value `"Lucy"`. A rule applies if the system can find a match for *all* patterns on the righthand side of the `:-` operator. When the rule applies, it’s as though the lefthand side of the `:-` was added to the database (with variables replaced by the values they matched).
+
+One possible way of applying the rules is thus (and as illustrated in [Figure 3-7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datalog_naive)):
+
+1. `location(1, "North America", "continent")` exists in the database, so rule 1 applies. It generates `within_recursive(1, "North America")`.
+2. `within(2, 1)` exists in the database and the previous step generated `within_recursive(1, "North America")`, so rule 2 applies. It generates `within_recursive(2, "North America")`.
+3. `within(3, 2)` exists in the database and the previous step generated `within_recursive(2, "North America")`, so rule 2 applies. It generates `within_recursive(3, "North America")`.
+
+By repeated application of rules 1 and 2, the `within_recursive` virtual table can tell us all the locations in North America (or any other location) contained in our database.
+
+![ddia 0206](../img/ddia_0206.png)
+
+> Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from [Example 3-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datalog_query).
+
+Now rule 3 can find people who were born in some location `BornIn` and live in some location `LivingIn`. Rule 4 invokes rule 3 with `BornIn = 'United States'` and `LivingIn = 'Europe'`, and returns only the names of the people who match the search. By querying the contents of the virtual `us_to_europe` table, the Datalog system finally gets the same answer as in the earlier Cypher and SPARQL queries.
+
+The Datalog approach requires a different kind of thinking compared to the other query languages discussed in this chapter. It allows complex queries to be built up rule by rule, with one rule referring to other rules, similarly to the way that you break down code into functions that call each other. Just like functions can be recursive, Datalog rules can also invoke themselves, like rule 2 in [Example 3-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_datalog_query), which enables graph traversals in Datalog queries.
+
+--------
+
+### GraphQL
+
+GraphQL is a query language that, by design, is much more restrictive than the other query languages we have seen in this chapter. The purpose of GraphQL is to allow client software running on a user’s device (such as a mobile app or a JavaScript web app frontend) to request a JSON document with a particular structure, containing the fields necessary for rendering its user interface. GraphQL interfaces allow developers to rapidly change queries in client code without changing server-side APIs.
+
+GraphQL’s flexibility comes at a cost. Organizations that adopt GraphQL often need tooling to convert GraphQL queries into requests to internal services, which often use REST or gRPC (see [Link to Come]). Authorization, rate limiting, and performance challenges are additional concerns [[60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Bessey2024)]. GraphQL’s query language is also limited since GraphQL come from an untrusted source. The language does not allow anything that could be expensive to execute, since otherwise users could perform denial-of-service attacks on a server by running lots of expensive queries. In particular, GraphQL does not allow recursive queries (unlike Cypher, SPARQL, SQL, or Datalog), and it does not allow arbitrary search conditions such as “find people who were born in the US and are now living in Europe” (unless the service owners specifically choose to offer such search functionality).
+
+Nevertheless, GraphQL is useful. [Example 3-13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graphql_query) shows how you might implement a group chat application such as Discord or Slack using GraphQL. The query requests all the channels that the user has access to, including the channel name and the 50 most recent messages in each channel. For each message it requests the timestamp, the message content, and the name and profile picture URL for the sender of the message. Moreover, if a message is a reply to another message, the query also requests the sender name and the content of the message it is replying to (which might be rendered in a smaller font above the reply, in order to provide some context).
+
+> Example 3-13. Example GraphQL query for a group chat application
+
+```
+query ChatApp {
+  channels {
+    name
+    recentMessages(latest: 50) {
+      timestamp
+      content
+      sender {
+        fullName
+        imageUrl
+      }
+      replyTo {
+        content
+        sender {
+          fullName
+        }
+      }
+    }
+  }
+}
+```
+
+[Example 3-14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graphql_response) shows what a response to the query in [Example 3-13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graphql_query) might look like. The response is a JSON document that mirrors the structure of the query: it contains exactly those attributes that were requested, no more and no less. This approach has the advantage that the server does not need to know which attributes the client requires in order to render the user interface; instead, the client can simply request what it needs. For example, this query does not request a profile picture URL for the sender of the `replyTo` message, but if the user interface were changed to add that profile picture, it would be easy for the client to add the required `imageUrl` attribute to the query without changing the server.
+
+> Example 3-14. A possible response to the query in [Example 3-13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graphql_query)
+
+```
+{
+  "data": {
+    "channels": [
+      {
+        "name": "#general",
+        "recentMessages": [
+          {
+            "timestamp": 1693143014,
+            "content": "Hey! How are y'all doing?",
+            "sender": {"fullName": "Aaliyah", "imageUrl": "https://..."},
+            "replyTo": null
+          },
+          {
+            "timestamp": 1693143024,
+            "content": "Great! And you?",
+            "sender": {"fullName": "Caleb", "imageUrl": "https://..."},
+            "replyTo": {
+              "content": "Hey! How are y'all doing?",
+              "sender": {"fullName": "Aaliyah"}
+            }
+          },
+          ...
+```
+
+In [Example 3-14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graphql_response) the name and image URL of a message sender is embedded directly in the message object. If the same user sends multiple messages, this information is repeated on each message. In principle, it would be possible to reduce this duplication, but GraphQL makes the design choice to accept a larger response size in order to make it simpler to render the user interface based on the data.
+
+The `replyTo` field is similar: in [Example 3-14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_graphql_response), the second message is a reply to the first, and the content (“Hey!…”) and sender Aaliyah are duplicated under `replyTo`. It would be possible to instead return the ID of the message being replied to, but then the client would have to make an additional request to the server if that ID is not among the 50 most recent messages returned. Duplicating the content makes it much simpler to work with the data.
+
+The server’s database can store the data in a more normalized form, and perform the necessary joins to process a query. For example, the server might store a message along with the user ID of the sender and the ID of the message it is replying to; when it receives a query like the one above, the server would then resolve those IDs to find the records they refer to. However, the client can only ask the server to perform joins that are explicitly offered in the GraphQL schema.
+
+Even though the response to a GraphQL query looks similar to a response from a document database, and even though it has “graph” in the name, GraphQL can be implemented on top of any type of database—relational, document, or graph.
+
+
+
+
+
+
+
+
+
+
+--------
+
+## 事件溯源與CQRS
+
+In all the data models we have discussed so far, the data is queried in the same form as it is written—be it JSON documents, rows in tables, or vertices and edges in a graph. However, in complex applications it can sometimes be difficult to find a single data representation that is able to satisfy all the different ways that the data needs to be queried and presented. In such situations, it can be beneficial to write data in one form, and then to derive from it several representations that are optimized for different types of reads.
+
+We previously saw this idea in [“Systems of Record and Derived Data”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_derived), and ETL (see [“Data Warehousing”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_dwh)) is one example of such a derivation process. Now we will take the idea further. If we are going to derive one data representation from another anyway, we can choose different representations that are optimized for writing and for reading, respectively. How would you model your data if you only wanted to optimize it for writing, and if efficient queries were of no concern?
+
+Perhaps the simplest, fastest, and most expressive way of writing data is an *event log*: every time you want to write some data, you encode it as a self-contained string (perhaps as JSON), including a timestamp, and then append it to a sequence of events. Events in this log are *immutable*: you never change or delete them, you only ever append more events to the log (which may supersede earlier events). An event can contain arbitrary properties.
+
+[Figure 3-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_event_sourcing) shows an example that could be taken from a conference management system. A conference can be a complex business domain: not only can individual attendees register and pay by card, but companies can also order seats in bulk, pay by invoice, and then later assign the seats to individual people. Some number of seats may be reserved for speakers, sponsors, volunteer helpers, and so on. Reservations may also be cancelled, and meanwhile, the conference organizer might change the capacity of the event by moving it to a different room. With all of this going on, simply calculating the number of available seats becomes a challenging query.
+
+![ddia 0208](../img/ddia_0208.png)
+
+> Figure 3-8. Using a log of immutable events as source of truth, and deriving materialized views from it.
+
+In [Figure 3-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_event_sourcing), every change to the state of the conference (such as the organizer opening registrations, or attendees making and cancelling registrations) is first stored as an event. Whenever an event is appended to the log, several *materialized views* (also known as *projections* or *read models*) are also updated to reflect the effect of that event. In the conference example, there might be one materialized view that collects all information related to the status of each booking, another that computes charts for the conference organizer’s dashboard, and a third that generates files for the printer that produces the attendees’ badges.
+
+The idea of using events as the source of truth, and expressing every state change as an event, is known as *event sourcing* [[61](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Betts2012), [62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Young2014)]. The principle of maintaining separate read-optimized representations and deriving them from the write-optimized representation is called *command query responsibility segregation (CQRS)* [[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Young2010)]. These terms originated in the domain-driven design (DDD) community, although similar ideas have been around for a long time, for example in *state machine replication* (see [Link to Come]).
+
+When a request from a user comes in, it is called a *command*, and it first needs to be validated. Only once the command has been executed and it has been determined to be valid (e.g., there were enough available seats for a requested reservation), it becomes a fact, and the corresponding event is added to the log. Consequently, the event log should contain only valid events, and a consumer of the event log that builds a materialized view is not allowed to reject an event.
+
+When modelling your data in an event sourcing style, it is recommended that you name your events in the past tense (e.g., “the seats were booked”), because an event is a record of the fact that something has happened in the past. Even if the user later decides to change or cancel, the fact remains true that they formerly held a booking, and the change or cancellation is a separate event that is added later.
+
+A similarity between event sourcing and a star schema fact table, as discussed in [“Stars and Snowflakes: Schemas for Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_analytics), is that both are collections of events that happened in the past. However, rows in a fact table all have the same set of columns, wheras in event sourcing there may be many different event types, each with different properties. Moreover, a fact table is an unordered collection, while in event sourcing the order of events is important: if a booking is first made and then cancelled, processing those events in the wrong order would not make sense.
+
+Event sourcing and CQRS have several advantages:
+
+- For the people developing the system, events better communicate the intent of *why* something happened. For example, it’s easier to understand the event “the booking was cancelled” than “the `active` column on row 4001 of the `bookings` table was set to `false`, three rows associated with that booking were deleted from the `seat_assignments` table, and a row representing the refund was inserted into the `payments` table”. Those row modifications may still happen when a materialized view processes the cancellation event, but when they are driven by an event, the reason for the updates becomes much clearer.
+- A key principle of event sourcing is that the materialized views are derived from the event log in a reproducible way: you should always be able to delete the materialized views and recompute them by processing the same events in the same order, using the same code. If there was a bug in the view maintenance code, you can just delete the view and recompute it with the new code. It’s also easier to find the bug because you can re-run the view maintenance code as often as you like and inspect its behavior.
+- You can have multiple materialized views that are optimized for the particular queries that your application requires. They can be stored either in the same database as the events or a different one, depending on your needs. They can use any data model, and they can be denormalized for fast reads. You can even keep a view only in memory and avoid persisting it, as long as it’s okay to recompute the view from the event log whenever the service restarts.
+- If you decide you want to present the existing information in a new way, it is easy to build a new materialized view from the existing event log. You can also evolve the system to support new features by adding new types of events, or new properties to existing event types (any older events remain unmodified). You can also chain new behaviors off existing events (for example, when a conference attendee cancels, their seat could be offered to the next person on the waiting list).
+- If an event was written in error you can delete it again, and then you can rebuild the views without the deleted event. On the other hand, in a database where you update and delete data directly, a committed transaction is often difficult to reverse. Event sourcing can therefore reduce the number of irreversible actions in the system, making it easier to change (see [“Evolvability: Making Change Easy”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_evolvability)).
+- The event log can also serve as an audit log of everything that happened in the system, which is valuable in regulated industries that require such auditability.
+
+However, event sourcing and CQRS also have downsides:
+
+- You need to be careful if external information is involved. For example, say an event contains a price given in one currency, and for one of the views it needs to be converted into another currency. Since the exchange rate may fluctuate, it would be problematic to fetch the exchange rate from an external source when processing the event, since you would get a different result if you recompute the materialized view on another date. To make the event processing logic deterministic, you either need to include the exchange rate in the event itself, or have a way of querying the historical exchange rate at the timestamp indicated in the event, ensuring that this query always returns the same result for the same timestamp.
+- The requirement that events are immutable creates problems if events contain personal data from users, since users may exercise their right (e.g., under the GDPR) to request deletion of their data. If the event log is on a per-user basis, you can just delete the whole log for that user, but that doesn’t work if your event log contains events relating to multiple users. You can try storing the personal data outside of the actual event, or encrypting it with a key that you can later choose to delete, but that also makes it harder to recompute derived state when needed.
+- Reprocessing events requires care if there are externally visible side-effects—for example, you probably don’t want to resend confirmation emails every time you rebuild a materialized view.
+
+You can implement event sourcing on top of any database, but there are also some systems that are specifically designed to support this pattern, such as EventStoreDB, MartenDB (based on PostgreSQL), and Axon Framework. You can also use message brokers such as Apache Kafka to store the event log, and stream processors can keep the materialized views up-to-date; we will return to these topics in [Link to Come].
+
+The only important requirement is that the event storage system must guarantee that all materialized views process the events in exactly the same order as they appear in the log; as we shall see in [Link to Come], this is not always easy to achieve in a distributed system.
+
+
+
+
+--------
+
+## 資料框、矩陣和陣列
+
+本章迄今為止我們看到的資料模型通常用於事務處理和分析目的（見[“事務處理與分析對比”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_analytics)）。還有一些資料模型，你可能在分析或科學上下文中遇到，但它們很少出現在OLTP系統中：資料框和數字的多維陣列，如矩陣。
+
+資料框是R語言、Python的Pandas庫、Apache Spark、ArcticDB、Dask等系統支援的資料模型。它們是資料科學家準備訓練機器學習模型的資料時常用的工具，但也廣泛用於資料探索、統計資料分析、資料視覺化及類似目的。
+
+乍一看，資料框類似於關係資料庫或電子表格中的表。它支援類似關係的運算子，對資料框內容執行批次操作：例如，對所有行應用一個函式，根據某些條件過濾行，按某些列分組並聚合其他列，以及基於某些鍵將一個數據框中的行與另一個數據框合併（關係資料庫中稱為*聯接*的操作，在資料框上通常稱為*合併*）。
+
+資料框通常不是透過像SQL這樣的宣告性查詢操作，而是透過一系列修改其結構和內容的命令進行操縱。這符合資料科學家的典型工作流程，他們逐步“整理”資料，使其能夠找到他們正在詢問的問題的答案。這些操作通常發生在資料科學家的私有資料集副本上，通常在他們的本地機器上，儘管最終結果可能與其他使用者共享。
+
+資料框API還提供了遠超關係資料庫所提供的各種操作，而且資料模型的使用方式通常與典型的關係資料建模非常不同 [[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Petersohn2020)]。例如，資料框的一個常見用途是將資料從類似關係的表示轉換為矩陣或多維陣列表示，這是許多機器學習演算法所期望的輸入形式。
+
+一個這樣的轉換的簡單示例顯示在[圖3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dataframe_to_matrix)中。左邊是一個關係表，顯示不同使用者對各種電影的評分（在1到5的範圍內），右邊的資料被轉換成一個矩陣，每一列是一部電影，每一行是一個使用者（類似於電子表格中的*資料透視表*）。該矩陣是*稀疏的*，這意味著許多使用者-電影組合沒有資料，但這是可以的。這個矩陣可能有成千上萬的列，因此不適合在關係資料庫中儲存，但資料框和提供稀疏陣列的庫（如Python的NumPy）可以輕鬆處理這種資料
+
+The data models we have seen so far in this chapter are generally used for both transaction processing and analytics purposes (see [“Transaction Processing versus Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_analytics)). There are also some data models that you are likely to encounter in an analytical or scientific context, but that rarely feature in OLTP systems: dataframes and multidimensional arrays of numbers such as matrices.
+
+Dataframes are a data model supported by the R language, the Pandas library for Python, Apache Spark, ArcticDB, Dask, and other systems. They are a popular tool for data scientists preparing data for training machine learning models, but they are also widely used for data exploration, statistical data analysis, data visualization, and similar purposes.
+
+At first glance, a dataframe is similar to a table in a relational database or a spreadsheet. It supports relational-like operators that perform bulk operations on the contents of the dataframe: for example, applying a function to all of the rows, filtering the rows based on some condition, grouping rows by some columns and aggregating other columns, and joining the rows in one dataframe with another dataframe based on some key (what a relational database calls *join* is typically called *merge* on dataframes).
+
+Instead of a declarative query such as SQL, a dataframe is typically manipulated through a series of commands that modify its structure and content. This matches the typical workflow of data scientists, who incrementally “wrangle” the data into a form that allows them to find answers to the questions they are asking. These manipulations usually take place on the data scientist’s private copy of the dataset, often on their local machine, although the end result may be shared with other users.
+
+Dataframe APIs also offer a wide variety of operations that go far beyond what relational databases offer, and the data model is often used in ways that are very different from typical relational data modelling [[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Petersohn2020)]. For example, a common use of dataframes is to transform data from a relational-like representation into a matrix or multidimensional array representation, which is the form that many machine learning algorithms expect of their input.
+
+A simple example of such a transformation is shown in [Figure 3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dataframe_to_matrix). On the left we have a relational table of how different users have rated various movies (on a scale of 1 to 5), and on the right the data has been transformed into a matrix where each column is a movie and each row is a user (similarly to a *pivot table* in a spreadsheet). The matrix is *sparse*, which means there is no data for many user-movie combinations, but this is fine. This matrix may have many thousands of columns and would therefore not fit well in a relational database, but dataframes and libraries that offer sparse arrays (such as NumPy for Python) can handle such data easily.
+
+![ddia 0207](../img/ddia_0207.png)
+
+> 圖3-9 將電影評級的關係資料庫轉換為矩陣表示。
+
+
+矩陣只能包含數字，各種技術被用來將非數字資料轉換為矩陣中的數字。例如：
+
+- 日期（在[圖3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dataframe_to_matrix)中的示例矩陣中被省略）可以縮放為某個適當範圍內的浮點數。
+- 對於只能取固定小範圍值的列（例如，電影資料庫中電影的型別），通常使用*獨熱編碼*：我們為每個可能的值建立一列（一列是“喜劇”，一列是“戲劇”，一列是“恐怖”等），並在代表電影的每一行中，在與該電影型別對應的列中放置1，在所有其他列中放置0。這種表示也很容易泛化到適用於多種型別的電影。
+
+一旦資料以數字矩陣的形式存在，就可以進行線性代數操作，這是許多機器學習演算法的基礎。例如，[圖3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dataframe_to_matrix)中的資料可以是一個推薦系統的一部分，該系統可能會推薦使用者可能喜歡的電影。資料框足夠靈活，可以讓資料從關係形式逐漸演變為矩陣表示，同時讓資料科學家控制最適合實現資料分析或模型訓練過程目標的表示。
+
+還有一些資料庫，如TileDB [[65](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Papadopoulos2016)]，專門用於儲存大量的多維數字陣列；它們被稱為*陣列資料庫*，最常用於儲存科學資料集，如地理空間測量（在規則間隔的網格上的柵格資料）、醫學成像或天文望遠鏡的觀測 [[66](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Rusu2022)]。資料框也在金融行業中用於表示*時間序列資料*，如資產價格和隨時間的交易 [[67](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Targett2023)]。
+
+A matrix can only contain numbers, and various techniques are used to transform non-numerical data into numbers in the matrix. For example:
+
+- Dates (which are omitted from the example matrix in [Figure 3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dataframe_to_matrix)) could be scaled to be floating-point numbers within some suitable range.
+- For columns that can only take one of a small, fixed set of values (for example, the genre of a movie in a database of movies), a *one-hot encoding* is often used: we create a column for each possible value (one for “comedy”, one for “drama”, one for “horror”, etc.), and for each row representing a movie, we put a 1 in the column corresponding to the genre of that movie, and a 0 in all the other columns. This representation also easily generalizes to movies that fit within several genres.
+
+Once the data is in the form of a matrix of numbers, it is amenable to linear algebra operations, which form the basis of many machine learning algorithms. For example, the data in [Figure 3-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#fig_dataframe_to_matrix) could be a part of a system for recommending movies that the user may like. Dataframes are flexible enough to allow data to be gradually evolved from a relational form into a matrix representation, while giving the data scientist control over the representation that is most suitable for achieving the goals of the data analysis or model training process.
+
+There are also databases such as TileDB [[65](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Papadopoulos2016)] that specialize in storing large multidimensional arrays of numbers; they are called *array databases* and are most commonly used for scientific datasets such as geospatial measurements (raster data on a regularly spaced grid), medical imaging, or observations from astronomical telescopes [[66](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Rusu2022)]. Dataframes are also used in the financial industry for representing *time series data*, such as the prices of assets and trades over time [[67](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Targett2023)].
+
+
+
+--------
 
 ## 本章小結
 
-在本章中，我們試圖深入瞭解資料庫是如何處理儲存和檢索的。將資料儲存在資料庫中會發生什麼？稍後再次查詢資料時資料庫會做什麼？
+Data models are a huge subject, and in this chapter we have taken a quick look at a broad variety of different models. We didn’t have space to go into all the details of each model, but hopefully the overview has been enough to whet your appetite to find out more about the model that best fits your application’s requirements.
 
-在高層次上，我們看到儲存引擎分為兩大類：針對 **事務處理（OLTP）** 最佳化的儲存引擎和針對 **線上分析（OLAP）** 最佳化的儲存引擎。這兩類使用場景的訪問模式之間有很大的區別：
+The *relational model*, despite being more than half a century old, remains an important data model for many applications—especially in data warehousing and business analytics, where relational star or snowflake schemas and SQL queries are ubiquitous. However, several alternatives to relational data have also become popular in other domains:
 
-* OLTP 系統通常面向終端使用者，這意味著系統可能會收到大量的請求。為了處理負載，應用程式在每個查詢中通常只訪問少量的記錄。應用程式使用某種鍵來請求記錄，儲存引擎使用索引來查詢所請求的鍵的資料。硬碟查詢時間往往是這裡的瓶頸。
-* 資料倉庫和類似的分析系統會少見一些，因為它們主要由業務分析人員使用，而不是終端使用者。它們的查詢量要比 OLTP 系統少得多，但通常每個查詢開銷高昂，需要在短時間內掃描數百萬條記錄。硬碟頻寬（而不是查詢時間）往往是瓶頸，列式儲存是針對這種工作負載的日益流行的解決方案。
+- The *document model* targets use cases where data comes in self-contained JSON documents, and where relationships between one document and another are rare.
+- *Graph data models* go in the opposite direction, targeting use cases where anything is potentially related to everything, and where queries potentially need to traverse multiple hops to find the data of interest (which can be expressed using recursive queries in Cypher, SPARQL, or Datalog).
+- *Dataframes* generalize relational data to large numbers of columns, and thereby provide a bridge between databases and the multidimensional arrays that form the basis of much machine learning, statistical data analysis, and scientific computing.
 
-在 OLTP 這一邊，我們能看到兩派主流的儲存引擎：
+To some degree, one model can be emulated in terms of another model—for example, graph data can be represented in a relational database—but the result can be awkward, as we saw with the support for recursive queries in SQL.
 
-* 日誌結構學派：只允許追加到檔案和刪除過時的檔案，但不會更新已經寫入的檔案。Bitcask、SSTables、LSM 樹、LevelDB、Cassandra、HBase、Lucene 等都屬於這個類別。
-* 就地更新學派：將硬碟視為一組可以覆寫的固定大小的頁面。B 樹是這種理念的典範，用在所有主要的關係資料庫和許多非關係型資料庫中。
+Various specialist databases have therefore been developed for each data model, providing query languages and storage engines that are optimized for a particular model. However, there is also a trend for databases to expand into neighboring niches by adding support for other data models: for example, relational databases have added support for document data in the form of JSON columns, document databases have added relational-like joins, and support for graph data within SQL is gradually improving.
 
-日誌結構的儲存引擎是相對較新的技術。他們的主要想法是，透過系統性地將隨機訪問寫入轉換為硬碟上的順序寫入，由於硬碟驅動器和固態硬碟的效能特點，可以實現更高的寫入吞吐量。
+Another model we discussed is *event sourcing*, which represents data as an append-only log of immutable events, and which can be advantageous for modeling activities in complex business domains. An append-only log is good for writing data (as we shall see in [Link to Come]); in order to support efficient queries, the event log is translated into read-optimized materialized views through CQRS.
 
-關於 OLTP，我們最後還介紹了一些更複雜的索引結構，以及針對所有資料都放在記憶體裡而最佳化的資料庫。
+One thing that non-relational data models have in common is that they typically don’t enforce a schema for the data they store, which can make it easier to adapt applications to changing requirements. However, your application most likely still assumes that data has a certain structure; it’s just a question of whether the schema is explicit (enforced on write) or implicit (assumed on read).
 
-然後，我們暫時放下了儲存引擎的內部細節，查看了典型資料倉庫的高階架構，並說明了為什麼分析工作負載與 OLTP 差別很大：當你的查詢需要在大量行中順序掃描時，索引的重要性就會降低很多。相反，非常緊湊地編碼資料變得非常重要，以最大限度地減少查詢需要從硬碟讀取的資料量。我們討論了列式儲存如何幫助實現這一目標。
+Although we have covered a lot of ground, there are still data models left unmentioned. To give just a few brief examples:
 
-作為一名應用程式開發人員，如果你掌握了有關儲存引擎內部的知識，那麼你就能更好地瞭解哪種工具最適合你的特定應用程式。當你調整資料庫的最佳化引數時，這種理解讓你能夠設想增減某個值會產生怎樣的效果。
+- Researchers working with genome data often need to perform *sequence-similarity searches*, which means taking one very long string (representing a DNA molecule) and matching it against a large database of strings that are similar, but not identical. None of the databases described here can handle this kind of usage, which is why researchers have written specialized genome database software like GenBank [[68](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Benson2007)].
+- Many financial systems use *ledgers* with double-entry accounting as their data model. This type of data can be represented in relational databases, but there are also databases such as TigerBeetle that specialize in this data model. Cryptocurrencies and blockchains are typically based on distributed ledgers, which also have value transfer built into their data model.
+- *Full-text search* is arguably a kind of data model that is frequently used alongside databases. Information retrieval is a large specialist subject that we won’t cover in great detail in this book, but we’ll touch on search indexes and vector search in [Link to Come].
 
-儘管本章不能讓你成為一個特定儲存引擎的調參專家，但它至少大機率使你有了足夠的概念與詞彙儲備去讀懂你所選擇的資料庫的文件。
+We have to leave it there for now. In the next chapter we will discuss some of the trade-offs that come into play when *implementing* the data models described in this chapter.
 
+
+--------
 
 ## 參考文獻
 
-1.  Alfred V. Aho, John E. Hopcroft, and Jeffrey D. Ullman: *Data Structures and Algorithms*. Addison-Wesley, 1983. ISBN: 978-0-201-00023-8
-1.  Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, and Clifford Stein: *Introduction to Algorithms*, 3rd edition. MIT Press, 2009. ISBN: 978-0-262-53305-8
-1.  Justin Sheehy and David Smith: “[Bitcask: A Log-Structured Hash Table for Fast Key/Value Data](http://basho.com/wp-content/uploads/2015/05/bitcask-intro.pdf),” Basho Technologies, April 2010.
-1.  Yinan Li, Bingsheng He, Robin Jun Yang, et al.:   “[Tree Indexing on Solid State Drives](http://www.vldb.org/pvldb/vldb2010/papers/R106.pdf),”  *Proceedings of the VLDB Endowment*, volume 3, number 1, pages 1195–1206,  September 2010.
-1.  Goetz Graefe:  “[Modern B-Tree Techniques](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.219.7269&rep=rep1&type=pdf),”   *Foundations and Trends in Databases*, volume 3, number 4, pages 203–402, August 2011.  [doi:10.1561/1900000028](http://dx.doi.org/10.1561/1900000028)
-1.  Jeffrey Dean and Sanjay Ghemawat: “[LevelDB Implementation Notes](https://github.com/google/leveldb/blob/master/doc/impl.html),” *leveldb.googlecode.com*.
-1.  Dhruba Borthakur: “[The History of RocksDB](http://rocksdb.blogspot.com/),” *rocksdb.blogspot.com*, November 24, 2013.
-1.  Matteo Bertozzi: “[Apache HBase I/O – HFile](http://blog.cloudera.com/blog/2012/06/hbase-io-hfile-input-output/),” *blog.cloudera.com*, June, 29 2012.
-1.  Fay Chang, Jeffrey Dean, Sanjay Ghemawat, et al.: “[Bigtable: A Distributed Storage System for Structured Data](http://research.google.com/archive/bigtable.html),” at *7th USENIX Symposium on Operating System Design and Implementation* (OSDI), November 2006.
-1.  Patrick O'Neil, Edward Cheng, Dieter Gawlick, and Elizabeth O'Neil: “[The Log-Structured Merge-Tree (LSM-Tree)](http://www.cs.umb.edu/~poneil/lsmtree.pdf),” *Acta Informatica*, volume 33, number 4, pages 351–385, June 1996. [doi:10.1007/s002360050048](http://dx.doi.org/10.1007/s002360050048)
-1.  Mendel Rosenblum and John K. Ousterhout: “[The Design and Implementation of a Log-Structured File System](http://research.cs.wisc.edu/areas/os/Qual/papers/lfs.pdf),” *ACM Transactions on Computer Systems*, volume 10, number 1, pages 26–52, February 1992. [doi:10.1145/146941.146943](http://dx.doi.org/10.1145/146941.146943)
-1.  Adrien Grand: “[What Is in a Lucene Index?](http://www.slideshare.net/lucenerevolution/what-is-inaluceneagrandfinal),” at *Lucene/Solr Revolution*, November 14, 2013.
-1.  Deepak Kandepet: “[Hacking Lucene—The Index Format]( http://hackerlabs.github.io/blog/2011/10/01/hacking-lucene-the-index-format/index.html),” *hackerlabs.org*, October 1, 2011.
-1.  Michael McCandless: “[Visualizing Lucene's Segment Merges](http://blog.mikemccandless.com/2011/02/visualizing-lucenes-segment-merges.html),” *blog.mikemccandless.com*, February 11, 2011.
-1.  Burton H. Bloom: “[Space/Time Trade-offs in Hash Coding with Allowable Errors](http://www.cs.upc.edu/~diaz/p422-bloom.pdf),” *Communications of the ACM*, volume 13, number 7, pages 422–426, July 1970. [doi:10.1145/362686.362692](http://dx.doi.org/10.1145/362686.362692)
-1.  “[Operating Cassandra: Compaction](https://cassandra.apache.org/doc/latest/operating/compaction.html),” Apache Cassandra Documentation v4.0, 2016.
-1.  Rudolf Bayer and Edward M. McCreight: “[Organization and Maintenance of Large Ordered Indices](http://www.dtic.mil/cgi-bin/GetTRDoc?AD=AD0712079),” Boeing Scientific Research Laboratories, Mathematical and Information Sciences Laboratory, report no. 20, July 1970.
-1.  Douglas Comer: “[The Ubiquitous B-Tree](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.96.6637&rep=rep1&type=pdf),” *ACM Computing Surveys*, volume 11, number 2, pages 121–137, June 1979. [doi:10.1145/356770.356776](http://dx.doi.org/10.1145/356770.356776)
-1.  Emmanuel Goossaert: “[Coding for SSDs](http://codecapsule.com/2014/02/12/coding-for-ssds-part-1-introduction-and-table-of-contents/),” *codecapsule.com*, February 12, 2014.
-1.  C. Mohan and Frank Levine: “[ARIES/IM: An Efficient and High Concurrency Index Management Method Using Write-Ahead Logging](http://www.ics.uci.edu/~cs223/papers/p371-mohan.pdf),” at *ACM International Conference on Management of Data* (SIGMOD), June 1992. [doi:10.1145/130283.130338](http://dx.doi.org/10.1145/130283.130338)
-1.  Howard Chu:  “[LDAP at Lightning Speed]( https://buildstuff14.sched.com/event/08a1a368e272eb599a52e08b4c3c779d),”  at *Build Stuff '14*, November 2014.
-1.  Bradley C. Kuszmaul:  “[A   Comparison of Fractal Trees to Log-Structured Merge (LSM) Trees](http://insideanalysis.com/wp-content/uploads/2014/08/Tokutek_lsm-vs-fractal.pdf),” *tokutek.com*,  April 22, 2014.
-1.  Manos Athanassoulis, Michael S. Kester, Lukas M. Maas, et al.: “[Designing Access Methods: The RUM Conjecture](http://openproceedings.org/2016/conf/edbt/paper-12.pdf),” at *19th International Conference on Extending Database Technology* (EDBT), March 2016. [doi:10.5441/002/edbt.2016.42](http://dx.doi.org/10.5441/002/edbt.2016.42)
-1.  Peter Zaitsev: “[Innodb Double Write](https://www.percona.com/blog/2006/08/04/innodb-double-write/),” *percona.com*, August 4, 2006.
-1.  Tomas Vondra: “[On the Impact of Full-Page Writes](http://blog.2ndquadrant.com/on-the-impact-of-full-page-writes/),” *blog.2ndquadrant.com*, November 23, 2016.
-1.  Mark Callaghan: “[The Advantages of an LSM vs a B-Tree](http://smalldatum.blogspot.co.uk/2016/01/summary-of-advantages-of-lsm-vs-b-tree.html),” *smalldatum.blogspot.co.uk*, January 19, 2016.
-1.  Mark Callaghan: “[Choosing Between Efficiency and Performance with RocksDB](http://www.codemesh.io/codemesh/mark-callaghan),” at *Code Mesh*, November 4, 2016.
-1.  Michi Mutsuzaki: “[MySQL vs. LevelDB](https://github.com/m1ch1/mapkeeper/wiki/MySQL-vs.-LevelDB),” *github.com*, August 2011.
-1.  Benjamin Coverston, Jonathan Ellis, et al.: “[CASSANDRA-1608: Redesigned Compaction](https://issues.apache.org/jira/browse/CASSANDRA-1608), *issues.apache.org*, July 2011.
-1.  Igor Canadi, Siying Dong, and Mark Callaghan: “[RocksDB Tuning Guide](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide),” *github.com*, 2016.
-1.  [*MySQL 5.7 Reference Manual*](http://dev.mysql.com/doc/refman/5.7/en/index.html). Oracle, 2014.
-1.  [*Books Online for SQL Server 2012*](http://msdn.microsoft.com/en-us/library/ms130214.aspx). Microsoft, 2012.
-1.  Joe Webb: “[Using Covering Indexes to Improve Query Performance](https://www.simple-talk.com/sql/learn-sql-server/using-covering-indexes-to-improve-query-performance/),” *simple-talk.com*, 29 September 2008.
-1.  Frank Ramsak, Volker Markl, Robert Fenk, et al.: “[Integrating the UB-Tree into a Database System Kernel](http://www.vldb.org/conf/2000/P263.pdf),” at *26th International Conference on Very Large Data Bases* (VLDB), September 2000.
-1.  The PostGIS Development Group: “[PostGIS 2.1.2dev Manual](http://postgis.net/docs/manual-2.1/),” *postgis.net*, 2014.
-1.  Robert Escriva, Bernard Wong, and Emin Gün Sirer: “[HyperDex: A Distributed, Searchable Key-Value Store](http://www.cs.princeton.edu/courses/archive/fall13/cos518/papers/hyperdex.pdf),” at *ACM SIGCOMM Conference*, August 2012. [doi:10.1145/2377677.2377681](http://dx.doi.org/10.1145/2377677.2377681)
-1.  Michael McCandless: “[Lucene's FuzzyQuery Is 100 Times Faster in 4.0](http://blog.mikemccandless.com/2011/03/lucenes-fuzzyquery-is-100-times-faster.html),” *blog.mikemccandless.com*, March 24, 2011.
-1.  Steffen Heinz, Justin Zobel, and Hugh E. Williams: “[Burst Tries: A Fast, Efficient Data Structure for String Keys](http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.18.3499),” *ACM Transactions on Information Systems*, volume 20, number 2, pages 192–223, April 2002. [doi:10.1145/506309.506312](http://dx.doi.org/10.1145/506309.506312)
-1.  Klaus U. Schulz and Stoyan Mihov: “[Fast String Correction with Levenshtein Automata](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.16.652),” *International Journal on Document Analysis and Recognition*, volume 5, number 1, pages 67–85, November 2002. [doi:10.1007/s10032-002-0082-8](http://dx.doi.org/10.1007/s10032-002-0082-8)
-1.  Christopher D. Manning, Prabhakar Raghavan, and Hinrich Schütze: [*Introduction to Information Retrieval*](http://nlp.stanford.edu/IR-book/). Cambridge University Press, 2008. ISBN: 978-0-521-86571-5, available online at *nlp.stanford.edu/IR-book*
-1.  Michael Stonebraker, Samuel Madden, Daniel J. Abadi, et al.: “[The End of an Architectural Era (It’s Time for a Complete Rewrite)](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.137.3697&rep=rep1&type=pdf),” at *33rd International Conference on Very Large Data Bases* (VLDB), September 2007.
-1.  “[VoltDB Technical Overview White Paper](https://www.voltdb.com/wptechnicaloverview),” VoltDB, 2014.
-1.  Stephen M. Rumble, Ankita Kejriwal, and John K. Ousterhout: “[Log-Structured Memory for DRAM-Based Storage](https://www.usenix.org/system/files/conference/fast14/fast14-paper_rumble.pdf),” at *12th USENIX Conference on File and Storage Technologies* (FAST), February 2014.
-1.  Stavros Harizopoulos, Daniel J. Abadi, Samuel Madden, and Michael Stonebraker: “[OLTP Through the Looking Glass, and What We Found There](http://hstore.cs.brown.edu/papers/hstore-lookingglass.pdf),” at *ACM International Conference on Management of Data* (SIGMOD), June 2008. [doi:10.1145/1376616.1376713](http://dx.doi.org/10.1145/1376616.1376713)
-1.  Justin DeBrabant, Andrew Pavlo, Stephen Tu, et al.: “[Anti-Caching: A New Approach to Database Management System Architecture](http://www.vldb.org/pvldb/vol6/p1942-debrabant.pdf),” *Proceedings of the VLDB Endowment*, volume 6, number 14, pages 1942–1953, September 2013.
-1.  Joy Arulraj, Andrew Pavlo, and Subramanya R. Dulloor: “[Let's Talk About Storage & Recovery Methods for Non-Volatile Memory Database Systems](http://www.pdl.cmu.edu/PDL-FTP/NVM/storage.pdf),” at *ACM International Conference on Management of Data* (SIGMOD), June 2015. [doi:10.1145/2723372.2749441](http://dx.doi.org/10.1145/2723372.2749441)
-1.  Edgar F. Codd, S. B. Codd, and C. T. Salley: “[Providing OLAP to User-Analysts: An IT Mandate](http://www.minet.uni-jena.de/dbis/lehre/ss2005/sem_dwh/lit/Cod93.pdf),” E. F. Codd Associates, 1993.
-1.  Surajit Chaudhuri and Umeshwar Dayal: “[An Overview of Data Warehousing and OLAP Technology](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/sigrecord.pdf),” *ACM SIGMOD Record*, volume 26, number 1, pages 65–74, March 1997. [doi:10.1145/248603.248616](http://dx.doi.org/10.1145/248603.248616)
-1.  Per-Åke Larson, Cipri Clinciu, Campbell Fraser, et al.: “[Enhancements to SQL Server Column Stores](http://research.microsoft.com/pubs/193599/Apollo3%20-%20Sigmod%202013%20-%20final.pdf),” at *ACM International Conference on Management of Data* (SIGMOD), June 2013.
-1.  Franz Färber, Norman May, Wolfgang Lehner, et al.: “[The SAP HANA Database – An Architecture Overview](http://sites.computer.org/debull/A12mar/hana.pdf),” *IEEE Data Engineering Bulletin*, volume 35, number 1, pages 28–33, March 2012.
-1.  Michael Stonebraker: “[The Traditional RDBMS Wisdom Is (Almost Certainly) All Wrong](http://slideshot.epfl.ch/talks/166),” presentation at *EPFL*, May 2013.
-1.  Daniel J. Abadi: “[Classifying the SQL-on-Hadoop Solutions](https://web.archive.org/web/20150622074951/http://hadapt.com/blog/2013/10/02/classifying-the-sql-on-hadoop-solutions/),” *hadapt.com*, October 2, 2013.
-1.  Marcel Kornacker, Alexander Behm, Victor Bittorf, et al.: “[Impala: A Modern, Open-Source SQL Engine for Hadoop](http://pandis.net/resources/cidr15impala.pdf),” at *7th Biennial Conference on Innovative Data Systems Research* (CIDR), January 2015.
-1.  Sergey Melnik, Andrey Gubarev, Jing Jing Long, et al.: “[Dremel: Interactive Analysis of Web-Scale Datasets](http://research.google.com/pubs/pub36632.html),” at *36th International Conference on Very Large Data Bases* (VLDB), pages 330–339, September 2010.
-1.  Ralph Kimball and Margy Ross: *The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling*, 3rd edition. John Wiley & Sons, July 2013. ISBN: 978-1-118-53080-1
-1.  Derrick Harris: “[Why Apple, eBay, and Walmart Have Some of the Biggest Data Warehouses You’ve Ever Seen](http://gigaom.com/2013/03/27/why-apple-ebay-and-walmart-have-some-of-the-biggest-data-warehouses-youve-ever-seen/),” *gigaom.com*, March 27, 2013.
-1.  Julien Le Dem: “[Dremel Made Simple with Parquet](https://blog.twitter.com/2013/dremel-made-simple-with-parquet),” *blog.twitter.com*, September 11, 2013.
-1.  Daniel J. Abadi, Peter Boncz, Stavros Harizopoulos, et al.: “[The Design and Implementation of Modern Column-Oriented Database Systems](http://cs-www.cs.yale.edu/homes/dna/papers/abadi-column-stores.pdf),” *Foundations and Trends in Databases*, volume 5, number 3, pages 197–280, December 2013. [doi:10.1561/1900000024](http://dx.doi.org/10.1561/1900000024)
-1.  Peter Boncz, Marcin Zukowski, and Niels Nes: “[MonetDB/X100: Hyper-Pipelining Query Execution](http://www.cidrdb.org/cidr2005/papers/P19.pdf),” at *2nd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2005.
-1.  Jingren Zhou and Kenneth A. Ross: “[Implementing Database Operations Using SIMD Instructions](http://www1.cs.columbia.edu/~kar/pubsk/simd.pdf),” at *ACM International Conference on Management of Data* (SIGMOD), pages 145–156, June 2002. [doi:10.1145/564691.564709](http://dx.doi.org/10.1145/564691.564709)
-1.  Michael Stonebraker, Daniel J. Abadi, Adam Batkin, et al.: “[C-Store: A Column-oriented DBMS](http://www.vldb2005.org/program/paper/thu/p553-stonebraker.pdf),” at *31st International Conference on Very Large Data Bases* (VLDB), pages 553–564, September 2005.
-1.  Andrew Lamb, Matt Fuller, Ramakrishna Varadarajan, et al.: “[The Vertica Analytic Database: C-Store 7 Years Later](http://vldb.org/pvldb/vol5/p1790_andrewlamb_vldb2012.pdf),” *Proceedings of the VLDB Endowment*, volume 5, number 12, pages 1790–1801, August 2012.
-1.  Julien Le Dem and Nong Li: “[Efficient Data Storage for Analytics with Apache Parquet 2.0](http://www.slideshare.net/julienledem/th-210pledem),” at *Hadoop Summit*, San Jose, June 2014.
-1.  Jim Gray, Surajit Chaudhuri, Adam Bosworth, et al.: “[Data Cube: A Relational Aggregation Operator Generalizing Group-By, Cross-Tab, and Sub-Totals](http://arxiv.org/pdf/cs/0701155.pdf),” *Data Mining and Knowledge Discovery*, volume 1, number 1, pages 29–53, March 2007. [doi:10.1023/A:1009726021843](http://dx.doi.org/10.1023/A:1009726021843)
+[[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Brandon2024-marker)] Jamie Brandon. [Unexplanations: query optimization works because sql is declarative](https://www.scattered-thoughts.net/writing/unexplanations-sql-declarative/). *scattered-thoughts.net*, February 2024. Archived at [perma.cc/P6W2-WMFZ](https://perma.cc/P6W2-WMFZ)
+
+[[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Hellerstein2010-marker)] Joseph M. Hellerstein. [The Declarative Imperative: Experiences and Conjectures in Distributed Logic](http://www.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf). Tech report UCB/EECS-2010-90, Electrical Engineering and Computer Sciences, University of California at Berkeley, June 2010. Archived at [perma.cc/K56R-VVQM](https://perma.cc/K56R-VVQM)
+
+[[3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Codd1970-marker)] Edgar F. Codd. [A Relational Model of Data for Large Shared Data Banks](https://www.seas.upenn.edu/~zives/03f/cis550/codd.pdf). *Communications of the ACM*, volume 13, issue 6, pages 377–387, June 1970. [doi:10.1145/362384.362685](http://dx.doi.org/10.1145/362384.362685)
+
+[[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Stonebraker2005around-marker)] Michael Stonebraker and Joseph M. Hellerstein. [What Goes Around Comes Around](http://mitpress2.mit.edu/books/chapters/0262693143chapm1.pdf). In *Readings in Database Systems*, 4th edition, MIT Press, pages 2–41, 2005. ISBN: 9780262693141
+
+[[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Winand2015-marker)] Markus Winand. [Modern SQL: Beyond Relational](https://modern-sql.com/). *modern-sql.com*, 2015. Archived at [perma.cc/D63V-WAPN](https://perma.cc/D63V-WAPN)
+
+[[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Fowler2012-marker)] Martin Fowler. [OrmHate](https://martinfowler.com/bliki/OrmHate.html). *martinfowler.com*, May 2012. Archived at [perma.cc/VCM8-PKNG](https://perma.cc/VCM8-PKNG)
+
+[[7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Mihalcea2023-marker)] Vlad Mihalcea. [N+1 query problem with JPA and Hibernate](https://vladmihalcea.com/n-plus-1-query-problem/). *vladmihalcea.com*, January 2023. Archived at [perma.cc/79EV-TZKB](https://perma.cc/79EV-TZKB)
+
+[[8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Schauder2023-marker)] Jens Schauder. [This is the Beginning of the End of the N+1 Problem: Introducing Single Query Loading](https://spring.io/blog/2023/08/31/this-is-the-beginning-of-the-end-of-the-n-1-problem-introducing-single-query). *spring.io*, August 2023. Archived at [perma.cc/6V96-R333](https://perma.cc/6V96-R333)
+
+[[9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Zola2014-marker)] William Zola. [6 Rules of Thumb for MongoDB Schema Design](https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design). *mongodb.com*, June 2014. Archived at [perma.cc/T2BZ-PPJB](https://perma.cc/T2BZ-PPJB)
+
+[[10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Andrews2023-marker)] Sidney Andrews and Christopher McClister. [Data modeling in Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data). *learn.microsoft.com*, February 2023. Archived at [archive.org](https://web.archive.org/web/20230207193233/https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data)
+
+[[11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Krikorian2012_ch3-marker)] Raffi Krikorian. [Timelines at Scale](http://www.infoq.com/presentations/Twitter-Timeline-Scalability). At *QCon San Francisco*, November 2012. Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK)
+
+[[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Kimball2013_ch3-marker)] Ralph Kimball and Margy Ross. [*The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling*](https://learning.oreilly.com/library/view/the-data-warehouse/9781118530801/), 3rd edition. John Wiley & Sons, July 2013. ISBN: 9781118530801
+
+[[13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Kaminsky2022-marker)] Michael Kaminsky. [Data warehouse modeling: Star schema vs. OBT](https://www.fivetran.com/blog/star-schema-vs-obt). *fivetran.com*, August 2022. Archived at [perma.cc/2PZK-BFFP](https://perma.cc/2PZK-BFFP)
+
+[[14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Nelson2018-marker)] Joe Nelson. [User-defined Order in SQL](https://begriffs.com/posts/2018-03-20-user-defined-order.html). *begriffs.com*, March 2018. Archived at [perma.cc/GS3W-F7AD](https://perma.cc/GS3W-F7AD)
+
+[[15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Wallace2017-marker)] Evan Wallace. [Realtime Editing of Ordered Sequences](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/). *figma.com*, March 2017. Archived at [perma.cc/K6ER-CQZW](https://perma.cc/K6ER-CQZW)
+
+[[16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Greenspan2020-marker)] David Greenspan. [Implementing Fractional Indexing](https://observablehq.com/@dgreensp/implementing-fractional-indexing). *observablehq.com*, October 2020. Archived at [perma.cc/5N4R-MREN](https://perma.cc/5N4R-MREN)
+
+[[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Schemaless-marker)] Martin Fowler. [Schemaless Data Structures](http://martinfowler.com/articles/schemaless/). *martinfowler.com*, January 2013.
+
+[[18](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Awadallah2009-marker)] Amr Awadallah. [Schema-on-Read vs. Schema-on-Write](https://www.slideshare.net/awadallah/schemaonread-vs-schemaonwrite). At *Berkeley EECS RAD Lab Retreat*, Santa Cruz, CA, May 2009. Archived at [perma.cc/DTB2-JCFR](https://perma.cc/DTB2-JCFR)
+
+[[19](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Odersky2013-marker)] Martin Odersky. [The Trouble with Types](http://www.infoq.com/presentations/data-types-issues). At *Strange Loop*, September 2013. Archived at [perma.cc/85QE-PVEP](https://perma.cc/85QE-PVEP)
+
+[[20](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Irwin2013-marker)] Conrad Irwin. [MongoDB—Confessions of a PostgreSQL Lover](https://speakerdeck.com/conradirwin/mongodb-confessions-of-a-postgresql-lover). At *HTML5DevConf*, October 2013. Archived at [perma.cc/C2J6-3AL5](https://perma.cc/C2J6-3AL5)
+
+[[21](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Percona2023-marker)] [Percona Toolkit Documentation: pt-online-schema-change](https://docs.percona.com/percona-toolkit/pt-online-schema-change.html). *docs.percona.com*, 2023. Archived at [perma.cc/9K8R-E5UH](https://perma.cc/9K8R-E5UH)
+
+[[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Noach2016-marker)] Shlomi Noach. [gh-ost: GitHub’s Online Schema Migration Tool for MySQL](https://github.blog/2016-08-01-gh-ost-github-s-online-migration-tool-for-mysql/). *github.blog*, August 2016. Archived at [perma.cc/7XAG-XB72](https://perma.cc/7XAG-XB72)
+
+[[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Mukherjee2022-marker)] Shayon Mukherjee. [pg-osc: Zero downtime schema changes in PostgreSQL](https://www.shayon.dev/post/2022/47/pg-osc-zero-downtime-schema-changes-in-postgresql/). *shayon.dev*, February 2022. Archived at [perma.cc/35WN-7WMY](https://perma.cc/35WN-7WMY)
+
+[[24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#PerezAradros2023-marker)] Carlos Pérez-Aradros Herce. [Introducing pgroll: zero-downtime, reversible, schema migrations for Postgres](https://xata.io/blog/pgroll-schema-migrations-postgres). *xata.io*, October 2023. Archived at [archive.org](https://web.archive.org/web/20231008161750/https://xata.io/blog/pgroll-schema-migrations-postgres)
+
+[[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Corbett2012_ch2-marker)] James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
+
+[[26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#BurlesonCluster-marker)] Donald K. Burleson. [Reduce I/O with Oracle Cluster Tables](http://www.dba-oracle.com/oracle_tip_hash_index_cluster_table.htm). *dba-oracle.com*. Archived at [perma.cc/7LBJ-9X2C](https://perma.cc/7LBJ-9X2C)
+
+[[27](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Chang2006_ch2-marker)] Fay Chang, Jeffrey Dean, Sanjay Ghemawat, Wilson C. Hsieh, Deborah A. Wallach, Mike Burrows, Tushar Chandra, Andrew Fikes, and Robert E. Gruber. [Bigtable: A Distributed Storage System for Structured Data](https://research.google/pubs/pub27898/). At *7th USENIX Symposium on Operating System Design and Implementation* (OSDI), November 2006.
+
+[[28](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Walmsley2015-marker)] Priscilla Walmsley. [*XQuery, 2nd Edition*](https://learning.oreilly.com/library/view/xquery-2nd-edition/9781491915080/). O’Reilly Media, December 2015. ISBN: 9781491915080
+
+[[29](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Bryan2013-marker)] Paul C. Bryan, Kris Zyp, and Mark Nottingham. [JavaScript Object Notation (JSON) Pointer](https://www.rfc-editor.org/rfc/rfc6901). RFC 6901, IETF, April 2013.
+
+[[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Goessner2024-marker)] Stefan Gössner, Glyn Normington, and Carsten Bormann. [JSONPath: Query Expressions for JSON](https://www.rfc-editor.org/rfc/rfc9535.html). RFC 9535, IETF, February 2024.
+
+[[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Page1999-marker)] Lawrence Page, Sergey Brin, Rajeev Motwani, and Terry Winograd. [The PageRank Citation Ranking: Bringing Order to the Web](http://ilpubs.stanford.edu:8090/422/). Technical Report 1999-66, Stanford University InfoLab, November 1999. Archived at [perma.cc/UML9-UZHW](https://perma.cc/UML9-UZHW)
+
+[[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Bronson2013-marker)] Nathan Bronson, Zach Amsden, George Cabrera, Prasad Chakka, Peter Dimov, Hui Ding, Jack Ferris, Anthony Giardullo, Sachin Kulkarni, Harry Li, Mark Marchukov, Dmitri Petrov, Lovro Puzar, Yee Jiun Song, and Venkat Venkataramani. [TAO: Facebook’s Distributed Data Store for the Social Graph](https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson). At *USENIX Annual Technical Conference* (ATC), June 2013.
+
+[[33](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Noy2019-marker)] Natasha Noy, Yuqing Gao, Anshu Jain, Anant Narayanan, Alan Patterson, and Jamie Taylor. [Industry-Scale Knowledge Graphs: Lessons and Challenges](https://cacm.acm.org/magazines/2019/8/238342-industry-scale-knowledge-graphs/fulltext). *Communications of the ACM*, volume 62, issue 8, pages 36–43, August 2019. [doi:10.1145/3331166](https://doi.org/10.1145/3331166)
+
+[[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Feng2023-marker)] Xiyang Feng, Guodong Jin, Ziyi Chen, Chang Liu, and Semih Salihoğlu. [KÙZU Graph Database Management System](https://www.cidrdb.org/cidr2023/papers/p48-jin.pdf). At *3th Annual Conference on Innovative Data Systems Research* (CIDR 2023), January 2023.
+
+[[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Besta2019-marker)] Maciej Besta, Emanuel Peter, Robert Gerstenberger, Marc Fischer, Michał Podstawski, Claude Barthels, Gustavo Alonso, Torsten Hoefler. [Demystifying Graph Databases: Analysis and Taxonomy of Data Organization, System Designs, and Graph Queries](https://arxiv.org/pdf/1910.09017.pdf). *arxiv.org*, October 2019.
+
+[[36](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#TinkerPop2023-marker)] [Apache TinkerPop 3.6.3 Documentation](https://tinkerpop.apache.org/docs/3.6.3/reference/). *tinkerpop.apache.org*, May 2023. Archived at [perma.cc/KM7W-7PAT](https://perma.cc/KM7W-7PAT)
+
+[[37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Francis2018-marker)] Nadime Francis, Alastair Green, Paolo Guagliardo, Leonid Libkin, Tobias Lindaaker, Victor Marsault, Stefan Plantikow, Mats Rydberg, Petra Selmer, and Andrés Taylor. [Cypher: An Evolving Query Language for Property Graphs](https://core.ac.uk/download/pdf/158372754.pdf). At *International Conference on Management of Data* (SIGMOD), pages 1433–1445, May 2018. [doi:10.1145/3183713.3190657](https://doi.org/10.1145/3183713.3190657)
+
+[[38](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#EifremTweet-marker)] Emil Eifrem. [Twitter correspondence](https://twitter.com/emileifrem/status/419107961512804352), January 2014. Archived at [perma.cc/WM4S-BW64](https://perma.cc/WM4S-BW64)
+
+[[39](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Tisiot2021-marker)] Francesco Tisiot. [Explore the new SEARCH and CYCLE features in PostgreSQL® 14](https://aiven.io/blog/explore-the-new-search-and-cycle-features-in-postgresql-14). *aiven.io*, December 2021. Archived at [perma.cc/J6BT-83UZ](https://perma.cc/J6BT-83UZ)
+
+[[40](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Goel2020-marker)] Gaurav Goel. [Understanding Hierarchies in Oracle](https://towardsdatascience.com/understanding-hierarchies-in-oracle-43f85561f3d9). *towardsdatascience.com*, May 2020. Archived at [perma.cc/5ZLR-Q7EW](https://perma.cc/5ZLR-Q7EW)
+
+[[41](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Deutsch2022-marker)] Alin Deutsch, Nadime Francis, Alastair Green, Keith Hare, Bei Li, Leonid Libkin, Tobias Lindaaker, Victor Marsault, Wim Martens, Jan Michels, Filip Murlak, Stefan Plantikow, Petra Selmer, Oskar van Rest, Hannes Voigt, Domagoj Vrgoč, Mingxi Wu, and Fred Zemke. [Graph Pattern Matching in GQL and SQL/PGQ](https://arxiv.org/abs/2112.06217). At *International Conference on Management of Data* (SIGMOD), pages 2246–2258, June 2022. [doi:10.1145/3514221.3526057](https://doi.org/10.1145/3514221.3526057)
+
+[[42](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Green2019-marker)] Alastair Green. [SQL... and now GQL](https://opencypher.org/articles/2019/09/12/SQL-and-now-GQL/). *opencypher.org*, September 2019. Archived at [perma.cc/AFB2-3SY7](https://perma.cc/AFB2-3SY7)
+
+[[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Deutsch2018-marker)] Alin Deutsch, Yu Xu, and Mingxi Wu. [Seamless Syntactic and Semantic Integration of Query Primitives over Relational and Graph Data in GSQL](https://cdn2.hubspot.net/hubfs/4114546/IntegrationQuery PrimitivesGSQL.pdf). *tigergraph.com*, November 2018. Archived at [perma.cc/JG7J-Y35X](https://perma.cc/JG7J-Y35X)
+
+[[44](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#vanRest2016-marker)] Oskar van Rest, Sungpack Hong, Jinha Kim, Xuming Meng, and Hassan Chafi. [PGQL: a property graph query language](https://event.cwi.nl/grades/2016/07-VanRest.pdf). At *4th International Workshop on Graph Data Management Experiences and Systems* (GRADES), June 2016. [doi:10.1145/2960414.2960421](https://doi.org/10.1145/2960414.2960421)
+
+[[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#NeptuneDataModel-marker)] Amazon Web Services. [Neptune Graph Data Model](https://docs.aws.amazon.com/neptune/latest/userguide/feature-overview-data-model.html). Amazon Neptune User Guide, *docs.aws.amazon.com*. Archived at [perma.cc/CX3T-EZU9](https://perma.cc/CX3T-EZU9)
+
+[[46](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#DatomicDataModel-marker)] Cognitect. [Datomic Data Model](https://docs.datomic.com/cloud/whatis/data-model.html). Datomic Cloud Documentation, *docs.datomic.com*. Archived at [perma.cc/LGM9-LEUT](https://perma.cc/LGM9-LEUT)
+
+[[47](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Beckett2011-marker)] David Beckett and Tim Berners-Lee. [Turtle – Terse RDF Triple Language](http://www.w3.org/TeamSubmission/turtle/). W3C Team Submission, March 2011.
+
+[[48](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Target2018-marker)] Sinclair Target. [Whatever Happened to the Semantic Web?](https://twobithistory.org/2018/05/27/semantic-web.html) *twobithistory.org*, May 2018. Archived at [perma.cc/M8GL-9KHS](https://perma.cc/M8GL-9KHS)
+
+[[49](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#MendelGleason2022-marker)] Gavin Mendel-Gleason. [The Semantic Web is Dead – Long Live the Semantic Web!](https://terminusdb.com/blog/the-semantic-web-is-dead/) *terminusdb.com*, August 2022. Archived at [perma.cc/G2MZ-DSS3](https://perma.cc/G2MZ-DSS3)
+
+[[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Sporny2014-marker)] Manu Sporny. [JSON-LD and Why I Hate the Semantic Web](http://manu.sporny.org/2014/json-ld-origins-2/). *manu.sporny.org*, January 2014. Archived at [perma.cc/7PT4-PJKF](https://perma.cc/7PT4-PJKF)
+
+[[51](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#MichiganOntologies-marker)] University of Michigan Library. [Biomedical Ontologies and Controlled Vocabularies](https://guides.lib.umich.edu/ontology), *guides.lib.umich.edu/ontology*. Archived at [perma.cc/Q5GA-F2N8](https://perma.cc/Q5GA-F2N8)
+
+[[52](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#OpenGraph-marker)] Facebook. [The Open Graph protocol](https://ogp.me/), *ogp.me*. Archived at [perma.cc/C49A-GUSY](https://perma.cc/C49A-GUSY)
+
+[[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Haughey2015-marker)] Matt Haughey. [Everything you ever wanted to know about unfurling but were afraid to ask /or/ How to make your site previews look amazing in Slack](https://medium.com/slack-developer-blog/everything-you-ever-wanted-to-know-about-unfurling-but-were-afraid-to-ask-or-how-to-make-your-e64b4bb9254). *medium.com*, November 2015. Archived at [perma.cc/C7S8-4PZN](https://perma.cc/C7S8-4PZN)
+
+[[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#W3CRDF-marker)] W3C RDF Working Group. [Resource Description Framework (RDF)](http://www.w3.org/RDF/). *w3.org*, February 2004.
+
+[[55](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Harris2013-marker)] Steve Harris, Andy Seaborne, and Eric Prud’hommeaux. [SPARQL 1.1 Query Language](http://www.w3.org/TR/sparql11-query/). W3C Recommendation, March 2013.
+
+[[56](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Green2013-marker)] Todd J. Green, Shan Shan Huang, Boon Thau Loo, and Wenchao Zhou. [Datalog and Recursive Query Processing](http://blogs.evergreen.edu/sosw/files/2014/04/Green-Vol5-DBS-017.pdf). *Foundations and Trends in Databases*, volume 5, issue 2, pages 105–195, November 2013. [doi:10.1561/1900000017](https://doi.org/10.1561/1900000017)
+
+[[57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Ceri1989-marker)] Stefano Ceri, Georg Gottlob, and Letizia Tanca. [What You Always Wanted to Know About Datalog (And Never Dared to Ask)](https://www.researchgate.net/profile/Letizia_Tanca/publication/3296132_What_you_always_wanted_to_know_about_Datalog_and_never_dared_to_ask/links/0fcfd50ca2d20473ca000000.pdf). *IEEE Transactions on Knowledge and Data Engineering*, volume 1, issue 1, pages 146–166, March 1989. [doi:10.1109/69.43410](https://doi.org/10.1109/69.43410)
+
+[[58](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Abiteboul1995-marker)] Serge Abiteboul, Richard Hull, and Victor Vianu. [*Foundations of Databases*](http://webdam.inria.fr/Alice/). Addison-Wesley, 1995. ISBN: 9780201537710, available online at [*webdam.inria.fr/Alice*](http://webdam.inria.fr/Alice/)
+
+[[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Meyer2020-marker)] Scott Meyer, Andrew Carter, and Andrew Rodriguez. [LIquid: The soul of a new graph database, Part 2](https://engineering.linkedin.com/blog/2020/liquid--the-soul-of-a-new-graph-database--part-2). *engineering.linkedin.com*, September 2020. Archived at [perma.cc/K9M4-PD6Q](https://perma.cc/K9M4-PD6Q)
+
+[[60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Bessey2024-marker)] Matt Bessey. [Why, after 6 years, I’m over GraphQL](https://bessey.dev/blog/2024/05/24/why-im-over-graphql/). *bessey.dev*, May 2024. Archived at [perma.cc/2PAU-JYRA](https://perma.cc/2PAU-JYRA)
+
+[[61](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Betts2012-marker)] Dominic Betts, Julián Domínguez, Grigori Melnik, Fernando Simonazzi, and Mani Subramanian. [*Exploring CQRS and Event Sourcing*](https://learn.microsoft.com/en-us/previous-versions/msp-n-p/jj554200(v=pandp.10)). Microsoft Patterns & Practices, July 2012. ISBN: 1621140164, archived at [perma.cc/7A39-3NM8](https://perma.cc/7A39-3NM8)
+
+[[62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Young2014-marker)] Greg Young. [CQRS and Event Sourcing](https://www.youtube.com/watch?v=JHGkaShoyNs). At *Code on the Beach*, August 2014.
+
+[[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Young2010-marker)] Greg Young. [CQRS Documents](https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf). *cqrs.wordpress.com*, November 2010. Archived at [perma.cc/X5R6-R47F](https://perma.cc/X5R6-R47F)
+
+[[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Petersohn2020-marker)] Devin Petersohn, Stephen Macke, Doris Xin, William Ma, Doris Lee, Xiangxi Mo, Joseph E. Gonzalez, Joseph M. Hellerstein, Anthony D. Joseph, and Aditya Parameswaran. [Towards Scalable Dataframe Systems](http://www.vldb.org/pvldb/vol13/p2033-petersohn.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 11, pages 2033–2046. [doi:10.14778/3407790.3407807](https://doi.org/10.14778/3407790.3407807)
+
+[[65](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Papadopoulos2016-marker)] Stavros Papadopoulos, Kushal Datta, Samuel Madden, and Timothy Mattson. [The TileDB Array Data Storage Manager](https://www.vldb.org/pvldb/vol10/p349-papadopoulos.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue 4, pages 349–360, November 2016. [doi:10.14778/3025111.3025117](https://doi.org/10.14778/3025111.3025117)
+
+[[66](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Rusu2022-marker)] Florin Rusu. [Multidimensional Array Data Management](http://faculty.ucmerced.edu/frusu/Papers/Report/2022-09-fntdb-arrays.pdf). *Foundations and Trends in Databases*, volume 12, numbers 2–3, pages 69–220, February 2023. [doi:10.1561/1900000069](https://doi.org/10.1561/1900000069)
+
+[[67](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Targett2023-marker)] Ed Targett. [Bloomberg, Man Group team up to develop open source “ArcticDB” database](https://www.thestack.technology/bloomberg-man-group-arcticdb-database-dataframe/). *thestack.technology*, March 2023. Archived at [perma.cc/M5YD-QQYV](https://perma.cc/M5YD-QQYV)
+
+[[68](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#Benson2007-marker)] Dennis A. Benson, Ilene Karsch-Mizrachi, David J. Lipman, James Ostell, and David L. Wheeler. [GenBank](https://academic.oup.com/nar/article/36/suppl_1/D25/2507746). *Nucleic Acids Research*, volume 36, database issue, pages D25–D30, December 2007. [doi:10.1093/nar/gkm929](https://doi.org/10.1093/nar/gkm929)
 
 
 ------
 
-| 上一章                               | 目錄                            | 下一章                       |
-| ------------------------------------ | ------------------------------- | ---------------------------- |
-| [第二章：資料模型與查詢語言](ch2.md) | [設計資料密集型應用](README.md) | [第四章：編碼與演化](ch4.md) |
+| 上一章                    | 目錄                     | 下一章                 |
+|------------------------|------------------------|---------------------|
+| [第二章：定義非功能性要求](ch2.md) | [設計資料密集型應用](README.md) | [第三章：儲存與檢索](ch4.md) |

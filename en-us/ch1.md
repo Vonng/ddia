@@ -1,37 +1,49 @@
-# 1. Reliable, Scalable, and Maintainable Applications
+# Chapter 1. Trade-offs in Data Systems Architecture
 
 ![](../img/ch1.png)
 
-> *The Internet was done so well that most people think of it as a natural resource like the Pacific Ocean, rather than something that was man-made. When was the last time a tech‐ nology with a scale like that was so error-free?*
+> There are no solutions, there are only trade-offs. […] But you try to get the best trade-off you can get, and that’s all you can hope for.
 >
-> — [Alan Kay](http://www.drdobbs.com/architecture-and-design/interview-with-alan-kay/240003442), in interview with *Dr Dobb’s Journal* (2012)
+> [Thomas Sowell](https://www.youtube.com/watch?v=2YUtKr8-_Fg), Interview with Fred Barnes (2005)
 
------------------------
+Data is central to much application development today. With web and mobile apps, software as a service (SaaS), and cloud services, it has become normal to store data from many different users in a shared server-based data infrastructure. Data from user activity, business transactions, devices and sensors needs to be stored and made available for analysis. As users interact with an application, they both read the data that is stored, and also generate more data.
 
-Many applications today are *data-intensive*, as opposed to *compute-intensive*. Raw CPU power is rarely a limiting factor for these applications—bigger problems are usually the amount of data, the complexity of data, and the speed at which it is changing.
+Small amounts of data, which can be stored and processed on a single machine, are often fairly easy to deal with. However, as the data volume or the rate of queries grows, it needs to be distributed across multiple machines, which introduces many challenges. As the needs of the application become more complex, it is no longer sufficient to store everything in one system, but it might be necessary to combine multiple storage or processing systems that provide different capabilities.
 
-A data-intensive application is typically built from standard building blocks that pro‐ vide commonly needed functionality. For example, many applications need to:
+We call an application *data-intensive* if data management is one of the primary challenges in developing the application [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#Kouzes2009)]. While in *compute-intensive* systems the challenge is parallelizing some very large computation, in data-intensive applications we usually worry more about things like storing and processing large data volumes, managing changes to data, ensuring consistency in the face of failures and concurrency, and making sure services are highly available.
+
+Such applications are typically built from standard building blocks that provide commonly needed functionality. For example, many applications need to:
 
 - Store data so that they, or another application, can find it again later (*databases*)
 - Remember the result of an expensive operation, to speed up reads (*caches*)
 - Allow users to search data by keyword or filter it in various ways (*search indexes*)
-- Send a message to another process, to be handled asynchronously (*stream pro‐ cessing*)
+- Handle events and data changes as soon as they occur (*stream processing*)
 - Periodically crunch a large amount of accumulated data (*batch processing*)
 
-If that sounds painfully obvious, that’s just because these *data systems* are such a suc‐ cessful abstraction: we use them all the time without thinking too much. When build‐ ing an application, most engineers wouldn’t dream of writing a new data storage engine from scratch, because databases are a perfectly good tool for the job.
+In building an application we typically take several software systems or services, such as databases or APIs, and glue them together with some application code. If you are doing exactly what the data systems were designed for, then this process can be quite easy.
 
-But reality is not that simple. There are many database systems with different charac‐ teristics, because different applications have different requirements. There are vari‐ ous approaches to caching, several ways of building search indexes, and so on. When building an application, we still need to figure out which tools and which approaches are the most appropriate for the task at hand. And it can be hard to combine tools when you need to do something that a single tool cannot do alone.
+However, as your application becomes more ambitious, challenges arise. There are many database systems with different characteristics, suitable for different purposes—how do you choose which one to use? There are various approaches to caching, several ways of building search indexes, and so on—how do you reason about their trade-offs? You need to figure out which tools and which approaches are the most appropriate for the task at hand, and it can be difficult to combine tools when you need to do something that a single tool cannot do alone.
 
-This book is a journey through both the principles and the practicalities of data sys‐ tems, and how you can use them to build data-intensive applications. We will explore what different tools have in common, what distinguishes them, and how they achieve their characteristics.
+This book is a guide to help you make decisions about which technologies to use and how to combine them. As you will see, there is no one approach that is fundamentally better than others; everything has pros and cons. With this book, you will learn to ask the right questions to evaluate and compare data systems, so that you can figure out which approach will best serve the needs of your particular application.
 
-In this chapter, we will start by exploring the fundamentals of what we are trying to achieve: reliable, scalable, and maintainable data systems. We’ll clarify what those things mean, outline some ways of thinking about them, and go over the basics that we will need for later chapters. In the following chapters we will continue layer by layer, looking at different design decisions that need to be considered when working on a data-intensive application.
+We will start our journey by looking at some of the ways that data is typically used in organizations today. Many of the ideas here have their origin in *enterprise software* (i.e., the software needs and engineering practices of large organizations, such as big corporations and governments), since historically, only large organizations had the large data volumes that required sophisticated technical solutions. If your data volume is small enough, you can simply keep it in a spreadsheet! However, more recently it has also become common for smaller companies and startups to manage large data volumes and build data-intensive systems.
 
+One of the key challenges with data systems is that different people need to do very different things with data. If you are working at a company, you and your team will have one set of priorities, while another team may have entirely different goals, although you might even be working with the same dataset! Moreover, those goals might not be explicitly articulated, which can lead to misunderstandings and disagreement about the right approach.
 
+To help you understand what choices you can make, this chapter compares several contrasting concepts, and explores their trade-offs:
+
+- the difference between transaction processing and analytics ([“Transaction Processing versus Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_analytics));
+- pros and cons of cloud services and self-hosted systems ([“Cloud versus Self-Hosting”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_cloud));
+- when to move from single-node systems to distributed systems ([“Distributed versus Single-Node Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_distributed)); and
+- balancing the needs of the business and the rights of the user ([“Data Systems, Law, and Society”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_compliance)).
+
+Moreover, this chapter will provide you with terminology that we will need for the rest of the book.
+
+--------
 
 ## ……
 
-
-
+--------
 
 ## Summary
 
@@ -45,9 +57,11 @@ Cloud systems are intrinsically distributed, and we briefly examined some of the
 
 Finally, we saw that data systems architecture is determined not only by the needs of the business deploying the system, but also by privacy regulation that protects the rights of the people whose data is being processed—an aspect that many engineers are prone to ignoring. How we translate legal requirements into technical implementations is not yet well understood, but it’s important to keep this question in mind as we move through the rest of this book.
 
-##### Footnotes
 
-##### References
+
+--------
+
+## Reference
 
 [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#Kouzes2009-marker)] Richard T. Kouzes, Gordon A. Anderson, Stephen T. Elbert, Ian Gorton, and Deborah K. Gracio. [The Changing Paradigm of Data-Intensive Computing](http://www2.ic.uff.br/~boeres/slides_AP/papers/TheChanginParadigmDataIntensiveComputing_2009.pdf). *IEEE Computer*, volume 42, issue 1, January 2009. [doi:10.1109/MC.2009.26](https://doi.org/10.1109/MC.2009.26)
 

@@ -56,11 +56,11 @@ There are two common ways data is distributed across multiple nodes:
 
 ***Replication***
 
-Keeping a copy of the same data on several different nodes, potentially in differ‐ ent locations. Replication provides redundancy: if some nodes are unavailable, the data can still be served from the remaining nodes. Replication can also help improve performance. We discuss replication in [Chapter 5](ch5.md).
+Keeping a copy of the same data on several different nodes, potentially in differ‐ ent locations. Replication provides redundancy: if some nodes are unavailable, the data can still be served from the remaining nodes. Replication can also help improve performance. We discuss replication in [Chapter 6](ch6.md).
 
 ***Partitioning***
 
- Splitting a big database into smaller subsets called *partitions* so that different par‐ titions can be assigned to different nodes (also known as *sharding*). We discuss partitioning in [Chapter 6](ch6.md).
+ Splitting a big database into smaller subsets called *partitions* so that different partitions can be assigned to different nodes (also known as *sharding*). We discuss partitioning in [Chapter 7](ch7.md).
 
 These are separate mechanisms, but they often go hand in hand, as illustrated in Figure II-1.
 

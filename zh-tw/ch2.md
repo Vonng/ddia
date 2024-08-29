@@ -1,989 +1,640 @@
-# 第二章：資料模型與查詢語言
+# 第二章 定義非功能性要求
 
-![](../img/ch2.png)
-
-> 語言的邊界就是思想的邊界。
+> 網際網路做得太棒了，以至於大多數人將它看作像太平洋這樣的自然資源，而不是什麼人工產物。上一次出現這種大規模且無差錯的技術，你還記得是什麼時候嗎？
 >
-> —— 路德維奇・維特根斯坦，《邏輯哲學》（1922）
->
+> —— [艾倫・凱](http://www.drdobbs.com/architecture-and-design/interview-with-alan-kay/240003442) 在接受 Dobb 博士雜誌採訪時說（2012 年）
 
--------------------
+--------
 
-[TOC]
+如果您正在構建應用程式，您將由一系列需求所驅動。在您需求列表的最頂端，很可能是應用程式必須提供的功能：需要哪些螢幕和按鈕，以及每個操作應如何執行以滿足軟體的目的。這些是您的*功能性需求*。
 
-資料模型可能是軟體開發中最重要的部分了，因為它們的影響如此深遠：不僅僅影響著軟體的編寫方式，而且影響著我們的 **解題思路**。
+此外，您可能還有一些*非功能性需求*：例如，應用應該快速、可靠、安全、合法合規，並且易於維護。這些需求可能沒有明確書寫下來，因為它們似乎有些顯而易見，但它們和應用的功能一樣重要：一個異常緩慢或不可靠的應用可能根本無法存在。
 
-多數應用使用層層疊加的資料模型構建。對於每層資料模型的關鍵問題是：它是如何用低一層資料模型來 **表示** 的？例如：
+並非所有非功能性需求都屬於本書的討論範圍，但有幾個是如此。在本章中，我們將介紹幾個技術概念，這將幫助您明確自己系統的非功能性需求：
 
-1. 作為一名應用開發人員，你觀察現實世界（裡面有人員、組織、貨物、行為、資金流向、感測器等），並採用物件或資料結構，以及操控那些資料結構的 API 來進行建模。那些結構通常是特定於應用程式的。
-2. 當要儲存那些資料結構時，你可以利用通用資料模型來表示它們，如 JSON 或 XML 文件、關係資料庫中的表或圖模型。
-3. 資料庫軟體的工程師選定如何以記憶體、磁碟或網路上的位元組來表示 JSON / XML/ 關係 / 圖資料。這類表示形式使資料有可能以各種方式來查詢，搜尋，操縱和處理。
-4. 在更低的層次上，硬體工程師已經想出了使用電流、光脈衝、磁場或者其他東西來表示位元組的方法。
+- 如何定義和衡量系統的*效能*（見[“描述效能”](#描述效能)）；
+- 服務*可靠*的含義——即使在出現問題時，也能繼續正確工作（見[“可靠性與容錯”](#可靠性與容錯)）；
+- 允許系統透過有效地增加計算能力來*可擴充套件*，隨著系統負載的增長（見[“可伸縮性”](#可伸縮性)）；以及
+- 長期易於維護系統（見[“可維護性”](#可維護性)）。
 
-一個複雜的應用程式可能會有更多的中間層次，比如基於 API 的 API，不過基本思想仍然是一樣的：每個層都透過提供一個明確的資料模型來隱藏更低層次中的複雜性。這些抽象允許不同的人群有效地協作（例如資料庫廠商的工程師和使用資料庫的應用程式開發人員）。
+本章引入的術語在後續章節中也將非常有用，當我們詳細探討資料密集型系統的實現方式時。然而，抽象的定義可能相當枯燥；為了使這些概念更具體，我們將從社交網路服務的案例研究開始本章，這將提供效能和可擴充套件性的實際示例。
 
-資料模型種類繁多，每個資料模型都帶有如何使用的設想。有些用法很容易，有些則不支援如此；有些操作執行很快，有些則表現很差；有些資料轉換非常自然，有些則很麻煩。
+If you are building an application, you will be driven by a list of requirements. At the top of your list is most likely the functionality that the application must offer: what screens and what buttons you need, and what each operation is supposed to do in order to fulfill the purpose of your software. These are your *functional requirements*.
 
-掌握一個數據模型需要花費很多精力（想想關係資料建模有多少本書）。即便只使用一個數據模型，不用操心其內部工作機制，構建軟體也是非常困難的。然而，因為資料模型對上層軟體的功能（能做什麼，不能做什麼）有著至深的影響，所以選擇一個適合的資料模型是非常重要的。
+In addition, you probably also have some *nonfunctional requirements*: for example, the app should be fast, reliable, secure, legally compliant, and easy to maintain. These requirements might not be explicitly written down, because they may seem somewhat obvious, but they are just as important as the app’s functionality: an app that is unbearably slow or unreliable might as well not exist.
 
-在本章中，我們將研究一系列用於資料儲存和查詢的通用資料模型（前面列表中的第 2 點）。特別地，我們將比較關係模型，文件模型和少量基於圖形的資料模型。我們還將檢視各種查詢語言並比較它們的用例。在 [第三章](ch3.md) 中，我們將討論儲存引擎是如何工作的。也就是說，這些資料模型實際上是如何實現的（列表中的第 3 點）。
+Not all nonfunctional requirements fall within the scope of this book, but several do. In this chapter we will introduce several technical concepts that will help you articulate the nonfunctional requirements for your own systems:
 
+- How to define and measure the *performance* of a system (see [“Describing Performance”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_percentiles));
+- What it means for a service to be *reliable*—namely, continuing to work correctly, even when things go wrong (see [“Reliability and Fault Tolerance”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_reliability));
+- Allowing a system to be *scalable* by having efficient ways of adding computing capacity as the load on the system grows (see [“Scalability”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_scalability)); and
+- Making it easier to maintain a system in the long term (see [“Maintainability”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_maintainability)).
 
-## 關係模型與文件模型
+The terminology introduced in this chapter will also be useful in the following chapters, when we go into the details of how data-intensive systems are implemented. However, abstract definitions can be quite dry; to make the ideas more concrete, we will start this chapter with a case study of how a social networking service might work, which will provide practical examples of performance and scalability.
 
-現在最著名的資料模型可能是 SQL。它基於 Edgar Codd 在 1970 年提出的關係模型【1】：資料被組織成 **關係**（SQL 中稱作 **表**），其中每個關係是 **元組**（SQL 中稱作 **行**) 的無序集合。
 
-關係模型曾是一個理論性的提議，當時很多人都懷疑是否能夠有效實現它。然而到了 20 世紀 80 年代中期，關係資料庫管理系統（RDBMSes）和 SQL 已成為大多數人們儲存和查詢某些常規結構的資料的首選工具。關係資料庫已經持續稱霸了大約 25~30 年 —— 這對計算機史來說是極其漫長的時間。
+--------
 
-關係資料庫起源於商業資料處理，在 20 世紀 60 年代和 70 年代用大型計算機來執行。從今天的角度來看，那些用例顯得很平常：典型的 **事務處理**（將銷售或銀行交易，航空公司預訂，庫存管理資訊記錄在庫）和 **批處理**（客戶發票，工資單，報告）。
+## 案例學習：社交網路主頁時間線
 
-當時的其他資料庫迫使應用程式開發人員必須考慮資料庫內部的資料表示形式。關係模型致力於將上述實現細節隱藏在更簡潔的介面之後。
+Imagine you are given the task of implementing a social network in the style of X (formerly Twitter), in which users can post messages and follow other users. This will be a huge simplification of how such a service actually works [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016), [2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2012_ch2), [3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Twitter2023)], but it will help illustrate some of the issues that arise in large-scale systems.
 
-多年來，在資料儲存和查詢方面存在著許多相互競爭的方法。在 20 世紀 70 年代和 80 年代初，網狀模型（network model）和層次模型（hierarchical model）曾是主要的選擇，但關係模型（relational model）隨後佔據了主導地位。物件資料庫在 20 世紀 80 年代末和 90 年代初來了又去。XML 資料庫在二十一世紀初出現，但只有小眾採用過。關係模型的每個競爭者都在其時代產生了大量的炒作，但從來沒有持續【2】。
+Let’s assume that users make 500 million posts per day, or 5,700 posts per second on average. Occasionally, the rate can spike as high as 150,000 posts/second [[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2013)]. Let’s also assume that the average user follows 200 people and has 200 followers (although there is a very wide range: most people have only a handful of followers, and a few celebrities such as Barack Obama have over 100 million followers).
 
-隨著電腦越來越強大和互聯，它們開始用於日益多樣化的目的。關係資料庫非常成功地被推廣到業務資料處理的原始範圍之外更為廣泛的用例上。你今天在網上看到的大部分內容依舊是由關係資料庫來提供支援，無論是線上釋出、討論、社交網路、電子商務、遊戲、軟體即服務生產力應用程式等內容。
+### Representing Users, Posts, and Follows
 
-### NoSQL 的誕生
+Imagine we keep all of the data in a relational database as shown in [Figure 2-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_relational). We have one table for users, one table for posts, and one table for follow relationships.
 
-現在 - 2010 年代，NoSQL 開始了最新一輪嘗試，試圖推翻關係模型的統治地位。“NoSQL” 這個名字讓人遺憾，因為實際上它並沒有涉及到任何特定的技術。最初它只是作為一個醒目的 Twitter 標籤，用在 2009 年一個關於分散式，非關係資料庫上的開源聚會上。無論如何，這個術語觸動了某些神經，並迅速在網路創業社群內外傳播開來。好些有趣的資料庫系統現在都與 *#NoSQL* 標籤相關聯，並且 NoSQL 被追溯性地重新解釋為 **不僅是 SQL（Not Only SQL）** 【4】。
+![ddia 0102](../img/ddia_0102.png)
 
-採用 NoSQL 資料庫的背後有幾個驅動因素，其中包括：
+###### Figure 2-1. Simple relational schema for a social network in which users can follow each other.
 
-* 需要比關係資料庫更好的可伸縮性，包括非常大的資料集或非常高的寫入吞吐量
-* 相比商業資料庫產品，免費和開源軟體更受偏愛
-* 關係模型不能很好地支援一些特殊的查詢操作
-* 受挫於關係模型的限制性，渴望一種更具多動態性與表現力的資料模型【5】
-
-不同的應用程式有不同的需求，一個用例的最佳技術選擇可能不同於另一個用例的最佳技術選擇。因此，在可預見的未來，關係資料庫似乎可能會繼續與各種非關係資料庫一起使用 - 這種想法有時也被稱為 **混合持久化（polyglot persistence）**。
-
-### 物件關係不匹配
-
-目前大多數應用程式開發都使用面向物件的程式語言來開發，這導致了對 SQL 資料模型的普遍批評：如果資料儲存在關係表中，那麼需要一個笨拙的轉換層，處於應用程式程式碼中的物件和表，行，列的資料庫模型之間。模型之間的不連貫有時被稱為 **阻抗不匹配（impedance mismatch）**[^i]。
-
-[^i]: 一個從電子學借用的術語。每個電路的輸入和輸出都有一定的阻抗（交流電阻）。當你將一個電路的輸出連線到另一個電路的輸入時，如果兩個電路的輸出和輸入阻抗匹配，則連線上的功率傳輸將被最大化。阻抗不匹配會導致訊號反射及其他問題。
-
-像 ActiveRecord 和 Hibernate 這樣的 **物件關係對映（ORM object-relational mapping）** 框架可以減少這個轉換層所需的樣板程式碼的數量，但是它們不能完全隱藏這兩個模型之間的差異。
-
-![](../img/fig2-1.png)
-
-**圖 2-1 使用關係型模式來表示領英簡介**
-
-例如，[圖 2-1](../img/fig2-1.png) 展示瞭如何在關係模式中表示簡歷（一個 LinkedIn 簡介）。整個簡介可以透過一個唯一的識別符號 `user_id` 來標識。像 `first_name` 和 `last_name` 這樣的欄位每個使用者只出現一次，所以可以在 User 表上將其建模為列。但是，大多數人在職業生涯中擁有多於一份的工作，人們可能有不同樣的教育階段和任意數量的聯絡資訊。從使用者到這些專案之間存在一對多的關係，可以用多種方式來表示：
-
-* 傳統 SQL 模型（SQL：1999 之前）中，最常見的規範化表示形式是將職位，教育和聯絡資訊放在單獨的表中，對 User 表提供外部索引鍵引用，如 [圖 2-1](../img/fig2-1.png) 所示。
-* 後續的 SQL 標準增加了對結構化資料型別和 XML 資料的支援；這允許將多值資料儲存在單行內，並支援在這些文件內查詢和索引。這些功能在 Oracle，IBM DB2，MS SQL Server 和 PostgreSQL 中都有不同程度的支援【6,7】。JSON 資料型別也得到多個數據庫的支援，包括 IBM DB2，MySQL 和 PostgreSQL 【8】。
-* 第三種選擇是將職業，教育和聯絡資訊編碼為 JSON 或 XML 文件，將其儲存在資料庫的文字列中，並讓應用程式解析其結構和內容。這種配置下，通常不能使用資料庫來查詢該編碼列中的值。
-
-對於一個像簡歷這樣自包含文件的資料結構而言，JSON 表示是非常合適的：請參閱 [例 2-1]()。JSON 比 XML 更簡單。面向文件的資料庫（如 MongoDB 【9】，RethinkDB 【10】，CouchDB 【11】和 Espresso【12】）支援這種資料模型。
-
-**例 2-1. 用 JSON 文件表示一個 LinkedIn 簡介**
-
-```json
-{
-  "user_id": 251,
-  "first_name": "Bill",
-  "last_name": "Gates",
-  "summary": "Co-chair of the Bill & Melinda Gates... Active blogger.",
-  "region_id": "us:91",
-  "industry_id": 131,
-  "photo_url": "/p/7/000/253/05b/308dd6e.jpg",
-  "positions": [
-    {
-      "job_title": "Co-chair",
-      "organization": "Bill & Melinda Gates Foundation"
-    },
-    {
-      "job_title": "Co-founder, Chairman",
-      "organization": "Microsoft"
-    }
-  ],
-  "education": [
-    {
-      "school_name": "Harvard University",
-      "start": 1973,
-      "end": 1975
-    },
-    {
-      "school_name": "Lakeside School, Seattle",
-      "start": null,
-      "end": null
-    }
-  ],
-  "contact_info": {
-    "blog": "http://thegatesnotes.com",
-    "twitter": "http://twitter.com/BillGates"
-  }
-}
-```
-
-有一些開發人員認為 JSON 模型減少了應用程式程式碼和儲存層之間的阻抗不匹配。不過，正如我們將在 [第四章](ch4.md) 中看到的那樣，JSON 作為資料編碼格式也存在問題。無模式對 JSON 模型來說往往被認為是一個優勢；我們將在 “[文件模型中的模式靈活性](#文件模型中的模式靈活性)” 中討論這個問題。
-
-JSON 表示比 [圖 2-1](../img/fig2-1.png) 中的多表模式具有更好的 **區域性（locality）**。如果在前面的關係型示例中獲取簡介，那需要執行多個查詢（透過 `user_id` 查詢每個表），或者在 User 表與其下屬表之間混亂地執行多路連線。而在 JSON 表示中，所有相關資訊都在同一個地方，一個查詢就足夠了。
-
-從使用者簡介檔案到使用者職位，教育歷史和聯絡資訊，這種一對多關係隱含了資料中的一個樹狀結構，而 JSON 表示使得這個樹狀結構變得明確（見 [圖 2-2](../img/fig2-2.png)）。
-
-![](../img/fig2-2.png)
-
-**圖 2-2 一對多關係構建了一個樹結構**
-
-### 多對一和多對多的關係
-
-在上一節的 [例 2-1]() 中，`region_id` 和 `industry_id` 是以 ID，而不是純字串 “Greater Seattle Area” 和 “Philanthropy” 的形式給出的。為什麼？
-
-如果使用者介面用一個自由文字欄位來輸入區域和行業，那麼將他們儲存為純文字字串是合理的。另一方式是給出地理區域和行業的標準化的列表，並讓使用者從下拉列表或自動填充器中進行選擇，其優勢如下：
-
-* 各個簡介之間樣式和拼寫統一
-* 避免歧義（例如，如果有幾個同名的城市）
-* 易於更新 —— 名稱只儲存在一個地方，如果需要更改（例如，由於政治事件而改變城市名稱），很容易進行全面更新。
-* 本地化支援 —— 當網站翻譯成其他語言時，標準化的列表可以被本地化，使得地區和行業可以使用使用者的語言來顯示
-* 更好的搜尋 —— 例如，搜尋華盛頓州的慈善家就會匹配這份簡介，因為地區列表可以編碼記錄西雅圖在華盛頓這一事實（從 “Greater Seattle Area” 這個字串中看不出來）
-
-儲存 ID 還是文字字串，這是個 **副本（duplication）** 問題。當使用 ID 時，對人類有意義的資訊（比如單詞：Philanthropy）只儲存在一處，所有引用它的地方使用 ID（ID 只在資料庫中有意義）。當直接儲存文字時，對人類有意義的資訊會複製在每處使用記錄中。
-
-使用 ID 的好處是，ID 對人類沒有任何意義，因而永遠不需要改變：ID 可以保持不變，即使它標識的資訊發生變化。任何對人類有意義的東西都可能需要在將來某個時候改變 —— 如果這些資訊被複制，所有的冗餘副本都需要更新。這會導致寫入開銷，也存在不一致的風險（一些副本被更新了，還有些副本沒有被更新）。去除此類重複是資料庫 **規範化（normalization）** 的關鍵思想。[^ii]
-
-[^ii]: 關於關係模型的文獻區分了幾種不同的規範形式，但這些區別幾乎沒有實際意義。一個經驗法則是，如果重複儲存了可以儲存在一個地方的值，則模式就不是 **規範化（normalized）** 的。
-
-> 資料庫管理員和開發人員喜歡爭論規範化和非規範化，讓我們暫時保留判斷吧。在本書的 [第三部分](part-iii.md)，我們將回到這個話題，探討系統的方法用以處理快取，非規範化和衍生資料。
-
-不幸的是，對這些資料進行規範化需要多對一的關係（許多人生活在一個特定的地區，許多人在一個特定的行業工作），這與文件模型不太吻合。在關係資料庫中，透過 ID 來引用其他表中的行是正常的，因為連線很容易。在文件資料庫中，一對多樹結構沒有必要用連線，對連線的支援通常很弱 [^iii]。
-
-[^iii]: 在撰寫本文時，RethinkDB 支援連線，MongoDB 不支援連線，而 CouchDB 只支援預先宣告的檢視。
-
-如果資料庫本身不支援連線，則必須在應用程式程式碼中透過對資料庫進行多個查詢來模擬連線。（在這種情況中，地區和行業的列表可能很小，改動很少，應用程式可以簡單地將其儲存在記憶體中。不過，執行連線的工作從資料庫被轉移到應用程式程式碼上。）
-
-此外，即便應用程式的最初版本適合無連線的文件模型，隨著功能新增到應用程式中，資料會變得更加互聯。例如，考慮一下對簡歷例子進行的一些修改：
-
-* 組織和學校作為實體
-
-  在前面的描述中，`organization`（使用者工作的公司）和 `school_name`（他們學習的地方）只是字串。也許他們應該是對實體的引用呢？然後，每個組織、學校或大學都可以擁有自己的網頁（標識、新聞提要等）。每個簡歷可以連結到它所提到的組織和學校，並且包括他們的圖示和其他資訊（請參閱 [圖 2-3](../img/fig2-3.png)，來自 LinkedIn 的一個例子）。
-
-* 推薦
-
-  假設你想新增一個新的功能：一個使用者可以為另一個使用者寫一個推薦。在使用者的簡歷上顯示推薦，並附上推薦使用者的姓名和照片。如果推薦人更新他們的照片，那他們寫的任何推薦都需要顯示新的照片。因此，推薦應該擁有作者個人簡介的引用。
-
-![](../img/fig2-3.png)
-
-**圖 2-3 公司名不僅是字串，還是一個指向公司實體的連結（LinkedIn 截圖）**
-
-[圖 2-4](../img/fig2-4.png) 闡明瞭這些新功能需要如何使用多對多關係。每個虛線矩形內的資料可以分組成一個文件，但是對單位，學校和其他使用者的引用需要表示成引用，並且在查詢時需要連線。
-
-![](../img/fig2-4.png)
-
-**圖 2-4 使用多對多關係擴充套件簡歷**
-
-### 文件資料庫是否在重蹈覆轍？
-
-在多對多的關係和連線已常規用在關係資料庫時，文件資料庫和 NoSQL 重啟了辯論：如何以最佳方式在資料庫中表示多對多關係。那場辯論可比 NoSQL 古老得多，事實上，最早可以追溯到計算機化資料庫系統。
-
-20 世紀 70 年代最受歡迎的業務資料處理資料庫是 IBM 的資訊管理系統（IMS），最初是為了阿波羅太空計劃的庫存管理而開發的，並於 1968 年有了首次商業釋出【13】。目前它仍在使用和維護，執行在 IBM 大型機的 OS/390 上【14】。
-
-IMS 的設計中使用了一個相當簡單的資料模型，稱為 **層次模型（hierarchical model）**，它與文件資料庫使用的 JSON 模型有一些驚人的相似之處【2】。它將所有資料表示為巢狀在記錄中的記錄樹，這很像 [圖 2-2](../img/fig2-2.png) 的 JSON 結構。
-
-同文檔資料庫一樣，IMS 能良好處理一對多的關係，但是很難應對多對多的關係，並且不支援連線。開發人員必須決定是否複製（非規範化）資料或手動解決從一個記錄到另一個記錄的引用。這些二十世紀六七十年代的問題與現在開發人員遇到的文件資料庫問題非常相似【15】。
-
-那時人們提出了各種不同的解決方案來解決層次模型的侷限性。其中最突出的兩個是 **關係模型**（relational model，它變成了 SQL，並統治了世界）和 **網狀模型**（network model，最初很受關注，但最終變得冷門）。這兩個陣營之間的 “大辯論” 在 70 年代持續了很久時間【2】。
-
-那兩個模式解決的問題與當前的問題相關，因此值得簡要回顧一下那場辯論。
-
-#### 網狀模型
-
-網狀模型由一個稱為資料系統語言會議（CODASYL）的委員會進行了標準化，並被數個不同的資料庫廠商實現；它也被稱為 CODASYL 模型【16】。
-
-CODASYL 模型是層次模型的推廣。在層次模型的樹結構中，每條記錄只有一個父節點；在網路模式中，每條記錄可能有多個父節點。例如，“Greater Seattle Area” 地區可能是一條記錄，每個居住在該地區的使用者都可以與之相關聯。這允許對多對一和多對多的關係進行建模。
-
-網狀模型中記錄之間的連結不是外部索引鍵，而更像程式語言中的指標（同時仍然儲存在磁碟上）。訪問記錄的唯一方法是跟隨從根記錄起沿這些鏈路所形成的路徑。這被稱為 **訪問路徑（access path）**。
-
-最簡單的情況下，訪問路徑類似遍歷連結串列：從列表頭開始，每次檢視一條記錄，直到找到所需的記錄。但在多對多關係的情況中，數條不同的路徑可以到達相同的記錄，網狀模型的程式設計師必須跟蹤這些不同的訪問路徑。
-
-CODASYL 中的查詢是透過利用遍歷記錄列和跟隨訪問路徑表在資料庫中移動遊標來執行的。如果記錄有多個父結點（即多個來自其他記錄的傳入指標），則應用程式程式碼必須跟蹤所有的各種關係。甚至 CODASYL 委員會成員也承認，這就像在 n 維資料空間中進行導航【17】。
-
-儘管手動選擇訪問路徑能夠最有效地利用 20 世紀 70 年代非常有限的硬體功能（如磁帶驅動器，其搜尋速度非常慢），但這使得查詢和更新資料庫的程式碼變得複雜不靈活。無論是分層還是網狀模型，如果你沒有所需資料的路徑，就會陷入困境。你可以改變訪問路徑，但是必須瀏覽大量手寫資料庫查詢程式碼，並重寫來處理新的訪問路徑。更改應用程式的資料模型是很難的。
-
-#### 關係模型
-
-相比之下，關係模型做的就是將所有的資料放在光天化日之下：一個 **關係（表）** 只是一個 **元組（行）** 的集合，僅此而已。如果你想讀取資料，它沒有迷宮似的巢狀結構，也沒有複雜的訪問路徑。你可以選中符合任意條件的行，讀取表中的任何或所有行。你可以透過指定某些列作為匹配關鍵字來讀取特定行。你可以在任何表中插入一個新的行，而不必擔心與其他表的外部索引鍵關係 [^iv]。
-
-[^iv]: 外部索引鍵約束允許對修改進行限制，但對於關係模型這並不是必選項。即使有約束，外部索引鍵連線在查詢時執行，而在 CODASYL 中，連線在插入時高效完成。
-
-在關係資料庫中，查詢最佳化器自動決定查詢的哪些部分以哪個順序執行，以及使用哪些索引。這些選擇實際上是 “訪問路徑”，但最大的區別在於它們是由查詢最佳化器自動生成的，而不是由程式設計師生成，所以我們很少需要考慮它們。
-
-如果想按新的方式查詢資料，你可以宣告一個新的索引，查詢會自動使用最合適的那些索引。無需更改查詢來利用新的索引（請參閱 “[資料查詢語言](#資料查詢語言)”）。關係模型因此使新增應用程式新功能變得更加容易。
-
-關係資料庫的查詢最佳化器是複雜的，已耗費了多年的研究和開發精力【18】。關係模型的一個關鍵洞察是：只需構建一次查詢最佳化器，隨後使用該資料庫的所有應用程式都可以從中受益。如果你沒有查詢最佳化器的話，那麼為特定查詢手動編寫訪問路徑比編寫通用最佳化器更容易 —— 不過從長期看通用解決方案更好。
-
-#### 與文件資料庫相比
-
-在一個方面，文件資料庫還原為層次模型：在其父記錄中儲存巢狀記錄（[圖 2-1](../img/fig2-1.png) 中的一對多關係，如 `positions`，`education` 和 `contact_info`），而不是在單獨的表中。
-
-但是，在表示多對一和多對多的關係時，關係資料庫和文件資料庫並沒有根本的不同：在這兩種情況下，相關專案都被一個唯一的識別符號引用，這個識別符號在關係模型中被稱為 **外部索引鍵**，在文件模型中稱為 **文件引用**【9】。該識別符號在讀取時透過連線或後續查詢來解析。迄今為止，文件資料庫沒有走 CODASYL 的老路。
-
-### 關係型資料庫與文件資料庫在今日的對比
-
-將關係資料庫與文件資料庫進行比較時，可以考慮許多方面的差異，包括它們的容錯屬性（請參閱 [第五章](ch5.md)）和處理併發性（請參閱 [第七章](ch7.md)）。本章將只關注資料模型中的差異。
-
-支援文件資料模型的主要論據是架構靈活性，因區域性而擁有更好的效能，以及對於某些應用程式而言更接近於應用程式使用的資料結構。關係模型透過為連線提供更好的支援以及支援多對一和多對多的關係來反擊。
-
-#### 哪種資料模型更有助於簡化應用程式碼？
-
-如果應用程式中的資料具有類似文件的結構（即，一對多關係樹，通常一次性載入整個樹），那麼使用文件模型可能是一個好主意。將類似文件的結構分解成多個表（如 [圖 2-1](../img/fig2-1.png) 中的 `positions`、`education` 和 `contact_info`）的關係技術可能導致繁瑣的模式和不必要的複雜的應用程式程式碼。
-
-文件模型有一定的侷限性：例如，不能直接引用文件中的巢狀的專案，而是需要說 “使用者 251 的位置列表中的第二項”（很像層次模型中的訪問路徑）。但是，只要檔案巢狀不太深，這通常不是問題。
-
-文件資料庫對連線的糟糕支援可能是個問題，也可能不是問題，這取決於應用程式。例如，如果某分析型應用程式使用一個文件資料庫來記錄何時何地發生了何事，那麼多對多關係可能永遠也用不上。【19】。
-
-但如果你的應用程式確實會用到多對多關係，那麼文件模型就沒有那麼誘人了。儘管可以透過反規範化來消除對連線的需求，但這需要應用程式程式碼來做額外的工作以確保資料一致性。儘管應用程式程式碼可以透過向資料庫發出多個請求的方式來模擬連線，但這也將複雜性轉移到應用程式中，而且通常也會比由資料庫內的專用程式碼更慢。在這種情況下，使用文件模型可能會導致更複雜的應用程式碼與更差的效能【15】。
-
-我們沒有辦法說哪種資料模型更有助於簡化應用程式碼，因為它取決於資料項之間的關係種類。對高度關聯的資料而言，文件模型是極其糟糕的，關係模型是可以接受的，而選用圖形模型（請參閱 “[圖資料模型](#圖資料模型)”）是最自然的。
-
-#### 文件模型中的模式靈活性
-
-大多數文件資料庫以及關係資料庫中的 JSON 支援都不會強制文件中的資料採用何種模式。關係資料庫的 XML 支援通常帶有可選的模式驗證。沒有模式意味著可以將任意的鍵和值新增到文件中，並且當讀取時，客戶端無法保證文件可能包含的欄位。
-
-文件資料庫有時稱為 **無模式（schemaless）**，但這具有誤導性，因為讀取資料的程式碼通常假定某種結構 —— 即存在隱式模式，但不由資料庫強制執行【20】。一個更精確的術語是 **讀時模式**（即 schema-on-read，資料的結構是隱含的，只有在資料被讀取時才被解釋），相應的是 **寫時模式**（即 schema-on-write，傳統的關係資料庫方法中，模式明確，且資料庫確保所有的資料都符合其模式）【21】。
-
-讀時模式類似於程式語言中的動態（執行時）型別檢查，而寫時模式類似於靜態（編譯時）型別檢查。就像靜態和動態型別檢查的相對優點具有很大的爭議性一樣【22】，資料庫中模式的強制性是一個具有爭議的話題，一般來說沒有正確或錯誤的答案。
-
-在應用程式想要改變其資料格式的情況下，這些方法之間的區別尤其明顯。例如，假設你把每個使用者的全名儲存在一個欄位中，而現在想分別儲存名字和姓氏【23】。在文件資料庫中，只需開始寫入具有新欄位的新文件，並在應用程式中使用程式碼來處理讀取舊文件的情況。例如：
-
-```go
-if (user && user.name && !user.first_name) {
-  // Documents written before Dec 8, 2013 don't have first_name
-  user.first_name = user.name.split(" ")[0];
-}
-```
-
-另一方面，在 “靜態型別” 資料庫模式中，通常會執行以下 **遷移（migration）** 操作：
-
-```sql
-ALTER TABLE users ADD COLUMN first_name text;
-UPDATE users SET first_name = split_part(name, ' ', 1);      -- PostgreSQL
-UPDATE users SET first_name = substring_index(name, ' ', 1);      -- MySQL
-```
-
-模式變更的速度很慢，而且要求停運。它的這種壞名譽並不是完全應得的：大多數關係資料庫系統可在幾毫秒內執行 `ALTER TABLE` 語句。MySQL 是一個值得注意的例外，它執行 `ALTER TABLE` 時會複製整個表，這可能意味著在更改一個大型表時會花費幾分鐘甚至幾個小時的停機時間，儘管存在各種工具來解決這個限制【24,25,26】。
-
-大型表上執行 `UPDATE` 語句在任何資料庫上都可能會很慢，因為每一行都需要重寫。要是不可接受的話，應用程式可以將 `first_name` 設定為預設值 `NULL`，並在讀取時再填充，就像使用文件資料庫一樣。
-
-當由於某種原因（例如，資料是異構的）集合中的專案並不都具有相同的結構時，讀時模式更具優勢。例如，如果：
-
-* 存在許多不同型別的物件，將每種型別的物件放在自己的表中是不現實的。
-* 資料的結構由外部系統決定。你無法控制外部系統且它隨時可能變化。
-
-在上述情況下，模式的壞處遠大於它的幫助，無模式文件可能是一個更加自然的資料模型。但是，要是所有記錄都具有相同的結構，那麼模式是記錄並強制這種結構的有效機制。第四章將更詳細地討論模式和模式演化。
-
-#### 查詢的資料區域性
-
-文件通常以單個連續字串形式進行儲存，編碼為 JSON、XML 或其二進位制變體（如 MongoDB 的 BSON）。如果應用程式經常需要訪問整個文件（例如，將其渲染至網頁），那麼儲存區域性會帶來效能優勢。如果將資料分割到多個表中（如 [圖 2-1](../img/fig2-1.png) 所示），則需要進行多次索引查詢才能將其全部檢索出來，這可能需要更多的磁碟查詢並花費更多的時間。
-
-區域性僅僅適用於同時需要文件絕大部分內容的情況。即使只訪問文件其中的一小部分，資料庫通常需要載入整個文件，對於大型文件來說這種載入行為是很浪費的。更新文件時，通常需要整個重寫。只有不改變文件大小的修改才可以容易地原地執行。因此，通常建議保持相對小的文件，並避免增加文件大小的寫入【9】。這些效能限制大大減少了文件資料庫的實用場景。
-
-值得指出的是，為了區域性而分組集合相關資料的想法並不侷限於文件模型。例如，Google 的 Spanner 資料庫在關係資料模型中提供了同樣的區域性屬性，允許模式宣告一個表的行應該交錯（巢狀）在父表內【27】。Oracle 類似地允許使用一個稱為 **多表索引叢集表（multi-table index cluster tables）** 的類似特性【28】。Bigtable 資料模型（用於 Cassandra 和 HBase）中的 **列族（column-family）** 概念與管理區域性的目的類似【29】。
-
-在 [第三章](ch3.md) 將還會看到更多關於區域性的內容。
-
-#### 文件和關係資料庫的融合
-
-自 2000 年代中期以來，大多數關係資料庫系統（MySQL 除外）都已支援 XML。這包括對 XML 文件進行本地修改的功能，以及在 XML 文件中進行索引和查詢的功能。這允許應用程式使用那種與文件資料庫應當使用的非常類似的資料模型。
-
-從 9.3 版本開始的 PostgreSQL 【8】，從 5.7 版本開始的 MySQL 以及從版本 10.5 開始的 IBM DB2【30】也對 JSON 文件提供了類似的支援級別。鑑於用在 Web APIs 的 JSON 流行趨勢，其他關係資料庫很可能會跟隨他們的腳步並新增 JSON 支援。
-
-在文件資料庫中，RethinkDB 在其查詢語言中支援類似關係的連線，一些 MongoDB 驅動程式可以自動解析資料庫引用（有效地執行客戶端連線，儘管這可能比在資料庫中執行的連線慢，需要額外的網路往返，並且最佳化更少）。
-
-隨著時間的推移，關係資料庫和文件資料庫似乎變得越來越相似，這是一件好事：資料模型相互補充 [^v]，如果一個數據庫能夠處理類似文件的資料，並能夠對其執行關係查詢，那麼應用程式就可以使用最符合其需求的功能組合。
-
-關係模型和文件模型的混合是未來資料庫一條很好的路線。
-
-[^v]: Codd 對關係模型【1】的原始描述實際上允許在關係模式中與 JSON 文件非常相似。他稱之為 **非簡單域（nonsimple domains）**。這個想法是，一行中的值不一定是一個像數字或字串一樣的原始資料型別，也可以是一個巢狀的關係（表），因此可以把一個任意巢狀的樹結構作為一個值，這很像 30 年後新增到 SQL 中的 JSON 或 XML 支援。
-
-
-## 資料查詢語言
-
-當引入關係模型時，關係模型包含了一種查詢資料的新方法：SQL 是一種 **宣告式** 查詢語言，而 IMS 和 CODASYL 使用 **命令式** 程式碼來查詢資料庫。那是什麼意思？
-
-許多常用的程式語言是命令式的。例如，給定一個動物物種的列表，返回列表中的鯊魚可以這樣寫：
-
-```js
-function getSharks() {
-    var sharks = [];
-    for (var i = 0; i < animals.length; i++) {
-        if (animals[i].family === "Sharks") {
-            sharks.push(animals[i]);
-        }
-    }
-    return sharks;
-}
-```
-
-而在關係代數中，你可以這樣寫：
-
-$$
-sharks = \sigma_{family = "sharks"}(animals)
-$$
-
-其中 $\sigma$（希臘字母西格瑪）是選擇運算子，只返回符合 `family="shark"` 條件的動物。
-
-定義 SQL 時，它緊密地遵循關係代數的結構：
-
-```sql
-SELECT * FROM animals WHERE family ='Sharks';
-```
-
-命令式語言告訴計算機以特定順序執行某些操作。可以想象一下，逐行地遍歷程式碼，評估條件，更新變數，並決定是否再迴圈一遍。
-
-在宣告式查詢語言（如 SQL 或關係代數）中，你只需指定所需資料的模式 - 結果必須符合哪些條件，以及如何將資料轉換（例如，排序，分組和集合） - 但不是如何實現這一目標。資料庫系統的查詢最佳化器決定使用哪些索引和哪些連線方法，以及以何種順序執行查詢的各個部分。
-
-宣告式查詢語言是迷人的，因為它通常比命令式 API 更加簡潔和容易。但更重要的是，它還隱藏了資料庫引擎的實現細節，這使得資料庫系統可以在無需對查詢做任何更改的情況下進行效能提升。
-
-例如，在本節開頭所示的命令程式碼中，動物列表以特定順序出現。如果資料庫想要在後臺回收未使用的磁碟空間，則可能需要移動記錄，這會改變動物出現的順序。資料庫能否安全地執行，而不會中斷查詢？
-
-SQL 示例不確保任何特定的順序，因此不在意順序是否改變。但是如果查詢用命令式的程式碼來寫的話，那麼資料庫就永遠不可能確定程式碼是否依賴於排序。SQL 相當有限的功能性為資料庫提供了更多自動最佳化的空間。
-
-最後，宣告式語言往往適合並行執行。現在，CPU 的速度透過核心（core）的增加變得更快，而不是以比以前更高的時鐘速度執行【31】。命令程式碼很難在多個核心和多個機器之間並行化，因為它指定了指令必須以特定順序執行。宣告式語言更具有並行執行的潛力，因為它們僅指定結果的模式，而不指定用於確定結果的演算法。在適當情況下，資料庫可以自由使用查詢語言的並行實現【32】。
-
-### Web 上的宣告式查詢
-
-宣告式查詢語言的優勢不僅限於資料庫。為了說明這一點，讓我們在一個完全不同的環境中比較宣告式和命令式方法：一個 Web 瀏覽器。
-
-假設你有一個關於海洋動物的網站。使用者當前正在檢視鯊魚頁面，因此你將當前所選的導航專案 “鯊魚” 標記為當前選中專案。
-
-```html
-<ul>
-    <li class="selected">
-        <p>Sharks</p>
-        <ul>
-            <li>Great White Shark</li>
-            <li>Tiger Shark</li>
-            <li>Hammerhead Shark</li>
-        </ul>
-    </li>
-    <li><p>Whales</p>
-        <ul>
-            <li>Blue Whale</li>
-            <li>Humpback Whale</li>
-            <li>Fin Whale</li>
-        </ul>
-    </li>
-</ul>
-```
-
-現在想讓當前所選頁面的標題具有一個藍色的背景，以便在視覺上突出顯示。使用 CSS 實現起來非常簡單：
-
-```css
-li.selected > p {
-  background-color: blue;
-}
-```
-
-這裡的 CSS 選擇器 `li.selected > p` 聲明瞭我們想要應用藍色樣式的元素的模式：即其直接父元素是具有 CSS 類 `selected` 的 `<li>` 元素的所有 `<p>` 元素。示例中的元素 `<p>Sharks</p>` 匹配此模式，但 `<p>Whales</p>` 不匹配，因為其 `<li>` 父元素缺少 `class="selected"`。
-
-如果使用 XSL 而不是 CSS，你可以做類似的事情：
-
-```xml
-<xsl:template match="li[@class='selected']/p">
-    <fo:block background-color="blue">
-        <xsl:apply-templates/>
-    </fo:block>
-</xsl:template>
-```
-
-這裡的 XPath 表示式 `li[@class='selected']/p` 相當於上例中的 CSS 選擇器 `li.selected > p`。CSS 和 XSL 的共同之處在於，它們都是用於指定文件樣式的宣告式語言。
-
-想象一下，必須使用命令式方法的情況會是如何。在 Javascript 中，使用 **文件物件模型（DOM）** API，其結果可能如下所示：
-
-```js
-var liElements = document.getElementsByTagName("li");
-for (var i = 0; i < liElements.length; i++) {
-    if (liElements[i].className === "selected") {
-        var children = liElements[i].childNodes;
-        for (var j = 0; j < children.length; j++) {
-            var child = children[j];
-            if (child.nodeType === Node.ELEMENT_NODE && child.tagName === "P") {
-                child.setAttribute("style", "background-color: blue");
-            }
-        }
-    }
-}
-```
-
-這段 JavaScript 程式碼命令式地將元素設定為藍色背景，但是程式碼看起來很糟糕。不僅比 CSS 和 XSL 等價物更長，更難理解，而且還有一些嚴重的問題：
-
-* 如果選定的類被移除（例如，因為使用者點選了不同的頁面），即使程式碼重新執行，藍色背景也不會被移除 - 因此該專案將保持突出顯示，直到整個頁面被重新載入。使用 CSS，瀏覽器會自動檢測 `li.selected > p` 規則何時不再適用，並在選定的類被移除後立即移除藍色背景。
-
-* 如果你想要利用新的 API（例如 `document.getElementsByClassName("selected")` 甚至 `document.evaluate()`）來提高效能，則必須重寫程式碼。另一方面，瀏覽器供應商可以在不破壞相容性的情況下提高 CSS 和 XPath 的效能。
-
-在 Web 瀏覽器中，使用宣告式 CSS 樣式比使用 JavaScript 命令式地操作樣式要好得多。類似地，在資料庫中，使用像 SQL 這樣的宣告式查詢語言比使用命令式查詢 API 要好得多 [^vi]。
-
-[^vi]: IMS 和 CODASYL 都使用命令式 API。應用程式通常使用 COBOL 程式碼遍歷資料庫中的記錄，一次一條記錄【2,16】。
-
-### MapReduce查詢
-
-MapReduce 是一個由 Google 推廣的程式設計模型，用於在多臺機器上批次處理大規模的資料【33】。一些 NoSQL 資料儲存（包括 MongoDB 和 CouchDB）支援有限形式的 MapReduce，作為在多個文件中執行只讀查詢的機制。
-
-關於 MapReduce 更詳細的介紹在 [第十章](ch10.md)。現在我們只簡要討論一下 MongoDB 使用的模型。
-
-MapReduce 既不是一個宣告式的查詢語言，也不是一個完全命令式的查詢 API，而是處於兩者之間：查詢的邏輯用程式碼片段來表示，這些程式碼片段會被處理框架重複性呼叫。它基於 `map`（也稱為 `collect`）和 `reduce`（也稱為 `fold` 或 `inject`）函式，兩個函式存在於許多函數語言程式設計語言中。
-
-最好舉例來解釋 MapReduce 模型。假設你是一名海洋生物學家，每當你看到海洋中的動物時，你都會在資料庫中新增一條觀察記錄。現在你想生成一個報告，說明你每月看到多少鯊魚。
-
-在 PostgreSQL 中，你可以像這樣表述這個查詢：
-
-```sql
-SELECT
-  date_trunc('month', observation_timestamp) AS observation_month,
-  sum(num_animals)                           AS total_animals
-FROM observations
-WHERE family = 'Sharks'
-GROUP BY observation_month;
-```
-
-`date_trunc('month'，timestamp)` 函式用於確定包含 `timestamp` 的日曆月份，並返回代表該月份開始的另一個時間戳。換句話說，它將時間戳舍入成最近的月份。
-
-這個查詢首先過濾觀察記錄，以只顯示鯊魚家族的物種，然後根據它們發生的日曆月份對觀察記錄果進行分組，最後將在該月的所有觀察記錄中看到的動物數目加起來。
-
-同樣的查詢用 MongoDB 的 MapReduce 功能可以按如下來表述：
-
-```js
-db.observations.mapReduce(function map() {
-        var year = this.observationTimestamp.getFullYear();
-        var month = this.observationTimestamp.getMonth() + 1;
-        emit(year + "-" + month, this.numAnimals);
-    },
-    function reduce(key, values) {
-        return Array.sum(values);
-    },
-    {
-        query: {
-          family: "Sharks"
-        },
-        out: "monthlySharkReport"
-    });
-```
-
-* 可以宣告式地指定一個只考慮鯊魚種類的過濾器（這是 MongoDB 特定的 MapReduce 擴充套件）。
-* 每個匹配查詢的文件都會呼叫一次 JavaScript 函式 `map`，將 `this` 設定為文件物件。
-* `map` 函式發出一個鍵（包括年份和月份的字串，如 `"2013-12"` 或 `"2014-1"`）和一個值（該觀察記錄中的動物數量）。
-* `map` 發出的鍵值對按鍵來分組。對於具有相同鍵（即，相同的月份和年份）的所有鍵值對，呼叫一次 `reduce` 函式。
-* `reduce` 函式將特定月份內所有觀測記錄中的動物數量相加。
-* 將最終的輸出寫入到 `monthlySharkReport` 集合中。
-
-例如，假設 `observations` 集合包含這兩個文件：
-
-```json
-{
-  observationTimestamp: Date.parse(  "Mon, 25 Dec 1995 12:34:56 GMT"),
-  family: "Sharks",
-  species: "Carcharodon carcharias",
-  numAnimals: 3
-}
-{
-  observationTimestamp: Date.parse("Tue, 12 Dec 1995 16:17:18 GMT"),
-  family: "Sharks",
-  species:    "Carcharias taurus",
-  numAnimals: 4
-}
-```
-
-對每個文件都會呼叫一次 `map` 函式，結果將是 `emit("1995-12",3)` 和 `emit("1995-12",4)`。隨後，以 `reduce("1995-12",[3,4])` 呼叫 `reduce` 函式，將返回 `7`。
-
-map 和 reduce 函式在功能上有所限制：它們必須是 **純** 函式，這意味著它們只使用傳遞給它們的資料作為輸入，它們不能執行額外的資料庫查詢，也不能有任何副作用。這些限制允許資料庫以任何順序執行任何功能，並在失敗時重新執行它們。然而，map 和 reduce 函式仍然是強大的：它們可以解析字串、呼叫庫函式、執行計算等等。
-
-MapReduce 是一個相當底層的程式設計模型，用於計算機叢集上的分散式執行。像 SQL 這樣的更高階的查詢語言可以用一系列的 MapReduce 操作來實現（見 [第十章](ch10.md)），但是也有很多不使用 MapReduce 的分散式 SQL 實現。須注意，SQL 並沒有限制它只能在單一機器上執行，而 MapReduce 也並沒有壟斷所有的分散式查詢執行。
-
-能夠在查詢中使用 JavaScript 程式碼是高階查詢的一個重要特性，但這不限於 MapReduce，一些 SQL 資料庫也可以用 JavaScript 函式進行擴充套件【34】。
-
-MapReduce 的一個可用性問題是，必須編寫兩個密切合作的 JavaScript 函式，這通常比編寫單個查詢更困難。此外，宣告式查詢語言為查詢最佳化器提供了更多機會來提高查詢的效能。基於這些原因，MongoDB 2.2 添加了一種叫做 **聚合管道** 的宣告式查詢語言的支援【9】。用這種語言表述鯊魚計數查詢如下所示：
-
-```js
-db.observations.aggregate([
-  { $match: { family: "Sharks" } },
-  { $group: {
-    _id: {
-      year:  { $year:  "$observationTimestamp" },
-      month: { $month: "$observationTimestamp" }
-    },
-    totalAnimals: { $sum: "$numAnimals" } }}
-]);
-```
-
-聚合管道語言的表現力與（前述 PostgreSQL 例子的）SQL 子集相當，但是它使用基於 JSON 的語法而不是 SQL 那種接近英文句式的語法；這種差異也許只是口味問題。這個故事的寓意是：NoSQL 系統可能會意外發現自己只是重新發明了一套經過喬裝改扮的 SQL。
-
-
-## 圖資料模型
-
-如我們之前所見，多對多關係是不同資料模型之間具有區別性的重要特徵。如果你的應用程式大多數的關係是一對多關係（樹狀結構化資料），或者大多數記錄之間不存在關係，那麼使用文件模型是合適的。
-
-但是，要是多對多關係在你的資料中很常見呢？關係模型可以處理多對多關係的簡單情況，但是隨著資料之間的連線變得更加複雜，將資料建模為圖形顯得更加自然。
-
-一個圖由兩種物件組成：**頂點**（vertices，也稱為 **節點**，即 nodes，或 **實體**，即 entities），和 **邊**（edges，也稱為 **關係**，即 relationships，或 **弧**，即 arcs）。多種資料可以被建模為一個圖形。典型的例子包括：
-
-* 社交圖譜
-
-  頂點是人，邊指示哪些人彼此認識。
-
-* 網路圖譜
-
-  頂點是網頁，邊緣表示指向其他頁面的 HTML 連結。
-
-* 公路或鐵路網路
-
-  頂點是交叉路口，邊線代表它們之間的道路或鐵路線。
-
-可以將那些眾所周知的演算法運用到這些圖上：例如，汽車導航系統搜尋道路網路中兩點之間的最短路徑，PageRank 可以用在網路圖上來確定網頁的流行程度，從而確定該網頁在搜尋結果中的排名。
-
-在剛剛給出的例子中，圖中的所有頂點代表了相同型別的事物（人、網頁或交叉路口）。不過，圖並不侷限於這樣的同類資料：同樣強大地是，圖提供了一種一致的方式，用來在單個數據儲存中儲存完全不同型別的物件。例如，Facebook 維護一個包含許多不同型別的頂點和邊的單個圖：頂點表示人、地點、事件、簽到和使用者的評論；邊表示哪些人是好友、簽到發生在哪裡、誰評論了什麼帖子、誰參與了什麼事件等等【35】。
-
-在本節中，我們將使用 [圖 2-5](../img/fig2-5.png) 所示的示例。它可以從社交網路或系譜資料庫中獲得：它顯示了兩個人，來自愛達荷州的 Lucy 和來自法國 Beaune 的 Alain。他們已婚，住在倫敦。
-
-![](../img/fig2-5.png)
-
-**圖 2-5 圖資料結構示例（框代表頂點，箭頭代表邊）**
-
-有幾種不同但相關的方法用來構建和查詢圖表中的資料。在本節中，我們將討論屬性圖模型（由 Neo4j，Titan 和 InfiniteGraph 實現）和三元組儲存（triple-store）模型（由 Datomic、AllegroGraph 等實現）。我們將檢視圖的三種宣告式查詢語言：Cypher，SPARQL 和 Datalog。除此之外，還有像 Gremlin 【36】這樣的圖形查詢語言和像 Pregel 這樣的圖形處理框架（見 [第十章](ch10.md)）。
-
-### 屬性圖
-
-在屬性圖模型中，每個頂點（vertex）包括：
-
-* 唯一的識別符號
-* 一組出邊（outgoing edges）
-* 一組入邊（ingoing edges）
-* 一組屬性（鍵值對）
-
-每條邊（edge）包括：
-
-* 唯一識別符號
-* 邊的起點（**尾部頂點**，即 tail vertex）
-* 邊的終點（**頭部頂點**，即 head vertex）
-* 描述兩個頂點之間關係型別的標籤
-* 一組屬性（鍵值對）
-
-可以將圖儲存看作由兩個關係表組成：一個儲存頂點，另一個儲存邊，如 [例 2-2]() 所示（該模式使用 PostgreSQL JSON 資料型別來儲存每個頂點或每條邊的屬性）。頭部和尾部頂點用來儲存每條邊；如果你想要一組頂點的輸入或輸出邊，你可以分別透過 `head_vertex` 或 `tail_vertex` 來查詢 `edges` 表。
-
-**例 2-2 使用關係模式來表示屬性圖**
-
-```sql
-CREATE TABLE vertices (
-  vertex_id  INTEGER PRIMARY KEY,
-  properties JSON
-);
-
-CREATE TABLE edges (
-  edge_id     INTEGER PRIMARY KEY,
-  tail_vertex INTEGER REFERENCES vertices (vertex_id),
-  head_vertex INTEGER REFERENCES vertices (vertex_id),
-  label       TEXT,
-  properties  JSON
-);
-
-CREATE INDEX edges_tails ON edges (tail_vertex);
-CREATE INDEX edges_heads ON edges (head_vertex);
-```
-
-關於這個模型的一些重要方面是：
-
-1. 任何頂點都可以有一條邊連線到任何其他頂點。沒有模式限制哪種事物可不可以關聯。
-2. 給定任何頂點，可以高效地找到它的入邊和出邊，從而遍歷圖，即沿著一系列頂點的路徑前後移動（這就是為什麼 [例 2-2]() 在 `tail_vertex` 和 `head_vertex` 列上都有索引的原因）。
-3. 透過對不同型別的關係使用不同的標籤，可以在一個圖中儲存幾種不同的資訊，同時仍然保持一個清晰的資料模型。
-
-這些特性為資料建模提供了很大的靈活性，如 [圖 2-5](../img/fig2-5.png) 所示。圖中顯示了一些傳統關係模式難以表達的事情，例如不同國家的不同地區結構（法國有省和大區，美國有縣和州），國中國的怪事（先忽略主權國家和民族錯綜複雜的爛攤子），不同的資料粒度（Lucy 現在的住所記錄具體到城市，而她的出生地點只是在一個州的級別）。
-
-你可以想象該圖還能延伸出許多關於 Lucy 和 Alain 的事實，或其他人的其他更多的事實。例如，你可以用它來表示食物過敏（為每個過敏源增加一個頂點，並增加人與過敏源之間的一條邊來指示一種過敏情況），並連結到過敏源，每個過敏源具有一組頂點用來顯示哪些食物含有哪些物質。然後，你可以寫一個查詢，找出每個人吃什麼是安全的。圖在可演化性方面是富有優勢的：當你嚮應用程式新增功能時，可以輕鬆擴充套件圖以適應程式資料結構的變化。
-
-### Cypher 查詢語言
-
-Cypher 是屬性圖的宣告式查詢語言，為 Neo4j 圖形資料庫而發明【37】（它是以電影 “駭客帝國” 中的一個角色來命名的，而與密碼學中的加密演算法無關【38】）。
-
-[例 2-3]() 顯示了將 [圖 2-5](../img/fig2-5.png) 的左邊部分插入圖形資料庫的 Cypher 查詢。你可以以類似的方式把圖的剩餘部分新增進去，但這裡為了文章可閱讀性而省略這部分的示例。每個頂點都有一個像 `USA` 或 `Idaho` 這樣的符號名稱，查詢的其他部分可以使用這些名稱在頂點之間建立邊，使用箭頭符號：`（Idaho） - [：WITHIN] ->（USA）` 建立一條標記為 `WITHIN` 的邊，`Idaho` 為尾節點，`USA` 為頭節點。
-
-**例 2-3 將圖 2-5 中的資料子集表示為 Cypher 查詢**
-
-```cypher
-CREATE
-  (NAmerica:Location {name:'North America', type:'continent'}),
-  (USA:Location      {name:'United States', type:'country'  }),
-  (Idaho:Location    {name:'Idaho',         type:'state'    }),
-  (Lucy:Person       {name:'Lucy' }),
-  (Idaho) -[:WITHIN]->  (USA)  -[:WITHIN]-> (NAmerica),
-  (Lucy)  -[:BORN_IN]-> (Idaho)
-```
-
-當 [圖 2-5](../img/fig2-5.png) 的所有頂點和邊被新增到資料庫後，讓我們提些有趣的問題：例如，找到所有從美國移民到歐洲的人的名字。更確切地說，這裡我們想要找到符合下面條件的所有頂點，並且返回這些頂點的 `name` 屬性：該頂點擁有一條連到美國任一位置的 `BORN_IN` 邊，和一條連到歐洲的任一位置的 `LIVING_IN` 邊。
-
-[例 2-4]() 展示瞭如何在 Cypher 中表達這個查詢。在 MATCH 子句中使用相同的箭頭符號來查詢圖中的模式：`(person) -[:BORN_IN]-> ()` 可以匹配 `BORN_IN` 邊的任意兩個頂點。該邊的尾節點被綁定了變數 `person`，頭節點則未被繫結。
-
-**例 2-4 查詢所有從美國移民到歐洲的人的 Cypher 查詢：**
-
-```cypher
-MATCH
-  (person) -[:BORN_IN]->  () -[:WITHIN*0..]-> (us:Location {name:'United States'}),
-  (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (eu:Location {name:'Europe'})
-RETURN person.name
-```
-
-查詢按如下來解讀：
-
-> 找到滿足以下兩個條件的所有頂點（稱之為 person 頂點）：
-> 1.  `person` 頂點擁有一條到某個頂點的 `BORN_IN` 出邊。從那個頂點開始，沿著一系列 `WITHIN` 出邊最終到達一個型別為 `Location`，`name` 屬性為 `United States` 的頂點。
->
-> 2. `person` 頂點還擁有一條 `LIVES_IN` 出邊。沿著這條邊，可以透過一系列 `WITHIN` 出邊最終到達一個型別為 `Location`，`name` 屬性為 `Europe` 的頂點。
->
-> 對於這樣的 `Person` 頂點，返回其 `name` 屬性。
-
-執行這條查詢可能會有幾種可行的查詢路徑。這裡給出的描述建議首先掃描資料庫中的所有人，檢查每個人的出生地和居住地，然後只返回符合條件的那些人。
-
-等價地，也可以從兩個 `Location` 頂點開始反向地查詢。假如 `name` 屬性上有索引，則可以高效地找到代表美國和歐洲的兩個頂點。然後，沿著所有 `WITHIN` 入邊，可以繼續查找出所有在美國和歐洲的位置（州、地區、城市等）。最後，查找出那些可以由 `BORN_IN` 或 `LIVES_IN` 入邊到那些位置頂點的人。
-
-通常對於宣告式查詢語言來說，在編寫查詢語句時，不需要指定執行細節：查詢最佳化程式會自動選擇預測效率最高的策略，因此你可以專注於編寫應用程式的其他部分。
-
-### SQL 中的圖查詢
-
-[例 2-2]() 指出，可以在關係資料庫中表示圖資料。但是，如果圖資料已經以關係結構儲存，我們是否也可以使用 SQL 查詢它？
-
-答案是肯定的，但有些困難。在關係資料庫中，你通常會事先知道在查詢中需要哪些連線。在圖查詢中，你可能需要在找到待查詢的頂點之前，遍歷可變數量的邊。也就是說，連線的數量事先並不確定。
-
-在我們的例子中，這發生在 Cypher 查詢中的 `() -[:WITHIN*0..]-> ()` 規則中。一個人的 `LIVES_IN` 邊可以指向任何型別的位置：街道、城市、地區、國家等。一個城市可以在（WITHIN）一個地區內，一個地區可以在（WITHIN）在一個州內，一個州可以在（WITHIN）一個國家內，等等。`LIVES_IN` 邊可以直接指向正在查詢的位置，或者一個在位置層次結構中隔了數層的位置。
-
-在 Cypher 中，用 `WITHIN*0..` 非常簡潔地表述了上述事實：“沿著 `WITHIN` 邊，零次或多次”。它很像正則表示式中的 `*` 運算子。
-
-自 SQL:1999，查詢可變長度遍歷路徑的思想可以使用稱為 **遞迴公用表表達式**（`WITH RECURSIVE` 語法）的東西來表示。[例 2-5]() 顯示了同樣的查詢 - 查詢從美國移民到歐洲的人的姓名 - 在 SQL 使用這種技術（PostgreSQL、IBM DB2、Oracle 和 SQL Server 均支援）來表述。但是，與 Cypher 相比，其語法非常笨拙。
-
-**例 2-5  與示例 2-4 同樣的查詢，在 SQL 中使用遞迴公用表表達式表示**
-
-```sql
-WITH RECURSIVE
-  -- in_usa 包含所有的美國境內的位置 ID
-    in_usa(vertex_id) AS (
-    SELECT vertex_id FROM vertices WHERE properties ->> 'name' = 'United States'
-    UNION
-    SELECT edges.tail_vertex FROM edges
-      JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
-      WHERE edges.label = 'within'
-  ),
-  -- in_europe 包含所有的歐洲境內的位置 ID
-    in_europe(vertex_id) AS (
-    SELECT vertex_id FROM vertices WHERE properties ->> 'name' = 'Europe'
-    UNION
-    SELECT edges.tail_vertex FROM edges
-      JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
-      WHERE edges.label = 'within' ),
-
-  -- born_in_usa 包含了所有型別為 Person，且出生在美國的頂點
-    born_in_usa(vertex_id) AS (
-      SELECT edges.tail_vertex FROM edges
-        JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
-        WHERE edges.label = 'born_in' ),
-
-  -- lives_in_europe 包含了所有型別為 Person，且居住在歐洲的頂點。
-    lives_in_europe(vertex_id) AS (
-      SELECT edges.tail_vertex FROM edges
-        JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
-        WHERE edges.label = 'lives_in')
-
-  SELECT vertices.properties ->> 'name'
-  FROM vertices
-    JOIN born_in_usa ON vertices.vertex_id = born_in_usa.vertex_id
-    JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
-```
-
-* 首先，查詢 `name` 屬性為 `United States` 的頂點，將其作為 `in_usa` 頂點的集合的第一個元素。
-* 從 `in_usa` 集合的頂點出發，沿著所有的 `with_in` 入邊，將其尾頂點加入同一集合，不斷遞迴直到所有 `with_in` 入邊都被訪問完畢。
-* 同理，從 `name` 屬性為 `Europe` 的頂點出發，建立 `in_europe` 頂點的集合。
-* 對於 `in_usa` 集合中的每個頂點，根據 `born_in` 入邊來查找出生在美國某個地方的人。
-* 同樣，對於 `in_europe` 集合中的每個頂點，根據 `lives_in` 入邊來查詢居住在歐洲的人。
-* 最後，把在美國出生的人的集合與在歐洲居住的人的集合相交。
-
-同一個查詢，用某一個查詢語言可以寫成 4 行，而用另一個查詢語言需要 29 行，這恰恰說明了不同的資料模型是為不同的應用場景而設計的。選擇適合應用程式的資料模型非常重要。
-
-### 三元組儲存和 SPARQL
-
-三元組儲存模式大體上與屬性圖模型相同，用不同的詞來描述相同的想法。不過仍然值得討論，因為三元組儲存有很多現成的工具和語言，這些工具和語言對於構建應用程式的工具箱可能是寶貴的補充。
-
-在三元組儲存中，所有資訊都以非常簡單的三部分表示形式儲存（**主語**，**謂語**，**賓語**）。例如，三元組 **(吉姆, 喜歡, 香蕉)** 中，**吉姆** 是主語，**喜歡** 是謂語（動詞），**香蕉** 是物件。
-
-三元組的主語相當於圖中的一個頂點。而賓語是下面兩者之一：
-
-1. 原始資料型別中的值，例如字串或數字。在這種情況下，三元組的謂語和賓語相當於主語頂點上的屬性的鍵和值。例如，`(lucy, age, 33)` 就像屬性 `{“age”：33}` 的頂點 lucy。
-2. 圖中的另一個頂點。在這種情況下，謂語是圖中的一條邊，主語是其尾部頂點，而賓語是其頭部頂點。例如，在 `(lucy, marriedTo, alain)` 中主語和賓語 `lucy` 和 `alain` 都是頂點，並且謂語 `marriedTo` 是連線他們的邊的標籤。
-
-[例 2-6]() 展示了與 [例 2-3]() 相同的資料，以稱為 Turtle 的格式（Notation3（N3）【39】的一個子集）寫成三元組。
-
-**例 2-6 圖 2-5 中的資料子集，表示為 Turtle 三元組**
-
-```reStructuredText
-@prefix : <urn:example:>.
-_:lucy     a       :Person.
-_:lucy     :name   "Lucy".
-_:lucy     :bornIn _:idaho.
-_:idaho    a       :Location.
-_:idaho    :name   "Idaho".
-_:idaho    :type   "state".
-_:idaho    :within _:usa.
-_:usa      a       :Location
-_:usa      :name   "United States"
-_:usa      :type   "country".
-_:usa      :within _:namerica.
-_:namerica a       :Location
-_:namerica :name   "North America"
-_:namerica :type   :"continent"
-```
-
-在這個例子中，圖的頂點被寫為：`_：someName`。這個名字並不意味著這個檔案以外的任何東西。它的存在只是幫助我們明確哪些三元組引用了同一頂點。當謂語表示邊時，該賓語是一個頂點，如 `_:idaho :within _:usa.`。當謂語是一個屬性時，該賓語是一個字串，如 `_:usa :name"United States"`
-
-一遍又一遍地重複相同的主語看起來相當重複，但幸運的是，可以使用分號來說明關於同一主語的多個事情。這使得 Turtle 格式相當不錯，可讀性強：請參閱 [例 2-7]()。
-
-**例 2-7 一種相對例 2-6 寫入資料的更為簡潔的方法。**
+Let’s say the main read operation that our social network must support is the *home timeline*, which displays recent posts by people you are following (for simplicity we will ignore ads, suggested posts from people you are not following, and other extensions). We could write the following SQL query to get the home timeline for a particular user:
 
 ```
-@prefix : <urn:example:>.
-_:lucy      a :Person;   :name "Lucy";          :bornIn _:idaho.
-_:idaho     a :Location; :name "Idaho";         :type "state";   :within _:usa
-_:usa       a :Loaction; :name "United States"; :type "country"; :within _:namerica.
-_:namerica  a :Location; :name "North America"; :type "continent".
+SELECT posts.*, users.* FROM posts
+  JOIN follows ON posts.sender_id = follows.followee_id
+  JOIN users   ON posts.sender_id = users.id
+  WHERE follows.follower_id = current_user
+  ORDER BY posts.timestamp DESC
+  LIMIT 1000
 ```
 
-#### 語義網
+To execute this query, the database will use the `follows` table to find everybody who `current_user` is following, look up recent posts by those users, and sort them by timestamp to get the most recent 1,000 posts by any of the followed users.
 
-如果你深入瞭解關於三元組儲存的資訊，可能會陷入關於**語義網**的討論漩渦中。三元組儲存模型其實是完全獨立於語義網存在的，例如，Datomic【40】作為一種三元組儲存資料庫 [^vii]，從未被用於語義網中。但是，由於在很多人眼中這兩者緊密相連，我們應該簡要地討論一下。
+Posts are supposed to be timely, so let’s assume that after somebody makes a post, we want their followers to be able to see it within 5 seconds. One way of doing that would be for the user’s client to repeat the query above every 5 seconds while the user is online (this is known as *polling*). If we assume that 10 million users are online and logged in at the same time, that would mean running the query 2 million times per second. Even if you increase the polling interval, this is a lot.
 
-[^vii]: 從技術上講，Datomic 使用的是五元組而不是三元組，兩個額外的欄位是用於版本控制的元資料
+Moreover, the query above is quite expensive: if you are following 200 people, it needs to fetch a list of recent posts by each of those 200 people, and merge those lists. 2 million timeline queries per second then means that the database needs to look up the recent posts from some sender 400 million times per second—a huge number. And that is the average case. Some users follow tens of thousands of accounts; for them, this query is very expensive to execute, and difficult to make fast.
 
-從本質上講，語義網是一個簡單且合理的想法：網站已經將資訊釋出為文字和圖片供人類閱讀，為什麼不將資訊作為機器可讀的資料也釋出給計算機呢？（基於三元組模型的）**資源描述框架**（**RDF**）【41】，被用作不同網站以統一的格式釋出資料的一種機制，允許來自不同網站的資料自動合併成 **一個數據網路** —— 成為一種網際網路範圍內的 “通用語義網資料庫”。
+### Materializing and Updating Timelines
 
-不幸的是，語義網在二十一世紀初被過度炒作，但到目前為止沒有任何跡象表明已在實踐中應用，這使得許多人嗤之以鼻。它還飽受眼花繚亂的縮略詞、過於複雜的標準提案和狂妄自大的困擾。
+How can we do better? Firstly, instead of polling, it would be better if the server actively pushed new posts to any followers who are currently online. Secondly, we should precompute the results of the query above so that a user’s request for their home timeline can be served from a cache.
 
-然而，如果從過去的失敗中汲取教訓，語義網專案還是擁有很多優秀的成果。即使你沒有興趣在語義網上釋出 RDF 資料，三元組這種模型也是一種好的應用程式內部資料模型。
+Imagine that for each user we store a data structure containing their home timeline, i.e., the recent posts by people they are following. Every time a user makes a post, we look up all of their followers, and insert that post into the home timeline of each follower—like delivering a message to a mailbox. Now when a user logs in, we can simply give them this home timeline that we precomputed. Moreover, to receive a notification about any new posts on their timeline, the user’s client simply needs to subscribe to the stream of posts being added to their home timeline.
 
-#### RDF 資料模型
+The downside of this approach is that we now need to do more work every time a user makes a post, because the home timelines are derived data that needs to be updated. The process is illustrated in [Figure 2-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_twitter_timelines). When one initial request results in several downstream requests being carried out, we use the term *fan-out* to describe the factor by which the number of requests increases.
 
-[例 2-7]() 中使用的 Turtle 語言是一種用於 RDF 資料的人類可讀格式。有時候，RDF 也可以以 XML 格式編寫，不過完成同樣的事情會相對囉嗦，請參閱 [例 2-8]()。Turtle/N3 是更可取的，因為它更容易閱讀，像 Apache Jena 【42】這樣的工具可以根據需要在不同的 RDF 格式之間進行自動轉換。
+![ddia 0103](../img/ddia_0103.png)
 
-**例 2-8 用 RDF/XML 語法表示例 2-7 的資料**
+###### Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post.
 
-```xml
-<rdf:RDF xmlns="urn:example:"
-         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-    <Location rdf:nodeID="idaho">
-        <name>Idaho</name>
-        <type>state</type>
-        <within>
-            <Location rdf:nodeID="usa">
-                <name>United States</name>
-                <type>country</type>
-                <within>
-                    <Location rdf:nodeID="namerica">
-                        <name>North America</name>
-                        <type>continent</type>
-                    </Location>
-                </within>
-            </Location>
-        </within>
-    </Location>
-    <Person rdf:nodeID="lucy">
-        <name>Lucy</name>
-        <bornIn rdf:nodeID="idaho"/>
-    </Person>
-</rdf:RDF>
-```
+At a rate of 5,700 posts posted per second, if the average post reaches 200 followers (i.e., a fan-out factor of 200), we will need to do just over 1 million home timeline writes per second. This is a lot, but it’s still a significant saving compared to the 400 million per-sender post lookups per second that we would otherwise have to do.
 
-RDF 有一些奇怪之處，因為它是為了在網際網路上交換資料而設計的。三元組的主語，謂語和賓語通常是 URI。例如，謂語可能是一個 URI，如 `<http://my-company.com/namespace#within>` 或 `<http://my-company.com/namespace#lives_in>`，而不僅僅是 `WITHIN` 或 `LIVES_IN`。這個設計背後的原因為了讓你能夠把你的資料和其他人的資料結合起來，如果他們賦予單詞 `within` 或者 `lives_in` 不同的含義，兩者也不會衝突，因為它們的謂語實際上是 `<http://other.org/foo#within>` 和 `<http://other.org/foo#lives_in>`。
+If the rate of posts spikes due to some special event, we don’t have to do the timeline deliveries immediately—we can enqueue them and accept that it will temporarily take a bit longer for posts to show up in followers’ timelines. Even during such load spikes, timelines remain fast to load, since we simply serve them from a cache.
 
-從 RDF 的角度來看，URL `<http://my-company.com/namespace>` 不一定需要能解析成什麼東西，它只是一個名稱空間。為避免與 `http://URL` 混淆，本節中的示例使用不可解析的 URI，如 `urn：example：within`。幸運的是，你只需在檔案頂部對這個字首做一次宣告，後續就不用再管了。
+This process of precomputing and updating the results of a query is called *materialization*, and the timeline cache is an example of a *materialized view* (a concept we will discuss further in [Link to Come]). The downside of materialization is that every time a celebrity makes a post, we now have to do a large amount of work to insert that post into the home timelines of each of their millions of followers.
 
-### SPARQL 查詢語言
+One way of solving this problem is to handle celebrity posts separately from everyone else’s posts: we can save ourselves the effort of adding them to millions of timelines by storing the celebrity posts separately and merging them with the materialized timeline when it is read. Despite such optimizations, handling celebrities on a social network can require a lot of infrastructure [[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Axon2010_ch2)].
 
-**SPARQL** 是一種用於三元組儲存的面向 RDF 資料模型的查詢語言【43】（它是 SPARQL 協議和 RDF 查詢語言的縮寫，發音為 “sparkle”）。SPARQL 早於 Cypher，並且由於 Cypher 的模式匹配借鑑於 SPARQL，這使得它們看起來非常相似【37】。
 
-與之前相同的查詢 —— 查詢從美國移民到歐洲的人 —— 使用 SPARQL 比使用 Cypher 甚至更為簡潔（請參閱 [例 2-9]()）。
 
-**例 2-9 與示例 2-4 相同的查詢，用 SPARQL 表示**
 
-```sparql
-PREFIX : <urn:example:>
-SELECT ?personName WHERE {
-  ?person :name ?personName.
-  ?person :bornIn  / :within* / :name "United States".
-  ?person :livesIn / :within* / :name "Europe".
-}
-```
 
-結構非常相似。以下兩個表示式是等價的（SPARQL 中的變數以問號開頭）：
 
-```
-(person) -[:BORN_IN]-> () -[:WITHIN*0..]-> (location)   # Cypher
-?person :bornIn / :within* ?location.                   # SPARQL
-```
 
-因為 RDF 不區分屬性和邊，而只是將它們作為謂語，所以可以使用相同的語法來匹配屬性。在下面的表示式中，變數 `usa` 被繫結到任意 `name` 屬性為字串值 `"United States"` 的頂點：
 
-```
-(usa {name:'United States'})   # Cypher
-?usa :name "United States".    # SPARQL
-```
 
-SPARQL 是一種很好的查詢語言 —— 儘管它構想的語義網從未實現，但它仍然是一種可用於應用程式內部的強大工具。
+--------
 
-> #### 圖形資料庫與網狀模型相比較
->
-> 在 “[文件資料庫是否在重蹈覆轍？](#文件資料庫是否在重蹈覆轍？)” 中，我們討論了 CODASYL 和關係模型如何競相解決 IMS 中的多對多關係問題。乍一看，CODASYL 的網狀模型看起來與圖模型相似。CODASYL 是否是圖形資料庫的第二個變種？
->
-> 不，他們在幾個重要方面有所不同：
->
-> * 在 CODASYL 中，資料庫有一個模式，用於指定哪種記錄型別可以巢狀在其他記錄型別中。在圖形資料庫中，不存在這樣的限制：任何頂點都可以具有到其他任何頂點的邊。這為應用程式適應不斷變化的需求提供了更大的靈活性。
-> * 在 CODASYL 中，達到特定記錄的唯一方法是遍歷其中的一個訪問路徑。在圖形資料庫中，可以透過其唯一 ID 直接引用任何頂點，也可以使用索引來查詢具有特定值的頂點。
-> * 在 CODASYL 中，記錄的子專案是一個有序集合，所以資料庫必須去管理它們的次序（這會影響儲存佈局），並且應用程式在插入新記錄到資料庫時必須關注新記錄在這些集合中的位置。在圖形資料庫中，頂點和邊是無序的（只能在查詢時對結果進行排序）。
-> * 在 CODASYL 中，所有查詢都是命令式的，難以編寫，並且很容易因架構變化而受到破壞。在圖形資料庫中，你可以在命令式程式碼中手寫遍歷過程，但大多數圖形資料庫都支援高階宣告式查詢，如 Cypher 或 SPARQL。
->
->
+## 描述效能
 
-### 基礎：Datalog
+Most discussions of software performance consider two main types of metric:
 
-**Datalog** 是比 SPARQL、Cypher 更古老的語言，在 20 世紀 80 年代被學者廣泛研究【44,45,46】。它在軟體工程師中不太知名，但是它是重要的，因為它為以後的查詢語言提供了基礎。
+- Response time
 
-實踐中，Datalog 在有限的幾個資料系統中使用：例如，它是 Datomic 【40】的查詢語言，Cascalog 【47】是一種用於查詢 Hadoop 大資料集的 Datalog 實現 [^viii]。
+  The elapsed time from the moment when a user makes a request until they receive the requested answer. The unit of measurement is seconds.
 
-[^viii]: Datomic 和 Cascalog 使用 Datalog 的 Clojure S 表示式語法。在下面的例子中使用了一個更容易閱讀的 Prolog 語法，但兩者沒有任何功能差異。
+- Throughput
 
-Datalog 的資料模型類似於三元組模式，但進行了一點泛化。把三元組寫成 **謂語**（**主語，賓語**），而不是寫三元語（**主語，謂語，賓語**）。[例 2-10]() 顯示瞭如何用 Datalog 寫入我們的例子中的資料。
+  The number of requests per second, or the data volume per second, that the system is processing. For a given a particular allocation of hardware resources, there is a *maximum throughput* that can be handled. The unit of measurement is “somethings per second”.
 
-**例 2-10 用 Datalog 來表示圖 2-5 中的資料子集**
+In the social network case study, “posts per second” and “timeline writes per second” are throughput metrics, whereas the “time it takes to load the home timeline” or the “time until a post is delivered to followers” are response time metrics.
 
-```prolog
-name(namerica, 'North America').
-type(namerica, continent).
+There is often a connection between throughput and response time; an example of such a relationship for an online service is sketched in [Figure 2-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_throughput). The service has a low response time when request throughput is low, but response time increases as load increases. This is because of *queueing*: when a request arrives on a highly loaded system, it’s likely that the CPU is already in the process of handling an earlier request, and therefore the incoming request needs to wait until the earlier request has been completed. As throughput approaches the maximum that the hardware can handle, queueing delays increase sharply.
 
-name(usa, 'United States').
-type(usa, country).
-within(usa, namerica).
+![ddia 0104b](../img/ddia_0104b.png)
 
-name(idaho, 'Idaho').
-type(idaho, state).
-within(idaho, usa).
+###### Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing.
 
-name(lucy, 'Lucy').
-born_in(lucy, idaho).
-```
+#### When an overloaded system won’t recover
 
-既然已經定義了資料，我們可以像之前一樣編寫相同的查詢，如 [例 2-11]() 所示。它看起來與 Cypher 或 SPARQL 的語法差異較大，但請不要抗拒它。Datalog 是 Prolog 的一個子集，如果你是計算機科學專業的學生，可能已經見過 Prolog。
+If a system is close to overload, with throughput pushed close to the limit, it can sometimes enter a vicious cycle where it becomes less efficient and hence even more overloaded. For example, if there is a long queue of requests waiting to be handled, response times may increase so much that clients time out and resend their request. This causes the rate of requests to increase even further, making the problem worse—a *retry storm*. Even when the load is reduced again, such a system may remain in an overloaded state until it is rebooted or otherwise reset. This phenomenon is called a *metastable failure*, and it can cause serious outages in production systems [[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bronson2021), [7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2021)].
 
-**例 2-11 與示例 2-4 相同的查詢，用 Datalog 表示**
+To avoid retries overloading a service, you can increase and randomize the time between successive retries on the client side (*exponential backoff* [[8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2015), [9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2022backoff)]), and temporarily stop sending requests to a service that has returned errors or timed out recently (using a *circuit breaker* [[10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Nygard2018)] or *token bucket* algorithm [[11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2022retries)]). The server can also detect when it is approaching overload and start proactively rejecting requests (*load shedding* [[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#YanacekLoadShedding)]), and send back responses asking clients to slow down (*backpressure* [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016), [13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Sackman2016_ch2)]). The choice of queueing and load-balancing algorithms can also make a difference [[14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kopytkov2018)].
 
-```
-within_recursive(Location, Name) :- name(Location, Name). /* Rule 1 */
+In terms of performance metrics, the response time is usually what users care about the most, whereas the throughput determines the required computing resources (e.g., how many servers you need), and hence the cost of serving a particular workload. If throughput is likely to increase beyond what the current hardware can handle, the capacity needs to be expanded; a system is said to be *scalable* if its maximum throughput can be significantly increased by adding computing resources.
 
-within_recursive(Location, Name) :- within(Location, Via), /* Rule 2 */
-                  within_recursive(Via, Name).
+In this section we will focus primarily on response times, and we will return to throughput and scalability in [“Scalability”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_scalability).
 
-migrated(Name, BornIn, LivingIn) :- name(Person, Name), /* Rule 3 */
-                                    born_in(Person, BornLoc),
-                                    within_recursive(BornLoc, BornIn),
-                                    lives_in(Person, LivingLoc),
-                                    within_recursive(LivingLoc, LivingIn).
+### 延遲與響應時間
 
-?- migrated(Who, 'United States', 'Europe'). /* Who = 'Lucy'. */
-```
+“Latency” and “response time” are sometimes used interchangeably, but in this book we will use the terms in a specific way (illustrated in [Figure 2-4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_response_time)):
 
-Cypher 和 SPARQL 使用 SELECT 立即跳轉，但是 Datalog 一次只進行一小步。我們定義 **規則**，以將新謂語告訴資料庫：在這裡，我們定義了兩個新的謂語，`within_recursive` 和 `migrated`。這些謂語不是儲存在資料庫中的三元組中，而是從資料或其他規則派生而來的。規則可以引用其他規則，就像函式可以呼叫其他函式或者遞迴地呼叫自己一樣。像這樣，複雜的查詢可以藉由小的磚瓦構建起來。
+- The *response time* is what the client sees; it includes all delays incurred anywhere in the system.
+- The *service time* is the duration for which the service is actively processing the user request.
+- *Queueing delays* can occur at several points in the flow: for example, after a request is received, it might need to wait until a CPU is available before it can be processed; a response packet might need to be buffered before it is sent over the network if other tasks on the same machine are sending a lot of data via the outbound network interface.
+- *Latency* is a catch-all term for time during which a request is not being actively processed, i.e., during which it is *latent*. In particular, *network latency* or *network delay* refers to the time that request and response spend traveling through the network.
 
-在規則中，以大寫字母開頭的單詞是變數，謂語則用 Cypher 和 SPARQL 的方式一樣來匹配。例如，`name(Location, Name)` 透過變數繫結 `Location = namerica` 和 `Name ='North America'` 可以匹配三元組 `name(namerica, 'North America')`。
+![ddia 0104a](../img/ddia_0104a.png)
 
-要是系統可以在 `:-` 運算子的右側找到與所有謂語的一個匹配，就運用該規則。當規則運用時，就好像透過 `:-` 的左側將其新增到資料庫（將變數替換成它們匹配的值）。
+###### Figure 2-4. Response time, service time, network latency, and queueing delay.
 
-因此，一種可能的應用規則的方式是：
+The response time can vary significantly from one request to the next, even if you keep making the same request over and over again. Many factors can add random delays: for example, a context switch to a background process, the loss of a network packet and TCP retransmission, a garbage collection pause, a page fault forcing a read from disk, mechanical vibrations in the server rack [[15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gunawi2018)], or many other causes. We will discuss this topic in more detail in [Link to Come].
 
-1. 資料庫存在 `name (namerica, 'North America')`，故運用規則 1。它生成 `within_recursive (namerica, 'North America')`。
-2. 資料庫存在 `within (usa, namerica)`，在上一步驟中生成 `within_recursive (namerica, 'North America')`，故運用規則 2。它會產生 `within_recursive (usa, 'North America')`。
-3. 資料庫存在 `within (idaho, usa)`，在上一步生成 `within_recursive (usa, 'North America')`，故運用規則 2。它產生 `within_recursive (idaho, 'North America')`。
+Queueing delays often account for a large part of the variability in response times. As a server can only process a small number of things in parallel (limited, for example, by its number of CPU cores), it only takes a small number of slow requests to hold up the processing of subsequent requests—an effect known as *head-of-line blocking*. Even if those subsequent requests have fast service times, the client will see a slow overall response time due to the time waiting for the prior request to complete. The queueing delay is not part of the service time, and for this reason it is important to measure response times on the client side.
 
-透過重複應用規則 1 和 2，`within_recursive` 謂語可以告訴我們在資料庫中包含北美（或任何其他位置名稱）的所有位置。這個過程如 [圖 2-6](../img/fig2-6.png) 所示。
+### 平均數，中位數與百分位點
 
-![](../img/fig2-6.png)
+Because the response time varies from one request to the next, we need to think of it not as a single number, but as a *distribution* of values that you can measure. In [Figure 2-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_lognormal), each gray bar represents a request to a service, and its height shows how long that request took. Most requests are reasonably fast, but there are occasional *outliers* that take much longer. Variation in network delay is also known as *jitter*.
 
-**圖 2-6 使用示例 2-11 中的 Datalog 規則來確定愛達荷州在北美。**
+![ddia 0104](../img/ddia_0104.png)
 
-現在規則 3 可以找到出生在某個地方 `BornIn` 的人，並住在某個地方 `LivingIn`。透過查詢 `BornIn ='United States'` 和 `LivingIn ='Europe'`，並將此人作為變數 `Who`，讓 Datalog 系統找出變數 `Who` 會出現哪些值。因此，最後得到了與早先的 Cypher 和 SPARQL 查詢相同的答案。
+###### Figure 2-5. Illustrating mean and percentiles: response times for a sample of 100 requests to a service.
 
-相對於本章討論的其他查詢語言，我們需要採取不同的思維方式來思考 Datalog 方法，但這是一種非常強大的方法，因為規則可以在不同的查詢中進行組合和重用。雖然對於簡單的一次性查詢，顯得不太方便，但是它可以更好地處理資料很複雜的情況。
+It’s common to report the *average* response time of a service (technically, the *arithmetic mean*: that is, sum all the response times, and divide by the number of requests). However, the mean is not a very good metric if you want to know your “typical” response time, because it doesn’t tell you how many users actually experienced that delay.
 
+Usually it is better to use *percentiles*. If you take your list of response times and sort it from fastest to slowest, then the *median* is the halfway point: for example, if your median response time is 200 ms, that means half your requests return in less than 200 ms, and half your requests take longer than that. This makes the median a good metric if you want to know how long users typically have to wait. The median is also known as the *50th percentile*, and sometimes abbreviated as *p50*.
+
+In order to figure out how bad your outliers are, you can look at higher percentiles: the *95th*, *99th*, and *99.9th* percentiles are common (abbreviated *p95*, *p99*, and *p999*). They are the response time thresholds at which 95%, 99%, or 99.9% of requests are faster than that particular threshold. For example, if the 95th percentile response time is 1.5 seconds, that means 95 out of 100 requests take less than 1.5 seconds, and 5 out of 100 requests take 1.5 seconds or more. This is illustrated in [Figure 2-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_lognormal).
+
+High percentiles of response times, also known as *tail latencies*, are important because they directly affect users’ experience of the service. For example, Amazon describes response time requirements for internal services in terms of the 99.9th percentile, even though it only affects 1 in 1,000 requests. This is because the customers with the slowest requests are often those who have the most data on their accounts because they have made many purchases—that is, they’re the most valuable customers [[16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#DeCandia2007_ch1)]. It’s important to keep those customers happy by ensuring the website is fast for them.
+
+On the other hand, optimizing the 99.99th percentile (the slowest 1 in 10,000 requests) was deemed too expensive and to not yield enough benefit for Amazon’s purposes. Reducing response times at very high percentiles is difficult because they are easily affected by random events outside of your control, and the benefits are diminishing.
+
+### The user impact of response times
+
+It seems intuitively obvious that a fast service is better for users than a slow service [[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Whitenton2020)]. However, it is surprisingly difficult to get hold of reliable data to quantify the effect that latency has on user behavior.
+
+Some often-cited statistics are unreliable. In 2006 Google reported that a slowdown in search results from 400 ms to 900 ms was associated with a 20% drop in traffic and revenue [[18](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Linden2006)]. However, another Google study from 2009 reported that a 400 ms increase in latency resulted in only 0.6% fewer searches per day [[19](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brutlag2009)], and in the same year Bing found that a two-second increase in load time reduced ad revenue by 4.3% [[20](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schurman2009)]. Newer data from these companies appears not to be publicly available.
+
+A more recent Akamai study [[21](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Akamai2017)] claims that a 100 ms increase in response time reduced the conversion rate of e-commerce sites by up to 7%; however, on closer inspection, the same study reveals that very *fast* page load times are also correlated with lower conversion rates! This seemingly paradoxical result is explained by the fact that the pages that load fastest are often those that have no useful content (e.g., 404 error pages). However, since the study makes no effort to separate the effects of page content from the effects of load time, its results are probably not meaningful.
+
+A study by Yahoo [[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bai2017)] compares click-through rates on fast-loading versus slow-loading search results, controlling for quality of search results. It finds 20–30% more clicks on fast searches when the difference between fast and slow responses is 1.25 seconds or more.
+
+#### 使用響應時間指標
+
+High percentiles are especially important in backend services that are called multiple times as part of serving a single end-user request. Even if you make the calls in parallel, the end-user request still needs to wait for the slowest of the parallel calls to complete. It takes just one slow call to make the entire end-user request slow, as illustrated in [Figure 2-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#fig_tail_amplification). Even if only a small percentage of backend calls are slow, the chance of getting a slow call increases if an end-user request requires multiple backend calls, and so a higher proportion of end-user requests end up being slow (an effect known as *tail latency amplification* [[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dean2013)]).
+
+![ddia 0105](../img/ddia_0105.png)
+
+###### Figure 2-6. When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request.
+
+Percentiles are often used in *service level objectives* (SLOs) and *service level agreements* (SLAs) as ways of defining the expected performance and availability of a service [[24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hidalgo2020)]. For example, an SLO may set a target for a service to have a median response time of less than 200 ms and a 99th percentile under 1 s, and a target that at least 99.9% of valid requests result in non-error responses. An SLA is a contract that specifies what happens if the SLO is not met (for example, customers may be entitled to a refund). That is the basic idea, at least; in practice, defining good availability metrics for SLOs and SLAs is not straightforward [[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Mogul2019), [26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hauer2020)].
+
+#### 計算百分位點
+
+If you want to add response time percentiles to the monitoring dashboards for your services, you need to efficiently calculate them on an ongoing basis. For example, you may want to keep a rolling window of response times of requests in the last 10 minutes. Every minute, you calculate the median and various percentiles over the values in that window and plot those metrics on a graph.
+
+The simplest implementation is to keep a list of response times for all requests within the time window and to sort that list every minute. If that is too inefficient for you, there are algorithms that can calculate a good approximation of percentiles at minimal CPU and memory cost. Open source percentile estimation libraries include HdrHistogram, t-digest [[27](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dunning2021), [28](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kohn2021)], OpenHistogram [[29](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hartmann2020)], and DDSketch [[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Masson2019)].
+
+Beware that averaging percentiles, e.g., to reduce the time resolution or to combine data from several machines, is mathematically meaningless—the right way of aggregating response time data is to add the histograms [[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schwartz2015)].
+
+
+
+--------
+
+## 可靠性與容錯
+
+Everybody has an intuitive idea of what it means for something to be reliable or unreliable. For software, typical expectations include:
+
+- The application performs the function that the user expected.
+- It can tolerate the user making mistakes or using the software in unexpected ways.
+- Its performance is good enough for the required use case, under the expected load and data volume.
+- The system prevents any unauthorized access and abuse.
+
+If all those things together mean “working correctly,” then we can understand *reliability* as meaning, roughly, “continuing to work correctly, even when things go wrong.” To be more precise about things going wrong, we will distinguish between *faults* and *failures* [[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Heimerdinger1992), [33](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gaertner1999)]:
+
+- Fault
+
+  A fault is when a particular *part* of a system stops working correctly: for example, if a single hard drive malfunctions, or a single machine crashes, or an external service (that the system depends on) has an outage.
+
+- Failure
+
+  A failure is when the system *as a whole* stops providing the required service to the user; in other words, when it does not meet the service level objective (SLO).
+
+The distinction between fault and failure can be confusing because they are the same thing, just at different levels. For example, if a hard drive stops working, we say that the hard drive has failed: if the system consists only of that one hard drive, it has stopped providing the required service. However, if the system you’re talking about contains many hard drives, then the failure of a single hard drive is only a fault from the point of view of the bigger system, and the bigger system might be able to tolerate that fault by having a copy of the data on another hard drive.
+
+### 容災
+
+We call a system *fault-tolerant* if it continues providing the required service to the user in spite of certain faults occurring. If a system cannot tolerate a certain part becoming faulty, we call that part a *single point of failure* (SPOF), because a fault in that part escalates to cause the failure of the whole system.
+
+For example, in the social network case study, a fault that might happen is that during the fan-out process, a machine involved in updating the materialized timelines crashes or become unavailable. To make this process fault-tolerant, we would need to ensure that another machine can take over this task without missing any posts that should have been delivered, and without duplicating any posts. (This idea is known as *exactly-once semantics*, and we will examine it in detail in [Link to Come].)
+
+Fault tolerance is always limited to a certain number of certain types of faults. For example, a system might be able to tolerate a maximum of two hard drives failing at the same time, or a maximum of one out of three nodes crashing. It would not make sense to tolerate any number of faults: if all nodes crash, there is nothing that can be done. If the entire planet Earth (and all servers on it) were swallowed by a black hole, tolerance of that fault would require web hosting in space—good luck getting that budget item approved.
+
+Counter-intuitively, in such fault-tolerant systems, it can make sense to *increase* the rate of faults by triggering them deliberately—for example, by randomly killing individual processes without warning. Many critical bugs are actually due to poor error handling [[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Yuan2014)]; by deliberately inducing faults, you ensure that the fault-tolerance machinery is continually exercised and tested, which can increase your confidence that faults will be handled correctly when they occur naturally. *Chaos engineering* is a discipline that aims to improve confidence in fault-tolerance mechanisms through experiments such as deliberately injecting faults [[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Rosenthal2020)].
+
+Although we generally prefer tolerating faults over preventing faults, there are cases where prevention is better than cure (e.g., because no cure exists). This is the case with security matters, for example: if an attacker has compromised a system and gained access to sensitive data, that event cannot be undone. However, this book mostly deals with the kinds of faults that can be cured, as described in the following sections.
+
+### 硬體與軟體缺陷
+
+When we think of causes of system failure, hardware faults quickly come to mind:
+
+- Approximately 2–5% of magnetic hard drives fail per year [[36](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Pinheiro2007), [37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2007)]; in a storage cluster with 10,000 disks, we should therefore expect on average one disk failure per day. Recent data suggests that disks are getting more reliable, but failure rates remain significant [[38](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Klein2021)].
+- Approximately 0.5–1% of solid state drives (SSDs) fail per year [[39](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Narayanan2016)]. Small numbers of bit errors are corrected automatically [[40](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Alibaba2019_ch2)], but uncorrectable errors occur approximately once per year per drive, even in drives that are fairly new (i.e., that have experienced little wear); this error rate is higher than that of magnetic hard drives [[41](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2016), [42](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Alter2019)].
+- Other hardware components such as power supplies, RAID controllers, and memory modules also fail, although less frequently than hard drives [[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ford2010), [44](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Vishwanath2010)].
+- Approximately one in 1,000 machines has a CPU core that occasionally computes the wrong result, likely due to manufacturing defects [[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hochschild2021), [46](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dixit2021), [47](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Behrens2015)]. In some cases, an erroneous computation leads to a crash, but in other cases it leads to a program simply returning the wrong result.
+- Data in RAM can also be corrupted, either due to random events such as cosmic rays, or due to permanent physical defects. Even when memory with error-correcting codes (ECC) is used, more than 1% of machines encounter an uncorrectable error in a given year, which typically leads to a crash of the machine and the affected memory module needing to be replaced [[48](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2009)]. Moreover, certain pathological memory access patterns can flip bits with high probability [[49](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kim2014)].
+- An entire datacenter might become unavailable (for example, due to power outage or network misconfiguration) or even be permanently destroyed (for example by fire or flood). Although such large-scale failures are rare, their impact can be catastrophic if a service cannot tolerate the loss of a datacenter [[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cockcroft2019)].
+
+These events are rare enough that you often don’t need to worry about them when working on a small system, as long as you can easily replace hardware that becomes faulty. However, in a large-scale system, hardware faults happen often enough that they become part of the normal system operation.
+
+#### 透過冗餘容忍硬體缺陷
+
+Our first response to unreliable hardware is usually to add redundancy to the individual hardware components in order to reduce the failure rate of the system. Disks may be set up in a RAID configuration (spreading data across multiple disks in the same machine so that a failed disk does not cause data loss), servers may have dual power supplies and hot-swappable CPUs, and datacenters may have batteries and diesel generators for backup power. Such redundancy can often keep a machine running uninterrupted for years.
+
+Redundancy is most effective when component faults are independent, that is, the occurrence of one fault does not change how likely it is that another fault will occur. However, experience has shown that there are often significant correlations between component failures [[37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2007), [51](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Han2021), [52](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Nightingale2011)]; unavailability of an entire server rack or an entire datacenter still happens more often than we would like.
+
+Hardware redundancy increases the uptime of a single machine; however, as discussed in [“Distributed versus Single-Node Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_distributed), there are advantages to using a distributed system, such as being able to tolerate a complete outage of one datacenter. For this reason, cloud systems tend to focus less on the reliability of individual machines, and instead aim to make services highly available by tolerating faulty nodes at the software level. Cloud providers use *availability zones* to identify which resources are physically co-located; resources in the same place are more likely to fail at the same time than geographically separated resources.
+
+The fault-tolerance techniques we discuss in this book are designed to tolerate the loss of entire machines, racks, or availability zones. They generally work by allowing a machine in one datacenter to take over when a machine in another datacenter fails or becomes unreachable. We will discuss such techniques for fault tolerance in [Link to Come], [Link to Come], and at various other points in this book.
+
+Systems that can tolerate the loss of entire machines also have operational advantages: a single-server system requires planned downtime if you need to reboot the machine (to apply operating system security patches, for example), whereas a multi-node fault-tolerant system can be patched by restarting one node at a time, without affecting the service for users. This is called a *rolling upgrade*, and we will discuss it further in [Link to Come].
+
+#### 軟體缺陷
+
+Although hardware failures can be weakly correlated, they are still mostly independent: for example, if one disk fails, it’s likely that other disks in the same machine will be fine for another while. On the other hand, software faults are often very highly correlated, because it is common for many nodes to run the same software and thus have the same bugs [[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gunawi2014), [54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kreps2012_ch1)]. Such faults are harder to anticipate, and they tend to cause many more system failures than uncorrelated hardware faults [[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ford2010)]. For example:
+
+- A software bug that causes every node to fail at the same time in particular circumstances. For example, on June 30, 2012, a leap second caused many Java applications to hang simultaneously due to a bug in the Linux kernel, bringing down many Internet services [[55](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Minar2012_ch1)]. Due to a firmware bug, all SSDs of certain models suddenly fail after precisely 32,768 hours of operation (less than 4 years), rendering the data on them unrecoverable [[56](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#HPE2019)].
+- A runaway process that uses up some shared, limited resource, such as CPU time, memory, disk space, network bandwidth, or threads [[57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hochstein2020)]. For example, a process that consumes too much memory while processing a large request may be killed by the operating system.
+- A service that the system depends on slows down, becomes unresponsive, or starts returning corrupted responses.
+- An interaction between different systems results in emergent behavior that does not occur when each system was tested in isolation [[58](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Tang2023)].
+- Cascading failures, where a problem in one component causes another component to become overloaded and slow down, which in turn brings down another component [[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ulrich2016), [60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Fassbender2022)].
+
+The bugs that cause these kinds of software faults often lie dormant for a long time until they are triggered by an unusual set of circumstances. In those circumstances, it is revealed that the software is making some kind of assumption about its environment—and while that assumption is usually true, it eventually stops being true for some reason [[61](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cook2000), [62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Woods2017)].
+
+There is no quick solution to the problem of systematic faults in software. Lots of small things can help: carefully thinking about assumptions and interactions in the system; thorough testing; process isolation; allowing processes to crash and restart; avoiding feedback loops such as retry storms (see [“When an overloaded system won’t recover”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sidebar_metastable)); measuring, monitoring, and analyzing system behavior in production.
+
+### 人類與可靠性
+
+Humans design and build software systems, and the operators who keep the systems running are also human. Unlike machines, humans don’t just follow rules; their strength is being creative and adaptive in getting their job done. However, this characteristic also leads to unpredictability, and sometimes mistakes that can lead to failures, despite best intentions. For example, one study of large internet services found that configuration changes by operators were the leading cause of outages, whereas hardware faults (servers or network) played a role in only 10–25% of outages [[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Oppenheimer2003)].
+
+It is tempting to label such problems as “human error” and to wish that they could be solved by better controlling human behavior through tighter procedures and compliance with rules. However, blaming people for mistakes is counterproductive. What we call “human error” is not really the cause of an incident, but rather a symptom of a problem with the sociotechnical system in which people are trying their best to do their jobs [[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dekker2017)].
+
+Various technical measures can help minimize the impact of human mistakes, including thorough testing [[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Yuan2014)], rollback mechanisms for quickly reverting configuration changes, gradual roll-outs of new code, detailed and clear monitoring, observability tools for diagnosing production issues (see [“Problems with Distributed Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_dist_sys_problems)), and well-designed interfaces that encourage “the right thing” and discourage “the wrong thing”.
+
+However, these things require an investment of time and money, and in the pragmatic reality of everyday business, organizations often prioritize revenue-generating activities over measures that increase their resilience against mistakes. If there is a choice between more features and more testing, many organizations understandably choose features. Given this choice, when a preventable mistake inevitably occurs, it does not make sense to blame the person who made the mistake—the problem is the organization’s priorities.
+
+Increasingly, organizations are adopting a culture of *blameless postmortems*: after an incident, the people involved are encouraged to share full details about what happened, without fear of punishment, since this allows others in the organization to learn how to prevent similar problems in the future [[65](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Allspaw2012)]. This process may uncover a need to change business priorities, a need to invest in areas that have been neglected, a need to change the incentives for the people involved, or some other systemic issue that needs to be brought to the management’s attention.
+
+As a general principle, when investigating an incident, you should be suspicious of simplistic answers. “Bob should have been more careful when deploying that change” is not productive, but neither is “We must rewrite the backend in Haskell.” Instead, management should take the opportunity to learn the details of how the sociotechnical system works from the point of view of the people who work with it every day, and take steps to improve it based on this feedback [[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dekker2017)].
+
+### 可靠性到底有多重要？
+
+Reliability is not just for nuclear power stations and air traffic control—more mundane applications are also expected to work reliably. Bugs in business applications cause lost productivity (and legal risks if figures are reported incorrectly), and outages of e-commerce sites can have huge costs in terms of lost revenue and damage to reputation.
+
+In many applications, a temporary outage of a few minutes or even a few hours is tolerable [[66](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Sabo2023)], but permanent data loss or corruption would be catastrophic. Consider a parent who stores all their pictures and videos of their children in your photo application [[67](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Jurewitz2013)]. How would they feel if that database was suddenly corrupted? Would they know how to restore it from a backup?
+
+As another example of how unreliable software can harm people, consider the Post Office Horizon scandal. Between 1999 and 2019, hundreds of people managing Post Office branches in Britain were convicted of theft or fraud because the accounting software showed a shortfall in their accounts. Eventually it became clear that many of these shortfalls were due to bugs in the software, and many convictions have since been overturned [[68](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Siddique2021)]. What led to this, probably the largest miscarriage of justice in British history, is the fact that English law assumes that computers operate correctly (and hence, evidence produced by computers is reliable) unless there is evidence to the contrary [[69](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bohm2022)]. Software engineers may laugh at the idea that software could ever be bug-free, but this is little solace to the people who were wrongfully imprisoned, declared bankrupt, or even committed suicide as a result of a wrongful conviction due to an unreliable computer system.
+
+There are situations in which we may choose to sacrifice reliability in order to reduce development cost (e.g., when developing a prototype product for an unproven market)—but we should be very conscious of when we are cutting corners and keep in mind the potential consequences.
+
+
+
+
+
+--------
+
+## 可伸縮性
+
+Even if a system is working reliably today, that doesn’t mean it will necessarily work reliably in the future. One common reason for degradation is increased load: perhaps the system has grown from 10,000 concurrent users to 100,000 concurrent users, or from 1 million to 10 million. Perhaps it is processing much larger volumes of data than it did before.
+
+*Scalability* is the term we use to describe a system’s ability to cope with increased load. Sometimes, when discussing scalability, people make comments along the lines of, “You’re not Google or Amazon. Stop worrying about scale and just use a relational database.” Whether this maxim applies to you depends on the type of application you are building.
+
+If you are building a new product that currently only has a small number of users, perhaps at a startup, the overriding engineering goal is usually to keep the system as simple and flexible as possible, so that you can easily modify and adapt the features of your product as you learn more about customers’ needs [[70](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#McKinley2015)]. In such an environment, it is counterproductive to worry about hypothetical scale that might be needed in the future: in the best case, investments in scalability are wasted effort and premature optimization; in the worst case, they lock you into an inflexible design and make it harder to evolve your application.
+
+The reason is that scalability is not a one-dimensional label: it is meaningless to say “X is scalable” or “Y doesn’t scale.” Rather, discussing scalability means considering questions like:
+
+- “If the system grows in a particular way, what are our options for coping with the growth?”
+- “How can we add computing resources to handle the additional load?”
+- “Based on current growth projections, when will we hit the limits of our current architecture?”
+
+If you succeed in making your application popular, and therefore handling a growing amount of load, you will learn where your performance bottlenecks lie, and therefore you will know along which dimensions you need to scale. At that point it’s time to start worrying about techniques for scalability.
+
+### 描述負載
+
+First, we need to succinctly describe the current load on the system; only then can we discuss growth questions (what happens if our load doubles?). Often this will be a measure of throughput: for example, the number of requests per second to a service, how many gigabytes of new data arrive per day, or the number of shopping cart checkouts per hour. Sometimes you care about the peak of some variable quantity, such as the number of simultaneously online users in [“Case Study: Social Network Home Timelines”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_twitter).
+
+Often there are other statistical characteristics of the load that also affect the access patterns and hence the scalability requirements. For example, you may need to know the ratio of reads to writes in a database, the hit rate on a cache, or the number of data items per user (for example, the number of followers in the social network case study). Perhaps the average case is what matters for you, or perhaps your bottleneck is dominated by a small number of extreme cases. It all depends on the details of your particular application.
+
+Once you have described the load on your system, you can investigate what happens when the load increases. You can look at it in two ways:
+
+- When you increase the load in a certain way and keep the system resources (CPUs, memory, network bandwidth, etc.) unchanged, how is the performance of your system affected?
+- When you increase the load in a certain way, how much do you need to increase the resources if you want to keep performance unchanged?
+
+Usually our goal is to keep the performance of the system within the requirements of the SLA (see [“Use of Response Time Metrics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_slo_sla)) while also minimizing the cost of running the system. The greater the required computing resources, the higher the cost. It might be that some types of hardware are more cost-effective than others, and these factors may change over time as new types of hardware become available.
+
+If you can double the resources in order to handle twice the load, while keeping performance the same, we say that you have *linear scalability*, and this is considered a good thing. Occasionally it is possible to handle twice the load with less than double the resources, due to economies of scale or a better distribution of peak load [[71](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Warfield2023), [72](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2023)]. Much more likely is that the cost grows faster than linearly, and there may be many reasons for the inefficiency. For example, if you have a lot of data, then processing a single write request may involve more work than if you have a small amount of data, even if the size of the request is the same.
+
+### 共享記憶體，共享磁碟，無共享架構
+
+The simplest way of increasing the hardware resources of a service is to move it to a more powerful machine. Individual CPU cores are no longer getting significantly faster, but you can buy a machine (or rent a cloud instance) with more CPU cores, more RAM, and more disk space. This approach is called *vertical scaling* or *scaling up*.
+
+You can get parallelism on a single machine by using multiple processes or threads. All the threads belonging to the same process can access the same RAM, and hence this approach is also called a *shared-memory architecture*. The problem with a shared-memory approach is that the cost grows faster than linearly: a high-end machine with twice the hardware resources typically costs significantly more than twice as much. And due to bottlenecks, a machine twice the size can often handle less than twice the load.
+
+Another approach is the *shared-disk architecture*, which uses several machines with independent CPUs and RAM, but which stores data on an array of disks that is shared between the machines, which are connected via a fast network: *Network-Attached Storage* (NAS) or *Storage Area Network* (SAN). This architecture has traditionally been used for on-premises data warehousing workloads, but contention and the overhead of locking limit the scalability of the shared-disk approach [[73](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Stopford2009)].
+
+By contrast, the *shared-nothing architecture* [[74](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Stonebraker1986)] (also called *horizontal scaling* or *scaling out*) has gained a lot of popularity. In this approach, we use a distributed system with multiple nodes, each of which has its own CPUs, RAM, and disks. Any coordination between nodes is done at the software level, via a conventional network.
+
+The advantages of shared-nothing are that it has the potential to scale linearly, it can use whatever hardware offers the best price/performance ratio (especially in the cloud), it can more easily adjust its hardware resources as load increases or decreases, and it can achieve greater fault tolerance by distributing the system across multiple data centers and regions. The downsides are that it requires explicit data partitioning (see [Link to Come]), and it incurs all the complexity of distributed systems ([Link to Come]).
+
+Some cloud-native database systems use separate services for storage and transaction execution (see [“Separation of storage and compute”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_storage_compute)), with multiple compute nodes sharing access to the same storage service. This model has some similarity to a shared-disk architecture, but it avoids the scalability problems of older systems: instead of providing a filesystem (NAS) or block device (SAN) abstraction, the storage service offers a specialized API that is designed for the specific needs of the database [[75](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Antonopoulos2019_ch2)].
+
+### 可伸縮性原則
+
+The architecture of systems that operate at large scale is usually highly specific to the application—there is no such thing as a generic, one-size-fits-all scalable architecture (informally known as *magic scaling sauce*). For example, a system that is designed to handle 100,000 requests per second, each 1 kB in size, looks very different from a system that is designed for 3 requests per minute, each 2 GB in size—even though the two systems have the same data throughput (100 MB/sec).
+
+Moreover, an architecture that is appropriate for one level of load is unlikely to cope with 10 times that load. If you are working on a fast-growing service, it is therefore likely that you will need to rethink your architecture on every order of magnitude load increase. As the needs of the application are likely to evolve, it is usually not worth planning future scaling needs more than one order of magnitude in advance.
+
+A good general principle for scalability is to break a system down into smaller components that can operate largely independently from each other. This is the underlying principle behind microservices (see [“Microservices and Serverless”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_microservices)), partitioning ([Link to Come]), stream processing ([Link to Come]), and shared-nothing architectures. However, the challenge is in knowing where to draw the line between things that should be together, and things that should be apart. Design guidelines for microservices can be found in other books [[76](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Newman2021_ch2)], and we discuss partitioning of shared-nothing systems in [Link to Come].
+
+Another good principle is not to make things more complicated than necessary. If a single-machine database will do the job, it’s probably preferable to a complicated distributed setup. Auto-scaling systems (which automatically add or remove resources in response to demand) are cool, but if your load is fairly predictable, a manually scaled system may have fewer operational surprises (see [Link to Come]). A system with five services is simpler than one with fifty. Good architectures usually involve a pragmatic mixture of approaches.
+
+
+
+
+
+
+--------
+
+## 可維護性
+
+Software does not wear out or suffer material fatigue, so it does not break in the same ways as mechanical objects do. But the requirements for an application frequently change, the environment that the software runs in changes (such as its dependencies and the underlying platform), and it has bugs that need fixing.
+
+It is widely recognized that the majority of the cost of software is not in its initial development, but in its ongoing maintenance—fixing bugs, keeping its systems operational, investigating failures, adapting it to new platforms, modifying it for new use cases, repaying technical debt, and adding new features [[77](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ensmenger2016), [78](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Glass2002)].
+
+However, maintenance is also difficult. If a system has been successfully running for a long time, it may well use outdated technologies that not many engineers understand today (such as mainframes and COBOL code); institutional knowledge of how and why a system was designed in a certain way may have been lost as people have left the organization; it might be necessary to fix other people’s mistakes. Moreover, the computer system is often intertwined with the human organization that it supports, which means that maintenance of such *legacy* systems is as much a people problem as a technical one [[79](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bellotti2021)].
+
+Every system we create today will one day become a legacy system if it is valuable enough to survive for a long time. In order to minimize the pain for future generations who need to maintain our software, we should design it with maintenance concerns in mind. Although we cannot always predict which decisions might create maintenance headaches in the future, in this book we will pay attention to several principles that are widely applicable:
+
+- Operability
+
+  Make it easy for the organization to keep the system running smoothly.
+
+- Simplicity
+
+  Make it easy for new engineers to understand the system, by implementing it using well-understood, consistent patterns and structures, and avoiding unnecessary complexity.
+
+- Evolvability
+
+  Make it easy for engineers to make changes to the system in the future, adapting it and extending it for unanticipated use cases as requirements change.
+
+### 可操作性：人生苦短，關愛運維
+
+We previously discussed the role of operations in [“Operations in the Cloud Era”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_operations), and we saw that human processes are at least as important for reliable operations as software tools. In fact, it has been suggested that “good operations can often work around the limitations of bad (or incomplete) software, but good software cannot run reliably with bad operations” [[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kreps2012_ch1)].
+
+In large-scale systems consisting of many thousands of machines, manual maintenance would be unreasonably expensive, and automation is essential. However, automation can be a two-edged sword: there will always be edge cases (such as rare failure scenarios) that require manual intervention from the operations team. Since the cases that cannot be handled automatically are the most complex issues, greater automation requires a *more* skilled operations team that can resolve those issues [[80](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bainbridge1983)].
+
+Moreover, if an automated system goes wrong, it is often harder to troubleshoot than a system that relies on an operator to perform some actions manually. For that reason, it is not the case that more automation is always better for operability. However, some amount of automation is important, and the sweet spot will depend on the specifics of your particular application and organization.
+
+Good operability means making routine tasks easy, allowing the operations team to focus their efforts on high-value activities. Data systems can do various things to make routine tasks easy, including [[81](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hamilton2007)]:
+
+- Allowing monitoring tools to check the system’s key metrics, and supporting observability tools (see [“Problems with Distributed Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_dist_sys_problems)) to give insights into the system’s runtime behavior. A variety of commercial and open source tools can help here [[82](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Horovits2021)].
+- Avoiding dependency on individual machines (allowing machines to be taken down for maintenance while the system as a whole continues running uninterrupted)
+- Providing good documentation and an easy-to-understand operational model (“If I do X, Y will happen”)
+- Providing good default behavior, but also giving administrators the freedom to override defaults when needed
+- Self-healing where appropriate, but also giving administrators manual control over the system state when needed
+- Exhibiting predictable behavior, minimizing surprises
+
+### 簡單性：管理複雜度
+
+Small software projects can have delightfully simple and expressive code, but as projects get larger, they often become very complex and difficult to understand. This complexity slows down everyone who needs to work on the system, further increasing the cost of maintenance. A software project mired in complexity is sometimes described as a *big ball of mud* [[83](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Foote1997)].
+
+When complexity makes maintenance hard, budgets and schedules are often overrun. In complex software, there is also a greater risk of introducing bugs when making a change: when the system is harder for developers to understand and reason about, hidden assumptions, unintended consequences, and unexpected interactions are more easily overlooked [[62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Woods2017)]. Conversely, reducing complexity greatly improves the maintainability of software, and thus simplicity should be a key goal for the systems we build.
+
+Simple systems are easier to understand, and therefore we should try to solve a given problem in the simplest way possible. Unfortunately, this is easier said than done. Whether something is simple or not is often a subjective matter of taste, as there is no objective standard of simplicity [[84](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2022)]. For example, one system may hide a complex implementation behind a simple interface, whereas another may have a simple implementation that exposes more internal detail to its users—which one is simpler?
+
+One attempt at reasoning about complexity has been to break it down into two categories, *essential* and *accidental* complexity [[85](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooks1995)]. The idea is that essential complexity is inherent in the problem domain of the application, while accidental complexity arises only because of limitations of our tooling. Unfortunately, this distinction is also flawed, because boundaries between the essential and the accidental shift as our tooling evolves [[86](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Luu2020)].
+
+One of the best tools we have for managing complexity is *abstraction*. A good abstraction can hide a great deal of implementation detail behind a clean, simple-to-understand façade. A good abstraction can also be used for a wide range of different applications. Not only is this reuse more efficient than reimplementing a similar thing multiple times, but it also leads to higher-quality software, as quality improvements in the abstracted component benefit all applications that use it.
+
+For example, high-level programming languages are abstractions that hide machine code, CPU registers, and syscalls. SQL is an abstraction that hides complex on-disk and in-memory data structures, concurrent requests from other clients, and inconsistencies after crashes. Of course, when programming in a high-level language, we are still using machine code; we are just not using it *directly*, because the programming language abstraction saves us from having to think about it.
+
+Abstractions for application code, which aim to reduce its complexity, can be created using methodologies such as *design patterns* [[87](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gamma1994)] and *domain-driven design* (DDD) [[88](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Evans2003)]. This book is not about such application-specific abstractions, but rather about general-purpose abstractions on top of which you can build your applications, such as database transactions, indexes, and event logs. If you want to use techniques such as DDD, you can implement them on top of the foundations described in this book.
+
+### 可演化性：讓變更更容易
+
+It’s extremely unlikely that your system’s requirements will remain unchanged forever. They are much more likely to be in constant flux: you learn new facts, previously unanticipated use cases emerge, business priorities change, users request new features, new platforms replace old platforms, legal or regulatory requirements change, growth of the system forces architectural changes, etc.
+
+In terms of organizational processes, *Agile* working patterns provide a framework for adapting to change. The Agile community has also developed technical tools and processes that are helpful when developing software in a frequently changing environment, such as test-driven development (TDD) and refactoring. In this book, we search for ways of increasing agility at the level of a system consisting of several different applications or services with different characteristics.
+
+The ease with which you can modify a data system, and adapt it to changing requirements, is closely linked to its simplicity and its abstractions: simple and easy-to-understand systems are usually easier to modify than complex ones. Since this is such an important idea, we will use a different word to refer to agility on a data system level: *evolvability* [[89](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Breivold2008)].
+
+One major factor that makes change difficult in large systems is when some action is irreversible, and therefore that action needs to be taken very carefully [[90](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Zaninotto2002)]. For example, say you are migrating from one database to another: if you cannot switch back to the old system in case of problems wth the new one, the stakes are much higher than if you can easily go back. Minimizing irreversibility improves flexibility.
+
+
+
+
+
+--------
 
 ## 本章小結
 
-資料模型是一個巨大的課題，在本章中，我們快速瀏覽了各種不同的模型。我們沒有足夠的篇幅來詳述每個模型的細節，但是希望這個概述足以激起你的興趣，以更多地瞭解最適合你的應用需求的模型。
+在本章中，我們檢查了幾個非功能性需求的示例：效能、可靠性、可擴充套件性和可維護性。透過這些話題，我們還遇到了我們在本書其餘部分將需要的原則和術語。我們從一個案例研究開始，探討了如何在社交網路中實現首頁時間線，這展示了在規模擴大時可能出現的一些挑戰。
 
-在歷史上，資料最開始被表示為一棵大樹（層次資料模型），但是這不利於表示多對多的關係，所以發明了關係模型來解決這個問題。最近，開發人員發現一些應用程式也不適合採用關係模型。新的非關係型 “NoSQL” 資料儲存分化為兩個主要方向：
+我們討論了如何測量效能（例如，使用響應時間百分位數）、系統負載（例如，使用吞吐量指標），以及它們如何在SLA中使用。可擴充套件性是一個密切相關的概念：即確保在負載增長時效能保持不變。我們看到了一些可擴充套件性的一般原則，如將任務分解成可以獨立操作的小部分，並將在後續章節中深入技術細節探討可擴充套件性技術。
 
-1. **文件資料庫** 主要關注自我包含的資料文件，而且文件之間的關係非常稀少。
-2. **圖形資料庫** 用於相反的場景：任意事物之間都可能存在潛在的關聯。
+為了實現可靠性，您可以使用容錯技術，即使系統的某個元件（例如，磁碟、機器或其他服務）出現故障，也能繼續提供服務。我們看到了可能發生的硬體故障示例，並將其與軟體故障區分開來，後者可能更難處理，因為它們往往具有強相關性。實現可靠性的另一個方面是構建對人為錯誤的抵抗力，我們看到了無責任事故報告作為從事件中學習的一種技術。
 
-這三種模型（文件，關係和圖形）在今天都被廣泛使用，並且在各自的領域都發揮很好。一個模型可以用另一個模型來模擬 —— 例如，圖資料可以在關係資料庫中表示 —— 但結果往往是糟糕的。這就是為什麼我們有著針對不同目的的不同系統，而不是一個單一的萬能解決方案。
+最後，我們檢查了幾個維護性的方面，包括支援運營團隊的工作、管理複雜性，以及使應用功能隨時間易於演進。關於如何實現這些目標沒有簡單的答案，但有一件事可以幫助，那就是使用提供有用抽象的、眾所周知的構建塊來構建應用程式。本書的其餘部分將介紹一些最重要的這類構建塊。
 
-文件資料庫和圖資料庫有一個共同點，那就是它們通常不會將儲存的資料強制約束為特定模式，這可以使應用程式更容易適應不斷變化的需求。但是應用程式很可能仍會假定資料具有一定的結構；區別僅在於模式是**明確的**（寫入時強制）還是**隱含的**（讀取時處理）。
+In this chapter we examined several examples of nonfunctional requirements: performance, reliability, scalability, and maintainability. Through these topics we have also encountered principles and terminology that we will need throughout the rest of the book. We started with a case study of how one might implement home timelines in a social network, which illustrated some of the challenges that arise at scale.
 
-每個資料模型都具有各自的查詢語言或框架，我們討論了幾個例子：SQL，MapReduce，MongoDB 的聚合管道，Cypher，SPARQL 和 Datalog。我們也談到了 CSS 和 XSL/XPath，它們不是資料庫查詢語言，而包含有趣的相似之處。
+We discussed how to measure performance (e.g., using response time percentiles), the load on a system (e.g., using throughput metrics), and how they are used in SLAs. Scalability is a closely related concept: that is, ensuring performance stays the same when the load grows. We saw some general principles for scalability, such as breaking a task down into smaller parts that can operate independently, and we will dive into deep technical detail on scalability techniques in the following chapters.
 
-雖然我們已經覆蓋了很多層面，但仍然有許多資料模型沒有提到。舉幾個簡單的例子：
+To achieve reliability, you can use fault tolerance techniques, which allow a system to continue providing its service even if some component (e.g., a disk, a machine, or another service) is faulty. We saw examples of hardware faults that can occur, and distinguished them from software faults, which can be harder to deal with because they are often strongly correlated. Another aspect of achieving reliability is to build resilience against humans making mistakes, and we saw blameless postmortems as a technique for learning from incidents.
 
-* 使用基因組資料的研究人員通常需要執行 **序列相似性搜尋**，這意味著需要一個很長的字串（代表一個 DNA 序列），並在一個擁有類似但不完全相同的字串的大型資料庫中尋找匹配。這裡所描述的資料庫都不能處理這種用法，這就是為什麼研究人員編寫了像 GenBank 這樣的專門的基因組資料庫軟體的原因【48】。
-* 粒子物理學家數十年來一直在進行大資料型別的大規模資料分析，像大型強子對撞機（LHC）這樣的專案現在會處理數百 PB 的資料！在這樣的規模下，需要定製解決方案來阻止硬體成本的失控【49】。
-* **全文搜尋** 可以說是一種經常與資料庫一起使用的資料模型。資訊檢索是一個很大的專業課題，我們不會在本書中詳細介紹，但是我們將在第三章和第三部分中介紹搜尋索引。
+Finally, we examined several facets of maintainability, including supporting the work of operations teams, managing complexity, and making it easy to evolve an application’s functionality over time. There are no easy answers on how to achieve these things, but one thing that can help is to build applications using well-understood building blocks that provide useful abstractions. The rest of this book will cover a selection of the most important such building blocks.
 
-讓我們暫時將其放在一邊。在 [下一章](ch3.md) 中，我們將討論在 **實現** 本章描述的資料模型時會遇到的一些權衡。
 
+
+--------
 
 ## 參考文獻
 
-1.  Edgar F. Codd: “[A Relational Model of Data for Large Shared Data Banks](https://www.seas.upenn.edu/~zives/03f/cis550/codd.pdf),” *Communications of the ACM*, volume 13, number 6, pages 377–387, June 1970. [doi:10.1145/362384.362685](http://dx.doi.org/10.1145/362384.362685)
-1.  Michael Stonebraker and Joseph M. Hellerstein: “[What Goes Around Comes Around](http://mitpress2.mit.edu/books/chapters/0262693143chapm1.pdf),” in *Readings in Database Systems*, 4th edition, MIT Press, pages 2–41, 2005. ISBN: 978-0-262-69314-1
-1.  Pramod J. Sadalage and Martin Fowler: *NoSQL Distilled*. Addison-Wesley, August 2012. ISBN: 978-0-321-82662-6
-1.  Eric Evans: “[NoSQL: What's in a Name?](http://blog.sym-link.com/2009/10/30/nosql_whats_in_a_name.html),” *blog.sym-link.com*, October 30, 2009.
-1.  James Phillips:  “[Surprises in Our NoSQL   Adoption Survey](http://blog.couchbase.com/nosql-adoption-survey-surprises),” *blog.couchbase.com*, February 8, 2012.
-1.  Michael Wagner:  *SQL/XML:2006 – Evaluierung der Standardkonformität ausgewählter Datenbanksysteme*.  Diplomica Verlag, Hamburg, 2010. ISBN: 978-3-836-64609-3
-1.  “[XML   Data in SQL Server](http://technet.microsoft.com/en-us/library/bb522446.aspx),” SQL Server 2012 documentation, *technet.microsoft.com*, 2013.
-1.  “[PostgreSQL   9.3.1 Documentation](http://www.postgresql.org/docs/9.3/static/index.html),” The PostgreSQL Global Development Group, 2013.
-1.  “[The MongoDB 2.4 Manual](http://docs.mongodb.org/manual/),” MongoDB, Inc., 2013.
-1.  “[RethinkDB 1.11 Documentation](http://www.rethinkdb.com/docs/),” *rethinkdb.com*, 2013.
-1.  “[Apache CouchDB 1.6 Documentation](http://docs.couchdb.org/en/latest/),” *docs.couchdb.org*, 2014.
-1.  Lin Qiao, Kapil Surlaker, Shirshanka Das, et al.: “[On Brewing Fresh Espresso: LinkedIn’s Distributed Data Serving Platform](http://www.slideshare.net/amywtang/espresso-20952131),” at *ACM International Conference on Management of Data* (SIGMOD), June 2013.
-1.  Rick Long, Mark Harrington, Robert Hain, and Geoff Nicholls: <a href="http://www.redbooks.ibm.com/redbooks/pdfs/sg245352.pdf">*IMS Primer*</a>. IBM Redbook SG24-5352-00, IBM International Technical Support Organization, January 2000.
-1.  Stephen D. Bartlett: “[IBM’s IMS—Myths, Realities, and Opportunities](ftp://public.dhe.ibm.com/software/data/ims/pdf/TCG2013015LI.pdf),” The Clipper Group Navigator, TCG2013015LI, July 2013.
-1.  Sarah Mei: “[Why You Should Never Use MongoDB](http://www.sarahmei.com/blog/2013/11/11/why-you-should-never-use-mongodb/),” *sarahmei.com*, November 11, 2013.
-1.  J. S. Knowles and D. M. R. Bell: “The CODASYL Model,” in *Databases—Role and Structure: An Advanced Course*, edited by P. M. Stocker, P. M. D. Gray, and M. P. Atkinson, pages 19–56, Cambridge University Press, 1984. ISBN: 978-0-521-25430-4
-1.  Charles W. Bachman: “[The Programmer as Navigator](http://dl.acm.org/citation.cfm?id=362534),” *Communications of the ACM*, volume 16, number 11, pages 653–658, November 1973. [doi:10.1145/355611.362534](http://dx.doi.org/10.1145/355611.362534)
-1.  Joseph M. Hellerstein, Michael Stonebraker, and James Hamilton: “[Architecture of a Database System](http://db.cs.berkeley.edu/papers/fntdb07-architecture.pdf),” *Foundations and Trends in Databases*, volume 1, number 2, pages 141–259, November 2007. [doi:10.1561/1900000002](http://dx.doi.org/10.1561/1900000002)
-1.  Sandeep Parikh and Kelly Stirman: “[Schema Design for Time Series Data in MongoDB](http://blog.mongodb.org/post/65517193370/schema-design-for-time-series-data-in-mongodb),” *blog.mongodb.org*, October 30, 2013.
-1.  Martin Fowler: “[Schemaless Data Structures](http://martinfowler.com/articles/schemaless/),” *martinfowler.com*, January 7, 2013.
-1.  Amr Awadallah: “[Schema-on-Read vs. Schema-on-Write](http://www.slideshare.net/awadallah/schemaonread-vs-schemaonwrite),” at *Berkeley EECS RAD Lab Retreat*, Santa Cruz, CA, May 2009.
-1.  Martin Odersky: “[The Trouble with Types](http://www.infoq.com/presentations/data-types-issues),” at *Strange Loop*, September 2013.
-1.  Conrad Irwin: “[MongoDB—Confessions of a PostgreSQL Lover](https://speakerdeck.com/conradirwin/mongodb-confessions-of-a-postgresql-lover),” at *HTML5DevConf*, October 2013.
-1.  “[Percona Toolkit Documentation: pt-online-schema-change](http://www.percona.com/doc/percona-toolkit/2.2/pt-online-schema-change.html),” Percona Ireland Ltd., 2013.
-1.  Rany Keddo, Tobias Bielohlawek, and Tobias Schmidt: “[Large Hadron Migrator](https://github.com/soundcloud/lhm),” SoundCloud, 2013.
-1.  Shlomi Noach: “[gh-ost: GitHub's Online Schema Migration Tool for MySQL](http://githubengineering.com/gh-ost-github-s-online-migration-tool-for-mysql/),” *githubengineering.com*, August 1, 2016.
-1.  James C. Corbett, Jeffrey Dean, Michael Epstein, et al.: “[Spanner: Google’s Globally-Distributed Database](http://research.google.com/archive/spanner.html),” at *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
-1.  Donald K. Burleson: “[Reduce I/O with Oracle Cluster Tables](http://www.dba-oracle.com/oracle_tip_hash_index_cluster_table.htm),” *dba-oracle.com*.
-1.  Fay Chang, Jeffrey Dean, Sanjay Ghemawat, et al.: “[Bigtable: A Distributed Storage System for Structured Data](http://research.google.com/archive/bigtable.html),” at *7th USENIX Symposium on Operating System Design and Implementation* (OSDI), November 2006.
-1.  Bobbie J. Cochrane and Kathy A. McKnight: “[DB2 JSON Capabilities, Part 1: Introduction to DB2 JSON](http://www.ibm.com/developerworks/data/library/techarticle/dm-1306nosqlforjson1/),” IBM developerWorks, June 20, 2013.
-1.  Herb Sutter: “[The Free Lunch Is Over: A Fundamental Turn Toward Concurrency in Software](http://www.gotw.ca/publications/concurrency-ddj.htm),” *Dr. Dobb's Journal*, volume 30, number 3, pages 202-210, March 2005.
-1.  Joseph M. Hellerstein: “[The Declarative Imperative: Experiences and Conjectures in Distributed Logic](http://www.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf),” Electrical Engineering and Computer Sciences, University of California at Berkeley, Tech report UCB/EECS-2010-90, June 2010.
-1.  Jeffrey Dean and Sanjay Ghemawat: “[MapReduce: Simplified Data Processing on Large Clusters](http://research.google.com/archive/mapreduce.html),” at *6th USENIX Symposium on Operating System Design and Implementation* (OSDI), December 2004.
-1.  Craig Kerstiens: “[JavaScript in Your Postgres](https://blog.heroku.com/javascript_in_your_postgres),” *blog.heroku.com*, June 5, 2013.
-1.  Nathan Bronson, Zach Amsden, George Cabrera, et al.: “[TAO: Facebook’s Distributed Data Store for the Social Graph](https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson),” at *USENIX Annual Technical Conference* (USENIX ATC), June 2013.
-1.  “[Apache TinkerPop3.2.3 Documentation](http://tinkerpop.apache.org/docs/3.2.3/reference/),” *tinkerpop.apache.org*, October 2016.
-1.  “[The Neo4j Manual v2.0.0](http://docs.neo4j.org/chunked/2.0.0/index.html),” Neo Technology, 2013.
-1.  Emil Eifrem: [Twitter correspondence](https://twitter.com/emileifrem/status/419107961512804352), January 3, 2014.
-1.  David Beckett and Tim Berners-Lee: “[Turtle – Terse RDF Triple Language](http://www.w3.org/TeamSubmission/turtle/),” W3C Team Submission, March 28, 2011.
-1.  “[Datomic Development Resources](http://docs.datomic.com/),” Metadata Partners, LLC, 2013.
-1.  W3C RDF Working Group: “[Resource Description Framework (RDF)](http://www.w3.org/RDF/),” *w3.org*, 10 February 2004.
-1.  “[Apache Jena](http://jena.apache.org/),” Apache Software Foundation.
-1.  Steve Harris, Andy Seaborne, and Eric Prud'hommeaux: “[SPARQL 1.1 Query Language](http://www.w3.org/TR/sparql11-query/),” W3C Recommendation, March 2013.
-1.  Todd J. Green, Shan Shan Huang, Boon Thau Loo, and Wenchao Zhou: “[Datalog and Recursive Query Processing](http://blogs.evergreen.edu/sosw/files/2014/04/Green-Vol5-DBS-017.pdf),” *Foundations and Trends in Databases*, volume 5, number 2, pages 105–195, November 2013. [doi:10.1561/1900000017](http://dx.doi.org/10.1561/1900000017)
-1.  Stefano Ceri, Georg Gottlob, and Letizia Tanca: “[What You Always Wanted to Know About Datalog (And Never Dared to Ask)](https://www.researchgate.net/profile/Letizia_Tanca/publication/3296132_What_you_always_wanted_to_know_about_Datalog_and_never_dared_to_ask/links/0fcfd50ca2d20473ca000000.pdf),” *IEEE Transactions on Knowledge and Data Engineering*, volume 1, number 1, pages 146–166, March 1989. [doi:10.1109/69.43410](http://dx.doi.org/10.1109/69.43410)
-1.  Serge Abiteboul, Richard Hull, and Victor Vianu: <a href="http://webdam.inria.fr/Alice/">*Foundations of Databases*</a>. Addison-Wesley, 1995. ISBN: 978-0-201-53771-0, available online at *webdam.inria.fr/Alice*
-1.  Nathan Marz: “[Cascalog](http://cascalog.org/),” *cascalog.org*.
-1.  Dennis A. Benson,  Ilene Karsch-Mizrachi, David J. Lipman, et al.: “[GenBank](http://nar.oxfordjournals.org/content/36/suppl_1/D25.full-text-lowres.pdf),”   *Nucleic Acids Research*, volume 36, Database issue, pages D25–D30, December 2007.   [doi:10.1093/nar/gkm929](http://dx.doi.org/10.1093/nar/gkm929)
-1.  Fons Rademakers:   “[ROOT   for Big Data Analysis](http://indico.cern.ch/getFile.py/access?contribId=13&resId=0&materialId=slides&confId=246453),” at *Workshop on the Future of Big Data Management*, London, UK, June 2013.
+[[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cvet2016-marker)] Mike Cvet. [How We Learned to Stop Worrying and Love Fan-In at Twitter](https://www.youtube.com/watch?v=WEgCjwyXvwc). At *QCon San Francisco*, December 2016.
+
+[[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2012_ch2-marker)] Raffi Krikorian. [Timelines at Scale](http://www.infoq.com/presentations/Twitter-Timeline-Scalability). At *QCon San Francisco*, November 2012. Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK)
+
+[[3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Twitter2023-marker)] Twitter. [Twitter’s Recommendation Algorithm](https://blog.twitter.com/engineering/en_us/topics/open-source/2023/twitter-recommendation-algorithm). *blog.twitter.com*, March 2023. Archived at [perma.cc/L5GT-229T](https://perma.cc/L5GT-229T)
+
+[[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Krikorian2013-marker)] Raffi Krikorian. [New Tweets per second record, and how!](https://blog.twitter.com/engineering/en_us/a/2013/new-tweets-per-second-record-and-how) *blog.twitter.com*, August 2013. Archived at [perma.cc/6JZN-XJYN](https://perma.cc/6JZN-XJYN)
+
+[[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Axon2010_ch2-marker)] Samuel Axon. [3% of Twitter’s Servers Dedicated to Justin Bieber](http://mashable.com/2010/09/07/justin-bieber-twitter/). *mashable.com*, September 2010. Archived at [perma.cc/F35N-CGVX](https://perma.cc/F35N-CGVX)
+
+[[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bronson2021-marker)] Nathan Bronson, Abutalib Aghayev, Aleksey Charapko, and Timothy Zhu. [Metastable Failures in Distributed Systems](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s11-bronson.pdf). At *Workshop on Hot Topics in Operating Systems* (HotOS), May 2021. [doi:10.1145/3458336.3465286](https://doi.org/10.1145/3458336.3465286)
+
+[[7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2021-marker)] Marc Brooker. [Metastability and Distributed Systems](https://brooker.co.za/blog/2021/05/24/metastable.html). *brooker.co.za*, May 2021. Archived at [archive.org](https://web.archive.org/web/20230324043015/https://brooker.co.za/blog/2021/05/24/metastable.html)
+
+[[8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2015-marker)] Marc Brooker. [Exponential Backoff And Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/). *aws.amazon.com*, March 2015. Archived at [perma.cc/R6MS-AZKH](https://perma.cc/R6MS-AZKH)
+
+[[9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2022backoff-marker)] Marc Brooker. [What is Backoff For?](https://brooker.co.za/blog/2022/08/11/backoff.html) *brooker.co.za*, August 2022. Archived at [archive.org](https://web.archive.org/web/20230331022111/https://brooker.co.za/blog/2022/08/11/backoff.html)
+
+[[10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Nygard2018-marker)] Michael T. Nygard. [*Release It!*](https://learning.oreilly.com/library/view/release-it-2nd/9781680504552/), 2nd Edition. Pragmatic Bookshelf, January 2018. ISBN: 9781680502398
+
+[[11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2022retries-marker)] Marc Brooker. [Fixing retries with token buckets and circuit breakers](https://brooker.co.za/blog/2022/02/28/retries.html). *brooker.co.za*, February 2022. Archived at [archive.org](https://web.archive.org/web/20230325195445/https://brooker.co.za/blog/2022/02/28/retries.html)
+
+[[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#YanacekLoadShedding-marker)] David Yanacek. [Using load shedding to avoid overload](https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/). Amazon Builders’ Library, *aws.amazon.com*. Archived at [perma.cc/9SAW-68MP](https://perma.cc/9SAW-68MP)
+
+[[13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Sackman2016_ch2-marker)] Matthew Sackman. [Pushing Back](https://wellquite.org/posts/lshift/pushing_back/). *wellquite.org*, May 2016. Archived at [perma.cc/3KCZ-RUFY](https://perma.cc/3KCZ-RUFY)
+
+[[14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kopytkov2018-marker)] Dmitry Kopytkov and Patrick Lee. [Meet Bandaid, the Dropbox service proxy](https://dropbox.tech/infrastructure/meet-bandaid-the-dropbox-service-proxy). *dropbox.tech*, March 2018. Archived at [perma.cc/KUU6-YG4S](https://perma.cc/KUU6-YG4S)
+
+[[15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gunawi2018-marker)] Haryadi S. Gunawi, Riza O. Suminto, Russell Sears, Casey Golliher, Swaminathan Sundararaman, Xing Lin, Tim Emami, Weiguang Sheng, Nematollah Bidokhti, Caitie McCaffrey, Gary Grider, Parks M. Fields, Kevin Harms, Robert B. Ross, Andree Jacobson, Robert Ricci, Kirk Webb, Peter Alvaro, H. Birali Runesha, Mingzhe Hao, and Huaicheng Li. [Fail-Slow at Scale: Evidence of Hardware Performance Faults in Large Production Systems](https://www.usenix.org/system/files/conference/fast18/fast18-gunawi.pdf). At *16th USENIX Conference on File and Storage Technologies*, February 2018.
+
+[[16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#DeCandia2007_ch1-marker)] Giuseppe DeCandia, Deniz Hastorun, Madan Jampani, Gunavardhan Kakulapati, Avinash Lakshman, Alex Pilchin, Swaminathan Sivasubramanian, Peter Vosshall, and Werner Vogels. [Dynamo: Amazon’s Highly Available Key-Value Store](http://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf). At *21st ACM Symposium on Operating Systems Principles* (SOSP), October 2007. [doi:10.1145/1294261.1294281](https://doi.org/10.1145/1294261.1294281)
+
+[[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Whitenton2020-marker)] Kathryn Whitenton. [The Need for Speed, 23 Years Later](https://www.nngroup.com/articles/the-need-for-speed/). *nngroup.com*, May 2020. Archived at [perma.cc/C4ER-LZYA](https://perma.cc/C4ER-LZYA)
+
+[[18](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Linden2006-marker)] Greg Linden. [Marissa Mayer at Web 2.0](https://glinden.blogspot.com/2006/11/marissa-mayer-at-web-20.html). *glinden.blogspot.com*, November 2005. Archived at [perma.cc/V7EA-3VXB](https://perma.cc/V7EA-3VXB)
+
+[[19](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brutlag2009-marker)] Jake Brutlag. [Speed Matters for Google Web Search](https://services.google.com/fh/files/blogs/google_delayexp.pdf). *services.google.com*, June 2009. Archived at [perma.cc/BK7R-X7M2](https://perma.cc/BK7R-X7M2)
+
+[[20](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schurman2009-marker)] Eric Schurman and Jake Brutlag. [Performance Related Changes and their User Impact](https://www.youtube.com/watch?v=bQSE51-gr2s). Talk at *Velocity 2009*.
+
+[[21](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Akamai2017-marker)] Akamai Technologies, Inc. [The State of Online Retail Performance](https://web.archive.org/web/20210729180749/https://www.akamai.com/us/en/multimedia/documents/report/akamai-state-of-online-retail-performance-spring-2017.pdf). *akamai.com*, April 2017. Archived at [perma.cc/UEK2-HYCS](https://perma.cc/UEK2-HYCS)
+
+[[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bai2017-marker)] Xiao Bai, Ioannis Arapakis, B. Barla Cambazoglu, and Ana Freire. [Understanding and Leveraging the Impact of Response Latency on User Behaviour in Web Search](https://iarapakis.github.io/papers/TOIS17.pdf). *ACM Transactions on Information Systems*, volume 36, issue 2, article 21, April 2018. [doi:10.1145/3106372](https://doi.org/10.1145/3106372)
+
+[[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dean2013-marker)] Jeffrey Dean and Luiz André Barroso. [The Tail at Scale](http://cacm.acm.org/magazines/2013/2/160173-the-tail-at-scale/fulltext). *Communications of the ACM*, volume 56, issue 2, pages 74–80, February 2013. [doi:10.1145/2408776.2408794](https://doi.org/10.1145/2408776.2408794)
+
+[[24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hidalgo2020-marker)] Alex Hidalgo. [*Implementing Service Level Objectives: A Practical Guide to SLIs, SLOs, and Error Budgets*](https://www.oreilly.com/library/view/implementing-service-level/9781492076803/). O’Reilly Media, September 2020. ISBN: 1492076813
+
+[[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Mogul2019-marker)] Jeffrey C. Mogul and John Wilkes. [Nines are Not Enough: Meaningful Metrics for Clouds](https://research.google/pubs/pub48033/). At *17th Workshop on Hot Topics in Operating Systems* (HotOS), May 2019. [doi:10.1145/3317550.3321432](https://doi.org/10.1145/3317550.3321432)
+
+[[26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hauer2020-marker)] Tamás Hauer, Philipp Hoffmann, John Lunney, Dan Ardelean, and Amer Diwan. [Meaningful Availability](https://www.usenix.org/conference/nsdi20/presentation/hauer). At *17th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), February 2020.
+
+[[27](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dunning2021-marker)] Ted Dunning. [The t-digest: Efficient estimates of distributions](https://www.sciencedirect.com/science/article/pii/S2665963820300403). *Software Impacts*, volume 7, article 100049, February 2021. [doi:10.1016/j.simpa.2020.100049](https://doi.org/10.1016/j.simpa.2020.100049)
+
+[[28](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kohn2021-marker)] David Kohn. [How percentile approximation works (and why it’s more useful than averages)](https://www.timescale.com/blog/how-percentile-approximation-works-and-why-its-more-useful-than-averages/). *timescale.com*, September 2021. Archived at [perma.cc/3PDP-NR8B](https://perma.cc/3PDP-NR8B)
+
+[[29](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hartmann2020-marker)] Heinrich Hartmann and Theo Schlossnagle. [Circllhist — A Log-Linear Histogram Data Structure for IT Infrastructure Monitoring](https://arxiv.org/pdf/2001.06561.pdf). *arxiv.org*, January 2020.
+
+[[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Masson2019-marker)] Charles Masson, Jee E. Rim, and Homin K. Lee. [DDSketch: A Fast and Fully-Mergeable Quantile Sketch with Relative-Error Guarantees](http://www.vldb.org/pvldb/vol12/p2195-masson.pdf). *Proceedings of the VLDB Endowment*, volume 12, issue 12, pages 2195–2205, August 2019. [doi:10.14778/3352063.3352135](https://doi.org/10.14778/3352063.3352135)
+
+[[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schwartz2015-marker)] Baron Schwartz. [Why Percentiles Don’t Work the Way You Think](https://orangematter.solarwinds.com/2016/11/18/why-percentiles-dont-work-the-way-you-think/). *solarwinds.com*, November 2016. Archived at [perma.cc/469T-6UGB](https://perma.cc/469T-6UGB)
+
+[[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Heimerdinger1992-marker)] Walter L. Heimerdinger and Charles B. Weinstock. [A Conceptual Framework for System Fault Tolerance](https://resources.sei.cmu.edu/asset_files/TechnicalReport/1992_005_001_16112.pdf). Technical Report CMU/SEI-92-TR-033, Software Engineering Institute, Carnegie Mellon University, October 1992. Archived at [perma.cc/GD2V-DMJW](https://perma.cc/GD2V-DMJW)
+
+[[33](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gaertner1999-marker)] Felix C. Gärtner. [Fundamentals of fault-tolerant distributed computing in asynchronous environments](https://dl.acm.org/doi/pdf/10.1145/311531.311532). *ACM Computing Surveys*, volume 31, issue 1, pages 1–26, March 1999. [doi:10.1145/311531.311532](https://doi.org/10.1145/311531.311532)
+
+[[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Yuan2014-marker)] Ding Yuan, Yu Luo, Xin Zhuang, Guilherme Renna Rodrigues, Xu Zhao, Yongle Zhang, Pranay U. Jain, and Michael Stumm. [Simple Testing Can Prevent Most Critical Failures: An Analysis of Production Failures in Distributed Data-Intensive Systems](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-yuan.pdf). At *11th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2014.
+
+[[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Rosenthal2020-marker)] Casey Rosenthal and Nora Jones. [*Chaos Engineering*](https://learning.oreilly.com/library/view/chaos-engineering/9781492043850/). O’Reilly Media, April 2020. ISBN: 9781492043867
+
+[[36](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Pinheiro2007-marker)] Eduardo Pinheiro, Wolf-Dietrich Weber, and Luiz Andre Barroso. [Failure Trends in a Large Disk Drive Population](https://www.usenix.org/legacy/events/fast07/tech/full_papers/pinheiro/pinheiro_old.pdf). At *5th USENIX Conference on File and Storage Technologies* (FAST), February 2007.
+
+[[37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2007-marker)] Bianca Schroeder and Garth A. Gibson. [Disk failures in the real world: What does an MTTF of 1,000,000 hours mean to you?](https://www.usenix.org/legacy/events/fast07/tech/schroeder/schroeder.pdf) At *5th USENIX Conference on File and Storage Technologies* (FAST), February 2007.
+
+[[38](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Klein2021-marker)] Andy Klein. [Backblaze Drive Stats for Q2 2021](https://www.backblaze.com/blog/backblaze-drive-stats-for-q2-2021/). *backblaze.com*, August 2021. Archived at [perma.cc/2943-UD5E](https://perma.cc/2943-UD5E)
+
+[[39](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Narayanan2016-marker)] Iyswarya Narayanan, Di Wang, Myeongjae Jeon, Bikash Sharma, Laura Caulfield, Anand Sivasubramaniam, Ben Cutler, Jie Liu, Badriddine Khessib, and Kushagra Vaid. [SSD Failures in Datacenters: What? When? and Why?](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/08/a7-narayanan.pdf) At *9th ACM International on Systems and Storage Conference* (SYSTOR), June 2016. [doi:10.1145/2928275.2928278](https://doi.org/10.1145/2928275.2928278)
+
+[[40](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Alibaba2019_ch2-marker)] Alibaba Cloud Storage Team. [Storage System Design Analysis: Factors Affecting NVMe SSD Performance (1)](https://www.alibabacloud.com/blog/594375). *alibabacloud.com*, January 2019. Archived at [archive.org](https://web.archive.org/web/20230522005034/https://www.alibabacloud.com/blog/594375)
+
+[[41](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2016-marker)] Bianca Schroeder, Raghav Lagisetty, and Arif Merchant. [Flash Reliability in Production: The Expected and the Unexpected](https://www.usenix.org/system/files/conference/fast16/fast16-papers-schroeder.pdf). At *14th USENIX Conference on File and Storage Technologies* (FAST), February 2016.
+
+[[42](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Alter2019-marker)] Jacob Alter, Ji Xue, Alma Dimnaku, and Evgenia Smirni. [SSD failures in the field: symptoms, causes, and prediction models](https://dl.acm.org/doi/pdf/10.1145/3295500.3356172). At *International Conference for High Performance Computing, Networking, Storage and Analysis* (SC), November 2019. [doi:10.1145/3295500.3356172](https://doi.org/10.1145/3295500.3356172)
+
+[[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ford2010-marker)] Daniel Ford, François Labelle, Florentina I. Popovici, Murray Stokely, Van-Anh Truong, Luiz Barroso, Carrie Grimes, and Sean Quinlan. [Availability in Globally Distributed Storage Systems](https://www.usenix.org/legacy/event/osdi10/tech/full_papers/Ford.pdf). At *9th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2010.
+
+[[44](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Vishwanath2010-marker)] Kashi Venkatesh Vishwanath and Nachiappan Nagappan. [Characterizing Cloud Computing Hardware Reliability](https://www.microsoft.com/en-us/research/wp-content/uploads/2010/06/socc088-vishwanath.pdf). At *1st ACM Symposium on Cloud Computing* (SoCC), June 2010. [doi:10.1145/1807128.1807161](https://doi.org/10.1145/1807128.1807161)
+
+[[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hochschild2021-marker)] Peter H. Hochschild, Paul Turner, Jeffrey C. Mogul, Rama Govindaraju, Parthasarathy Ranganathan, David E. Culler, and Amin Vahdat. [Cores that don’t count](https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s01-hochschild.pdf). At *Workshop on Hot Topics in Operating Systems* (HotOS), June 2021. [doi:10.1145/3458336.3465297](https://doi.org/10.1145/3458336.3465297)
+
+[[46](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dixit2021-marker)] Harish Dattatraya Dixit, Sneha Pendharkar, Matt Beadon, Chris Mason, Tejasvi Chakravarthy, Bharath Muthiah, and Sriram Sankar. [Silent Data Corruptions at Scale](https://arxiv.org/abs/2102.11245). *arXiv:2102.11245*, February 2021.
+
+[[47](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Behrens2015-marker)] Diogo Behrens, Marco Serafini, Sergei Arnautov, Flavio P. Junqueira, and Christof Fetzer. [Scalable Error Isolation for Distributed Systems](https://www.usenix.org/conference/nsdi15/technical-sessions/presentation/behrens). At *12th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), May 2015.
+
+[[48](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Schroeder2009-marker)] Bianca Schroeder, Eduardo Pinheiro, and Wolf-Dietrich Weber. [DRAM Errors in the Wild: A Large-Scale Field Study](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/35162.pdf). At *11th International Joint Conference on Measurement and Modeling of Computer Systems* (SIGMETRICS), June 2009. [doi:10.1145/1555349.1555372](https://doi.org/10.1145/1555349.1555372)
+
+[[49](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kim2014-marker)] Yoongu Kim, Ross Daly, Jeremie Kim, Chris Fallin, Ji Hye Lee, Donghyuk Lee, Chris Wilkerson, Konrad Lai, and Onur Mutlu. [Flipping Bits in Memory Without Accessing Them: An Experimental Study of DRAM Disturbance Errors](https://users.ece.cmu.edu/~yoonguk/papers/kim-isca14.pdf). At *41st Annual International Symposium on Computer Architecture* (ISCA), June 2014. [doi:10.5555/2665671.2665726](https://doi.org/10.5555/2665671.2665726)
+
+[[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cockcroft2019-marker)] Adrian Cockcroft. [Failure Modes and Continuous Resilience](https://adrianco.medium.com/failure-modes-and-continuous-resilience-6553078caad5). *adrianco.medium.com*, November 2019. Archived at [perma.cc/7SYS-BVJP](https://perma.cc/7SYS-BVJP)
+
+[[51](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Han2021-marker)] Shujie Han, Patrick P. C. Lee, Fan Xu, Yi Liu, Cheng He, and Jiongzhou Liu. [An In-Depth Study of Correlated Failures in Production SSD-Based Data Centers](https://www.usenix.org/conference/fast21/presentation/han). At *19th USENIX Conference on File and Storage Technologies* (FAST), February 2021.
+
+[[52](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Nightingale2011-marker)] Edmund B. Nightingale, John R. Douceur, and Vince Orgovan. [Cycles, Cells and Platters: An Empirical Analysis of Hardware Failures on a Million Consumer PCs](https://eurosys2011.cs.uni-salzburg.at/pdf/eurosys2011-nightingale.pdf). At *6th European Conference on Computer Systems* (EuroSys), April 2011. [doi:10.1145/1966445.1966477](https://doi.org/10.1145/1966445.1966477)
+
+[[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gunawi2014-marker)] Haryadi S. Gunawi, Mingzhe Hao, Tanakorn Leesatapornwongsa, Tiratat Patana-anake, Thanh Do, Jeffry Adityatama, Kurnia J. Eliazar, Agung Laksono, Jeffrey F. Lukman, Vincentius Martin, and Anang D. Satria. [What Bugs Live in the Cloud?](http://ucare.cs.uchicago.edu/pdf/socc14-cbs.pdf) At *5th ACM Symposium on Cloud Computing* (SoCC), November 2014. [doi:10.1145/2670979.2670986](https://doi.org/10.1145/2670979.2670986)
+
+[[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Kreps2012_ch1-marker)] Jay Kreps. [Getting Real About Distributed System Reliability](http://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability). *blog.empathybox.com*, March 2012. Archived at [perma.cc/9B5Q-AEBW](https://perma.cc/9B5Q-AEBW)
+
+[[55](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Minar2012_ch1-marker)] Nelson Minar. [Leap Second Crashes Half the Internet](http://www.somebits.com/weblog/tech/bad/leap-second-2012.html). *somebits.com*, July 2012. Archived at [perma.cc/2WB8-D6EU](https://perma.cc/2WB8-D6EU)
+
+[[56](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#HPE2019-marker)] Hewlett Packard Enterprise. [Support Alerts – Customer Bulletin a00092491en_us](https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00092491en_us). *support.hpe.com*, November 2019. Archived at [perma.cc/S5F6-7ZAC](https://perma.cc/S5F6-7ZAC)
+
+[[57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hochstein2020-marker)] Lorin Hochstein. [awesome limits](https://github.com/lorin/awesome-limits). *github.com*, November 2020. Archived at [perma.cc/3R5M-E5Q4](https://perma.cc/3R5M-E5Q4)
+
+[[58](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Tang2023-marker)] Lilia Tang, Chaitanya Bhandari, Yongle Zhang, Anna Karanika, Shuyang Ji, Indranil Gupta, and Tianyin Xu. [Fail through the Cracks: Cross-System Interaction Failures in Modern Cloud Systems](https://tianyin.github.io/pub/csi-failures.pdf). At *18th European Conference on Computer Systems* (EuroSys), May 2023. [doi:10.1145/3552326.3587448](https://doi.org/10.1145/3552326.3587448)
+
+[[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ulrich2016-marker)] Mike Ulrich. [Addressing Cascading Failures](https://sre.google/sre-book/addressing-cascading-failures/). In Betsy Beyer, Jennifer Petoff, Chris Jones, and Niall Richard Murphy (ed). [*Site Reliability Engineering: How Google Runs Production Systems*](https://www.oreilly.com/library/view/site-reliability-engineering/9781491929117/). O’Reilly Media, 2016. ISBN: 9781491929124
+
+[[60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Fassbender2022-marker)] Harri Faßbender. [Cascading failures in large-scale distributed systems](https://blog.mi.hdm-stuttgart.de/index.php/2022/03/03/cascading-failures-in-large-scale-distributed-systems/). *blog.mi.hdm-stuttgart.de*, March 2022. Archived at [perma.cc/K7VY-YJRX](https://perma.cc/K7VY-YJRX)
+
+[[61](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Cook2000-marker)] Richard I. Cook. [How Complex Systems Fail](https://www.adaptivecapacitylabs.com/HowComplexSystemsFail.pdf). Cognitive Technologies Laboratory, April 2000. Archived at [perma.cc/RDS6-2YVA](https://perma.cc/RDS6-2YVA)
+
+[[62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Woods2017-marker)] David D Woods. [STELLA: Report from the SNAFUcatchers Workshop on Coping With Complexity](https://snafucatchers.github.io/). *snafucatchers.github.io*, March 2017. Archived at [archive.org](https://web.archive.org/web/20230306130131/https://snafucatchers.github.io/)
+
+[[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Oppenheimer2003-marker)] David Oppenheimer, Archana Ganapathi, and David A. Patterson. [Why Do Internet Services Fail, and What Can Be Done About It?](http://static.usenix.org/legacy/events/usits03/tech/full_papers/oppenheimer/oppenheimer.pdf) At *4th USENIX Symposium on Internet Technologies and Systems* (USITS), March 2003.
+
+[[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Dekker2017-marker)] Sidney Dekker. [*The Field Guide to Understanding ‘Human Error’, 3rd Edition*](https://learning.oreilly.com/library/view/the-field-guide/9781317031833/). CRC Press, November 2017. ISBN: 9781472439055
+
+[[65](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Allspaw2012-marker)] John Allspaw. [Blameless PostMortems and a Just Culture](https://www.etsy.com/codeascraft/blameless-postmortems/). *etsy.com*, May 2012. Archived at [perma.cc/YMJ7-NTAP](https://perma.cc/YMJ7-NTAP)
+
+[[66](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Sabo2023-marker)] Itzy Sabo. [Uptime Guarantees — A Pragmatic Perspective](https://world.hey.com/itzy/uptime-guarantees-a-pragmatic-perspective-736d7ea4). *world.hey.com*, March 2023. Archived at [perma.cc/F7TU-78JB](https://perma.cc/F7TU-78JB)
+
+[[67](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Jurewitz2013-marker)] Michael Jurewitz. [The Human Impact of Bugs](http://jury.me/blog/2013/3/14/the-human-impact-of-bugs). *jury.me*, March 2013. Archived at [perma.cc/5KQ4-VDYL](https://perma.cc/5KQ4-VDYL)
+
+[[68](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Siddique2021-marker)] Haroon Siddique and Ben Quinn. [Court clears 39 post office operators convicted due to ‘corrupt data’](https://www.theguardian.com/uk-news/2021/apr/23/court-clears-39-post-office-staff-convicted-due-to-corrupt-data). *theguardian.com*, April 2021. Archived at [archive.org](https://web.archive.org/web/20220630124107/https://www.theguardian.com/uk-news/2021/apr/23/court-clears-39-post-office-staff-convicted-due-to-corrupt-data)
+
+[[69](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bohm2022-marker)] Nicholas Bohm, James Christie, Peter Bernard Ladkin, Bev Littlewood, Paul Marshall, Stephen Mason, Martin Newby, Steven J. Murdoch, Harold Thimbleby, and Martyn Thomas. [The legal rule that computers are presumed to be operating correctly – unforeseen and unjust consequences](https://www.benthamsgaze.org/wp-content/uploads/2022/06/briefing-presumption-that-computers-are-reliable.pdf). Briefing note, *benthamsgaze.org*, June 2022. Archived at [perma.cc/WQ6X-TMW4](https://perma.cc/WQ6X-TMW4)
+
+[[70](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#McKinley2015-marker)] Dan McKinley. [Choose Boring Technology](https://mcfunley.com/choose-boring-technology). *mcfunley.com*, March 2015. Archived at [perma.cc/7QW7-J4YP](https://perma.cc/7QW7-J4YP)
+
+[[71](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Warfield2023-marker)] Andy Warfield. [Building and operating a pretty big storage system called S3](https://www.allthingsdistributed.com/2023/07/building-and-operating-a-pretty-big-storage-system.html). *allthingsdistributed.com*, July 2023. Archived at [perma.cc/7LPK-TP7V](https://perma.cc/7LPK-TP7V)
+
+[[72](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2023-marker)] Marc Brooker. [Surprising Scalability of Multitenancy](https://brooker.co.za/blog/2023/03/23/economics.html). *brooker.co.za*, March 2023. Archived at [archive.org](https://web.archive.org/web/20230404065818/https://brooker.co.za/blog/2023/03/23/economics.html)
+
+[[73](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Stopford2009-marker)] Ben Stopford. [Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/). *benstopford.com*, November 2009. Archived at [perma.cc/7BXH-EDUR](https://perma.cc/7BXH-EDUR)
+
+[[74](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Stonebraker1986-marker)] Michael Stonebraker. [The Case for Shared Nothing](http://db.cs.berkeley.edu/papers/hpts85-nothing.pdf). *IEEE Database Engineering Bulletin*, volume 9, issue 1, pages 4–9, March 1986.
+
+[[75](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Antonopoulos2019_ch2-marker)] Panagiotis Antonopoulos, Alex Budovski, Cristian Diaconu, Alejandro Hernandez Saenz, Jack Hu, Hanuma Kodavalla, Donald Kossmann, Sandeep Lingam, Umar Farooq Minhas, Naveen Prakash, Vijendra Purohit, Hugh Qu, Chaitanya Sreenivas Ravella, Krystyna Reisteter, Sheetal Shrotri, Dixin Tang, and Vikram Wakade. [Socrates: The New SQL Server in the Cloud](https://www.microsoft.com/en-us/research/uploads/prod/2019/05/socrates.pdf). At *ACM International Conference on Management of Data* (SIGMOD), pages 1743–1756, June 2019. [doi:10.1145/3299869.3314047](https://doi.org/10.1145/3299869.3314047)
+
+[[76](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Newman2021_ch2-marker)] Sam Newman. [*Building Microservices*, second edition](https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/). O’Reilly Media, 2021. ISBN: 9781492034025
+
+[[77](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Ensmenger2016-marker)] Nathan Ensmenger. [When Good Software Goes Bad: The Surprising Durability of an Ephemeral Technology](https://themaintainers.wpengine.com/wp-content/uploads/2021/04/ensmenger-maintainers-v2.pdf). At *The Maintainers Conference*, April 2016. Archived at [perma.cc/ZXT4-HGZB](https://perma.cc/ZXT4-HGZB)
+
+[[78](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Glass2002-marker)] Robert L. Glass. [*Facts and Fallacies of Software Engineering*](https://learning.oreilly.com/library/view/facts-and-fallacies/0321117425/). Addison-Wesley Professional, October 2002. ISBN: 9780321117427
+
+[[79](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bellotti2021-marker)] Marianne Bellotti. [*Kill It with Fire*](https://learning.oreilly.com/library/view/kill-it-with/9781098128883/). No Starch Press, April 2021. ISBN: 9781718501188
+
+[[80](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Bainbridge1983-marker)] Lisanne Bainbridge. [Ironies of automation](https://www.adaptivecapacitylabs.com/IroniesOfAutomation-Bainbridge83.pdf). *Automatica*, volume 19, issue 6, pages 775–779, November 1983. [doi:10.1016/0005-1098(83)90046-8](https://doi.org/10.1016/0005-1098(83)90046-8)
+
+[[81](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Hamilton2007-marker)] James Hamilton. [On Designing and Deploying Internet-Scale Services](https://www.usenix.org/legacy/events/lisa07/tech/full_papers/hamilton/hamilton.pdf). At *21st Large Installation System Administration Conference* (LISA), November 2007.
+
+[[82](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Horovits2021-marker)] Dotan Horovits. [Open Source for Better Observability](https://horovits.medium.com/open-source-for-better-observability-8c65b5630561). *horovits.medium.com*, October 2021. Archived at [perma.cc/R2HD-U2ZT](https://perma.cc/R2HD-U2ZT)
+
+[[83](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Foote1997-marker)] Brian Foote and Joseph Yoder. [Big Ball of Mud](http://www.laputan.org/pub/foote/mud.pdf). At *4th Conference on Pattern Languages of Programs* (PLoP), September 1997. Archived at [perma.cc/4GUP-2PBV](https://perma.cc/4GUP-2PBV)
+
+[[84](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooker2022-marker)] Marc Brooker. [What is a simple system?](https://brooker.co.za/blog/2022/05/03/simplicity.html) *brooker.co.za*, May 2022. Archived at [archive.org](https://web.archive.org/web/20220602141902/https://brooker.co.za/blog/2022/05/03/simplicity.html)
+
+[[85](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Brooks1995-marker)] Frederick P Brooks. [No Silver Bullet – Essence and Accident in Software Engineering](http://worrydream.com/refs/Brooks-NoSilverBullet.pdf). In [*The Mythical Man-Month*](https://www.oreilly.com/library/view/mythical-man-month-the/0201835959/), Anniversary edition, Addison-Wesley, 1995. ISBN: 9780201835953
+
+[[86](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Luu2020-marker)] Dan Luu. [Against essential and accidental complexity](https://danluu.com/essential-complexity/). *danluu.com*, December 2020. Archived at [perma.cc/H5ES-69KC](https://perma.cc/H5ES-69KC)
+
+[[87](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Gamma1994-marker)] Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides. [*Design Patterns: Elements of Reusable Object-Oriented Software*](https://learning.oreilly.com/library/view/design-patterns-elements/0201633612/). Addison-Wesley Professional, October 1994. ISBN: 9780201633610
+
+[[88](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Evans2003-marker)] Eric Evans. [*Domain-Driven Design: Tackling Complexity in the Heart of Software*](https://learning.oreilly.com/library/view/domain-driven-design-tackling/0321125215/). Addison-Wesley Professional, August 2003. ISBN: 9780321125217
+
+[[89](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Breivold2008-marker)] Hongyu Pei Breivold, Ivica Crnkovic, and Peter J. Eriksson. [Analyzing Software Evolvability](http://www.es.mdh.se/pdf_publications/1251.pdf). at *32nd Annual IEEE International Computer Software and Applications Conference* (COMPSAC), July 2008. [doi:10.1109/COMPSAC.2008.50](https://doi.org/10.1109/COMPSAC.2008.50)
+
+[[90](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#Zaninotto2002-marker)] Enrico Zaninotto. [From X programming to the X organisation](https://martinfowler.com/articles/zaninotto.pdf). At *XP Conference*, May 2002. Archived at [perma.cc/R9AR-QCKZ](https://perma.cc/R9AR-QCKZ)
+
 
 ------
 
-| 上一章                                       | 目錄                            | 下一章                       |
-| -------------------------------------------- | ------------------------------- | ---------------------------- |
-| [第一章：可靠性、可伸縮性和可維護性](ch1.md) | [設計資料密集型應用](README.md) | [第三章：儲存與檢索](ch3.md) |
+| 上一章                        | 目錄                     | 下一章                    |
+|----------------------------|------------------------|------------------------|
+| [第一章：資料系統架構中的利弊權衡](ch1.md) | [設計資料密集型應用](README.md) | [第二章：定義非功能性要求](ch3.md) |

@@ -34,5 +34,5 @@ By being clear about which data is derived from which other data, you can bring 
 
 ## Overview of Chapters
 
-We will start in [Chapter 10](ch10.md) by examining batch-oriented dataflow systems such as MapReduce, and see how they give us good tools and principles for building large- scale data systems. In [Chapter 11](ch11.md) we will take those ideas and apply them to data streams, which allow us to do the same kinds of things with lower delays. [Chapter 12](ch12.md) concludes the book by exploring ideas about how we might use these tools to build reliable, scalable, and maintainable applications in the future.
+We will start in [Chapter 11](ch11.md) by examining batch-oriented dataflow systems such as MapReduce, and see how they give us good tools and principles for building large- scale data systems. In [Chapter 12](ch12.md) we will take those ideas and apply them to data streams, which allow us to do the same kinds of things with lower delays. [Chapter 13](ch13.md) concludes the book by exploring ideas about how we might use these tools to build reliable, scalable, and maintainable applications in the future.
 

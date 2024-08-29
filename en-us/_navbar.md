@@ -1,4 +1,4 @@
 - Languages
-  - [Chineses](/)
-  - [Chinese (Traditional)](/zh-tw/)
+  - [简体中文](/)
+  - [繁体中文](/zh-tw/)
   - [English](/en-us/)

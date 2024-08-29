@@ -11,11 +11,10 @@ Martin 是一位常規會議演講者，博主和開源貢獻者。他認為，�
 
 ## 關於譯者
 
-[馮若航](https://vonng.com/about)
+[馮若航](https://vonng.com/about)，網名 [Vonng](https://github.com/Vonng) (rh@vonng.com)
 
-PostgreSQL DBA @ TanTan
+獨立開源貢獻者，開源 RDS for PostgreSQL —— [Pigsty](https://pigsty.cc/zh/) 作者，Postgres Hacker，[**資料庫老司機**](https://pigsty.cc/zh/blog/db), [**雲計算泥石流**](https://pigsty.cc/zh/blog/cloud)。
 
-Alibaba+-Finplus 架構師/全棧工程師 (2015 ~ 2017)
 
 
 ## 後記

@@ -6,6 +6,19 @@
 
 --------
 
+如果您正在构建应用程序，您将由一系列需求所驱动。在您需求列表的最顶端，很可能是应用程序必须提供的功能：需要哪些屏幕和按钮，以及每个操作应如何执行以满足软件的目的。这些是您的*功能性需求*。
+
+此外，您可能还有一些*非功能性需求*：例如，应用应该快速、可靠、安全、合法合规，并且易于维护。这些需求可能没有明确书写下来，因为它们似乎有些显而易见，但它们和应用的功能一样重要：一个异常缓慢或不可靠的应用可能根本无法存在。
+
+并非所有非功能性需求都属于本书的讨论范围，但有几个是如此。在本章中，我们将介绍几个技术概念，这将帮助您明确自己系统的非功能性需求：
+
+- 如何定义和衡量系统的*性能*（见[“描述性能”](#描述性能)）；
+- 服务*可靠*的含义——即使在出现问题时，也能继续正确工作（见[“可靠性与容错”](#可靠性与容错)）；
+- 允许系统通过有效地增加计算能力来*可扩展*，随着系统负载的增长（见[“可伸缩性”](#可伸缩性)）；以及
+- 长期易于维护系统（见[“可维护性”](#可维护性)）。
+
+本章引入的术语在后续章节中也将非常有用，当我们详细探讨数据密集型系统的实现方式时。然而，抽象的定义可能相当枯燥；为了使这些概念更具体，我们将从社交网络服务的案例研究开始本章，这将提供性能和可扩展性的实际示例。
+
 If you are building an application, you will be driven by a list of requirements. At the top of your list is most likely the functionality that the application must offer: what screens and what buttons you need, and what each operation is supposed to do in order to fulfill the purpose of your software. These are your *functional requirements*.
 
 In addition, you probably also have some *nonfunctional requirements*: for example, the app should be fast, reliable, secure, legally compliant, and easy to maintain. These requirements might not be explicitly written down, because they may seem somewhat obvious, but they are just as important as the app’s functionality: an app that is unbearably slow or unreliable might as well not exist.
@@ -180,7 +193,7 @@ Beware that averaging percentiles, e.g., to reduce the time resolution or to com
 
 --------
 
-## 可靠性与容灾
+## 可靠性与容错
 
 Everybody has an intuitive idea of what it means for something to be reliable or unreliable. For software, typical expectations include:
 
@@ -416,6 +429,14 @@ One major factor that makes change difficult in large systems is when some actio
 --------
 
 ## 本章小结
+
+在本章中，我们检查了几个非功能性需求的示例：性能、可靠性、可扩展性和可维护性。通过这些话题，我们还遇到了我们在本书其余部分将需要的原则和术语。我们从一个案例研究开始，探讨了如何在社交网络中实现首页时间线，这展示了在规模扩大时可能出现的一些挑战。
+
+我们讨论了如何测量性能（例如，使用响应时间百分位数）、系统负载（例如，使用吞吐量指标），以及它们如何在SLA中使用。可扩展性是一个密切相关的概念：即确保在负载增长时性能保持不变。我们看到了一些可扩展性的一般原则，如将任务分解成可以独立操作的小部分，并将在后续章节中深入技术细节探讨可扩展性技术。
+
+为了实现可靠性，您可以使用容错技术，即使系统的某个组件（例如，磁盘、机器或其他服务）出现故障，也能继续提供服务。我们看到了可能发生的硬件故障示例，并将其与软件故障区分开来，后者可能更难处理，因为它们往往具有强相关性。实现可靠性的另一个方面是构建对人为错误的抵抗力，我们看到了无责任事故报告作为从事件中学习的一种技术。
+
+最后，我们检查了几个维护性的方面，包括支持运营团队的工作、管理复杂性，以及使应用功能随时间易于演进。关于如何实现这些目标没有简单的答案，但有一件事可以帮助，那就是使用提供有用抽象的、众所周知的构建块来构建应用程序。本书的其余部分将介绍一些最重要的这类构建块。
 
 In this chapter we examined several examples of nonfunctional requirements: performance, reliability, scalability, and maintainability. Through these topics we have also encountered principles and terminology that we will need throughout the rest of the book. We started with a case study of how one might implement home timelines in a social network, which illustrated some of the challenges that arise at scale.
 
