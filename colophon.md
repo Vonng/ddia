@@ -11,11 +11,10 @@ Martin 是一位常规会议演讲者，博主和开源贡献者。他认为，�
 
 ## 关于译者
 
-[冯若航](https://vonng.com/about)
+[冯若航](https://vonng.com/about)，网名 [Vonng](https://github.com/Vonng) (rh@vonng.com)
 
-PostgreSQL DBA @ TanTan
+独立开源贡献者，开源 RDS for PostgreSQL —— [Pigsty](https://pigsty.cc/zh/) 作者，Postgres Hacker，[**数据库老司机**](https://pigsty.cc/zh/blog/db), [**云计算泥石流**](https://pigsty.cc/zh/blog/cloud)。
 
-Alibaba+-Finplus 架构师/全栈工程师 (2015 ~ 2017)
 
 
 ## 后记

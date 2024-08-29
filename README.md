@@ -1,21 +1,26 @@
-# 设计数据密集型应用（第二版） - 中文翻译
+# 设计数据密集型应用（第二版）
 
-> DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345) 正在当前 [v2](https://github.com/Vonng/ddia/tree/v2) 分支上进行，欢迎参与校对与翻译。
+[![Webite: ddia](https://img.shields.io/badge/v1-ddia.pigsty.io-slategray?style=flat)](https://ddia.pigsty.io)
+[![Webite: ddia2](https://img.shields.io/badge/v2-ddia2.pigsty.io-slategray?style=flat)](https://ddia2.pigsty.io)
+[![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
 
-- 作者： [Martin Kleppmann](https://martin.kleppmann.com)
-- 原名：[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html)
-- 译者：[冯若航](https://vonng.com) （[@Vonng](https://vonng.com/en/)）
-- 校订： [@yingang](https://github.com/yingang)
-- 繁体：[繁體中文版本](zh-tw/README.md) by  [@afunTW](https://github.com/afunTW)
+**作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ：
 
-> 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 或 [Github Pages](https://vonng.github.io/ddia) 以获取最佳阅读体验。
->
-> 本地：你可在项目根目录中执行 `make`，并通过浏览器阅读（[在线预览](http://ddia.vonng.com/#/)）。
+英国剑桥大学分布式系统研究员，演讲者，博主和开源贡献者，软件工程师和企业家，曾在 LinkedIn 和 Rapportive 负责数据基础架构。
+
+**译者**：[冯若航](https://vonng.com) / [Vonng](https://github.com/Vonng) (rh@vonng.com)：
+
+创业者，开源贡献者，PG Hacker。[Pigsty](https://pigsty.cc/zh/) 与公众号《[非法加冯](https://mp.weixin.qq.com/s/p4Ys10ZdEDAuqNAiRmcnIQ)》作者，[数据库老司机](https://pigsty.cc/zh/blog/db)，[云计算泥石流](https://pigsty.cc/zh/blog/cloud)，DBA & 架构师 @ 阿里，苹果，探探
+
+**校订**： [@yingang](https://github.com/yingang) / [繁體中文](zh-tw/README.md) **版本维护** by  [@afunTW](https://github.com/afunTW)
+
+**阅览**：在本地使用 [Docsify](https://docsify.js.org/) （根目录中执行 `make`） 或 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 以获取最佳阅读体验。
+
 
 
 --------
 
-> **预览版读者须知**
+> **DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345) 正在当前 [v2](https://github.com/Vonng/ddia/tree/v2) 分支上进行，欢迎参与校对与翻译**，**预览版读者须知：**
 >
 > 在预览版中，你可以最早获取到未经编辑的作者原始撰写稿 —— 因此你能在这些书籍出版前就用上这些技术。
 >
