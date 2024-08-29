@@ -8,7 +8,18 @@
 
 -----------------------------
 
+数据模型或许是开发软件最重要的部分，因为它们具有深远的影响：不仅影响软件的编写方式，还影响我们*思考问题*的方式。
 
+大多数应用程序是通过在一个数据模型之上层叠另一个数据模型来构建的。对于每一层，关键问题是：它是如何以下一层的模型*表现*出来的？例如：
+
+1. 作为应用开发者，你观察现实世界（其中有人、组织、商品、行动、资金流动、传感器等），并以对象或数据结构以及操作这些数据结构的 API 的形式对其进行建模。这些结构通常是针对你的应用特定的。
+2. 当你想存储这些数据结构时，你会用通用数据模型来表达它们，比如 JSON 或 XML 文档、关系数据库中的表，或图中的顶点和边。这些数据模型是本章的主题。
+3. 构建你的数据库软件的工程师决定了一种将该 JSON/关系/图数据表示为内存、磁盘或网络上的字节的方式。这种表现可能允许数据被查询、搜索、操作和以各种方式处理。我们将在[后续链接]中讨论这些存储引擎设计。
+4. 在更低的层次上，硬件工程师已经找出了如何将字节以电流、光脉冲、磁场等形式表示。
+
+在一个复杂的应用中，可能还有更多的中间层次，如基于 API 的 API，但基本思想仍然相同：每一层通过提供一个清晰的数据模型来隐藏其下层的复杂性。这些抽象使得不同的人群——例如，数据库供应商的工程师和使用他们数据库的应用开发者——能够有效地合作。
+
+实践中广泛使用了几种不同的数据模型，通常用于不同的目的。某些类型的数据和某些查询在一个模型中易于表达，在另一个模型中则显得笨拙。在本章中，我们将通过比较关系模型、文档模型、基于图的数据模型、事件源和数据框来探讨这些权衡。我们还将简要查看允许你使用这些模型的查询语言。这种比较将帮助你决定何时使用哪种模型。
 
 Data models are perhaps the most important part of developing software, because they have such a profound effect: not only on how the software is written, but also on how we *think about the problem* that we are solving.
 
@@ -24,6 +35,12 @@ In a complex application there may be more intermediary levels, such as APIs bui
 Several different data models are widely used in practice, often for different purposes. Some types of data and some queries are easy to express in one model, and awkward in another. In this chapter we will explore those trade-offs by comparing the relational model, the document model, graph-based data models, event sourcing, and dataframes. We will also briefly look at query languages that allow you to work with these models. This comparison will help you decide when to use which model.
 
 ## 术语：声明式查询语言
+
+本章中的许多查询语言（如 SQL、Cypher、SPARQL 或 Datalog）都是*声明式*的，这意味着你指定你想要的数据的模式——结果必须满足的条件，以及你希望数据如何转换（例如，排序、分组和聚合）——但不指定*如何*实现这一目标。数据库系统的查询优化器可以决定使用哪些索引和哪些连接算法，以及以何种顺序执行查询的各个部分。
+
+相比之下，使用大多数编程语言，你将必须编写一个*算法*——即告诉计算机按哪个顺序执行哪些操作。声明式查询语言具有吸引力，因为它通常比显式算法更简洁、更易于编写。但更重要的是，它还隐藏了查询引擎的实现细节，这使得数据库系统可以引入性能改进而无需对查询进行任何更改。[[1](ch03.html#Brandon2024)]。
+
+例如，数据库可能能够在多个 CPU 核心和机器上并行执行声明式查询，而你无需担心如何实现该并行性 [[2](ch03.html#Hellerstein2010)]。在手工编码的算法中，自行实现这种并行执行将是一项巨大的工作。
 
 Many of the query languages in this chapter (such as SQL, Cypher, SPARQL, or Datalog) are *declarative*, which means that you specify the pattern of the data you want—what conditions the results must meet, and how you want the data to be transformed (e.g., sorted, grouped, and aggregated)—but not *how* to achieve that goal. The database system’s query optimizer can decide which indexes and which join algorithms to use, and in which order to execute various parts of the query.
 
@@ -53,7 +70,12 @@ The pros and cons of document and relational data have been debated extensively;
 
 ### 对象关系不匹配
 
+目前大多数应用程序开发都使用面向对象的编程语言来开发，这导致了对 SQL 数据模型的普遍批评：如果数据存储在关系表中，那么需要一个笨拙的转换层，处于应用程序代码中的对象和表，行，列的数据库模型之间。模型之间的不连贯有时被称为 **阻抗不匹配（impedance mismatch）**[^i]。
+
+
 Much application development today is done in object-oriented programming languages, which leads to a common criticism of the SQL data model: if data is stored in relational tables, an awkward translation layer is required between the objects in the application code and the database model of tables, rows, and columns. The disconnect between the models is sometimes called an *impedance mismatch*.
+
+[^i]: 一个从电子学借用的术语。每个电路的输入和输出都有一定的阻抗（交流电阻）。当你将一个电路的输出连接到另一个电路的输入时，如果两个电路的输出和输入阻抗匹配，则连接上的功率传输将被最大化。阻抗不匹配会导致信号反射及其他问题。
 
 > **注意**
 >
@@ -171,7 +193,7 @@ db.users.aggregate([
 ])
 ```
 
-#### Trade-offs of normalization
+#### 范式化的利弊权衡
 
 In the résumé example, while the `region_id` field is a reference into a standardized set of regions, the name of the `organization` (the company or government where the person worked) and `school_name` (where they studied) are just strings. This representation is denormalized: many people may have worked at the same company, but there is no ID linking them.
 
@@ -186,13 +208,13 @@ Besides the cost of performing all these updates, you also need to consider the 
 
 Normalization tends to be better for OLTP systems, where both reads and updates need to be fast; analytics systems often fare better with denormalized data, since they perform updates in bulk, and the performance of read-only queries is the dominant concern. Moreover, in systems of small to moderate scale, a normalized data model is often best, because you don’t have to worry about keeping multiple copies of the data consistent with each other, and the cost of performing joins is acceptable. However, in very large-scale systems, the cost of joins can become problematic.
 
-#### Denormalization in the social networking case study
+#### 在社交网络案例研究中的反范式化
 
 In [“Case Study: Social Network Home Timelines”](ch02.html#sec_introduction_twitter) we compared a normalized representation ([Figure 2-1](ch02.html#fig_twitter_relational)) and a denormalized one (precomputed, materialized timelines): here, the join between `posts` and `follows` was too expensive, and the materialized timeline is a cache of the result of that join. The fan-out process that inserts a new post into followers’ timelines was our way of keeping the denormalized representation consistent.
 
 However, the implementation of materialized timelines at X (formerly Twitter) does not store the actual text of each post: each entry actually only stores the post ID, the ID of the user who posted it, and a little bit of extra information to identify reposts and replies [[11](ch03.html#Krikorian2012_ch3)]. In other words, it is a precomputed result of (approximately) the following query:
 
-```
+```sql
 SELECT posts.id, posts.sender_id FROM posts
   JOIN follows ON posts.sender_id = follows.followee_id
   WHERE follows.follower_id = current_user
@@ -281,7 +303,7 @@ Some data warehouse schemas take denormalization even further and leave out the 
 
 In the context of analytics, such denormalization is unproblematic, since the data typically represents a log of historical data that is not going to change (except maybe for occasionally correcting an error). The issues of data consistency and write overheads that occur with denormalization in OLTP systems are not as pressing in analytics.
 
-#### When to Use Which Model
+#### 什么时候用哪种模型？
 
 The main arguments in favor of the document data model are schema flexibility, better performance due to locality, and that for some applications it is closer to the object model used by the application. The relational model counters by providing better support for joins, many-to-one, and many-to-many relationships. Let’s examine these arguments in more detail.
 
@@ -291,7 +313,7 @@ The document model has limitations: for example, you cannot refer directly to a 
 
 Some applications allow the user to choose the order of items: for example, imagine a to-do list or issue tracker where the user can drag and drop tasks to reorder them. The document model supports such applications well, because the items (or their IDs) can simply be stored in a JSON array to determine their order. In relational databases there isn’t a standard way of representing such reorderable lists, and various tricks are used: sorting by an integer column (requiring renumbering when you insert into the middle), a linked list of IDs, or fractional indexing [[14](ch03.html#Nelson2018), [15](ch03.html#Wallace2017), [16](ch03.html#Greenspan2020)].
 
-#### Schema flexibility in the document model
+#### 文档模型中的模式灵活性
 
 Most document databases, and the JSON support in relational databases, do not enforce any schema on the data in documents. XML support in relational databases usually comes with optional schema validation. No schema means that arbitrary keys and values can be added to a document, and when reading, clients have no guarantees as to what fields the documents may contain.
 
@@ -335,7 +357,7 @@ The locality advantage only applies if you need large parts of the document at t
 
 However, the idea of storing related data together for locality is not limited to the document model. For example, Google’s Spanner database offers the same locality properties in a relational data model, by allowing the schema to declare that a table’s rows should be interleaved (nested) within a parent table [[25](ch03.html#Corbett2012_ch2)]. Oracle allows the same, using a feature called *multi-table index cluster tables* [[26](ch03.html#BurlesonCluster)]. The *column-family* concept in the Bigtable data model (used in Cassandra, HBase, and ScyllaDB), also known as a *wide-column* model, has a similar purpose of managing locality [[27](ch03.html#Chang2006_ch2)].
 
-#### Query languages for documents
+#### 面向文档的查询语言
 
 Another difference between a relational and a document database is the language or API that you use to query it. Most relational databases are queried using SQL, but document databases are more varied. Some allow only key-value access by primary key, while others also offer secondary indexes to query for values inside documents, and some provide rich query languages.
 
@@ -357,7 +379,7 @@ GROUP BY observation_month;
 
 This query first filters the observations to only show species in the `Sharks` family, then groups the observations by the calendar month in which they occurred, and finally adds up the number of animals seen in all observations in that month. The same query can be expressed using MongoDB’s aggregation pipeline as follows:
 
-```
+```mongodb-json
 db.observations.aggregate([
     { $match: { family: "Sharks" } },
     { $group: {
@@ -504,7 +526,7 @@ You could imagine extending the graph to also include many other facts about Luc
 
 [Example 3-4](ch03.html#fig_cypher_create) shows the Cypher query to insert the lefthand portion of [Figure 3-6](ch03.html#fig_datamodels_graph) into a graph database. The rest of the graph can be added similarly. Each vertex is given a symbolic name like `usa` or `idaho`. That name is not stored in the database, but only used internally within the query to create edges between the vertices, using an arrow notation: `(idaho) -[:WITHIN]-> (usa)` creates an edge labeled `WITHIN`, with `idaho` as the tail node and `usa` as the head node.
 
-##### Example 3-4. A subset of the data in [Figure 3-6](ch03.html#fig_datamodels_graph), represented as a Cypher query
+> Example 3-4. A subset of the data in [Figure 3-6](ch03.html#fig_datamodels_graph), represented as a Cypher query
 
 ```
 CREATE
@@ -520,9 +542,9 @@ When all the vertices and edges of [Figure 3-6](ch03.html#fig_datamodels_graph) 
 
 [Example 3-5](ch03.html#fig_cypher_query) shows how to express that query in Cypher. The same arrow notation is used in a `MATCH` clause to find patterns in the graph: `(person) -[:BORN_IN]-> ()` matches any two vertices that are related by an edge labeled `BORN_IN`. The tail vertex of that edge is bound to the variable `person`, and the head vertex is left unnamed.
 
-##### Example 3-5. Cypher query to find people who emigrated from the US to Europe
+> Example 3-5. Cypher query to find people who emigrated from the US to Europe
 
-```
+```cypher
 MATCH
   (person) -[:BORN_IN]->  () -[:WITHIN*0..]-> (:Location {name:'United States'}),
   (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (:Location {name:'Europe'})
@@ -558,7 +580,7 @@ Since SQL:1999, this idea of variable-length traversal paths in a query can be e
 
 > Example 3-6. The same query as [Example 3-5](ch03.html#fig_cypher_query), written in SQL using recursive common table expressions
 
-```postgresql
+```sql
 WITH RECURSIVE
 
   -- in_usa is the set of vertex IDs of all locations within the United States
@@ -696,7 +718,7 @@ The Turtle language we used in [Example 3-8](ch03.html#fig_graph_n3_shorthand) i
 
 > Example 3-9. The data of [Example 3-8](ch03.html#fig_graph_n3_shorthand), expressed using RDF/XML syntax
 
-```
+```xml
 <rdf:RDF xmlns="urn:example:"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
@@ -779,7 +801,7 @@ The contents of a Datalog database consists of *facts*, and each fact correspond
 
 > Example 3-11. A subset of the data in [Figure 3-6](ch03.html#fig_datamodels_graph), represented as Datalog facts
 
-```
+```cypher
 location(1, "North America", "continent").
 location(2, "United States", "country").
 location(3, "Idaho", "state").
@@ -993,7 +1015,6 @@ A simple example of such a transformation is shown in [Figure 3-9](ch03.html#fig
 
 > 图3-9 将电影评级的关系数据库转换为矩阵表示。
 
-
 矩阵只能包含数字，各种技术被用来将非数字数据转换为矩阵中的数字。例如：
 
 - 日期（在[图3-9](ch03.html#fig_dataframe_to_matrix)中的示例矩阵中被省略）可以缩放为某个适当范围内的浮点数。
@@ -1017,6 +1038,30 @@ There are also databases such as TileDB [[65](ch03.html#Papadopoulos2016)] that 
 --------
 
 ## 本章小结
+
+数据模型是一个庞大的主题，在本章中，我们快速浏览了各种不同的模型。我们没有空间深入每个模型的所有细节，但希望这个概览足以激发您的兴趣，进一步了解最适合您应用需求的模型。
+
+*关系模型*，尽管已有半个世纪之久，仍然是许多应用程序的重要数据模型——特别是在数据仓库和商业分析中，关系星型或雪花型架构和SQL查询无处不在。然而，在其他领域，几种替代关系数据的模型也变得流行：
+
+- *文档模型* 针对数据以自包含的 JSON 文档形式出现，且文档之间的关系罕见的用例。
+- *图数据模型* 则走向相反方向，针对任何事物都可能与一切相关的用例，查询可能需要跨多个跳点寻找感兴趣的数据（这可以通过在 Cypher、SPARQL 或 Datalog 中使用递归查询来表达）。
+- *数据框* 将关系数据概括为大量的列，从而在数据库和构成大部分机器学习、统计数据分析和科学计算基础的多维数组之间架起了一座桥梁。
+
+在某种程度上，一个模型可以用另一个模型来模拟——例如，图数据可以在关系数据库中表示——但结果可能会很笨拙，正如我们在 SQL 中对递归查询的支持所见。
+
+因此，为每种数据模型开发了各种专门的数据库，提供针对特定模型优化的查询语言和存储引擎。然而，数据库也趋向于通过添加对其他数据模型的支持来扩展到相邻领域：例如，关系数据库增加了对文档数据的支持，以 JSON 列的形式，文档数据库增加了类似关系的连接，对 SQL 中图数据的支持也在逐渐改进。
+
+我们讨论的另一个模型是*事件源*，它将数据表示为不可变事件的仅附加日志，并且在建模复杂商业领域的活动时可能具有优势。仅附加日志对于写入数据很有好处（我们将在[后续链接]中看到）；为了支持高效查询，事件日志通过 CQRS 转换为优化的物化视图。
+
+非关系数据模型的一个共同特点是，它们通常不强制对它们存储的数据执行模式，这可以使应用程序适应变化的需求变得更加容易。然而，您的应用程序很可能仍然假设数据具有某种结构；这只是一个问题，模式是显式的（在写入时强制）还是隐式的（在读取时假设）。
+
+虽然我们已经覆盖了很多内容，但仍有一些未提及的数据模型。仅举几个简短的例子：
+
+- 研究人员在处理基因组数据时，经常需要进行*序列相似性搜索*，这意味着取一个非常长的字符串（代表一个 DNA 分子）并将其与大量相似但不完全相同的字符串数据库进行匹配。这里描述的任何数据库都无法处理这种用途，这就是为什么研究人员编写了像 GenBank [[68](ch03.html#Benson2007)] 这样的专门基因组数据库软件。
+- 许多金融系统使用带有复式记账的*分类账*作为其数据模型。这种类型的数据可以在关系数据库中表示，但也有如 TigerBeetle 这样专门针对此数据模型的数据库。加密货币和区块链通常基于分布式账本，这也将价值转移内置于其数据模型中。
+- *全文搜索* 可以说是一种经常与数据库一起使用的数据模型。信息检索是一个大的专门主题，我们在本书中不会详细讨论，但我们将触及搜索索引和向量搜索[后续链接]。
+
+我们目前只能到这里。在下一章中，我们将讨论在*实现*本章描述的数据模型时涉及的一些权衡。
 
 Data models are a huge subject, and in this chapter we have taken a quick look at a broad variety of different models. We didn’t have space to go into all the details of each model, but hopefully the overview has been enough to whet your appetite to find out more about the model that best fits your application’s requirements.
 
