@@ -1,9 +1,9 @@
 # 设计数据密集型应用（第二版） - 中文翻译
 
-> DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345) 正在 [v2](https://github.com/Vonng/ddia/tree/v2) 分支上进行，欢迎参与校对与翻译。
+> DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345) 正在当前 [v2](https://github.com/Vonng/ddia/tree/v2) 分支上进行，欢迎参与校对与翻译。
 
 - 作者： [Martin Kleppmann](https://martin.kleppmann.com)
-- 原名：[《Designing Data-Intensive Applications》](http://shop.oreilly.com/product/0636920032175.do)
+- 原名：[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html)
 - 译者：[冯若航](https://vonng.com) （[@Vonng](https://vonng.com/en/)）
 - 校订： [@yingang](https://github.com/yingang)
 - 繁体：[繁體中文版本](zh-tw/README.md) by  [@afunTW](https://github.com/afunTW)
@@ -12,13 +12,14 @@
 >
 > 本地：你可在项目根目录中执行 `make`，并通过浏览器阅读（[在线预览](http://ddia.vonng.com/#/)）。
 
+
 --------
 
 ## 译序
 
 > 不懂数据库的全栈工程师不是好架构师
 >
-> —— Vonng
+> —— 冯若航 / Vonng
 
 现今，尤其是在互联网领域，大多数应用都属于数据密集型应用。本书从底层数据结构到顶层架构设计，将数据系统设计中的精髓娓娓道来。其中的宝贵经验无论是对架构师、DBA、还是后端工程师、甚至产品经理都会有帮助。
 
@@ -31,6 +32,8 @@
 这是 2017 年译者读过最好的一本技术类书籍，这么好的书没有中文翻译，实在是遗憾。某不才，愿为先进技术文化的传播贡献一份力量。既可以深入学习有趣的技术主题，又可以锻炼中英文语言文字功底，何乐而不为？
 
 
+--------
+
 ## 前言
 
 > 在我们的社会中，技术是一种强大的力量。数据、软件、通信可以用于坏的方面：不公平的阶级固化，损害公民权利，保护既得利益集团。但也可以用于好的方面：让底层人民发出自己的声音，让每个人都拥有机会，避免灾难。本书献给所有将技术用于善途的人们。
@@ -42,6 +45,8 @@
 >  —— 阿兰・凯接受 Dobb 博士的杂志采访时（2012 年）
 
 
+--------
+
 ## 目录
 
 ### [序言](preface.md)
@@ -49,6 +54,11 @@
 ### [第一部分：数据系统基础](part-i.md)
 
 * [第一章：数据系统架构中的利弊权衡](ch1.md)
+  * [事务处理与分析](ch1.md#可靠性)
+  * [云服务与自托管](ch1.md#云服务与自托管)
+  * [分布式与单节点系统](ch1.md#分布式与单节点系统)
+  * [数据系统，法律与社会](ch1.md#数据系统法律与社会)
+  * [本章小结](ch1.md#本章小结) 
 * [第二章：定义非功能性要求](ch2.md)
     * [关于数据系统的思考](ch2.md#关于数据系统的思考)
     * [可靠性](ch2.md#可靠性)
@@ -255,7 +265,7 @@
 | [115](https://github.com/Vonng/ddia/pull/115)   | [@NageNalock](https://github.com/NageNalock)               | 第七章病句修改: 重复词语                                                  |
 | [114](https://github.com/Vonng/ddia/pull/114)   | [@Sunt-ing](https://github.com/Sunt-ing)                   | Update README.md: correct the book name                        |
 | [113](https://github.com/Vonng/ddia/pull/113)   | [@lpxxn](https://github.com/lpxxn)                         | 修改语句                                                           |
-| [112](https://github.com/Vonng/ddia/pull/112)   | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch10.md                                                  |
+| [112](https://github.com/Vonng/ddia/pull/112)   | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch10.md                                                 |
 | [110](https://github.com/Vonng/ddia/pull/110)   | [@lpxxn](https://github.com/lpxxn)                         | 读已写入数据                                                         |
 | [107](https://github.com/Vonng/ddia/pull/107)   | [@abbychau](https://github.com/abbychau)                   | 單調鐘和好死还是赖活着                                                    |
 | [106](https://github.com/Vonng/ddia/pull/106)   | [@enochii](https://github.com/enochii)                     | typo in ch2: fix braces typo                                   |
@@ -283,7 +293,7 @@
 | [78 ](https://github.com/Vonng/ddia/pull/78)    | [@hanyu2](https://github.com/hanyu2)                       | Fix unappropriated translation                                 |
 | [77 ](https://github.com/Vonng/ddia/pull/77)    | [@Ozarklake](https://github.com/Ozarklake)                 | fix typo                                                       |
 | [75 ](https://github.com/Vonng/ddia/pull/75)    | [@2997ms](https://github.com/2997ms)                       | Fix typo                                                       |
-| [74 ](https://github.com/Vonng/ddia/pull/74)    | [@2997ms](https://github.com/2997ms)                       | Update ch10.md                                                  |
+| [74 ](https://github.com/Vonng/ddia/pull/74)    | [@2997ms](https://github.com/2997ms)                       | Update ch10.md                                                 |
 | [70 ](https://github.com/Vonng/ddia/pull/70)    | [@2997ms](https://github.com/2997ms)                       | Update ch8.md                                                  |
 | [67 ](https://github.com/Vonng/ddia/pull/67)    | [@jiajiadebug](https://github.com/jiajiadebug)             | fix issues in ch2 - ch9 and glossary                           |
 | [66 ](https://github.com/Vonng/ddia/pull/66)    | [@blindpirate](https://github.com/blindpirate)             | Fix typo                                                       |
@@ -295,7 +305,7 @@
 | [58 ](https://github.com/Vonng/ddia/pull/58)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch9.md                                                  |
 | [55 ](https://github.com/Vonng/ddia/pull/55)    | [@saintube](https://github.com/saintube)                   | ch8: 修改链接错误                                                    |
 | [54 ](https://github.com/Vonng/ddia/pull/54)    | [@Panmax](https://github.com/Panmax)                       | Update ch3.md                                                  |
-| [53 ](https://github.com/Vonng/ddia/pull/53)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch10.md                                                  |
+| [53 ](https://github.com/Vonng/ddia/pull/53)    | [@ibyte2011](https://github.com/ibyte2011)                 | Update ch10.md                                                 |
 | [52 ](https://github.com/Vonng/ddia/pull/52)    | [@hecenjie](https://github.com/hecenjie)                   | Update ch2.md                                                  |
 | [51 ](https://github.com/Vonng/ddia/pull/51)    | [@latavin243](https://github.com/latavin243)               | fix 修正ch3 ch4几处翻译                                              |
 | [50 ](https://github.com/Vonng/ddia/pull/50)    | [@AlexZFX](https://github.com/AlexZFX)                     | 几个疏漏和格式错误                                                      |
