@@ -1,16 +1,23 @@
-# 设计数据密集型应用（第二版） - 中文翻译
+# 设计数据密集型应用
 
-> [v2](https://github.com/Vonng/ddia/tree/v2) 分支正在进行 DDIA 第二版的[中文翻译](https://github.com/Vonng/ddia/issues/345)，欢迎参与校对与翻译。
+> **DDIA 第二版**的[中文翻译](https://github.com/Vonng/ddia/issues/345)正在[v2](https://github.com/Vonng/ddia/tree/v2)分支上进行 ，欢迎参与校对与翻译。
 
-- 作者： [Martin Kleppmann](https://martin.kleppmann.com)
-- 原名：[《Designing Data-Intensive Applications》](http://shop.oreilly.com/product/0636920032175.do)
-- 译者：[冯若航](https://vonng.com) （[@Vonng](https://vonng.com/en/)）
-- 校订： [@yingang](https://github.com/yingang)
-- 繁体：[繁體中文版本](zh-tw/README.md) by  [@afunTW](https://github.com/afunTW)
+作者： [Martin Kleppmann](https://martin.kleppmann.com)
 
-> 使用 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 或 [Github Pages](https://vonng.github.io/ddia) 以获取最佳阅读体验。
+原名：[《Designing Data-Intensive Applications》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/ch01.html)
+
+译者：[冯若航](https://vonng.com) （[@Vonng](https://vonng.com/en/)）
+
+校订： [@yingang](https://github.com/yingang)
+
+繁体：[繁體中文版本](zh-tw/README.md) by  [@afunTW](https://github.com/afunTW)
+
+> 在本地使用 [Docsify](https://docsify.js.org/) 或 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 以获取最佳阅读体验。
 >
-> 本地：你可在项目根目录中执行 `make`，并通过浏览器阅读（[在线预览](http://ddia.vonng.com/#/)）。
+> 在项目根目录中执行 `make`，并通过浏览器阅读（[在线预览](http://ddia.pigsty.io/#/) / [DDIA v2](http://ddia2.pigsty.io/#/)）。
+
+
+---------
 
 ## 译序
 
@@ -39,6 +46,8 @@
 >
 >  —— 阿兰・凯接受 Dobb 博士的杂志采访时（2012 年）
 
+
+---------
 
 ## 目录
 
