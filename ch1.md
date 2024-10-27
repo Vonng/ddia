@@ -22,11 +22,11 @@
 
 在构建应用程序时，我们通常会采用几个软件系统或服务，如数据库或 API，并用一些应用代码将它们粘合在一起。如果你完全按照数据系统的设计目的去做，那么这个过程可能会非常容易。
 
-然而，随着你的应用变得更加雄心勃勃，挑战也随之而来。有许多不同特性的数据库系统，适用于不同的目的——你该如何选择使用哪一个？有各种各样的缓存方法，几种构建搜索索引的方式等等——你该如何权衡它们的利弊？你需要弄清楚哪些工具和哪些方法最适合手头的任务，而且将工具组合起来时可能会很难做到一款工具单独无法完成的事情。
+然而，随着你的应用变得更加雄心勃勃，挑战也随之而来。有许多不同特性的数据库系统，适用于不同的目的——你该如何选择使用哪一个？有各种各样的缓存方法，几种构建搜索索引的方式等等——你该如何权衡它们的利弊？你需要弄清楚哪些工具和哪些方法最适合手头的任务，而且将多款工具组合起来以完成单独一款工具无法完成的事情也可能是很困难的。
 
-本书是一本指南，旨在帮助你做出关于使用哪些技术以及如何组合它们的决策。正如你将看到的，没有一种方法基本上比其他方法更好；每种方法都有其优缺点。通过这本书，你将学会提出正确的问题，评估和比较数据系统，从而找出最适合你的特定应用需求的方法。
+本书是一本指南，旨在帮助你做出关于使用哪些技术以及如何组合它们的决策。正如你将看到的，没有任何一种方法从根本上比其他所有方法都好；每种方法都有其优缺点。通过这本书，你将学会提出正确的问题，以评估和比较数据系统，从而找出最适合你的特定应用需求的方法。
 
-我们将从探索数据在当今组织中的典型使用方式开始我们的旅程。这里的许多想法起源于*企业软件*（即大型组织，如大公司和政府的软件需求和工程实践），因为历史上只有大型组织拥有需要复杂技术解决方案的大数据量。如果你的数据量足够小，你甚至可以简单地将其保存在电子表格中！然而，最近，较小的公司和初创企业管理大数据量并构建数据密集型系统也变得普遍。
+我们将从探索数据在当今组织中的典型使用方式开始我们的旅程。这里的许多想法起源于*企业软件*（即大型组织如大公司和政府的软件需求和工程实践），因为历史上只有大型组织拥有需要复杂技术解决方案的大数据量。如果你的数据量足够小，你甚至可以简单地将其保存在电子表格中！然而，最近，较小的公司和初创企业管理大数据量并构建数据密集型系统也变得普遍。
 
 关于数据系统的一个关键挑战是，不同的人需要用数据做非常不同的事情。如果你在一家公司工作，你和你的团队会有一套优先事项，而另一个团队可能完全有不同的目标，尽管你们可能都在处理同一数据集！此外，这些目标可能不会明确表达，这可能会导致误解和对正确方法的争议。
 
@@ -37,7 +37,7 @@
 - 何时从单节点系统迁移到分布式系统（[“分布式与单节点系统”](#分布式与单节点系统)）
 - 平衡业务需求与用户权利（[“数据系统、法律与社会”](#数据系统法律与社会)）
 
-此外，本章将为我们接下来的书中提供必需的术语。
+此外，本章将为我们接下来的书中的内容提供必需的术语。
 
 Data is central to much application development today. With web and mobile apps, software as a service (SaaS), and cloud services, it has become normal to store data from many different users in a shared server-based data infrastructure. Data from user activity, business transactions, devices and sensors needs to be stored and made available for analysis. As users interact with an application, they both read the data that is stored, and also generate more data.
 
@@ -98,9 +98,9 @@ A backend service is often reachable via HTTP; it usually consists of some appli
 - *业务系统*包括后端服务和数据基础设施，数据是在那里创建的，例如通过服务外部用户。在这里，应用程序代码根据用户的操作读取并修改其数据库中的数据。
 - *分析系统*满足商业分析师和数据科学家的需求。它们包含来自业务系统的数据的只读副本，并针对分析所需的数据处理类型进行了优化。
 
-正如我们将在下一节中看到的，出于充分的理由，操作和分析系统通常保持独立。随着这些系统的成熟，出现了两个新的专业角色：*数据工程师*和*分析工程师*。数据工程师是了解如何整合操作和分析系统的人，他们负责组织的数据基础设施的更广泛管理[[3](ch01.html#Reis2022)]。分析工程师建模和转换数据，使其对查询组织中数据的最终用户更有用[[4](ch01.html#Machado2023)]。
+正如我们将在下一节中看到的，出于充分的理由，业务和分析系统通常保持独立。随着这些系统的成熟，出现了两个新的专业角色：*数据工程师*和*分析工程师*。数据工程师是了解如何整合业务和分析系统的人，他们负责组织的数据基础设施的更广泛管理[[3](ch01.html#Reis2022)]。分析工程师建模和转换数据，使其对查询组织中的数据的最终用户更有用[[4](ch01.html#Machado2023)]。
 
-许多工程师专注于操作或分析的一侧。然而，这本书涵盖了操作和分析数据系统，因为两者在组织内的数据生命周期中都扮演着重要的角色。我们将深入探讨用于向内部和外部用户提供服务的数据基础设施，以便你能更好地与这一界限另一侧的同事合作。
+许多工程师专注于业务或分析的一侧。然而，这本书涵盖了业务和分析数据系统，因为两者在组织内的数据生命周期中都扮演着重要的角色。我们将深入探讨用于向内部和外部用户提供服务的数据基础设施，以便你能更好地与这一界限另一侧的同事合作。
 
 If you are working on data systems in an enterprise, you are likely to encounter several different types of people who work with data. The first type are *backend engineers* who build services that handle requests for reading and updating data; these services often serve external users, either directly or indirectly via other services (see [“Microservices and Serverless”](ch01.html#sec_introduction_microservices)). Sometimes services are for internal use by other parts of the organization.
 
@@ -128,13 +128,13 @@ In the early days of business data processing, a write to the database typically
 
 尽管数据库开始被用于许多不同类型的数据——社交媒体上的帖子、游戏中的移动、地址簿中的联系人等——基本的访问模式仍与处理商业交易类似。业务系统通常通过某个键查找少量记录（这称为*点查询*）。根据用户的输入，记录被插入、更新或删除。因为这些应用是交互式的，这种访问模式被称为*在线事务处理*（OLTP）。
 
-然而，数据库也越来越多地被用于分析，其访问模式与OLTP有很大不同。通常，分析查询会扫描大量记录，并计算聚合统计数据（如计数、求和或平均值），而不是将个别记录返回给用户。例如，超市连锁的商业分析师可能希望回答诸如：
+然而，数据库也越来越多地被用于分析，其访问模式与 OLTP 有很大不同。通常，分析查询会扫描大量记录，并计算聚合统计数据（如计数、求和或平均值），而不是将个别记录返回给用户。例如，连锁超市的商业分析师可能希望回答诸如此类的问题：
 
 - 我们的每家店在一月份的总收入是多少？
 - 我们在最近的促销活动中卖出的香蕉比平时多多少？
-- 哪种品牌的婴儿食品最常与X品牌的尿布一起购买？
+- 哪种品牌的婴儿食品最常与某品牌的尿布一起购买？
 
-这些类型的查询所产生的报告对于商业智能至关重要，帮助管理层决定下一步做什么。为了区分使用数据库的这种模式与事务处理的不同，它被称为*在线分析处理*（OLAP）[[5](ch01.html#Codd1993)]。OLTP和分析之间的区别并不总是明确的，但[表1-1](ch01.html#tab_oltp_vs_olap)列出了一些典型的特征。
+这些类型的查询所产生的报告对于商业智能至关重要，帮助管理层决定下一步做什么。为了区分使用数据库的这种模式与事务处理的不同，它被称为*在线分析处理*（OLAP）[[5](ch01.html#Codd1993)]。OLTP 和分析之间的区别并不总是明确的，但[表1-1](ch01.html#tab_oltp_vs_olap)列出了一些典型的特征。
 
 | 属性     | 业务系统 (OLTP)    | 分析系统 (OLAP)   |
 |--------|----------------|---------------|
@@ -158,7 +158,7 @@ However, databases also started being increasingly used for analytics, which has
 
 The reports that result from these types of queries are important for business intelligence, helping the management decide what to do next. In order to differentiate this pattern of using databases from transaction processing, it has been called *online analytic processing* (OLAP) [[5](ch01.html#Codd1993)]. The difference between OLTP and analytics is not always clear-cut, but some typical characteristics are listed in [Table 1-1](ch01.html#tab_oltp_vs_olap).
 
-| Property            | 运营系统 (OLTP)                                     | 分析系统 (OLAP)                               |
+| Property            | Operational System (OLTP)                       | Analytical System (OLAP)                  |
 |:--------------------|:------------------------------------------------|:------------------------------------------|
 | Main read pattern   | Point queries (fetch individual records by key) | Aggregate over large number of records    |
 | Main write pattern  | Create, update, and delete individual records   | Bulk import (ETL) or event stream         |
@@ -170,9 +170,9 @@ The reports that result from these types of queries are important for business i
 
 > 注意
 >
-> *在线*在*OLAP*中的含义并不清晰；它可能指的是分析师不仅仅用于预定义报告的查询，而且还可以交互式地用于探索性查询的事实。
+> *在线分析处理*中的*在线*一词的含义并不清晰；它可能指的是分析师不仅仅查询预定义的报告，而且还可以交互式地进行探索性的查询。
 
-在业务系统中，用户通常不允许构建自定义SQL查询并在数据库上运行，因为这可能允许他们读取或修改他们无权访问的数据。此外，他们可能编写执行成本高昂的查询，从而影响其他用户的数据库性能。因此，OLTP系统大多运行固定的查询集，这些查询嵌入在应用程序代码中，仅偶尔使用一次性自定义查询进行维护或故障排除。另一方面，分析数据库通常允许用户手动编写任意SQL查询，或使用数据可视化或仪表板工具（如Tableau、Looker或Microsoft Power BI）自动生成查询。
+在业务系统中，用户通常不被允许构建自定义 SQL 查询并在数据库上运行，因为这可能允许他们读取或修改他们无权访问的数据。此外，他们可能编写执行成本高昂的查询，从而影响其他用户的数据库性能。因此，OLTP 系统大多运行固定的查询集，这些查询嵌入在应用程序代码中，仅偶尔使用一次性自定义查询进行维护或故障排除。另一方面，分析数据库通常允许用户手动编写任意 SQL 查询，或使用数据可视化或仪表板工具（如 Tableau、Looker 或 Microsoft Power BI）自动生成查询。
 
 The meaning of *online* in *OLAP* is unclear; it probably refers to the fact that queries are not just for predefined reports, but that analysts use the OLAP system interactively for explorative queries.
 
