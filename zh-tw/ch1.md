@@ -78,7 +78,7 @@ Moreover, this chapter will provide you with terminology that we will need for t
 
 我們在本書中將討論的許多內容涉及*後端開發*。解釋該術語：對於網路應用程式，客戶端程式碼（在網頁瀏覽器中執行）被稱為*前端*，處理使用者請求的伺服器端程式碼被稱為*後端*。移動應用與前端類似，它們提供使用者介面，通常透過網際網路與伺服器端後端通訊。前端有時會在使用者裝置上本地管理資料[[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#Kleppmann2019)]，但最大的資料基礎設施挑戰通常存在於後端：前端只需要處理一個使用者的資料，而後端則代表*所有*使用者管理資料。
 
-後端服務通常可以透過 HTTP 訪問；它通常包含一些應用程式程式碼，這些程式碼在一個或多個數據庫中讀寫資料，有時還會與額外的資料系統（如快取或訊息佇列）介面（我們可能統稱為*資料基礎設施*）。應用程式程式碼通常是*無狀態的*（即，當它完成處理一個 HTTP 請求後，它會忘記該請求的所有資訊），並且任何需要從一個請求傳遞到另一個請求的資訊都需要儲存在客戶端或伺服器端的資料基礎設施中。
+後端服務通常可以透過 HTTP 訪問；它通常包含一些應用程式程式碼，這些程式碼在一個或多個數據庫中讀寫資料，有時還會與額外的資料系統（如快取或訊息佇列）交互（我們可能統稱為*資料基礎設施*）。應用程式程式碼通常是*無狀態的*（即，當它完成處理一個 HTTP 請求後，它會忘記該請求的所有資訊），並且任何需要從一個請求傳遞到另一個請求的資訊都需要儲存在客戶端或伺服器端的資料基礎設施中。
 
 Much of what we will discuss in this book relates to *backend development*. To explain that term: for web applications, the client-side code (which runs in a web browser) is called the *frontend*, and the server-side code that handles user requests is known as the *backend*. Mobile apps are similar to frontends in that they provide user interfaces, which often communicate over the Internet with a server-side backend. Frontends sometimes manage data locally on the user’s device [[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#Kleppmann2019)], but the greatest data infrastructure challenges often lie in the backend: a frontend only needs to handle one user’s data, whereas the backend manages data on behalf of *all* of the users.
 

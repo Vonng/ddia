@@ -78,7 +78,7 @@ Moreover, this chapter will provide you with terminology that we will need for t
 
 我们在本书中将讨论的许多内容涉及*后端开发*。解释该术语：对于网络应用程序，客户端代码（在网页浏览器中运行）被称为*前端*，处理用户请求的服务器端代码被称为*后端*。移动应用与前端类似，它们提供用户界面，通常通过互联网与服务器端后端通信。前端有时会在用户设备上本地管理数据[[2](ch01.html#Kleppmann2019)]，但最大的数据基础设施挑战通常存在于后端：前端只需要处理一个用户的数据，而后端则代表*所有*用户管理数据。
 
-后端服务通常可以通过 HTTP 访问；它通常包含一些应用程序代码，这些代码在一个或多个数据库中读写数据，有时还会与额外的数据系统（如缓存或消息队列）接口（我们可能统称为*数据基础设施*）。应用程序代码通常是*无状态的*（即，当它完成处理一个 HTTP 请求后，它会忘记该请求的所有信息），并且任何需要从一个请求传递到另一个请求的信息都需要存储在客户端或服务器端的数据基础设施中。
+后端服务通常可以通过 HTTP 访问；它通常包含一些应用程序代码，这些代码在一个或多个数据库中读写数据，有时还会与额外的数据系统（如缓存或消息队列）交互（我们可能统称为*数据基础设施*）。应用程序代码通常是*无状态的*（即，当它完成处理一个 HTTP 请求后，它会忘记该请求的所有信息），并且任何需要从一个请求传递到另一个请求的信息都需要存储在客户端或服务器端的数据基础设施中。
 
 Much of what we will discuss in this book relates to *backend development*. To explain that term: for web applications, the client-side code (which runs in a web browser) is called the *frontend*, and the server-side code that handles user requests is known as the *backend*. Mobile apps are similar to frontends in that they provide user interfaces, which often communicate over the Internet with a server-side backend. Frontends sometimes manage data locally on the user’s device [[2](ch01.html#Kleppmann2019)], but the greatest data infrastructure challenges often lie in the backend: a frontend only needs to handle one user’s data, whereas the backend manages data on behalf of *all* of the users.
 
