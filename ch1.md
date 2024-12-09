@@ -449,7 +449,7 @@ As always with abstractions in computing, there is no one right answer to what y
 
 为解决这个问题，云原生服务通常避免使用虚拟磁盘，而是建立在专门为特定工作负载优化的专用存储服务之上。如 S3 等对象存储服务旨在长期存储相对较大的文件，大小从数百千字节到几个千兆字节不等。存储在数据库中的单独行或值通常比这小得多；因此云数据库通常在单独的服务中管理更小的值，并在对象存储中存储更大的数据块（包含许多单独的值） [[24](ch01.html#Antonopoulos2019_ch1)]。
 
-在传统的系统架构中，同一台计算机负责存储（磁盘）和计算（CPU 和 RAM），但在云原生系统中，这两种责任已经有所分离或*解耦* [[8](ch01.html#Prout2022), [25](ch01.html#Vuppalapati2020), [26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/例如，S3仅存储文件，如果你想分析那些数据，你将不得不在 S3 外部的某处运行分析代码。这意味着需要通过网络传输数据，我们将在[“分布式与单节点系统”](ch01.html#sec_introduction_distributed)中进一步讨论这一点。
+在传统的系统架构中，同一台计算机负责存储（磁盘）和计算（CPU 和 RAM），但在云原生系统中，这两种责任已经有所分离或*解耦* [[8](ch01.html#Prout2022), [25](ch01.html#Vuppalapati2020), [26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/)] 例如，S3仅存储文件，如果你想分析那些数据，你将不得不在 S3 外部的某处运行分析代码。这意味着需要通过网络传输数据，我们将在[“分布式与单节点系统”](ch01.html#sec_introduction_distributed)中进一步讨论这一点。
 
 此外，云原生系统通常是*多租户*的，这意味着它们不是为每个客户配置单独的机器，而是在同一共享硬件上由同一服务处理来自几个不同客户的数据和计算 [[28](ch01.html#Vanlightly2023)]。多租户可以实现更好的硬件利用率、更容易的可扩展性和云提供商更容易的管理，但它也需要精心的工程设计，以确保一个客户的活动不影响系统对其他客户的性能或安全性 [[29](ch01.html#Jonas2019)]。
 
