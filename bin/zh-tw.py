@@ -19,6 +19,7 @@ def convert(src_path, dst_path, cfg='s2twp.json'):
                 .replace('下麵條件', '下面條件')        # 优先按“面条”解析了？
                 .replace('當日志', '當日誌')            # 优先按“当日”解析了，没有考虑后面的“日志”？
                 .replace('真即時間', '真實時間')        # 优先按“实时”解析了，没有考虑前面的“真实”？
+                .replace('面向物件', '物件導向')
                 for line in src))
     print("convert %s to %s" % (src_path, dst_path))
 
