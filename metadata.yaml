@@ -1,5 +1,13 @@
----
-title: 设计数据密集型应用
-author: Martin Kleppmann
+title:
+  - type: main
+    text: 设计数据密集型应用
+  - type: subtitle
+    text: 可靠、可扩展、可维护的系统
+
+creator:
+  - role: author
+    name: Martin Kleppmann
+
 rights:  Creative Commons Non-Commercial Share Alike 3.0
 language: 中文
+cover-image: ./img/title.png

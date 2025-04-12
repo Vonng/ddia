@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -ex
-
 # Set the directory containing Markdown files
 SCRIPT_DIR=$(dirname "$0")
 INPUT_DIR=$(cd "$(dirname "$SCRIPT_DIR")" && pwd)
@@ -19,7 +17,7 @@ convert_to_epub() {
 	local meta_file=${INPUT_DIR}/metadata.yaml
 	local css_file=${INPUT_DIR}/js/epub.css
 
-	pandoc -o "$OUTPUT_BOOK" "$meta_file" \
+	pandoc -o "$OUTPUT_BOOK" --metadata-file="$meta_file" \
 		--toc-depth=2 \
 		--top-level-division=chapter \
 		--file-scope=true \
