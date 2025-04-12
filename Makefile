@@ -9,4 +9,7 @@ doc:
 translate:
 	bin/zh-tw.py
 
+epub:
+	bin/epub
+
 .PHONY: default doc translate
