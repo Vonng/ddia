@@ -437,7 +437,7 @@ WHERE family = 'Sharks'
 GROUP BY observation_month;
 ```
 
-`date_trunc('month'，timestamp)` 函式用於確定包含 `timestamp` 的日曆月份，並返回代表該月份開始的另一個時間戳。換句話說，它將時間戳舍入成最近的月份。
+`date_trunc('month', timestamp)` 函式用於確定包含 `timestamp` 的日曆月份，並返回代表該月份開始的另一個時間戳。換句話說，它將時間戳舍入成最近的月份。
 
 這個查詢首先過濾觀察記錄，以只顯示鯊魚家族的物種，然後根據它們發生的日曆月份對觀察記錄果進行分組，最後將在該月的所有觀察記錄中看到的動物數目加起來。
 
