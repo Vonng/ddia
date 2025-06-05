@@ -167,6 +167,16 @@
 
 | ISSUE & Pull Requests                           | USER                                                       | Title                                                          |
 |-------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------|
+| [359](https://github.com/Vonng/ddia/pull/359)   | [@c25423](https://github.com/c25423)                       | ch10: 修正一处拼写错误                                           |
+| [358](https://github.com/Vonng/ddia/pull/358)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch4: 修正一处拼写错误                                            |
+| [356](https://github.com/Vonng/ddia/pull/356)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch2: 修正一处标点错误                                            |
+| [355](https://github.com/Vonng/ddia/pull/355)   | [@DuroyGeorge](https://github.com/DuroyGeorge)             | ch12: 修正一处格式错误                                           |
+| [354](https://github.com/Vonng/ddia/pull/354)   | [@justlorain](https://github.com/justlorain)               | ch7: 修正一处参考链接                                            |
+| [353](https://github.com/Vonng/ddia/pull/353)   | [@fantasyczl](https://github.com/fantasyczl)               | ch3&9: 修正两处引用错误                                          |
+| [352](https://github.com/Vonng/ddia/pull/352)   | [@fantasyczl](https://github.com/fantasyczl)               | 支持输出为 EPUB 格式                                             |
+| [349](https://github.com/Vonng/ddia/pull/349)   | [@xiyihan0](https://github.com/xiyihan0)                   | ch1: 修正一处格式错误                                            |
+| [348](https://github.com/Vonng/ddia/pull/348)   | [@omegaatt36](https://github.com/omegaatt36)               | ch3: 修正一处图像链接                                            |
+| [346](https://github.com/Vonng/ddia/issues/346) | [@Vermouth1995](https://github.com/Vermouth1995)           | ch1: 优化一处翻译                                               |
 | [343](https://github.com/Vonng/ddia/pull/343)   | [@kehao-chen](https://github.com/kehao-chen)               | ch10: 优化一处翻译                                                   |
 | [341](https://github.com/Vonng/ddia/pull/341)   | [@YKIsTheBest](https://github.com/YKIsTheBest)             | ch3: 优化两处翻译                                                    |
 | [340](https://github.com/Vonng/ddia/pull/340)   | [@YKIsTheBest](https://github.com/YKIsTheBest)             | ch2: 优化多处翻译                                                    |
