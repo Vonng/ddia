@@ -1,4 +1,8 @@
-# 后记
+---
+title: 后记
+weight: 600
+breadcrumbs: false
+---
 
 ## 关于作者
 
@@ -11,11 +15,13 @@ Martin 是一位常规会议演讲者，博主和开源贡献者。他认为，�
 
 ## 关于译者
 
-[冯若航](https://vonng.com/about)
+[**冯若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
+PostgreSQL 专家，数据库老司机，云计算泥石流。
+PostgreSQL 发行版 [**Pigsty**](https://pgsty.com) 作者与创始人。
+架构师，DBA，全栈工程师 @ TanTan，Alibaba，Apple。
+独立开源贡献者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
+[DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版译者，数据库/云计算 KOL。
 
-PostgreSQL DBA @ TanTan
-
-Alibaba+-Finplus 架构师/全栈工程师 (2015 ~ 2017)
 
 
 ## 后记
