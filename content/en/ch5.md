@@ -1,6 +1,11 @@
-# 5. Replication
+---
+title: "5. Replication"
+linkTitle: "5. Replication"
+weight: 205
+breadcrumbs: false
+---
 
-![](../img/ch5.png)
+![](/img/ch5.png)
 
 > *The major difference between a thing that might go wrong and a thing that cannot possibly go wrong is that when a thing that cannot possibly go wrong goes wrong it usually turns out to be impossible to get at or repair.*
 >
@@ -8,7 +13,7 @@
 
 ------
 
-In [Part I](part-i.md) of this book, we discussed aspects of data systems that apply when data is stored on a single machine. Now, in [Part II](part-ii.md), we move up a level and ask: what happens if multiple machines are involved in storage and retrieval of data?
+In [Part I](/en/part-i) of this book, we discussed aspects of data systems that apply when data is stored on a single machine. Now, in [Part II](/en/part-ii), we move up a level and ask: what happens if multiple machines are involved in storage and retrieval of data?
 
 There are various reasons why you might want to distribute a database across multi‐ ple machines:
 

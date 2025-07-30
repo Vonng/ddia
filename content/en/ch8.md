@@ -1,6 +1,12 @@
-# 8. The Trouble with Distributed Systems
+---
+title: "8. The Trouble with Distributed Systems"
+linkTitle: "8. The Trouble with Distributed Systems"
+weight: 208
+breadcrumbs: false
+---
 
-![](../img/ch8.png)
+
+![](/img/ch8.png)
 
 > *Hey I just met you*
 > *The network’s laggy*
@@ -11,15 +17,15 @@
 
 ---------
 
-A recurring theme in the last few chapters has been how systems handle things going wrong. For example, we discussed replica failover (“[Handling Node Outages](ch5.md#handing-node-outages)”), replication lag (“[Problems with Replication Lag](ch5.md#problems-with-replication-lag)”), and con‐ currency control for transactions (“[Weak Isolation Levels](ch7.md#weak-isolation-levels)”). As we come to understand various edge cases that can occur in real systems, we get better at handling them.
+A recurring theme in the last few chapters has been how systems handle things going wrong. For example, we discussed replica failover (“[Handling Node Outages](/en/ch5#handing-node-outages)”), replication lag (“[Problems with Replication Lag](/en/ch5#problems-with-replication-lag)”), and con‐ currency control for transactions (“[Weak Isolation Levels](/en/ch7#weak-isolation-levels)”). As we come to understand various edge cases that can occur in real systems, we get better at handling them.
 
 However, even though we have talked a lot about faults, the last few chapters have still been too optimistic. The reality is even darker. We will now turn our pessimism to the maximum and assume that anything that *can* go wrong *will* go wrong.[^i] (Experienced systems operators will tell you that is a reasonable assumption. If you ask nicely, they might tell you some frightening stories while nursing their scars of past battles.)
 
-[^i]: With one exception: we will assume that faults are *non-Byzantine* (see “[Byzantine Faults](ch8.md#byzantine-faults)”).
+[^i]: With one exception: we will assume that faults are *non-Byzantine* (see “[Byzantine Faults](/en/ch8#byzantine-faults)”).
 
 Working with distributed systems is fundamentally different from writing software on a single computer—and the main difference is that there are lots of new and excit‐ ing ways for things to go wrong [1, 2]. In this chapter, we will get a taste of the prob‐ lems that arise in practice, and an understanding of the things we can and cannot rely on.
 
-In the end, our task as engineers is to build systems that do their job (i.e., meet the guarantees that users are expecting), in spite of everything going wrong. In [Chapter 9](ch9.md), we will look at some examples of algorithms that can provide such guarantees in a distributed system. But first, in this chapter, we must understand what challenges we are up against.
+In the end, our task as engineers is to build systems that do their job (i.e., meet the guarantees that users are expecting), in spite of everything going wrong. In [Chapter 9](/en/ch9), we will look at some examples of algorithms that can provide such guarantees in a distributed system. But first, in this chapter, we must understand what challenges we are up against.
 
 This chapter is a thoroughly pessimistic and depressing overview of things that may go wrong in a distributed system. We will look into problems with networks (“[Unreliable Networks](#unreliable-networks)”); clocks and timing issues (“[Unreliable Clocks](#unreliable-clocks)”); and we’ll discuss to what degree they are avoidable. The consequences of all these issues are disorienting, so we’ll explore how to think about the state of a dis‐ tributed system and how to reason about things that have happened (“[Knowledge, Truth, and Lies](#knowledge-truth-and-lies)”).
 
@@ -45,7 +51,7 @@ Once a fault is detected, making a system tolerate it is not easy either: there 
 
 If you’re used to writing software in the idealized mathematical perfection of a single computer, where the same operation always deterministically returns the same result, then moving to the messy physical reality of distributed systems can be a bit of a shock. Conversely, distributed systems engineers will often regard a problem as triv‐ ial if it can be solved on a single computer [5], and indeed a single computer can do a lot nowadays [95]. If you can avoid opening Pandora’s box and simply keep things on a single machine, it is generally worth doing so.
 
-However, as discussed in the introduction to [Part II](part-ii.md), scalability is not the only reason for wanting to use a distributed system. Fault tolerance and low latency (by placing data geographically close to users) are equally important goals, and those things can‐ not be achieved with a single node.
+However, as discussed in the introduction to [Part II](/en/part-ii), scalability is not the only reason for wanting to use a distributed system. Fault tolerance and low latency (by placing data geographically close to users) are equally important goals, and those things can‐ not be achieved with a single node.
 
 In this chapter we also went on some tangents to explore whether the unreliability of networks, clocks, and processes is an inevitable law of nature. We saw that it isn’t: it is possible to give hard real-time response guarantees and bounded delays in net‐ works, but doing so is very expensive and results in lower utilization of hardware resources. Most non-safety-critical systems choose cheap and unreliable over expen‐ sive and reliable.
 

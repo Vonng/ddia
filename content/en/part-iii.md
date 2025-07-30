@@ -1,6 +1,10 @@
-# PART III: Derived Data
+---
+title: "PART III: Derived Data"
+weight: 300
+breadcrumbs: false
+---
 
-In Parts [I](part-i.md) and [II](part-ii.md) of this book, we assembled from the ground up all the major consid‐ erations that go into a distributed database, from the layout of data on disk all the way to the limits of distributed consistency in the presence of faults. However, this discussion assumed that there was only one database in the application.
+In Parts [I](/en/part-i) and [II](/en/part-ii) of this book, we assembled from the ground up all the major consid‐ erations that go into a distributed database, from the layout of data on disk all the way to the limits of distributed consistency in the presence of faults. However, this discussion assumed that there was only one database in the application.
 
 In reality, data systems are often more complex. In a large application you often need to be able to access and process data in many different ways, and there is no one data‐ base that can satisfy all those different needs simultaneously. Applications thus com‐ monly use a combination of several different datastores, indexes, caches, analytics systems, etc. and implement mechanisms for moving data from one store to another.
 
@@ -34,5 +38,11 @@ By being clear about which data is derived from which other data, you can bring 
 
 ## Overview of Chapters
 
-We will start in [Chapter 10](ch10.md) by examining batch-oriented dataflow systems such as MapReduce, and see how they give us good tools and principles for building large- scale data systems. In [Chapter 11](ch11.md) we will take those ideas and apply them to data streams, which allow us to do the same kinds of things with lower delays. [Chapter 12](ch12.md) concludes the book by exploring ideas about how we might use these tools to build reliable, scalable, and maintainable applications in the future.
+We will start in [Chapter 10](/en/ch10) by examining batch-oriented dataflow systems such as MapReduce, and see how they give us good tools and principles for building large- scale data systems. In [Chapter 11](/en/ch11) we will take those ideas and apply them to data streams, which allow us to do the same kinds of things with lower delays. [Chapter 12](/en/ch12) concludes the book by exploring ideas about how we might use these tools to build reliable, scalable, and maintainable applications in the future.
 
+
+## Index
+
+- [10. Batch Processing](/en/ch10)
+- [11. Stream Processing](/en/ch11)
+- [12. The Future of Data Systems](/en/ch12)

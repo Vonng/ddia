@@ -1,12 +1,17 @@
-# 1. Reliable, Scalable, and Maintainable Applications
+---
+title: "1. Reliable, Scalable, and Maintainable Applications"
+linkTitle: "1. Reliable, Scalable, and Maintainable Applications"
+weight: 101
+breadcrumbs: false
+---
 
-![](../img/ch1.png)
+
+![](/img/ch1.png)
 
 > *The Internet was done so well that most people think of it as a natural resource like the Pacific Ocean, rather than something that was man-made. When was the last time a tech‐ nology with a scale like that was so error-free?*
 >
 > — [Alan Kay](http://www.drdobbs.com/architecture-and-design/interview-with-alan-kay/240003442), in interview with *Dr Dobb’s Journal* (2012)
 
------------------------
 
 Many applications today are *data-intensive*, as opposed to *compute-intensive*. Raw CPU power is rarely a limiting factor for these applications—bigger problems are usually the amount of data, the complexity of data, and the speed at which it is changing.
 
@@ -46,7 +51,7 @@ An application has to meet various requirements in order to be useful. There are
 
 There is unfortunately no easy fix for making applications reliable, scalable, or main‐ tainable. However, there are certain patterns and techniques that keep reappearing in different kinds of applications. In the next few chapters we will take a look at some examples of data systems and analyze how they work toward those goals.
 
-Later in the book, in [Part III](part-iii.md), we will look at patterns for systems that consist of sev‐ eral components working together, such as the one in [Figure 1-1](../img/fig1-1.png).
+Later in the book, in [Part III](/en/part-iii), we will look at patterns for systems that consist of sev‐ eral components working together, such as the one in [Figure 1-1](/img/fig1-1.png).
 
 
 

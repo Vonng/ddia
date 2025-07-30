@@ -1,4 +1,8 @@
-# Colophon
+---
+title: Colophon
+weight: 600
+breadcrumbs: false
+---
 
 ## About the Author
 

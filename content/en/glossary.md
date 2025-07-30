@@ -1,9 +1,10 @@
-# Glossary
+---
+title: Glossary
+weight: 500
+breadcrumbs: false
+---
 
-> Please note that the definitions in this glossary are short and sim‐ ple, intended to convey the core idea but not the full subtleties of a term. For more detail, please follow the references into the main text.
-
-[TOC]
-
+> Please note that the definitions in this glossary are short and simple, intended to convey the core idea but not the full subtleties of a term. For more detail, please follow the references into the main text.
 
 ### asynchronous
 

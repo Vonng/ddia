@@ -1,6 +1,11 @@
-# 7. Transactions
+---
+title: "7. Transactions"
+linkTitle: "7. Transactions"
+weight: 207
+breadcrumbs: false
+---
 
-![](../img/ch7.png)
+![](/img/ch7.png)
 
 > *Some authors have claimed that general two-phase commit is too expensive to support, because of the performance or availability problems that it brings. We believe it is better to have application programmers deal with performance problems due to overuse of transac‐ tions as bottlenecks arise, rather than always coding around the lack of transactions.*
 >
@@ -91,7 +96,7 @@ For decades this has been the standard way of implementing serializability, but 
 
 A fairly new algorithm that avoids most of the downsides of the previous approaches. It uses an optimistic approach, allowing transactions to proceed without blocking. When a transaction wants to commit, it is checked, and it is aborted if the execution was not serializable.
 
-The examples in this chapter used a relational data model. However, as discussed in “[The need for multi-object transactions](ch7.md#the-need-for-multi-object-transactions)”, transactions are a valuable database feature, no matter which data model is used.
+The examples in this chapter used a relational data model. However, as discussed in “[The need for multi-object transactions](/en/ch7#the-need-for-multi-object-transactions)”, transactions are a valuable database feature, no matter which data model is used.
 
 In this chapter, we explored ideas and algorithms mostly in the context of a database running on a single machine. Transactions in distributed databases open a new set of difficult challenges, which we’ll discuss in the next two chapters.
 

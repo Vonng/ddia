@@ -1,4 +1,8 @@
-# Preface
+---
+title: Preface
+weight: 50
+breadcrumbs: false
+---
 
 If you have worked in software engineering in recent years, especially in server-side and backend systems, you have probably been bombarded with a plethora of buzz‐ words relating to storage and processing of data. NoSQL! Big Data! Web-scale! Sharding! Eventual consistency! ACID! CAP theorem! Cloud services! MapReduce! Real-time!
 
@@ -63,10 +67,10 @@ This book has a bias toward free and open source software (FOSS), because readin
 
 This book is arranged into three parts:
 
-1. In [Part I](part-i.md), we discuss the fundamental ideas that underpin the design of data- intensive applications. We start in [Chapter 1](ch1.md) by discussing what we’re actually trying to achieve: reliability, scalability, and maintainability; how we need to think about them; and how we can achieve them. In [Chapter 2](ch2.md) we compare sev‐ eral different data models and query languages, and see how they are appropriate to different situations. In [Chapter 3](ch3.md) we talk about storage engines: how databases arrange data on disk so that we can find it again efficiently. [Chapter 4](ch4.md) turns to formats for data encoding (serialization) and evolution of schemas over time.
-2. [In Part II](part-ii.md), we move from data stored on one machine to data that is distributed across multiple machines. This is often necessary for scalability, but brings with it a variety of unique challenges. We first discuss replication ([Chapter 5](ch5.md)), parti‐ tioning/sharding ([Chapter 6](ch6.md)), and transactions ([Chapter 7](ch7.md)). We then go into more detail on the problems with distributed systems ([Chapter 8](ch8.md)) and what it means to achieve consistency and consensus in a distributed system ([Chapter 9](ch9.md)).
+1. In [Part I](/en/part-i), we discuss the fundamental ideas that underpin the design of data- intensive applications. We start in [Chapter 1](/en/ch1) by discussing what we’re actually trying to achieve: reliability, scalability, and maintainability; how we need to think about them; and how we can achieve them. In [Chapter 2](/en/ch2) we compare sev‐ eral different data models and query languages, and see how they are appropriate to different situations. In [Chapter 3](/en/ch3) we talk about storage engines: how databases arrange data on disk so that we can find it again efficiently. [Chapter 4](/en/ch4) turns to formats for data encoding (serialization) and evolution of schemas over time.
+2. [In Part II](/en/part-ii), we move from data stored on one machine to data that is distributed across multiple machines. This is often necessary for scalability, but brings with it a variety of unique challenges. We first discuss replication ([Chapter 5](/en/ch5)), parti‐ tioning/sharding ([Chapter 6](/en/ch6)), and transactions ([Chapter 7](/en/ch7)). We then go into more detail on the problems with distributed systems ([Chapter 8](/en/ch8)) and what it means to achieve consistency and consensus in a distributed system ([Chapter 9](/en/ch9)).
 
-3. In [Part III](part-iii.md), we discuss systems that derive some datasets from other datasets. Derived data often occurs in heterogeneous systems: when there is no one data‐ base that can do everything well, applications need to integrate several different databases, caches, indexes, and so on. In [Chapter 10](ch10.md) we start with a batch pro‐ cessing approach to derived data, and we build upon it with stream processing in [Chapter 11](ch11.md). Finally, in [Chapter 12](ch12.md) we put everything together and discuss approaches for building reliable, scalable, and maintainable applications in the future.
+3. In [Part III](/en/part-iii), we discuss systems that derive some datasets from other datasets. Derived data often occurs in heterogeneous systems: when there is no one data‐ base that can do everything well, applications need to integrate several different databases, caches, indexes, and so on. In [Chapter 10](/en/ch10) we start with a batch pro‐ cessing approach to derived data, and we build upon it with stream processing in [Chapter 11](/en/ch11). Finally, in [Chapter 12](/en/ch12) we put everything together and discuss approaches for building reliable, scalable, and maintainable applications in the future.
 
 
 

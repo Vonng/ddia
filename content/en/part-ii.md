@@ -1,4 +1,8 @@
-# PART II: Distributed Data 
+---
+title: "PART II: Distributed Data"
+weight: 200
+breadcrumbs: false
+---
 
 > *For a successful technology, reality must take precedence over public relations, for nature cannot be fooled.*
 >
@@ -6,7 +10,7 @@
 
 -------
 
-In [Part I](part-i.md) of this book, we discussed aspects of data systems that apply when data is stored on a single machine. Now, in [Part II](part-ii.md), we move up a level and ask: what hap‐ pens if multiple machines are involved in storage and retrieval of data?
+In [Part I](/en/part-i) of this book, we discussed aspects of data systems that apply when data is stored on a single machine. Now, in [Part II](/en/part-ii), we move up a level and ask: what hap‐ pens if multiple machines are involved in storage and retrieval of data?
 
 There are various reasons why you might want to distribute a database across multi‐ ple machines:
 
@@ -56,15 +60,15 @@ There are two common ways data is distributed across multiple nodes:
 
 ***Replication***
 
-Keeping a copy of the same data on several different nodes, potentially in differ‐ ent locations. Replication provides redundancy: if some nodes are unavailable, the data can still be served from the remaining nodes. Replication can also help improve performance. We discuss replication in [Chapter 5](ch5.md).
+Keeping a copy of the same data on several different nodes, potentially in differ‐ ent locations. Replication provides redundancy: if some nodes are unavailable, the data can still be served from the remaining nodes. Replication can also help improve performance. We discuss replication in [Chapter 5](/en/ch5).
 
 ***Partitioning***
 
- Splitting a big database into smaller subsets called *partitions* so that different par‐ titions can be assigned to different nodes (also known as *sharding*). We discuss partitioning in [Chapter 6](ch6.md).
+ Splitting a big database into smaller subsets called *partitions* so that different par‐ titions can be assigned to different nodes (also known as *sharding*). We discuss partitioning in [Chapter 6](/en/ch6).
 
 These are separate mechanisms, but they often go hand in hand, as illustrated in Figure II-1.
 
-![](../img/figii-1.png)
+![](/img/figii-1.png)
 
 > *Figure II-1. A database split into two partitions, with two replicas per partition.*
 
@@ -73,6 +77,13 @@ With an understanding of those concepts, we can discuss the difficult trade-offs
 Later, in Part III of this book, we will discuss how you can take several (potentially distributed) datastores and integrate them into a larger system, satisfying the needs of a complex application. But first, let’s talk about distributed data.
 
 
+## Index
+
+- [5. Replication](/en/ch5)
+- [6. Partitioning](/en/ch6)
+- [7. Transactions](/en/ch7)
+- [8. The Trouble with Distributed Systems](/en/ch8)
+- [9. Consistency and Consensus](/en/ch9)
 
 ## References
 

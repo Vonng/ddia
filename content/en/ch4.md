@@ -1,6 +1,11 @@
-# 4. Encoding and Evolution
+---
+title: "4. Encoding and Evolution"
+linkTitle: "4. Encoding and Evolution"
+weight: 104
+breadcrumbs: false
+---
 
-![](../img/ch4.png)
+![](/img/ch4.png)
 
 > *Everything changes and nothing stands still.*
 >
@@ -8,11 +13,11 @@
 
 -------------------
 
-Applications inevitably change over time. Features are added or modified as new products are launched, user requirements become better understood, or business cir‐ cumstances change. In [Chapter 1](ch1.mdj) we introduced the idea of *evolvability*: we should aim to build systems that make it easy to adapt to change (see “[Evolvability: Making Change Easy](ch1.md#evolvability-making-change-easy)”).
+Applications inevitably change over time. Features are added or modified as new products are launched, user requirements become better understood, or business cir‐ cumstances change. In [Chapter 1](/en/ch1j) we introduced the idea of *evolvability*: we should aim to build systems that make it easy to adapt to change (see “[Evolvability: Making Change Easy](/en/ch1#evolvability-making-change-easy)”).
 
 In most cases, a change to an application’s features also requires a change to data that it stores: perhaps a new field or record type needs to be captured, or perhaps existing data needs to be presented in a new way.
 
-The data models we discussed in [Chapter 2](ch2.md) have different ways of coping with such change. Relational databases generally assume that all data in the database conforms to one schema: although that schema can be changed (through schema migrations; i.e., ALTER statements), there is exactly one schema in force at any one point in time. By contrast, schema-on-read (“schemaless”) databases don’t enforce a schema, so the database can contain a mixture of older and newer data formats written at different times (see “[Schema flexibility in the document model](ch3.md#schema-flexibility-in-the-document-model)”).
+The data models we discussed in [Chapter 2](/en/ch2) have different ways of coping with such change. Relational databases generally assume that all data in the database conforms to one schema: although that schema can be changed (through schema migrations; i.e., ALTER statements), there is exactly one schema in force at any one point in time. By contrast, schema-on-read (“schemaless”) databases don’t enforce a schema, so the database can contain a mixture of older and newer data formats written at different times (see “[Schema flexibility in the document model](/en/ch3#schema-flexibility-in-the-document-model)”).
 
 When a data format or schema changes, a corresponding change to application code often needs to happen (for example, you add a new field to a record, and the applica‐ tion code starts reading and writing that field). However, in a large application, code changes often cannot happen instantaneously:
 

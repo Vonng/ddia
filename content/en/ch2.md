@@ -1,6 +1,12 @@
-# 2. Data Models and Query Languages
+---
+title: "2. Data Models and Query Languages"
+linkTitle: "2. Data Models and Query Languages"
+weight: 102
+breadcrumbs: false
+---
 
-![](../img/ch2.png)
+
+![](/img/ch2.png)
 
 > *The limits of my language mean the limits of my world.*
 >
@@ -23,7 +29,7 @@ There are many different kinds of data models, and every data model embodies ass
 
 It can take a lot of effort to master just one data model (think how many books there are on relational data modeling). Building software is hard enough, even when work‐ ing with just one data model and without worrying about its inner workings. But since the data model has such a profound effect on what the software above it can and can’t do, it’s important to choose one that is appropriate to the application.
 
-In this chapter we will look at a range of general-purpose data models for data stor‐ age and querying (point 2 in the preceding list). In particular, we will compare the relational model, the document model, and a few graph-based data models. We will also look at various query languages and compare their use cases. In [Chapter 3](ch3.md) we will discuss how storage engines work; that is, how these data models are actually implemented (point 3 in the list).
+In this chapter we will look at a range of general-purpose data models for data stor‐ age and querying (point 2 in the preceding list). In particular, we will compare the relational model, the document model, and a few graph-based data models. We will also look at various query languages and compare their use cases. In [Chapter 3](/en/ch3) we will discuss how storage engines work; that is, how these data models are actually implemented (point 3 in the list).
 
 
 
@@ -53,7 +59,7 @@ Although we have covered a lot of ground, there are still many data models left 
 * Researchers working with genome data often need to perform *sequence- similarity searches*, which means taking one very long string (representing a DNA molecule) and matching it against a large database of strings that are simi‐ lar, but not identical. None of the databases described here can handle this kind of usage, which is why researchers have written specialized genome database software like GenBank [48].
 
 - Particle physicists have been doing Big Data–style large-scale data analysis for decades, and projects like the Large Hadron Collider (LHC) now work with hun‐ dreds of petabytes! At such a scale custom solutions are required to stop the hardware cost from spiraling out of control [49].
-- *Full-text search* is arguably a kind of data model that is frequently used alongside databases. Information retrieval is a large specialist subject that we won’t cover in great detail in this book, but we’ll touch on search indexes in [Chapter 3](ch3.md) and [Part III](part-iii.md).
+- *Full-text search* is arguably a kind of data model that is frequently used alongside databases. Information retrieval is a large specialist subject that we won’t cover in great detail in this book, but we’ll touch on search indexes in [Chapter 3](/en/ch3) and [Part III](/en/part-iii).
 
 We have to leave it there for now. In the next chapter we will discuss some of the trade-offs that come into play when *implementing* the data models described in this chapter.
 
