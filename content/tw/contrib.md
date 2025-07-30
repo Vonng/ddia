@@ -1,182 +1,54 @@
-# 設計資料密集型應用 - 中文翻譯版
+---
+title: 貢獻者
+weight: 800
+breadcrumbs: false
+---
 
-[![Webite: ddia](https://img.shields.io/badge/v1-ddia.pigsty.io-slategray?style=flat)](https://ddia.pigsty.io)
-[![Webite: ddia2](https://img.shields.io/badge/v2-ddia2.pigsty.io-slategray?style=flat)](https://ddia2.pigsty.io)
-[![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
+## 譯者
 
-**作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ： 英國劍橋大學分散式系統研究員，演講者，博主和開源貢獻者，軟體工程師和企業家，曾在 LinkedIn 和 Rapportive 負責資料基礎架構。
+[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+PostgreSQL 專家，資料庫老司機，雲計算泥石流。
+[**Pigsty**](https://pgsty.com) 作者與創始人。
+架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
+獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[國區活躍 Top20](https://committers.top/china)。
+[DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，公眾號：《老馮雲數》，資料庫 KOL。
 
-**譯者**：[馮若航](https://vonng.com) / [Vonng](https://github.com/Vonng) (rh@vonng.com)： 創業者，[開源貢獻者](https://gitstar-ranking.com/Vonng)，PostgreSQL Hacker。開源 RDS PG [Pigsty](https://pigsty.cc/zh/) 與公眾號《[非法加馮](https://mp.weixin.qq.com/s/p4Ys10ZdEDAuqNAiRmcnIQ)》作者，[資料庫老司機](https://pigsty.cc/zh/blog/db)，[雲計算泥石流](https://pigsty.cc/zh/blog/cloud)，曾於阿里，蘋果，探探擔任架構師與DBA。
+## 校訂與維護
 
-**校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](zh-tw/README.md) **版本維護** by  [@afunTW](https://github.com/afunTW)
+YinGang [@yingang](https://github.com/yingang) 對本書進行了全文校訂，並持續維護。
 
-**閱覽**：在本地使用 [Docsify](https://docsify.js.org/) （根目錄中執行 `make`） 或 [Typora](https://www.typora.io)、[Gitbook](https://vonng.gitbook.io/vonng/) 以獲取最佳閱讀體驗。
+## 繁體中文版本
 
-**通知**：DDIA [**第二版**](https://github.com/Vonng/ddia/tree/v2) 正在翻譯中 ([`v2`](https://github.com/Vonng/ddia/tree/v2)分支)，歡迎加入並提出您的寶貴意見！
+[繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW)
 
+## 貢獻列表
 
-
----------
-
-## 譯序
-
-> 不懂資料庫的全棧工程師不是好架構師
->
-> —— 馮若航 / Vonng
-
-現今，尤其是在網際網路領域，大多數應用都屬於資料密集型應用。本書從底層資料結構到頂層架構設計，將資料系統設計中的精髓娓娓道來。其中的寶貴經驗無論是對架構師、DBA、還是後端工程師、甚至產品經理都會有幫助。
-
-這是一本理論結合實踐的書，書中很多問題，譯者在實際場景中都曾遇到過，讀來讓人擊節扼腕。如果能早點讀到這本書，該少走多少彎路啊！
-
-這也是一本深入淺出的書，講述概念的來龍去脈而不是賣弄定義，介紹事物發展演化歷程而不是事實堆砌，將複雜的概念講述的淺顯易懂，但又直擊本質不失深度。每章最後的引用質量非常好，是深入學習各個主題的絕佳索引。
-
-本書為資料系統的設計、實現、與評價提供了很好的概念框架。讀完並理解本書內容後，讀者可以輕鬆看破大多數的技術忽悠，與技術磚家撕起來虎虎生風🤣。
-
-這是 2017 年譯者讀過最好的一本技術類書籍，這麼好的書沒有中文翻譯，實在是遺憾。某不才，願為先進技術文化的傳播貢獻一份力量。既可以深入學習有趣的技術主題，又可以鍛鍊中英文語言文字功底，何樂而不為？
-
-
----------
-
-## 前言
-
-> 在我們的社會中，技術是一種強大的力量。資料、軟體、通訊可以用於壞的方面：不公平的階級固化，損害公民權利，保護既得利益集團。但也可以用於好的方面：讓底層人民發出自己的聲音，讓每個人都擁有機會，避免災難。本書獻給所有將技術用於善途的人們。
-
----------
-
-> 計算是一種流行文化，流行文化鄙視歷史。流行文化關乎個體身份和參與感，但與合作無關。流行文化活在當下，也與過去和未來無關。我認為大部分（為了錢）編寫程式碼的人就是這樣的，他們不知道自己的文化來自哪裡。
->
->  —— 阿蘭・凱接受 Dobb 博士的雜誌採訪時（2012 年）
-
-
----------
-
-## 目錄
-
-### [序言](preface.md)
-
-### [第一部分：資料系統基礎](part-i.md)
-
-* [第一章：可靠性、可伸縮性和可維護性](ch1.md)
-    * [關於資料系統的思考](ch1.md#關於資料系統的思考)
-    * [可靠性](ch1.md#可靠性)
-    * [可伸縮性](ch1.md#可伸縮性)
-    * [可維護性](ch1.md#可維護性)
-    * [本章小結](ch1.md#本章小結)
-* [第二章：資料模型與查詢語言](ch2.md)
-    * [關係模型與文件模型](ch2.md#關係模型與文件模型)
-    * [資料查詢語言](ch2.md#資料查詢語言)
-    * [圖資料模型](ch2.md#圖資料模型)
-    * [本章小結](ch2.md#本章小結)
-* [第三章：儲存與檢索](ch3.md)
-    * [驅動資料庫的資料結構](ch3.md#驅動資料庫的資料結構)
-    * [事務處理還是分析？](ch3.md#事務處理還是分析？)
-    * [列式儲存](ch3.md#列式儲存)
-    * [本章小結](ch3.md#本章小結)
-* [第四章：編碼與演化](ch4.md)
-    * [編碼資料的格式](ch4.md#編碼資料的格式)
-    * [資料流的型別](ch4.md#資料流的型別)
-    * [本章小結](ch4.md#本章小結)
-
-### [第二部分：分散式資料](part-ii.md)
-
-* [第五章：複製](ch5.md)
-    * [領導者與追隨者](ch5.md#領導者與追隨者)
-    * [複製延遲問題](ch5.md#複製延遲問題)
-    * [多主複製](ch5.md#多主複製)
-    * [無主複製](ch5.md#無主複製)
-    * [本章小結](ch5.md#本章小結)
-* [第六章：分割槽](ch6.md)
-    * [分割槽與複製](ch6.md#分割槽與複製)
-    * [鍵值資料的分割槽](ch6.md#鍵值資料的分割槽)
-    * [分割槽與次級索引](ch6.md#分割槽與次級索引)
-    * [分割槽再平衡](ch6.md#分割槽再平衡)
-    * [請求路由](ch6.md#請求路由)
-    * [本章小結](ch6.md#本章小結)
-* [第七章：事務](ch7.md)
-    * [事務的棘手概念](ch7.md#事務的棘手概念)
-    * [弱隔離級別](ch7.md#弱隔離級別)
-    * [可序列化](ch7.md#可序列化)
-    * [本章小結](ch7.md#本章小結)
-* [第八章：分散式系統的麻煩](ch8.md)
-    * [故障與部分失效](ch8.md#故障與部分失效)
-    * [不可靠的網路](ch8.md#不可靠的網路)
-    * [不可靠的時鐘](ch8.md#不可靠的時鐘)
-    * [知識、真相與謊言](ch8.md#知識、真相與謊言)
-    * [本章小結](ch8.md#本章小結)
-* [第九章：一致性與共識](ch9.md)
-    * [一致性保證](ch9.md#一致性保證)
-    * [線性一致性](ch9.md#線性一致性)
-    * [順序保證](ch9.md#順序保證)
-    * [分散式事務與共識](ch9.md#分散式事務與共識)
-    * [本章小結](ch9.md#本章小結)
-
-### [第三部分：衍生資料](part-iii.md)
-
-* [第十章：批處理](ch10.md)
-    * [使用Unix工具的批處理](ch10.md#使用Unix工具的批處理)
-    * [MapReduce和分散式檔案系統](ch10.md#MapReduce和分散式檔案系統)
-    * [MapReduce之後](ch10.md#MapReduce之後)
-    * [本章小結](ch10.md#本章小結)
-* [第十一章：流處理](ch11.md)
-    * [傳遞事件流](ch11.md#傳遞事件流)
-    * [資料庫與流](ch11.md#資料庫與流)
-    * [流處理](ch11.md#流處理)
-    * [本章小結](ch11.md#本章小結)
-* [第十二章：資料系統的未來](ch12.md)
-    * [資料整合](ch12.md#資料整合)
-    * [分拆資料庫](ch12.md#分拆資料庫)
-    * [將事情做正確](ch12.md#將事情做正確)
-    * [做正確的事情](ch12.md#做正確的事情)
-    * [本章小結](ch12.md#本章小結)
-
-### [術語表](glossary.md)
-
-### [後記](colophon.md)
-
-
-
----------
-
-## 法律宣告
-
-從原作者處得知，已經有簡體中文的翻譯計劃，將於 2018 年末完成。[購買地址](https://search.jd.com/Search?keyword=設計資料密集型應用)
-
-譯者純粹出於 **學習目的** 與 **個人興趣** 翻譯本書，不追求任何經濟利益。
-
-譯者保留對此版本譯文的署名權，其他權利以原作者和出版社的主張為準。
-
-本譯文只供學習研究參考之用，不得公開傳播發行或用於商業用途。有能力閱讀英文書籍者請購買正版支援。
-
-
----------
-
-## 貢獻
+[GitHub 貢獻者列表](https://github.com/Vonng/ddia/graphs/contributors)
 
 0. 全文校訂 by [@yingang](https://github.com/Vonng/ddia/commits?author=yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
-4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. [詞彙表](glossary.md)、[後記](colophon.md)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+4. [第一部分](/tw/part-i)前言，[ch2](/tw/ch2)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
+5. [詞彙表](/tw/glossary)、[後記](/tw/colophon)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
-8. 感謝所有作出貢獻，提出意見的朋友們：
 
-<details>
-<summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
+
+感謝所有提出意見，作出貢獻的朋友們，您可以在這裡找到所有貢獻的 [Issue 列表](https://github.com/Vonng/ddia/issues) 與 [PR 列表](https://github.com/Vonng/ddia/pulls)：
 
 | ISSUE & Pull Requests                           | USER                                                       | Title                                                          |
 |-------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------|
-| [359](https://github.com/Vonng/ddia/pull/359)   | [@c25423](https://github.com/c25423)                       | ch10: 修正一處拼寫錯誤                                           |
-| [358](https://github.com/Vonng/ddia/pull/358)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch4: 修正一處拼寫錯誤                                            |
-| [356](https://github.com/Vonng/ddia/pull/356)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch2: 修正一處標點錯誤                                            |
-| [355](https://github.com/Vonng/ddia/pull/355)   | [@DuroyGeorge](https://github.com/DuroyGeorge)             | ch12: 修正一處格式錯誤                                           |
-| [354](https://github.com/Vonng/ddia/pull/354)   | [@justlorain](https://github.com/justlorain)               | ch7: 修正一處參考連結                                            |
-| [353](https://github.com/Vonng/ddia/pull/353)   | [@fantasyczl](https://github.com/fantasyczl)               | ch3&9: 修正兩處引用錯誤                                          |
-| [352](https://github.com/Vonng/ddia/pull/352)   | [@fantasyczl](https://github.com/fantasyczl)               | 支援輸出為 EPUB 格式                                             |
-| [349](https://github.com/Vonng/ddia/pull/349)   | [@xiyihan0](https://github.com/xiyihan0)                   | ch1: 修正一處格式錯誤                                            |
-| [348](https://github.com/Vonng/ddia/pull/348)   | [@omegaatt36](https://github.com/omegaatt36)               | ch3: 修正一處影像連結                                            |
-| [346](https://github.com/Vonng/ddia/issues/346) | [@Vermouth1995](https://github.com/Vermouth1995)           | ch1: 最佳化一處翻譯                                               |
+| [359](https://github.com/Vonng/ddia/pull/359)   | [@c25423](https://github.com/c25423)                       | ch10: 修正一處拼寫錯誤                                                 |
+| [358](https://github.com/Vonng/ddia/pull/358)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch4: 修正一處拼寫錯誤                                                  |
+| [356](https://github.com/Vonng/ddia/pull/356)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch2: 修正一處標點錯誤                                                  |
+| [355](https://github.com/Vonng/ddia/pull/355)   | [@DuroyGeorge](https://github.com/DuroyGeorge)             | ch12: 修正一處格式錯誤                                                 |
+| [354](https://github.com/Vonng/ddia/pull/354)   | [@justlorain](https://github.com/justlorain)               | ch7: 修正一處參考連結                                                  |
+| [353](https://github.com/Vonng/ddia/pull/353)   | [@fantasyczl](https://github.com/fantasyczl)               | ch3&9: 修正兩處引用錯誤                                                |
+| [352](https://github.com/Vonng/ddia/pull/352)   | [@fantasyczl](https://github.com/fantasyczl)               | 支援輸出為 EPUB 格式                                                  |
+| [349](https://github.com/Vonng/ddia/pull/349)   | [@xiyihan0](https://github.com/xiyihan0)                   | ch1: 修正一處格式錯誤                                                  |
+| [348](https://github.com/Vonng/ddia/pull/348)   | [@omegaatt36](https://github.com/omegaatt36)               | ch3: 修正一處影像連結                                                  |
+| [346](https://github.com/Vonng/ddia/issues/346) | [@Vermouth1995](https://github.com/Vermouth1995)           | ch1: 最佳化一處翻譯                                                    |
 | [343](https://github.com/Vonng/ddia/pull/343)   | [@kehao-chen](https://github.com/kehao-chen)               | ch10: 最佳化一處翻譯                                                   |
 | [341](https://github.com/Vonng/ddia/pull/341)   | [@YKIsTheBest](https://github.com/YKIsTheBest)             | ch3: 最佳化兩處翻譯                                                    |
 | [340](https://github.com/Vonng/ddia/pull/340)   | [@YKIsTheBest](https://github.com/YKIsTheBest)             | ch2: 最佳化多處翻譯                                                    |
@@ -357,12 +229,3 @@
 | [6  ](https://github.com/Vonng/ddia/pull/6)     | [@MuAlex](https://github.com/MuAlex)                       | Ch6 change version1                                            |
 | [5  ](https://github.com/Vonng/ddia/pull/5)     | [@nevertiree](https://github.com/nevertiree)               | Chapter 01語法微調                                                 |
 | [2  ](https://github.com/Vonng/ddia/pull/2)     | [@seagullbird](https://github.com/seagullbird)             | 序言初翻                                                           |
-</details>
-
-
-
----------
-
-## 協議
-
-[![License: CC-BY 4.0](https://img.shields.io/github/license/Vonng/ddia?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/Vonng/ddia/blob/master/LICENSE)
