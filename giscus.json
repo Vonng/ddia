@@ -1,0 +1,11 @@
+{
+  "origins": [
+    "https://vonng.github.com/ddia",
+    "https://ddia.vonng.com",
+    "https://ddia.pgsty.com",
+    "http://localhost:1313"
+  ],
+  "originsRegex": [
+    "http://localhost:[0-9]+"
+  ]
+}

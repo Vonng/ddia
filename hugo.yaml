@@ -1,0 +1,197 @@
+baseURL: 'https://ddia.vonng.com/'
+languageCode: 'zh-CN'
+title: '设计数据密集型应用'
+
+enableRobotsTXT: true
+# Parse Git commit
+enableGitInfo: true
+# enableEmoji: false
+hasCJKLanguage: true
+
+
+outputs:
+  home: [HTML]
+  page: [HTML]
+  section: [HTML, RSS]
+
+module:
+  imports:
+    - path: github.com/imfing/hextra
+
+defaultContentLanguage: zh
+languages:
+  zh:
+    languageName: 简体中文
+    languageCode: zh
+    contentDir: content/zh
+    weight: 1
+    title: 设计数据密集型应用
+  tw:
+    languageName: 繁体中文
+    languageCode: tw
+    contentDir: content/tw
+    weight: 2
+    title: 設計資料密集型應用
+  en:
+    languageName: English
+    languageCode: en
+    contentDir: content/en
+    weight: 3
+    title: Designing Data-Intensive Applications
+
+
+markup:
+  highlight:
+    noClasses: false
+  goldmark:
+    renderer:
+      unsafe: true
+    extensions:
+      passthrough:
+        delimiters:
+          block: [['\[', '\]'], ['$$', '$$']]
+          inline: [['\(', '\)']]
+        enable: true
+
+menu:
+  main:
+    - name: Search
+      weight: 1
+      params:
+        type: search
+    - name: GitHub
+      weight: 2
+      url: "https://github.com/Vonng/ddia"
+      params:
+        icon: github
+
+  sidebar:
+
+    - identifier: ver
+      name: Version
+      weight: 1
+      params:
+        type: separator
+    - identifier: simplified-chinese
+      name: "简体中文 ↗"
+      url: "/"
+      weight: 2
+    - identifier: traditional-chinese
+      name: "繁體中文 ↗"
+      url: "/tw"
+      weight: 3
+    - identifier: english
+      name: "English ↗"
+      url: "/en"
+      weight: 4
+
+    - identifier: more
+      name: 参考链接
+      params:
+        type: separator
+      weight: 5
+    - identifier: pgint
+      name: "PG Internal 中文版 ↗"
+      url: "https://pgint.vonng.com/"
+      weight: 6
+    - identifier: pgint14
+      name: "PG Internal 14 中文版 ↗"
+      url: "https://postgres-internals.cn/"
+      weight: 7
+    - identifier: pigsty
+      name: "Pigsty Docs ↗"
+      url: "https://pgsty.com"
+      weight: 8
+    - identifier: pgext
+      name: "PG Extensions ↗"
+      url: "https://ext.pgsty.com"
+      weight: 9
+
+params:
+  description: DDIA 中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，作者是 Martin Kleppmann。它深入探讨了数据密集型应用的架构和设计原则，涵盖了分布式系统、数据存储、消息传递等主题。
+
+  navbar:
+    displayTitle: true
+    displayLogo: true
+    logo:
+      path: /logo.png
+      dark: /logo.png
+      # width: 40
+      # height: 20
+      # link: /
+    width: wide
+
+  page:
+    # full (100%), wide (90rem), normal (80rem)
+    width: full
+
+  theme:
+    # light | dark | system
+    default: system
+    displayToggle: true
+
+  footer:
+    enable: true
+    displayCopyright: true
+    displayPoweredBy: false
+    width: normal
+
+  # Display the last modification date
+  displayUpdatedDate: true
+  dateFormat: "2006-01-02"
+
+  # Search
+  # flexsearch is enabled by default
+  search:
+    enable: true
+    type: flexsearch
+
+    flexsearch:
+      # index page by: content | summary | heading | title
+      index: content
+      # full | forward | reverse | strict
+      # https://github.com/nextapps-de/flexsearch/#tokenizer-prefix-search
+      tokenize: forward
+
+  editURL:
+    enable: true
+    base: "https://github.com/Vonng/ddia/edit/main/content"
+
+  toc:
+    displayTags: true
+
+  highlight:
+    copy:
+      enable: true
+      # hover | always
+      display: hover
+
+  comments:
+    enable: true
+    type: giscus
+
+    # https://giscus.app/
+    giscus:
+      repo: "Vonng/ddia"
+      repoId: "MDEwOlJlcG9zaXRvcnkxMjA3MTA2NDQ"
+      category: "Announcements"
+      categoryId: "DIC_kwDOBzHl9M4CtlWB"
+      mapping: pathname
+      strict: 0
+      reactionsEnabled: 1
+      emitMetadata: 0
+      inputPosition: bottom
+      lang: zh-CN
+      theme: preferred_color_scheme
+
+      # repo: imfing/hextra
+      # repoId: R_kgDOJ9fJag
+      # category: General
+      # categoryId: DIC_kwDOJ9fJas4CY7gW
+      # mapping: pathname
+      # strict: 0
+      # reactionsEnabled: 1
+      # emitMetadata: 0
+      # inputPosition: top
+      # lang: en
+      # theme: noborder_dark

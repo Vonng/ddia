@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 tmp/
 output/
+public/
+.hugo_build.lock
