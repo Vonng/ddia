@@ -101,20 +101,20 @@ menu:
         type: separator
       weight: 6
     - identifier: pgint
-      name: "PG Internal 中文版 ↗"
+      name: "PostgreSQL 内幕探索 ↗"
       url: "https://pgint.vonng.com/"
       weight: 7
     - identifier: pgint14
-      name: "PG Internal 14 中文版 ↗"
+      name: "PostgreSQL 内参 ↗"
       url: "https://postgres-internals.cn/"
       weight: 8
     - identifier: pigsty
-      name: "Pigsty Docs ↗"
-      url: "https://pgsty.com"
+      name: "Pigsty 文档 ↗"
+      url: "https://pgsty.com/zh"
       weight: 9
     - identifier: pgext
-      name: "PG Extensions ↗"
-      url: "https://ext.pgsty.com"
+      name: "PG 扩展目录 ↗"
+      url: "https://ext.pgsty.com/zh"
       weight: 10
 
 params:
