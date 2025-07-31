@@ -1,7 +1,8 @@
 backToTop: "返回頂部"
 changeLanguage: "切換語言"
 changeTheme: "切換主題"
-copyright: "© 2025 Hextra Project."
+copyright: '<a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="工信部备案查询" href="https://beian.miit.gov.cn/"><span>浙ICP备15016890-3号</span></a>'
+poweredBy: '<a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="Vonng" href="https://vonng.com/"><span>© 2025 馮若航</span></a>'
 dark: "深色"
 editThisPage: "在 GitHub 上編輯此頁 →"
 lastUpdated: "最後更新於"
@@ -9,6 +10,5 @@ light: "淺色"
 noResultsFound: "無結果"
 onThisPage: "此頁上"
 tags: "標籤"
-poweredBy: "由 Hextra 驅動"
 readMore: "更多 →"
 searchPlaceholder: "搜尋文檔..."
