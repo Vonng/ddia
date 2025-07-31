@@ -1,23 +1,25 @@
 # 设计数据密集型应用 - 中文翻译版
 
-[![Webite: ddia](https://img.shields.io/badge/v1-ddia.pigsty.io-slategray?style=flat)](https://ddia.vonng.com)
+[![Webite: ddia](https://img.shields.io/badge/在线阅读-ddia.vonng.com-slategray?style=flat)](https://ddia.vonng.com)
 [![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ： 英国剑桥大学分布式系统研究员，演讲者，博主和开源贡献者，软件工程师和企业家，曾在 LinkedIn 和 Rapportive 负责数据基础架构。
 
-**译者**：[冯若航](https://vonng.com) / [Vonng](https://github.com/Vonng) (rh@vonng.com)： 创业者，[开源贡献者](https://gitstar-ranking.com/Vonng)，PostgreSQL Hacker。开源 RDS PG [Pigsty](https://pigsty.cc/zh/) 与公众号《[非法加冯](https://mp.weixin.qq.com/s/p4Ys10ZdEDAuqNAiRmcnIQ)》作者，[数据库老司机](https://pigsty.cc/zh/blog/db)，[云计算泥石流](https://pigsty.cc/zh/blog/cloud)，曾于阿里，苹果，探探担任架构师与DBA。
+**译者**：[冯若航](https://vonng.com) / [Vonng](https://github.com/Vonng) (rh@vonng.com) [Pigsty](https://pgsty.com) 创始人，[活跃](https://committers.top/china)[开源贡献者](https://gitstar-ranking.com/Vonng)，PostgreSQL Hacker。开源 RDS PG 发行版 [Pigsty](https://pigsty.cc/zh/) 与公众号《[老冯云数](https://mp.weixin.qq.com/s/p4Ys10ZdEDAuqNAiRmcnIQ)》作者，[数据库老司机](https://pigsty.cc/zh/blog/db)，[云计算泥石流](https://pigsty.cc/zh/blog/cloud)，曾于阿里，苹果，探探担任架构师与DBA。
 
-**校订**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](zh-tw/README.md) **版本维护** by  [@afunTW](https://github.com/afunTW)
+**校订**： [@yingang](https://github.com/yingang) ｜ [**繁體中文**](content/tw/_index.md) by [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](#贡献)
 
-**通知**：DDIA [**第二版**](https://ddia.vonng.com/v2) 正在翻译中 ([`content/v2`](https://github.com/Vonng/ddia/tree/hugo/content/v2) 目录)，欢迎加入并提出您的宝贵意见！
+**阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [hugo](https://gohugo.io/documentation/) / [hextra](https://imfing.github.io/hextra/zh-cn/) 主题自行构建。
 
-
+**通知**：DDIA [**第二版**](https://ddia.vonng.com/v2) 正在翻译中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main/content/v2) 目录)，欢迎加入并提出您的宝贵意见！
 
 ---------
 
 ## 译序
 
-> 不懂数据库的全栈工程师不是好架构师 —— 冯若航 / [@Vonng](https://github.com/Vonng)
+> 不懂数据库的全栈工程师不是好架构师 
+> 
+> —— 冯若航 / Vonng
 
 现今，尤其是在互联网领域，大多数应用都属于数据密集型应用。本书从底层数据结构到顶层架构设计，将数据系统设计中的精髓娓娓道来。其中的宝贵经验无论是对架构师、DBA、还是后端工程师、甚至产品经理都会有帮助。
 
@@ -359,6 +361,11 @@
 
 ---------
 
-## 协议
+## 许可证
 
 [![License: CC-BY 4.0](https://img.shields.io/github/license/Vonng/ddia?logo=opensourceinitiative&logoColor=green&color=slategray)](https://github.com/Vonng/ddia/blob/master/LICENSE)
+
+本项目采用 [CC-BY 4.0](https://github.com/Vonng/ddia/blob/master/LICENSE) 许可证，您可以在这里找到完整说明：
+
+- [署名 4.0 协议国际版 CC BY 4.0 Deed](https://creativecommons.org/licenses/by/4.0/deed.zh-hans)
+- [Attribution 4.0 International CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.en)
