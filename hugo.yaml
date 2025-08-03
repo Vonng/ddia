@@ -8,6 +8,9 @@ enableGitInfo: true
 # enableEmoji: false
 hasCJKLanguage: true
 
+services:
+  googleAnalytics:
+    ID: G-SGY2FPH1EG
 
 outputs:
   home: [HTML]
