@@ -6,7 +6,7 @@ breadcrumbs: false
 
 ## 譯者
 
-[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+[**馮若航**](https://blog.vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。

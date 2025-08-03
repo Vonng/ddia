@@ -103,6 +103,10 @@ menu:
       params:
         type: separator
       weight: 6
+    - identifier: vonng
+      name: "老冯云数 ↗"
+      url: "https://blog.vonng.com"
+      weight: 10
     - identifier: pgint
       name: "PostgreSQL 内幕探索 ↗"
       url: "https://pgint.vonng.com/"
@@ -119,6 +123,15 @@ menu:
       name: "PG 扩展目录 ↗"
       url: "https://ext.pgsty.com/zh"
       weight: 10
+    - identifier: ddia1
+      name: "DDIA O'reilly ↗"
+      url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/"
+      weight: 11
+    - identifier: ddia2
+      name: "DDIA 2nd O'reilly ↗"
+      url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/"
+      weight: 12
+
 
 params:
   description: DDIA 中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，它深入探讨了数据密集型应用的架构和设计原则，涵盖了分布式系统、数据存储、消息传递等主题。

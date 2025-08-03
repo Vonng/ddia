@@ -9,7 +9,7 @@ breadcrumbs: false
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ： 英国剑桥大学分布式系统研究员，演讲者，博主和开源贡献者，软件工程师和企业家，曾在 LinkedIn 和 Rapportive 负责数据基础架构。
 
-**译者**：[**冯若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
+**译者**：[**冯若航**](https://blog.vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 专家，数据库老司机，云计算泥石流。
 [**Pigsty**](https://pgsty.com) 作者与创始人。
 架构师，DBA，全栈工程师 @ TanTan，Alibaba，Apple。
@@ -20,6 +20,8 @@ PostgreSQL 专家，数据库老司机，云计算泥石流。
 
 > [!NOTE]
 > DDIA [**第二版**](/v2) 正在翻译中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main) 目录)，欢迎加入并提出您的宝贵意见！
+
+
 
 ## 译序
 

@@ -2,7 +2,7 @@ backToTop: "返回顶部"
 changeLanguage: "切换语言"
 changeTheme: "切换主题"
 copyright: '<a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="工信部备案查询" href="https://beian.miit.gov.cn/"><span>浙ICP备15016890-3号</span></a>'
-poweredBy: '<a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="Vonng" href="https://vonng.com/"><span>© 2025 冯若航</span></a>'
+poweredBy: '<a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="Vonng" href="https://blog.vonng.com/"><span>© 2025 冯若航</span></a>'
 dark: "深色"
 editThisPage: "在 GitHub 上编辑此页 →"
 lastUpdated: "最后更新于"

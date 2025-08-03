@@ -89,4 +89,4 @@ breadcrumbs: false
 
 ### [后记](/colophon)
 
-
+![](/img/featured.jpg)
