@@ -9,7 +9,7 @@ breadcrumbs: false
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ： 英國劍橋大學分散式系統研究員，演講者，博主和開源貢獻者，軟體工程師和企業家，曾在 LinkedIn 和 Rapportive 負責資料基礎架構。
 
-**譯者**：[**馮若航**](https://blog.vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+**譯者**：[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
@@ -19,7 +19,9 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 **校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/contrib)
 
 > [!NOTE]
-> DDIA [**第二版**](https://github.com/Vonng/ddia/tree/v2) 正在翻譯中 ([`v2`](https://github.com/Vonng/ddia/tree/v2)分支)，歡迎加入並提出您的寶貴意見！
+> DDIA [**第二版**](/v2) 正在翻譯中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main) 目錄)，歡迎加入並提出您的寶貴意見！
+
+
 
 ## 譯序
 

@@ -104,37 +104,37 @@ menu:
         type: separator
       weight: 6
     - identifier: vonng
-      name: "老冯云数 ↗"
-      url: "https://blog.vonng.com"
-      weight: 10
+      name: "博客：老冯云数 ↗"
+      url: "https://vonng.com"
+      weight: 7
     - identifier: pgint
       name: "PostgreSQL 内幕探索 ↗"
       url: "https://pgint.vonng.com/"
-      weight: 7
-    - identifier: pgint14
-      name: "PostgreSQL 内参 ↗"
-      url: "https://postgres-internals.cn/"
       weight: 8
+    - identifier: pgint14
+      name: "PostgreSQL 14 内参 ↗"
+      url: "https://postgres-internals.cn/"
+      weight: 9
     - identifier: pigsty
       name: "Pigsty 文档 ↗"
-      url: "https://pgsty.com/zh"
-      weight: 9
+      url: "https://doc.pgsty.com/zh"
+      weight: 10
     - identifier: pgext
       name: "PG 扩展目录 ↗"
       url: "https://ext.pgsty.com/zh"
-      weight: 10
+      weight: 11
     - identifier: ddia1
       name: "DDIA O'reilly ↗"
       url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/"
-      weight: 11
+      weight: 12
     - identifier: ddia2
       name: "DDIA 2nd O'reilly ↗"
       url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/"
-      weight: 12
+      weight: 13
 
 
 params:
-  description: DDIA 中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，它深入探讨了数据密集型应用的架构和设计原则，涵盖了分布式系统、数据存储、消息传递等主题。
+  description: DDIA 中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，它深入探讨了数据密集型应用的架构和设计原则，涵盖了模型，存储，分区，事务，分布式系统、数据存储、流处理，批处理等各种主题。
 
   navbar:
     displayTitle: true
@@ -142,9 +142,6 @@ params:
     logo:
       path: /logo.png
       dark: /logo.png
-      # width: 40
-      # height: 20
-      # link: /
     width: wide
 
   page:
@@ -159,7 +156,7 @@ params:
   footer:
     enable: true
     displayCopyright: true
-    displayPoweredBy: true
+    displayPoweredBy: false
     width: normal
 
   # Display the last modification date
@@ -195,8 +192,6 @@ params:
   comments:
     enable: true
     type: giscus
-
-    # https://giscus.app/
     giscus:
       repo: "Vonng/ddia"
       repoId: "MDEwOlJlcG9zaXRvcnkxMjA3MTA2NDQ"
@@ -209,15 +204,3 @@ params:
       inputPosition: bottom
       lang: zh-CN
       theme: preferred_color_scheme
-
-      # repo: imfing/hextra
-      # repoId: R_kgDOJ9fJag
-      # category: General
-      # categoryId: DIC_kwDOJ9fJas4CY7gW
-      # mapping: pathname
-      # strict: 0
-      # reactionsEnabled: 1
-      # emitMetadata: 0
-      # inputPosition: top
-      # lang: en
-      # theme: noborder_dark

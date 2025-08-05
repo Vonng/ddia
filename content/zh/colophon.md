@@ -15,7 +15,7 @@ Martin 是一位常规会议演讲者，博主和开源贡献者。他认为，�
 
 ## 关于译者
 
-[**冯若航**](https://blog.vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
+[**冯若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 专家，数据库老司机，云计算泥石流。
 PostgreSQL 发行版 [**Pigsty**](https://pgsty.com) 作者与创始人。
 架构师，DBA，全栈工程师 @ TanTan，Alibaba，Apple。

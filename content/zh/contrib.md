@@ -6,7 +6,7 @@ breadcrumbs: false
 
 ## 译者
 
-[**冯若航**](https://blog.vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
+[**冯若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 专家，数据库老司机，云计算泥石流。
 [**Pigsty**](https://pgsty.com) 作者与创始人。
 架构师，DBA，全栈工程师 @ TanTan，Alibaba，Apple。
