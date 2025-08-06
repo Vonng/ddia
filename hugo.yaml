@@ -154,7 +154,7 @@ params:
     displayToggle: true
 
   footer:
-    enable: true
+    enable: false
     displayCopyright: true
     displayPoweredBy: false
     width: normal
