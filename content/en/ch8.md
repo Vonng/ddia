@@ -193,7 +193,7 @@ current value, add 1, and write the new value back (assuming there is no increme
 into the database). In [Figure 8-1](/en/ch8#fig_transactions_increment) the counter should have increased from 42 to
 44, because two increments happened, but it actually only went to 43 because of the race condition.
 
-{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" title="Figure 8-1. A race condition between two clients concurrently incrementing a counter." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" caption="Figure 8-1. A race condition between two clients concurrently incrementing a counter." class="w-full my-4" >}}
 
 
 *Isolation* in the sense of ACID means that concurrently executing transactions are isolated from
@@ -293,7 +293,7 @@ number of unread messages for a user, you could query something like:
 SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 ```
 
-{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" title="Figure 8-2. Violating isolation: one transaction reads another transaction's uncommitted writes (a \"dirty read\")." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" caption="Figure 8-2. Violating isolation: one transaction reads another transaction's uncommitted writes (a \"dirty read\")." class="w-full my-4" >}}
 
 
 However, you might find this query to be too slow if there are many emails, and decide to store the
@@ -314,7 +314,7 @@ over the course of the transaction, the contents of the mailbox and the unread c
 of sync. In an atomic transaction, if the update to the counter fails, the transaction is aborted
 and the inserted email is rolled back.
 
-{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" title="Figure 8-3. Atomicity ensures that if an error occurs any prior writes from that transaction are undone, to avoid an inconsistent state." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" caption="Figure 8-3. Atomicity ensures that if an error occurs any prior writes from that transaction are undone, to avoid an inconsistent state." class="w-full my-4" >}}
 
 
 Multi-object transactions require some way of determining which read and write operations belong to
@@ -510,7 +510,7 @@ all of its writes become visible at once). This is illustrated in
 [Figure 8-4](/en/ch8#fig_transactions_read_committed), where user 1 has set *x* = 3, but user 2’s *get x* still
 returns the old value, 2, while user 1 has not yet committed.
 
-{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" title="Figure 8-4. No dirty reads: user 2 sees the new value for x only after user 1's transaction has committed." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" caption="Figure 8-4. No dirty reads: user 2 sees the new value for x only after user 1's transaction has committed." class="w-full my-4" >}}
 
 
 There are a few reasons why it’s useful to prevent dirty reads:
@@ -552,7 +552,7 @@ By preventing dirty writes, this isolation level avoids some kinds of concurrenc
  has committed, so it’s not a dirty write. It’s still incorrect, but for a different reason—in
  [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update) we will discuss how to make such counter increments safe.
 
-{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" title="Figure 8-5. With dirty writes, conflicting writes from different transactions can be mixed up." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" caption="Figure 8-5. With dirty writes, conflicting writes from different transactions can be mixed up." class="w-full my-4" >}}
 
 
 ### Implementing read committed
@@ -604,7 +604,7 @@ However, there are still plenty of ways in which you can have concurrency bugs w
 isolation level. For example, [Figure 8-6](/en/ch8#fig_transactions_item_many_preceders) illustrates a problem that
 can occur with read committed.
 
-{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" title="Figure 8-6. Read skew: Aaliyah observes the database in an inconsistent state." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" caption="Figure 8-6. Read skew: Aaliyah observes the database in an inconsistent state." class="w-full my-4" >}}
 
 
 Say Aaliyah has $1,000 of savings at a bank, split across two accounts with $500 each. Now a
@@ -685,7 +685,7 @@ transaction ID of the writer. (To be precise, transaction IDs in PostgreSQL are 
 they overflow after approximately 4 billion transactions. The vacuum process performs cleanup to
 ensure that overflow does not affect the data.)
 
-{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" title="Figure 8-7. Implementing snapshot isolation using multi-version concurrency control." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" caption="Figure 8-7. Implementing snapshot isolation using multi-version concurrency control." class="w-full my-4" >}}
 
 
 Each row in a table has a `inserted_by` field, containing the ID of the transaction that inserted
@@ -863,7 +863,7 @@ needs to ensure that a player’s move abides by the rules of the game, which in
 you cannot sensibly implement as a database query. Instead, you may use a lock to prevent two
 players from concurrently moving the same piece, as illustrated in [Example 8-1](/en/ch8#fig_transactions_select_for_update).
 
-##### Example 8-1. Explicitly locking rows to prevent lost updates
+{{< figure id="fig_transactions_select_for_update" caption="Example 8-1. Explicitly locking rows to prevent lost updates" class="w-full my-4" >}}
 
 ```sql
 BEGIN TRANSACTION;
@@ -988,7 +988,7 @@ feeling unwell, so they both decide to request leave. Unfortunately, they happen
 to go off call at approximately the same time. What happens next is illustrated in
 [Figure 8-8](/en/ch8#fig_transactions_write_skew).
 
-{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" title="Figure 8-8. Example of write skew causing an application bug." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" caption="Figure 8-8. Example of write skew causing an application bug." class="w-full my-4" >}}
 
 
 In each transaction, your application first checks that two or more doctors are currently on call;
@@ -1268,7 +1268,7 @@ The differences between interactive transactions and stored procedures is illust
 [Figure 8-9](/en/ch8#fig_transactions_stored_proc). Provided that all data required by a transaction is in memory, the
 stored procedure can execute very quickly, without waiting for any network or disk I/O.
 
-{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" title="Figure 8-9. The difference between an interactive transaction and a stored procedure (using the example transaction of [Figure 8-8](/en/ch8#fig_transactions_write_skew))." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" caption="Figure 8-9. The difference between an interactive transaction and a stored procedure (using the example transaction of [Figure 8-8](/en/ch8#fig_transactions_write_skew))." class="w-full my-4" >}}
 
 
 ### Pros and cons of stored procedures
@@ -1618,7 +1618,7 @@ now taken effect, and transaction 43’s premise is no longer true. Things get e
 when a writer inserts data that didn’t exist before (see [“Phantoms causing write skew”](/en/ch8#sec_transactions_phantom)). We’ll
 discuss detecting phantom writes for SSI in [“Detecting writes that affect prior reads”](/en/ch8#sec_detecting_writes_affect_reads).
 
-{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" title="Figure 8-10. Detecting when a transaction reads outdated values from an MVCC snapshot." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" caption="Figure 8-10. Detecting when a transaction reads outdated values from an MVCC snapshot." class="w-full my-4" >}}
 
 
 In order to prevent this anomaly, the database needs to track when a transaction ignores another
@@ -1639,7 +1639,7 @@ isolation’s support for long-running reads from a consistent snapshot.
 The second case to consider is when another transaction modifies data after it has been read. This
 case is illustrated in [Figure 8-11](/en/ch8#fig_transactions_detect_index_range).
 
-{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" title="Figure 8-11. In serializable snapshot isolation, detecting when one transaction modifies another transaction's reads." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" caption="Figure 8-11. In serializable snapshot isolation, detecting when one transaction modifies another transaction's reads." class="w-full my-4" >}}
 
 
 In the context of two-phase locking we discussed index-range locks (see
@@ -1746,7 +1746,7 @@ some nodes and fails on other nodes, as shown in [Figure 8-12](/en/ch8#fig_tran
 * Some nodes may crash before the commit record is fully written and roll back on recovery, while
  others successfully commit.
 
-{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" title="Figure 8-12. When a transaction involves multiple database nodes, it may commit on some and fail on others." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" caption="Figure 8-12. When a transaction involves multiple database nodes, it may commit on some and fail on others." class="w-full my-4" >}}
 
 
 If some nodes commit the transaction but others abort it, the nodes become inconsistent with each

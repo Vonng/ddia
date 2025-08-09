@@ -117,7 +117,7 @@ a request and expect a response, many things could go wrong (some of which are i
 6. The remote node may have processed your request, but the response has been delayed and will be
  delivered later (perhaps the network or your own machine is overloaded).
 
-{{< figure src="/fig/ddia_0901.png" id="fig_distributed_network" title="Figure 9-1. If you send a request and don't get a response, it's not possible to distinguish whether (a) the request was lost, (b) the remote node is down, or (c) the response was lost." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0901.png" id="fig_distributed_network" caption="Figure 9-1. If you send a request and don't get a response, it's not possible to distinguish whether (a) the request was lost, (b) the remote node is down, or (c) the response was lost." class="w-full my-4" >}}
 
 
 The sender can’t even tell whether the packet was delivered: the only option is for the recipient to
@@ -325,7 +325,7 @@ Similarly, the variability of packet delays on computer networks is most often d
 * As mentioned earlier, in order to avoid overloading the network, TCP limits the rate at which it
  sends data. This means additional queueing at the sender before the data even enters the network.
 
-{{< figure src="/fig/ddia_0902.png" id="fig_distributed_switch_queueing" title="Figure 9-2. If several machines send network traffic to the same destination, its switch queue can fill up. Here, ports 1, 2, and 4 are all trying to send packets to port 3." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0902.png" id="fig_distributed_switch_queueing" caption="Figure 9-2. If several machines send network traffic to the same destination, its switch queue can fill up. Here, ports 1, 2, and 4 are all trying to send packets to port 3." class="w-full my-4" >}}
 
 
 Moreover, when TCP detects and automatically retransmits a lost packet, although the application
@@ -667,7 +667,7 @@ multi-leader replication (the example is similar to [Figure 6-8](/en/ch6#fig_re
 *x* = 1 on node 1; the write is replicated to node 3; client B increments *x* on node
 3 (we now have *x* = 2); and finally, both writes are replicated to node 2.
 
-{{< figure src="/fig/ddia_0903.png" id="fig_distributed_timestamps" title="Figure 9-3. The write by client B is causally later than the write by client A, but B's write has an earlier timestamp." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0903.png" id="fig_distributed_timestamps" caption="Figure 9-3. The write by client B is causally later than the write by client A, but B's write has an earlier timestamp." class="w-full my-4" >}}
 
 
 In [Figure 9-3](/en/ch9#fig_distributed_timestamps), when a write is replicated to other nodes, it is tagged with a
@@ -1095,7 +1095,7 @@ become corrupted. You try to implement this by requiring a client to obtain a le
 service before accessing the file. Such a lock service is often implemented using a consensus
 algorithm; we will discuss this further in [Chapter 10](/en/ch10#ch_consistency).
 
-{{< figure src="/fig/ddia_0904.png" id="fig_distributed_lease_pause" title="Figure 9-4. Incorrect implementation of a distributed lock: client 1 believes that it still has a valid lease, even though it has expired, and thus corrupts a file in storage." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0904.png" id="fig_distributed_lease_pause" caption="Figure 9-4. Incorrect implementation of a distributed lock: client 1 believes that it still has a valid lease, even though it has expired, and thus corrupts a file in storage." class="w-full my-4" >}}
 
 
 The problem is an example of what we discussed in [“Process Pauses”](/en/ch9#sec_distributed_clocks_pauses): if the client
@@ -1112,7 +1112,7 @@ or more.) By the time the write request arrives at the storage service, the leas
 out, allowing client 2 to acquire it and issue a write of its own. The result is corruption similar
 to [Figure 9-4](/en/ch9#fig_distributed_lease_pause).
 
-{{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" title="Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" caption="Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease." class="w-full my-4" >}}
 
 
 ### Fencing off zombies and delayed requests
@@ -1133,7 +1133,7 @@ detected and shut down, it may already be too late and data may already have bee
 A more robust fencing solution, which protects against both zombies and delayed requests, is
 illustrated in [Figure 9-6](/en/ch9#fig_distributed_fencing).
 
-{{< figure src="/fig/ddia_0906.png" id="fig_distributed_fencing" title="Figure 9-6. Making access to storage safe by allowing writes only in the order of increasing fencing tokens." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0906.png" id="fig_distributed_fencing" caption="Figure 9-6. Making access to storage safe by allowing writes only in the order of increasing fencing tokens." class="w-full my-4" >}}
 
 
 Let’s assume that every time the lock service grants a lock or lease, it also returns a *fencing
@@ -1187,7 +1187,7 @@ the most significant bits or digits of the timestamp. You can then be sure that 
 generated by the new leaseholder will be greater than any timestamp from the old leaseholder, even
 if the old leaseholder’s writes happened later.
 
-{{< figure src="/fig/ddia_0907.png" id="fig_distributed_fencing_leaderless" title="Figure 9-7. Using fencing tokens to protect writes to a leaderless replicated database." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0907.png" id="fig_distributed_fencing_leaderless" caption="Figure 9-7. Using fencing tokens to protect writes to a leaderless replicated database." class="w-full my-4" >}}
 
 
 In [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), Client 2 has a fencing token of 34, so all of its

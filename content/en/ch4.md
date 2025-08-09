@@ -37,7 +37,7 @@ Later in [“Data Storage for Analytics”](/en/ch4#sec_storage_analytics) we’
 analytics, and in [“Multidimensional and Full-Text Indexes”](/en/ch4#sec_storage_multidimensional) we’ll briefly look at indexes for more advanced
 queries, such as text retrieval.
 
-# Storage and Indexing for OLTP
+## Storage and Indexing for OLTP
 
 Consider the world’s simplest database, implemented as two Bash functions:
 
@@ -45,11 +45,11 @@ Consider the world’s simplest database, implemented as two Bash functions:
 #!/bin/bash
 
 db_set () {
- echo "$1,$2" >> database
+  echo "$1,$2" >> database
 }
 
 db_get () {
- grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
+  grep "^$1," database | sed -e "s/^$1,//" | tail -n 1
 }
 ```
 
@@ -96,11 +96,16 @@ forever, and handling partially written records when recovering from a crash), b
 principle is the same. Logs are incredibly useful, and we will encounter them several times in this
 book.
 
+---------
+
 > [!NOTE]
 > The word *log* is often used to refer to application logs, where an application outputs text that
 > describes what’s happening. In this book, *log* is used in the more general sense: an append-only
 > sequence of records on disk. It doesn’t have to be human-readable; it might be binary and intended
 > only for internal use by the database system.
+
+--------
+
 
 On the other hand, the `db_get` function has terrible performance if you have a large number of
 records in your database. Every time you want to look up a key, `db_get` has to scan the entire
@@ -128,14 +133,14 @@ writing the application or administering the database—to choose indexes manual
 knowledge of the application’s typical query patterns. You can then choose the indexes that give
 your application the greatest benefit, without introducing more overhead on writes than necessary.
 
-## Log-Structured Storage
+### Log-Structured Storage
 
 To start, let’s assume that you want to continue storing data in the append-only file written by
 `db_set`, and you just want to speed up reads. One way you could do this is by keeping a hash map in
 memory, in which every key is mapped to the byte offset in the file at which the most recent value
 for that key can be found, as illustrated in [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
 
-{{< figure src="/fig/ddia_0401.png" id="fig_storage_csv_hash_index" title="Figure 4-1. Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0401.png" id="fig_storage_csv_hash_index" caption="Figure 4-1. Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map." class="w-full my-4" >}}
 
 Whenever you append a new key-value pair to the file, you also update the hash map to reflect the
 offset of the data you just wrote. When you want to look up a value, you use the hash map to find
@@ -151,12 +156,11 @@ This approach is much faster, but it still suffers from several problems:
  restarts slow if you have a lot of data.
 * The hash table must fit in memory. In principle, you could maintain a hash table on disk, but
  unfortunately it is difficult to make an on-disk hash map perform well. It requires a lot of
- random access I/O, it is expensive to grow when it becomes full, and hash collisions require
- fiddly logic [^2].
+ random access I/O, it is expensive to grow when it becomes full, and hash collisions require fiddly logic [^2].
 * Range queries are not efficient. For example, you cannot easily scan over all keys between `10000`
  and `19999`—you’d have to look up each key individually in the hash map.
 
-### The SSTable file format
+#### The SSTable file format
 
 In practice, hash tables are not used very often for database indexes, and instead it is much more
 common to keep data in a structure that is *sorted by key* [^3].
@@ -164,7 +168,7 @@ One example of such a structure is a *Sorted String Table*, or *SSTable* for sho
 [Figure 4-2](/en/ch4#fig_storage_sstable_index). This file format also stores key-value pairs, but it ensures that
 they are sorted by key, and each key only appears once in the file.
 
-{{< figure src="/fig/ddia_0402.png" id="fig_storage_sstable_index" title="Figure 4-2. An SSTable with a sparse index, allowing queries to jump to the right block." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0402.png" id="fig_storage_sstable_index" caption="Figure 4-2. An SSTable with a sparse index, allowing queries to jump to the right block." class="w-full my-4" >}}
 
 Now you do not need to keep all the keys in memory: you can group the key-value pairs within an
 SSTable into *blocks* of a few kilobytes, and then store the first key of each block in the index.
@@ -183,7 +187,7 @@ Moreover, each block of records can be compressed (indicated by the shaded area 
 [Figure 4-2](/en/ch4#fig_storage_sstable_index)). Besides saving disk space, compression also reduces the I/O
 bandwidth use, at the cost of using a bit more CPU time.
 
-### Constructing and merging SSTables
+#### Constructing and merging SSTables
 
 The SSTable file format is better for reading than an append-only log, but it makes writes more
 difficult. We can’t simply append at the end, because then the file would no longer be sorted
@@ -194,8 +198,7 @@ We can solve this problem with a *log-structured* approach, which is a hybrid be
 log and a sorted file:
 
 1. When a write comes in, add it to an in-memory ordered map data structure, such as a red-black
- tree, skip list [^5], or trie
- [^6].
+ tree, skip list [^5], or trie [^6].
  With these data structures, you can insert keys in any order, look them up efficiently, and read
  them back in sorted order. This in-memory data structure is called the *memtable*.
 2. When the memtable gets bigger than some threshold—typically a few megabytes—write it out to
@@ -218,7 +221,7 @@ the same key appears in more than one input file, keep only the more recent valu
 new merged segment file, also sorted by key, with one value per key, and it uses minimal memory
 because we can iterate over the SSTables one key at a time.
 
-{{< figure src="/fig/ddia_0403.png" id="fig_storage_sstable_merging" title="Figure 4-3. Merging several SSTable segments, retaining only the most recent value for each key." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0403.png" id="fig_storage_sstable_merging" caption="Figure 4-3. Merging several SSTable segments, retaining only the most recent value for each key." class="w-full my-4" >}}
 
 To ensure that the data in the memtable is not lost if the database crashes, the storage engine
 keeps a separate log on disk to which every write is immediately appended. This log is not sorted by
@@ -231,16 +234,12 @@ called a *tombstone* to the data file. When log segments are merged, the tombsto
 process to discard any previous values for the deleted key. Once the tombstone is merged into the
 oldest segment, it can be dropped.
 
-The algorithm described here is essentially what is used in RocksDB [^7],
-Cassandra, Scylla, and HBase [^8],
-all of which were inspired by Google’s Bigtable paper [^9]
-(which introduced the terms *SSTable* and *memtable*).
+The algorithm described here is essentially what is used in RocksDB [^7], Cassandra, Scylla, and HBase [^8],
+all of which were inspired by Google’s Bigtable paper [^9] (which introduced the terms *SSTable* and *memtable*).
 
-The algorithm was originally published in 1996 under the name *Log-Structured Merge-Tree* or *LSM-Tree*
-[^10],
+The algorithm was originally published in 1996 under the name *Log-Structured Merge-Tree* or *LSM-Tree* [^10],
 building on earlier work on log-structured filesystems [^11].
-For this reason, storage engines that are based on the principle of merging and compacting sorted
-files are often called *LSM storage engines*.
+For this reason, storage engines that are based on the principle of merging and compacting sorted files are often called *LSM storage engines*.
 
 In LSM storage engines, a segment file is written in one pass (either by writing out the memtable or
 by merging some existing segments), and thereafter it is immutable. The merging and compaction of
@@ -250,8 +249,7 @@ requests to using the new merged segment instead of the old segments, and then t
 can be deleted.
 
 The segment files don’t necessarily have to be stored on local disk: they are also well suited for
-writing to object storage. SlateDB and Delta Lake [^12].
-take this approach, for example.
+writing to object storage. SlateDB and Delta Lake [^12]. take this approach, for example.
 
 Having immutable segment files also simplifies crash recovery: if a crash happens while writing out
 the memtable or while merging segments, the database can just delete the unfinished SSTable and
@@ -260,12 +258,11 @@ was a crash halfway through writing a record, or if the disk was full; these are
 by including checksums in the log, and discarding corrupted or incomplete log entries. We will talk
 more about durability and crash recovery in [Chapter 8](/en/ch8#ch_transactions).
 
-### Bloom filters
+#### Bloom filters
 
 With LSM storage it can be slow to read a key that was last updated a long time ago, or that does
 not exist, since the storage engine needs to check several segment files. In order to speed up such
-reads, LSM storage engines often include a *Bloom filter*
-[^13]
+reads, LSM storage engines often include a *Bloom filter* [^13]
 in each segment, which provides a fast but approximate way of checking whether a particular key
 appears in a particular SSTable.
 
@@ -277,7 +274,7 @@ We set the bits corresponding to those indexes to 1, and leave the rest as 0. Fo
 is then stored as part of the SSTable, along with the sparse index of keys. This takes a bit of
 extra space, but the Bloom filter is generally small compared to the rest of the SSTable.
 
-{{< figure src="/fig/ddia_0404.png" id="fig_storage_bloom" title="Figure 4-4. A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0404.png" id="fig_storage_bloom" caption="Figure 4-4. A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable." class="w-full my-4" >}}
 
 When we want to know whether a key appears in the SSTable, we compute the same hash of that key as
 before, and check the bits at those indexes. For example, in [Figure 4-4](/en/ch4#fig_storage_bloom), we’re querying
@@ -306,7 +303,7 @@ In the context of an LSM storage engines, false positives are no problem:
  have done a bit of unnecessary work, but otherwise no harm is done—we just continue the search
  with the next-oldest segment.
 
-### Compaction strategies
+#### Compaction strategies
 
 An important detail is how the LSM storage chooses when to perform compaction, and which SSTables to
 include in a compaction. Many LSM-based storage systems allow you to configure which compaction
@@ -332,7 +329,9 @@ Even though there are many subtleties, the basic idea of LSM-trees—keeping a c
 that are merged in the background—is simple and effective. We discuss their performance
 characteristics in more detail in [“Comparing B-Trees and LSM-Trees”](/en/ch4#sec_storage_btree_lsm_comparison).
 
-# Embedded storage engines
+--------
+
+> [!TIP] Embedded storage engines
 
 Many databases run as a service that accepts queries over a network, but there are also *embedded*
 databases that don’t expose a network API. Instead, they are libraries that run in the same process
@@ -351,7 +350,9 @@ The storage and retrieval methods we discuss in this chapter are used in both em
 client-server databases. In [Chapter 6](/en/ch6#ch_replication) and [Chapter 7](/en/ch7#ch_sharding) we will discuss techniques
 for scaling a database across multiple machines.
 
-## B-Trees
+--------
+
+### B-Trees
 
 The log-structured approach is popular, but it is not the only form of key-value storage. The most
 widely used structure for reading and writing database records by key is the *B-tree*.
@@ -376,7 +377,7 @@ multiplying the page number by the page size gives us the byte offset in the fil
 located. We can use these page references to construct a tree of pages, as illustrated in
 [Figure 4-5](/en/ch4#fig_storage_b_tree).
 
-{{< figure src="/fig/ddia_0405.png" id="fig_storage_b_tree" title="Figure 4-5. Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0405.png" id="fig_storage_b_tree" caption="Figure 4-5. Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270." class="w-full my-4" >}}
 
 One page is designated as the *root* of the B-tree; whenever you want to look up a key in the index,
 you start here. The page contains several keys and references to child pages.
@@ -403,7 +404,7 @@ it to that page. If there isn’t enough free space in the page to accommodate t
 is split into two half-full pages, and the parent page is updated to account for the new subdivision
 of key ranges.
 
-{{< figure src="/fig/ddia_0406.png" id="fig_storage_b_tree_split" title="Figure 4-6. Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0406.png" id="fig_storage_b_tree_split" caption="Figure 4-6. Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children." class="w-full my-4" >}}
 
 In the example of [Figure 4-6](/en/ch4#fig_storage_b_tree_split), we want to insert the key 334, but the page for the
 range 333–345 is already full. We therefore split it into a page for the range 333–337 (including
@@ -418,7 +419,7 @@ of *O*(log *n*). Most databases can fit into a B-tree that is three or four lev
 you don’t need to follow many page references to find the page you are looking for. (A four-level
 tree of 4 KiB pages with a branching factor of 500 can store up to 250 TB.)
 
-### Making B-trees reliable
+#### Making B-trees reliable
 
 The basic underlying write operation of a B-tree is to overwrite a page on disk with new data. It is
 assumed that the overwrite does not change the location of the page; i.e., all references to that
@@ -444,7 +445,7 @@ ensures that data is not lost in the case of a crash: as long as data has been w
 and flushed to disk using the `fsync()` system call, the data will be durable as the database will
 be able to recover it after a crash [^25].
 
-### B-tree variants
+#### B-tree variants
 
 As B-trees have been around for so long, many variants have been developed over the years. To
 mention just a few:
@@ -465,7 +466,7 @@ mention just a few:
  its sibling pages to the left and right, which allows scanning keys in order without jumping back
  to parent pages.
 
-## Comparing B-Trees and LSM-Trees
+### Comparing B-Trees and LSM-Trees
 
 As a rule of thumb, LSM-trees are better suited for write-heavy applications, whereas B-trees are faster for reads [^27] [^28].
 However, benchmarks are often sensitive to details of the workload. You need to test systems with
@@ -474,7 +475,7 @@ choice between LSM and B-trees: storage engines sometimes blend characteristics 
 for example by having multiple B-trees and merging them LSM-style. In this section we will briefly
 discuss a few things that are worth considering when measuring the performance of a storage engine.
 
-### Read performance
+#### Read performance
 
 In a B-tree, looking up a key involves reading one page at each level of the B-tree. Since the
 number of levels is usually quite small, this means that reads from a B-tree are generally fast and
@@ -499,7 +500,7 @@ Regarding read throughput, modern SSDs (and especially NVMe) can perform many in
 requests in parallel. Both LSM-trees and B-trees are able to provide high read throughput, but
 storage engines need to be carefully designed to take advantage of this parallelism [^32].
 
-### Sequential vs. random writes
+#### Sequential vs. random writes
 
 With a B-tree, if the application writes keys that are scattered all over the key space, the
 resulting disk operations are also scattered randomly, since the pages that the storage engine needs
@@ -515,7 +516,9 @@ a B-tree. This difference is particularly big on spinning-disk hard drives (HDDs
 state drives (SSDs) that most databases use today, the difference is smaller, but still noticeable
 (see [“Sequential vs. Random Writes on SSDs”](/en/ch4#sidebar_sequential)).
 
-# Sequential vs. Random Writes on SSDs
+--------
+
+> [!TIP] Sequential vs. Random Writes on SSDs
 
 On spinning-disk hard drives (HDDs), sequential writes are much faster than random writes: a random
 write has to mechanically move the disk head to a new position and wait for the right part of the
@@ -541,7 +544,9 @@ The write bandwidth consumed by GC is then not available for the application. Mo
 additional writes performed by GC contribute to wear on the flash memory; therefore, random writes
 wear out the drive faster than sequential writes.
 
-### Write amplification
+--------
+
+#### Write amplification
 
 With any type of storage engine, one write request from the application turns into multiple I/O
 operations on the underlying disk. With LSM-trees, a value is first written to the log for
@@ -576,7 +581,7 @@ long enough that the effects of write amplification become clear. When writing t
 there are no compactions going on yet, so all of the disk bandwidth is available for new writes. As
 the database grows, new writes need to share the disk bandwidth with compaction.
 
-### Disk space usage
+#### Disk space usage
 
 B-trees can become *fragmented* over time: for example, if a large number of keys are deleted, the
 database file may contain a lot of pages that are no longer used by the B-tree. Subsequent additions
@@ -589,8 +594,7 @@ Fragmentation is less of a problem in LSM-trees, since the compaction process pe
 the data files anyway, and SSTables don’t have pages with unused space. Moreover, blocks of
 key-value pairs can better be compressed in SSTables, and thus often produce smaller files on disk
 than B-trees. Keys and values that have been overwritten continue to consume space until they are
-removed by a compaction, but this overhead is quite low when using leveled compaction
-[^40] [^41].
+removed by a compaction, but this overhead is quite low when using leveled compaction [^40] [^41].
 Size-tiered compaction (see [“Compaction strategies”](/en/ch4#sec_storage_lsm_compaction)) uses more disk space, especially
 temporarily during compaction.
 
@@ -608,13 +612,13 @@ time. As long as you don’t delete the files that are part of the snapshot, you
 actually copy them. In a B-tree whose pages are overwritten, taking such a snapshot efficiently is
 more difficult.
 
-## Multi-Column and Secondary Indexes
+
+### Multi-Column and Secondary Indexes
 
 So far we have only discussed key-value indexes, which are like a *primary key* index in the
 relational model. A primary key uniquely identifies one row in a relational table, or one document
 in a document database, or one vertex in a graph database. Other records in the database can refer
-to that row/document/vertex by its primary key (or ID), and the index is used to resolve such
-references.
+to that row/document/vertex by its primary key (or ID), and the index is used to resolve such references.
 
 It is also very common to have *secondary indexes*. In relational databases, you can create several
 secondary indexes on the same table using the `CREATE INDEX` command, allowing you to search by
@@ -630,7 +634,7 @@ postings list in a full-text index) or by making each entry unique by appending 
 it. Storage engines with in-place updates, like B-trees, and log-structured storage can both be used
 to implement an index.
 
-### Storing values within the index
+#### Storing values within the index
 
 The key in an index is the thing that queries search by, but the value can be one of several things:
 
@@ -657,10 +661,9 @@ When updating a value without changing the key, the heap file approach can allow
 overwritten in place, provided that the new value is not larger than the old value. The situation is
 more complicated if the new value is larger, as it probably needs to be moved to a new location in
 the heap where there is enough space. In that case, either all indexes need to be updated to point
-at the new heap location of the record, or a forwarding pointer is left behind in the old heap
-location [^2].
+at the new heap location of the record, or a forwarding pointer is left behind in the old heap location [^2].
 
-## Keeping everything in memory
+### Keeping everything in memory
 
 The data structures discussed so far in this chapter have all been answers to the limitations of
 disks. Compared to main memory, disks are awkward to deal with. With both magnetic disks and SSDs,
@@ -704,7 +707,8 @@ are difficult to implement with disk-based indexes. For example, Redis offers a 
 interface to various data structures such as priority queues and sets. Because it keeps all data in
 memory, its implementation is comparatively simple.
 
-# Data Storage for Analytics
+
+## Data Storage for Analytics
 
 The data model of a data warehouse is most commonly relational, because SQL is generally a good fit
 for analytic queries. There are many graphical data analysis tools that generate SQL queries,
@@ -722,7 +726,7 @@ and analytical processing (HTAP) databases (introduced in [“Data Warehousing�
 becoming two separate storage and query engines, which happen to be accessible through a common SQL
 interface [^50] [^51] [^52] [^53].
 
-## Cloud Data Warehouses
+### Cloud Data Warehouses
 
 Data warehouse vendors such as Teradata, Vertica, and SAP HANA sell both on-premises warehouses
 under commercial licenses and cloud-based solutions. But as many of their customers move to the
@@ -775,7 +779,7 @@ Data catalog
  integrated, but decoupling them has enabled data discovery and data governance systems
  (discussed in [“Data Systems, Law, and Society”](/en/ch1#sec_introduction_compliance)) to access a catalog’s metadata as well.
 
-## Column-Oriented Storage
+### Column-Oriented Storage
 
 As discussed in [“Stars and Snowflakes: Schemas for Analytics”](/en/ch3#sec_datamodels_analytics), data warehouses by convention often use a relational
 schema with a big fact table that contains foreign key references into dimension tables.
@@ -790,20 +794,20 @@ buying fruit or candy during the 2024 calendar year), but it only needs to acces
 the `fact_sales` table: `date_key`, `product_sk`,
 and `quantity`. The query ignores all other columns.
 
-##### Example 4-1. Analyzing whether people are more inclined to buy fresh fruit or candy, depending on the day of the week
+{{< figure id="fig_storage_analytics_query" caption="Example 4-1. Analyzing whether people are more inclined to buy fresh fruit or candy, depending on the day of the week" class="w-full my-4" >}}
 
-```
+```sql
 SELECT
- dim_date.weekday, dim_product.category,
- SUM(fact_sales.quantity) AS quantity_sold
+    dim_date.weekday, dim_product.category,
+    SUM(fact_sales.quantity) AS quantity_sold
 FROM fact_sales
- JOIN dim_date ON fact_sales.date_key = dim_date.date_key
- JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
+    JOIN dim_date ON fact_sales.date_key = dim_date.date_key
+    JOIN dim_product ON fact_sales.product_sk = dim_product.product_sk
 WHERE
- dim_date.year = 2024 AND
- dim_product.category IN ('Fresh fruit', 'Candy')
+    dim_date.year = 2024 AND
+    dim_product.category IN ('Fresh fruit', 'Candy')
 GROUP BY
- dim_date.weekday, dim_product.category;
+    dim_date.weekday, dim_product.category;
 ```
 
 How can we execute this query efficiently?
@@ -825,12 +829,16 @@ If each column is stored separately, a query only needs to read and parse those 
 used in that query, which can save a lot of work. [Figure 4-7](/en/ch4#fig_column_store) shows this principle using
 an expanded version of the fact table from [Figure 3-5](/en/ch3#fig_dwh_schema).
 
+--------
+
 > [!NOTE]
 > Column storage is easiest to understand in a relational data model, but it applies equally to
 > nonrelational data. For example, Parquet [^57] is a columnar storage format that supports a document data model, based on Google’s Dremel [^58],
 > using a technique known as *shredding* or *striping* [^59].
 
-{{< figure src="/fig/ddia_0407.png" id="fig_column_store" title="Figure 4-7. Storing relational data by column, rather than by row." class="w-full my-4" >}}
+--------
+
+{{< figure src="/fig/ddia_0407.png" id="fig_column_store" caption="Figure 4-7. Storing relational data by column, rather than by row." class="w-full my-4" >}}
 
 The column-oriented storage layout relies on each column storing the rows in the same order.
 Thus, if you need to reassemble an entire row, you can take the 23rd entry from each of the
@@ -848,7 +856,7 @@ to single-node embedded databases such as DuckDB [^62], and product analytics sy
 It is used in storage formats such as Parquet, ORC [^65] [^66], Lance [^67], and Nimble [^68], and in-memory analytics formats like Apache Arrow
 [^65] [^69] and Pandas/NumPy [^70]. Some time-series databases, such as InfluxDB IOx [^71] and TimescaleDB [^72], are also based on column-oriented storage.
 
-### Column Compression
+#### Column Compression
 
 Besides only loading those columns from disk that are required for a query, we can further reduce
 the demands on disk throughput and network bandwidth by compressing data. Fortunately,
@@ -859,7 +867,7 @@ repetitive, which is a good sign for compression. Depending on the data in the c
 compression techniques can be used. One technique that is particularly effective in data warehouses
 is *bitmap encoding*, illustrated in [Figure 4-8](/en/ch4#fig_bitmap_index).
 
-{{< figure src="/fig/ddia_0408.png" id="fig_bitmap_index" title="Figure 4-8. Compressed, bitmap-indexed storage of a single column." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0408.png" id="fig_bitmap_index" caption="Figure 4-8. Compressed, bitmap-indexed storage of a single column." class="w-full my-4" >}}
 
 Often, the number of distinct values in a column is small compared to the number of rows (for
 example, a retailer may have billions of sales transactions, but only 100,000 distinct products).
@@ -886,20 +894,20 @@ warehouse. For example:
  works because the columns contain the rows in the same order, so the *k*th bit in one column’s
  bitmap corresponds to the same row as the *k*th bit in another column’s bitmap.
 
-Bitmaps can also be used to answer graph queries, such as finding all users of a social network who
-are followed by user *X* and who also follow user *Y*
-[^74].
-There are also various other compression schemes for columnar databases, which you can find in the
-references [^75].
+Bitmaps can also be used to answer graph queries, such as finding all users of a social network who are followed by user *X* and who also follow user *Y* [^74].
+There are also various other compression schemes for columnar databases, which you can find in the references [^75].
+
+--------
 
 > [!NOTE]
 > Don’t confuse column-oriented databases with the *wide-column* (also known as *column-family*) data
-> model, in which a row can have thousands of columns, and there is no need for all the rows to have
-> the same columns [^9]. Despite the similarity
-> in name, wide-column databases are row-oriented, since they store all values from a row together.
+> model, in which a row can have thousands of columns, and there is no need for all the rows to have the same columns [^9]. 
+> Despite the similarity in name, wide-column databases are row-oriented, since they store all values from a row together.
 > Google’s Bigtable, Apache Accumulo, and HBase are examples of the wide-column model.
 
-### Sort Order in Column Storage
+--------
+
+#### Sort Order in Column Storage
 
 In a column store, it doesn’t necessarily matter in which order the rows are stored. It’s easiest to
 store them in the order in which they were inserted, since then inserting a new row just means
@@ -934,12 +942,11 @@ more jumbled up, and thus not have such long runs of repeated values. Columns fu
 sorting priority appear in essentially random order, so they probably won’t compress as well. But
 having the first few columns sorted is still a win overall.
 
-### Writing to Column-Oriented Storage
+#### Writing to Column-Oriented Storage
 
 We saw in [“Characterizing Transaction Processing and Analytics”](/en/ch1#sec_introduction_oltp) that reads in data warehouses tend to consist of aggregations
 over a large number of rows; column-oriented storage, compression, and sorting all help to make
-those read queries faster. Writes in a data warehouse tend to be a bulk import of data, often via an
-ETL process.
+those read queries faster. Writes in a data warehouse tend to be a bulk import of data, often via an ETL process.
 
 With columnar storage, writing an individual row somewhere in the middle of a sorted table would be
 very inefficient, as you would have to rewrite all the compressed columns from the insertion
@@ -954,10 +961,10 @@ new files are written in one go, object storage is well suited for storing these
 Queries need to examine both the column data on disk and the recent writes in memory, and combine
 the two. The query execution engine hides this distinction from the user. From an analyst’s point
 of view, data that has been modified with inserts, updates, or deletes is immediately reflected in
-subsequent queries. Snowflake, Vertica, Apache Pinot, Apache Druid, and many others do this
-[^61] [^63] [^64] [^76].
+subsequent queries. Snowflake, Vertica, Apache Pinot, Apache Druid, and many others do this [^61] [^63] [^64] [^76].
 
-## Query Execution: Compilation and Vectorization
+
+### Query Execution: Compilation and Vectorization
 
 A complex SQL query for analytics is broken down into a *query plan* consisting of multiple stages,
 called *operators*, which may be distributed across multiple machines for parallel execution. Query
@@ -989,8 +996,7 @@ Query compilation
 Vectorized processing
 : The query is interpreted, not compiled, but it is made fast by processing many values from a
  column in a batch, instead of iterating over rows one by one. A fixed set of predefined operators
- are built into the database; we can pass arguments to them and get back a batch of results
- [^50] [^75].
+ are built into the database; we can pass arguments to them and get back a batch of results [^50] [^75].
 
  For example, we could pass the `product_sk` column and the ID of “bananas” to an equality operator,
  and get back a bitmap (one bit per value in the input column, which is 1 if it’s a banana); we could
@@ -999,14 +1005,12 @@ Vectorized processing
  shown in [Figure 4-9](/en/ch4#fig_bitmap_and). The result would be a bitmap containing a 1 for all sales of bananas in
  a particular store.
 
-{{< figure src="/fig/ddia_0409.png" id="fig_bitmap_and" title="Figure 4-9. A bitwise AND between two bitmaps lends itself to vectorization." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0409.png" id="fig_bitmap_and" caption="Figure 4-9. A bitwise AND between two bitmaps lends itself to vectorization." class="w-full my-4" >}}
 
-The two approaches are very different in terms of their implementation, but both are used in
-practice [^77]. Both can achieve very good
+The two approaches are very different in terms of their implementation, but both are used in practice [^77]. Both can achieve very good
 performance by taking advantages of the characteristics of modern CPUs:
 
-* preferring sequential memory access over random access to reduce cache misses
- [^78],
+* preferring sequential memory access over random access to reduce cache misses [^78],
 * doing most of the work in tight inner loops (that is, with a small number of instructions and no
  function calls) to keep the CPU instruction processing pipeline busy and avoid branch
  mispredictions,
@@ -1014,7 +1018,7 @@ performance by taking advantages of the characteristics of modern CPUs:
 * operating directly on compressed data without decoding it into a separate in-memory
  representation, which saves memory allocation and copying costs.
 
-## Materialized Views and Data Cubes
+### Materialized Views and Data Cubes
 
 We previously encountered *materialized views* in [“Materializing and Updating Timelines”](/en/ch2#sec_introduction_materializing):
 in a relational data model, they are table-like object whose contents are the results of some
@@ -1023,9 +1027,8 @@ disk, whereas a virtual view is just a shortcut for writing queries. When you re
 view, the SQL engine expands it into the view’s underlying query on the fly and then processes the
 expanded query.
 
-When the underlying data changes, a materialized view needs to be updated accordingly. Some
-databases can do that automatically, and there are also systems such as Materialize that specialize
-in materialized view maintenance [^81].
+When the underlying data changes, a materialized view needs to be updated accordingly.
+Some databases can do that automatically, and there are also systems such as Materialize that specialize in materialized view maintenance [^81].
 Performing such updates means more work on writes, but materialized views can improve read
 performance in workloads that repeatedly need to perform the same queries.
 
@@ -1033,11 +1036,10 @@ performance in workloads that repeatedly need to perform the same queries.
 discussed earlier, data warehouse queries often involve an aggregate function, such as `COUNT`, `SUM`,
 `AVG`, `MIN`, or `MAX` in SQL. If the same aggregates are used by many different queries, it can be
 wasteful to crunch through the raw data every time. Why not cache some of the counts or sums that
-queries use most often? A *data cube* or *OLAP cube* does this by creating a grid of aggregates
-grouped by different dimensions [^82].
+queries use most often? A *data cube* or *OLAP cube* does this by creating a grid of aggregates grouped by different dimensions [^82].
 [Figure 4-10](/en/ch4#fig_data_cube) shows an example.
 
-{{< figure src="/fig/ddia_0410.png" id="fig_data_cube" title="Figure 4-10. Two dimensions of a data cube, aggregating data by summing." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0410.png" id="fig_data_cube" caption="Figure 4-10. Two dimensions of a data cube, aggregating data by summing." class="w-full my-4" >}}
 
 Imagine for now that each fact has foreign keys to only two dimension tables—in [Figure 4-10](/en/ch4#fig_data_cube),
 these are `date_key` and `product_sk`. You can now draw a two-dimensional table, with
@@ -1060,10 +1062,10 @@ millions of rows.
 The disadvantage is that a data cube doesn’t have the same flexibility as querying the raw data. For example,
 there is no way of calculating which proportion of sales comes from items that cost more than $100,
 because the price isn’t one of the dimensions. Most data warehouses therefore try to keep as much
-raw data as possible, and use aggregates such as data cubes only as a performance boost for certain
-queries.
+raw data as possible, and use aggregates such as data cubes only as a performance boost for certain queries.
 
-# Multidimensional and Full-Text Indexes
+
+## Multidimensional and Full-Text Indexes
 
 The B-trees and LSM-trees we saw in the first half of this chapter allow range queries over a single
 attribute: for example, if the key is a username, you can use them as an index to efficiently find
@@ -1084,9 +1086,9 @@ looking at the restaurants on a map, the website needs to search for all the res
 rectangular map area that the user is currently viewing. This requires a two-dimensional range query
 like the following:
 
-```
+```sql
 SELECT * FROM restaurants WHERE latitude > 51.4946 AND latitude < 51.5079
- AND longitude > -0.1162 AND longitude < -0.1004;
+    AND longitude > -0.1162 AND longitude < -0.1004;
 ```
 
 A concatenated index over the latitude and longitude columns is not able to answer that kind of
@@ -1095,12 +1097,9 @@ longitude), or all the restaurants in a range of longitudes (but anywhere betwee
 South poles), but not both simultaneously.
 
 One option is to translate a two-dimensional location into a single number using a space-filling
-curve, and then to use a regular B-tree index [^83].
-More commonly, specialized spatial indexes such as R-trees or Bkd-trees [^84]
-are used; they divide up the space so that nearby data points tend to be grouped in the same
-subtree. For example, PostGIS implements geospatial indexes as R-trees using PostgreSQL’s
-Generalized Search Tree indexing facility [^85].
-It is also possible to use regularly spaced grids of triangles, squares, or hexagons [^86].
+curve, and then to use a regular B-tree index [^83]. More commonly, specialized spatial indexes such as R-trees or Bkd-trees [^84]
+are used; they divide up the space so that nearby data points tend to be grouped in the same subtree. For example, PostGIS implements geospatial indexes as R-trees using PostgreSQL’s
+Generalized Search Tree indexing facility [^85]. It is also possible to use regularly spaced grids of triangles, squares, or hexagons [^86].
 
 Multi-dimensional indexes are not just for geographic locations. For example, on an ecommerce
 website you could use a three-dimensional index on the dimensions (*red*, *green*, *blue*) to search
@@ -1111,7 +1110,7 @@ one-dimensional index, you would have to either scan over all the records from 2
 temperature) and then filter them by temperature, or vice versa. A 2D index could narrow down by
 timestamp and temperature simultaneously [^87].
 
-## Full-Text Search
+### Full-Text Search
 
 Full-text search allows you to search a collection of text documents (web pages, product
 descriptions, etc.) by keywords that might appear anywhere in the text [^88].
@@ -1126,15 +1125,13 @@ However, at its core, you can think of full-text search as another kind of multi
 in this case, each word that might appear in a text (a *term*) is a dimension. A document that
 contains term *x* has a value of 1 in dimension *x*, and a document that doesn’t contain *x* has a
 value of 0. Searching for documents mentioning “red apples” means a query that looks for a 1 in the
-*red* dimension, and simultaneously a 1 in the *apples* dimension. The number of dimensions may thus
-be very large.
+*red* dimension, and simultaneously a 1 in the *apples* dimension. The number of dimensions may thus be very large.
 
 The data structure that many search engines use to answer such queries is called an *inverted
 index*. This is a key-value structure where the key is a term, and the value is the list of IDs of
 all the documents that contain the term (the *postings list*). If the document IDs are sequential
 numbers, the postings list can also be represented as a sparse bitmap, like in [Figure 4-8](/en/ch4#fig_bitmap_index):
-the *n*th bit in the bitmap for term *x* is a 1 if the document with ID *n* contains the term *x*
-[^89].
+the *n*th bit in the bitmap for term *x* is a 1 if the document with ID *n* contains the term *x* [^89].
 
 Finding all the documents that contain both terms *x* and *y* is now similar to a vectorized data
 warehouse query that searches for rows matching two conditions ([Figure 4-9](/en/ch4#fig_bitmap_and)): load the two
@@ -1145,8 +1142,7 @@ For example, Lucene, the full-text indexing engine used by Elasticsearch and Sol
 It stores the mapping from term to postings list in SSTable-like sorted files, which are merged in
 the background using the same log-structured approach we saw earlier in this chapter [^91].
 PostgreSQL’s GIN index type also uses postings lists to support full-text search and indexing inside
-JSON documents
-[^92] [^93].
+JSON documents [^92] [^93].
 
 Instead of breaking text into words, an alternative is to find all the substrings of length *n*,
 which are called *n*-grams. For example, the trigrams (*n* = 3) of the string
@@ -1156,13 +1152,11 @@ indexes even allows regular expressions in search queries; the downside is that 
 
 To cope with typos in documents or queries, Lucene is able to search text for words within a certain
 edit distance (an edit distance of 1 means that one letter has been added, removed, or replaced) [^95].
-It does this by storing the set of terms as a finite state automaton over the characters in the
-keys, similar to a *trie*
-[^96],
-and transforming it into a *Levenshtein automaton*, which supports efficient search for words within
-a given edit distance [^97].
+It does this by storing the set of terms as a finite state automaton over the characters in the keys, similar to a *trie* [^96],
+and transforming it into a *Levenshtein automaton*, which supports efficient search for words within a given edit distance [^97].
 
-## Vector Embeddings
+
+### Vector Embeddings
 
 Semantic search goes beyond synonyms and typos to try and understand document concepts
 and user intentions. For example, if your help pages contain a page titled “cancelling your
@@ -1177,15 +1171,19 @@ location along one dimension’s axis. Embedding models generate vector embeddin
 each other (in this multi-dimensional space) when the embedding’s input documents are semantically
 similar.
 
+--------
+
 > [!NOTE]
 > We saw the term *vectorized processing* in [“Query Execution: Compilation and Vectorization”](/en/ch4#sec_storage_vectorized).
 > Vectors in semantic search have a different meaning. In vectorized processing, the vector refers to
 > a batch of bits that can be processed with specially optimized code. In embedding models, vectors are a list of
 > floating point numbers that represent a location in multi-dimensional space.
 
+--------
+
 For example, a three-dimensional vector embedding for a Wikipedia page about agriculture might be
-[0.1, 0.22, 0.11]. A Wikipedia page about vegetables would be quite near, perhaps with an embedding
-of [0.13, 0.19, 0.24]. A page about star schemas might have an embedding of [0.82, 0.39, -0.74],
+`[0.1, 0.22, 0.11]`. A Wikipedia page about vegetables would be quite near, perhaps with an embedding
+of `[0.13, 0.19, 0.24]`. A page about star schemas might have an embedding of `[0.82, 0.39, -0.74]`,
 comparatively far away. We can tell by looking that the first two vectors are closer than the third.
 
 Embedding models use much larger vectors (often over 1,000 numbers), but the principles are the
@@ -1196,9 +1194,7 @@ measure the distance between vectors. Cosine similarity measures the cosine of t
 vectors to determine how close they are, while Euclidean distance measures the straight-line
 distance between two points in space.
 
-Many early embedding models such as Word2Vec [^98],
-BERT [^99],
-and GPT [^100]
+Many early embedding models such as Word2Vec [^98], BERT [^99], and GPT [^100]
 worked with text data. Such models are usually implemented as neural networks. Researchers went on to
 create embedding models for video, audio, and images as well. More recently, model
 architecture has become *multimodal*: a single model can generate vector embeddings for multiple
@@ -1236,14 +1232,11 @@ Hierarchical Navigable Small World (HNSW)
  query vector. The process continues until the last layer is reached. As with IVF indexes, HNSW
  indexes are approximate.
 
-{{< figure src="/fig/ddia_0411.png" id="fig_vector_hnsw" title="Figure 4-11. Searching for the database entry that is closest to a given query vector in a HNSW index." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0411.png" id="fig_vector_hnsw" caption="Figure 4-11. Searching for the database entry that is closest to a given query vector in a HNSW index." class="w-full my-4" >}}
 
-Many popular vector databases implement IVF and HNSW indexes. Facebook’s Faiss library has many
-variations of each [^101],
-and PostgreSQL’s pgvector supports both as well [^102].
-The full details of the IVF and HNSW algorithms are beyond the scope of this book, but their papers
-are an excellent resource
-[^103] [^104].
+
+Many popular vector databases implement IVF and HNSW indexes. Facebook’s Faiss library has many variations of each [^101], and PostgreSQL’s pgvector supports both as well [^102].
+The full details of the IVF and HNSW algorithms are beyond the scope of this book, but their papers are an excellent resource [^103] [^104].
 
 ## Summary
 

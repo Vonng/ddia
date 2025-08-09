@@ -32,7 +32,7 @@ of sharding and replication can look like [Figure 7-1](/en/ch7#fig_sharding_rep
 leader is assigned to one node, and its followers are assigned to other nodes. Each node may be the
 leader for some shards and a follower for other shards, but each shard still only has one leader.
 
-{{< figure src="/fig/ddia_0701.png" id="fig_sharding_replicas" title="Figure 7-1. Combining replication and sharding: each node acts as leader for some shards and follower for other shards." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0701.png" id="fig_sharding_replicas" caption="Figure 7-1. Combining replication and sharding: each node acts as leader for some shards and follower for other shards." class="w-full my-4" >}}
 
 Everything we discussed in [Chapter 6](/en/ch6#ch_replication) about replication of databases applies equally to
 replication of shards. Since the choice of sharding scheme is mostly independent of the choice of
@@ -199,7 +199,7 @@ to look up the entry for a particular title, you can easily determine which shar
 entry by finding the volume whose key range contains the title you’re looking for, and thus pick the
 correct book off the shelf.
 
-{{< figure src="/fig/ddia_0702.png" id="fig_sharding_encyclopedia" title="Figure 7-2. A print encyclopedia is sharded by key range." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0702.png" id="fig_sharding_encyclopedia" caption="Figure 7-2. A print encyclopedia is sharded by key range." class="w-full my-4" >}}
 
 The ranges of keys are not necessarily evenly spaced, because your data may not be evenly
 distributed. For example, in [Figure 7-2](/en/ch7#fig_sharding_encyclopedia), volume 1 contains words starting with A
@@ -297,7 +297,7 @@ have three nodes and add a fourth. Before the rebalancing, node 0 stored the key
 0, 3, 6, 9, and so on. After adding the fourth node, the key with hash 3 has moved to node 3, the
 key with hash 6 has moved to node 2, the key with hash 9 has moved to node 1, and so on.
 
-{{< figure src="/fig/ddia_0703.png" id="fig_sharding_hash_mod_n" title="Figure 7-3. Assigning keys to nodes by hashing the key and taking it modulo the number of nodes. Changing the number of nodes results in many keys moving from one node to another." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0703.png" id="fig_sharding_hash_mod_n" caption="Figure 7-3. Assigning keys to nodes by hashing the key and taking it modulo the number of nodes. Changing the number of nodes results in many keys moving from one node to another." class="w-full my-4" >}}
 
 The *mod N* function is easy to compute, but it leads to very inefficient rebalancing because there
 is a lot of unnecessary movement of records from one node to another. We need an approach that
@@ -316,7 +316,7 @@ nodes to the new node until they are fairly distributed once again. This process
 [Figure 7-4](/en/ch7#fig_sharding_rebalance_fixed). If a node is removed from the cluster, the same happens in
 reverse.
 
-{{< figure src="/fig/ddia_0704.png" id="fig_sharding_rebalance_fixed" title="Figure 7-4. Adding a new node to a database cluster with multiple shards per node." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0704.png" id="fig_sharding_rebalance_fixed" caption="Figure 7-4. Adding a new node to a database cluster with multiple shards per node." class="w-full my-4" >}}
 
 In this model, only entire shards are moved between nodes, which is cheaper than splitting shards.
 The number of shards does not change, nor does the assignment of keys to shards. The only thing that
@@ -363,7 +363,7 @@ Even if the input keys are very similar (e.g., consecutive timestamps), their ha
 distributed across that range. We can then assign a range of hash values to each shard: for example,
 values between 0 and 16,383 to shard 0, values between 16,384 and 32,767 to shard 1, and so on.
 
-{{< figure src="/fig/ddia_0705.png" id="fig_sharding_hash_range" title="Figure 7-5. Assigning a contiguous range of hash values to each shard." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0705.png" id="fig_sharding_hash_range" caption="Figure 7-5. Assigning a contiguous range of hash values to each shard." class="w-full my-4" >}}
 
 Like with key-range sharding, a shard in hash-range sharding can be split when it becomes too big or
 too heavily loaded. This is still an expensive operation, but it can happen as needed, so the number
@@ -393,7 +393,7 @@ per node in Cassandra by default, and 256 per node in ScyllaDB), with random bou
 those ranges. This means some ranges are bigger than others, but by having multiple ranges per node
 those imbalances tend to even out [^15] [^18].
 
-{{< figure src="/fig/ddia_0706.png" id="fig_sharding_cassandra" title="Figure 7-6. Cassandra and ScyllaDB split the range of possible hash values (here 0–1023) into contiguous ranges with random boundaries, and assign several ranges to each node." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0706.png" id="fig_sharding_cassandra" caption="Figure 7-6. Cassandra and ScyllaDB split the range of possible hash values (here 0–1023) into contiguous ranges with random boundaries, and assign several ranges to each node." class="w-full my-4" >}}
 
 When nodes are added or removed, range boundaries are added and removed, and shards are split or
 merged accordingly [^19].
@@ -521,7 +521,7 @@ in [Figure 7-7](/en/ch7#fig_sharding_routing)):
 3. Require that clients be aware of the sharding and the assignment of shards to nodes. In this
  case, a client can connect directly to the appropriate node, without any intermediary.
 
-{{< figure src="/fig/ddia_0707.png" id="fig_sharding_routing" title="Figure 7-7. Three different ways of routing a request to the right node." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0707.png" id="fig_sharding_routing" caption="Figure 7-7. Three different ways of routing a request to the right node." class="w-full my-4" >}}
 
 In all cases, there are some key problems:
 
@@ -544,7 +544,7 @@ to nodes. Other actors, such as the routing tier or the sharding-aware client, c
 information in ZooKeeper. Whenever a shard changes ownership, or a node is added or removed,
 ZooKeeper notifies the routing tier so that it can keep its routing information up to date.
 
-{{< figure src="/fig/ddia_0708.png" id="fig_sharding_zookeeper" title="Figure 7-8. Using ZooKeeper to keep track of assignment of shards to nodes." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0708.png" id="fig_sharding_zookeeper" caption="Figure 7-8. Using ZooKeeper to keep track of assignment of shards to nodes." class="w-full my-4" >}}
 
 For example, HBase and SolrCloud use ZooKeeper to manage shard assignment, and Kubernetes uses etcd
 to keep track of which service instance is running where. MongoDB has a similar architecture, but it
@@ -600,7 +600,7 @@ indexing automatically. For example, whenever a red car is added to the database
 automatically adds its ID to the list of IDs for the index entry `color:red`. As discussed in
 [Chapter 4](/en/ch4#ch_storage), that list of IDs is also called a *postings list*.
 
-{{< figure src="/fig/ddia_0709.png" id="fig_sharding_local_secondary" title="Figure 7-9. Local secondary indexes: each shard indexes only the records within its own shard." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0709.png" id="fig_sharding_local_secondary" caption="Figure 7-9. Local secondary indexes: each shard indexes only the records within its own shard." class="w-full my-4" >}}
 
 ###### Warning
 
@@ -648,7 +648,7 @@ with the letters *a* to *r* appear in shard 0 and colors starting with *s* to *z
 The index on the make of car is partitioned similarly (with the shard boundary being between *f* and
 *h*).
 
-{{< figure src="/fig/ddia_0710.png" id="fig_sharding_global_secondary" title="Figure 7-10. A global secondary index reflects data from all shards, and is itself sharded by the indexed value." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0710.png" id="fig_sharding_global_secondary" caption="Figure 7-10. A global secondary index reflects data from all shards, and is itself sharded by the indexed value." class="w-full my-4" >}}
 
 This kind of index is also called *term-partitioned*
 [^30]:

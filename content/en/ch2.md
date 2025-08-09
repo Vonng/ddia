@@ -38,7 +38,7 @@ quite dry; to make the ideas more concrete, we will start this chapter with a ca
 social networking service might work, which will provide practical examples of performance and
 scalability.
 
-# Case Study: Social Network Home Timelines
+## Case Study: Social Network Home Timelines
 
 Imagine you are given the task of implementing a social network in the style of X (formerly
 Twitter), in which users can post messages and follow other users. This will be a huge
@@ -51,25 +51,25 @@ Let’s also assume that the average user follows 200 people and has 200 followe
 a very wide range: most people have only a handful of followers, and a few celebrities such as
 Barack Obama have over 100 million followers).
 
-## Representing Users, Posts, and Follows
+### Representing Users, Posts, and Follows
 
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
 have one table for users, one table for posts, and one table for follow relationships.
 
-{{< figure src="/fig/ddia_0201.png" id="fig_twitter_relational" title="Figure 2-1. Simple relational schema for a social network in which users can follow each other." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0201.png" id="fig_twitter_relational" caption="Figure 2-1. Simple relational schema for a social network in which users can follow each other." class="w-full my-4" >}}
 
 Let’s say the main read operation that our social network must support is the *home timeline*, which
 displays recent posts by people you are following (for simplicity we will ignore ads, suggested
 posts from people you are not following, and other extensions). We could write the following SQL
 query to get the home timeline for a particular user:
 
-```
+```sql
 SELECT posts.*, users.* FROM posts
- JOIN follows ON posts.sender_id = follows.followee_id
- JOIN users ON posts.sender_id = users.id
- WHERE follows.follower_id = current_user
- ORDER BY posts.timestamp DESC
- LIMIT 1000
+    JOIN follows ON posts.sender_id = follows.followee_id
+    JOIN users ON posts.sender_id = users.id
+    WHERE follows.follower_id = current_user
+    ORDER BY posts.timestamp DESC
+    LIMIT 1000
 ```
 
 To execute this query, the database will use the `follows` table to find everybody who
@@ -90,7 +90,7 @@ million times per second—a huge number. And that is the average case. Some use
 thousands of accounts; for them, this query is very expensive to execute, and difficult to make
 fast.
 
-## Materializing and Updating Timelines
+### Materializing and Updating Timelines
 
 How can we do better? Firstly, instead of polling, it would be better if the server actively pushed
 new posts to any followers who are currently online. Secondly, we should precompute the results of
@@ -109,7 +109,8 @@ because the home timelines are derived data that needs to be updated. The proces
 carried out, we use the term *fan-out* to describe the factor by which the number of requests
 increases.
 
-{{< figure src="/fig/ddia_0202.png" id="fig_twitter_timelines" title="Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0202.png" id="fig_twitter_timelines" caption="Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post." class="w-full my-4" >}}
+
 
 At a rate of 5,700 posts posted per second, if the average post reaches 200 followers (i.e., a
 fan-out factor of 200), we will need to do just over 1 million home timeline writes per second. This
@@ -142,7 +143,7 @@ extreme cases:
  on a social network can require a lot of infrastructure
  [^6].
 
-# Describing Performance
+## Describing Performance
 
 Most discussions of software performance consider two main types of metric:
 
@@ -167,9 +168,12 @@ the process of handling an earlier request, and therefore the incoming request n
 the earlier request has been completed. As throughput approaches the maximum that the hardware can
 handle, queueing delays increase sharply.
 
-{{< figure src="/fig/ddia_0203.png" id="fig_throughput" title="Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0203.png" id="fig_throughput" caption="Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing." class="w-full my-4" >}}
 
-# When an overloaded system won’t recover
+
+--------
+
+> [!TIP] When an overloaded system won’t recover
 
 If a system is close to overload, with throughput pushed close to the limit, it can sometimes enter a
 vicious cycle where it becomes less efficient and hence even more overloaded. For example, if there
@@ -186,6 +190,8 @@ The server can also detect when it is approaching overload and start proactively
 (*load shedding* [^14]), and send back responses asking clients to slow down (*backpressure* [^1] [^15]).
 The choice of queueing and load-balancing algorithms can also make a difference [^16].
 
+--------
+
 In terms of performance metrics, the response time is usually what users care about the most,
 whereas the throughput determines the required computing resources (e.g., how many servers you need),
 and hence the cost of serving a particular workload. If throughput is likely to increase beyond what
@@ -195,7 +201,7 @@ the current hardware can handle, the capacity needs to be expanded; a system is 
 In this section we will focus primarily on response times, and we will return to throughput and
 scalability in [“Scalability”](/en/ch2#sec_introduction_scalability).
 
-## Latency and Response Time
+### Latency and Response Time
 
 “Latency” and “response time” are sometimes used interchangeably, but in this book we will use the
 terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)):
@@ -211,7 +217,7 @@ terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)
  i.e., during which it is *latent*. In particular, *network latency* or *network delay* refers to
  the time that request and response spend traveling through the network.
 
-{{< figure src="/fig/ddia_0204.png" id="fig_response_time" title="Figure 2-4. Response time, service time, network latency, and queueing delay." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0204.png" id="fig_response_time" caption="Figure 2-4. Response time, service time, network latency, and queueing delay." class="w-full my-4" >}}
 
 In [Figure 2-4](/en/ch2#fig_response_time), time flows from left to right, each communicating node is shown as a
 horizontal line, and a request or response message is shown as a thick diagonal arrow from one node
@@ -231,7 +237,7 @@ service times, the client will see a slow overall response time due to the time 
 prior request to complete. The queueing delay is not part of the service time, and for this reason
 it is important to measure response times on the client side.
 
-## Average, Median, and Percentiles
+### Average, Median, and Percentiles
 
 Because the response time varies from one request to the next, we need to think of it not as a
 single number, but as a *distribution* of values that you can measure. In [Figure 2-5](/en/ch2#fig_lognormal), each
@@ -239,7 +245,7 @@ gray bar represents a request to a service, and its height shows how long that r
 requests are reasonably fast, but there are occasional *outliers* that take much longer.
 Variation in network delay is also known as *jitter*.
 
-{{< figure src="/fig/ddia_0205.png" id="fig_lognormal" title="Figure 2-5. Illustrating mean and percentiles: response times for a sample of 100 requests to a service." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0205.png" id="fig_lognormal" caption="Figure 2-5. Illustrating mean and percentiles: response times for a sample of 100 requests to a service." class="w-full my-4" >}}
 
 It’s common to report the *average* response time of a service (technically, the *arithmetic mean*:
 that is, sum all the response times, and divide by the number of requests). The mean response time
@@ -274,7 +280,9 @@ too expensive and to not yield enough benefit for Amazon’s purposes. Reducing 
 high percentiles is difficult because they are easily affected by random events outside of your
 control, and the benefits are diminishing.
 
-# The user impact of response times
+--------
+
+> [!TIP] The user impact of response times
 
 It seems intuitively obvious that a fast service is better for users than a slow service [^20].
 However, it is surprisingly difficult to get hold of reliable data to quantify the effect that
@@ -284,8 +292,7 @@ Some often-cited statistics are unreliable. In 2006 Google reported that a slowd
 results from 400 ms to 900 ms was associated with a 20% drop in traffic and revenue [^21].
 However, another Google study from 2009 reported that a 400 ms increase in latency resulted in
 only 0.6% fewer searches per day [^22],
-and in the same year Bing found that a two-second increase in load time reduced ad revenue by 4.3%
-[^23].
+and in the same year Bing found that a two-second increase in load time reduced ad revenue by 4.3% [^23].
 Newer data from these companies appears not to be publicly available.
 
 A more recent Akamai study [^24]
@@ -296,12 +303,13 @@ the fact that the pages that load fastest are often those that have no useful co
 error pages). However, since the study makes no effort to separate the effects of page content from
 the effects of load time, its results are probably not meaningful.
 
-A study by Yahoo [^25]
-compares click-through rates on fast-loading versus slow-loading search results, controlling for
+A study by Yahoo [^25] compares click-through rates on fast-loading versus slow-loading search results, controlling for
 quality of search results. It finds 20–30% more clicks on fast searches when the difference between
 fast and slow responses is 1.25 seconds or more.
 
-## Use of Response Time Metrics
+--------
+
+### Use of Response Time Metrics
 
 High percentiles are especially important in backend services that are called multiple times as
 part of serving a single end-user request. Even if you make the calls in parallel, the end-user
@@ -309,10 +317,9 @@ request still needs to wait for the slowest of the parallel calls to complete. I
 slow call to make the entire end-user request slow, as illustrated in [Figure 2-6](/en/ch2#fig_tail_amplification).
 Even if only a small percentage of backend calls are slow, the chance of getting a slow call
 increases if an end-user request requires multiple backend calls, and so a higher proportion of
-end-user requests end up being slow (an effect known as *tail latency amplification*
-[^26]).
+end-user requests end up being slow (an effect known as *tail latency amplification* [^26]).
 
-{{< figure src="/fig/ddia_0206.png" id="fig_tail_amplification" title="Figure 2-6. When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0206.png" id="fig_tail_amplification" caption="Figure 2-6. When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request." class="w-full my-4" >}}
 
 Percentiles are often used in *service level objectives* (SLOs) and *service level agreements*
 (SLAs) as ways of defining the expected performance and availability of a service [^27].
@@ -320,10 +327,11 @@ For example, an SLO may set a target for a service to have a median response tim
 200 ms and a 99th percentile under 1 s, and a target that at least 99.9% of valid requests
 result in non-error responses. An SLA is a contract that specifies what happens if the SLO is not
 met (for example, customers may be entitled to a refund). That is the basic idea, at least; in
-practice, defining good availability metrics for SLOs and SLAs is not straightforward
-[^28] [^29].
+practice, defining good availability metrics for SLOs and SLAs is not straightforward [^28] [^29].
 
-# Computing percentiles
+--------
+
+> [!TIP] Computing percentiles
 
 If you want to add response time percentiles to the monitoring dashboards for your services, you
 need to efficiently calculate them on an ongoing basis. For example, you may want to keep a rolling
@@ -341,7 +349,10 @@ Beware that averaging percentiles, e.g., to reduce the time resolution or to com
 several machines, is mathematically meaningless—the right way of aggregating response time data
 is to add the histograms [^34].
 
-# Reliability and Fault Tolerance
+--------
+
+
+## Reliability and Fault Tolerance
 
 Everybody has an intuitive idea of what it means for something to be reliable or unreliable. For
 software, typical expectations include:
@@ -353,8 +364,7 @@ software, typical expectations include:
 
 If all those things together mean “working correctly,” then we can understand *reliability* as
 meaning, roughly, “continuing to work correctly, even when things go wrong.” To be more precise
-about things going wrong, we will distinguish between *faults* and *failures*
-[^35] [^36] [^37]:
+about things going wrong, we will distinguish between *faults* and *failures* [^35] [^36] [^37]:
 
 Fault
 : A fault is when a particular *part* of a system stops working correctly: for example, if a
@@ -372,7 +382,7 @@ However, if the system you’re talking about contains many hard drives, then th
 hard drive is only a fault from the point of view of the bigger system, and the bigger system might
 be able to tolerate that fault by having a copy of the data on another hard drive.
 
-## Fault Tolerance
+### Fault Tolerance
 
 We call a system *fault-tolerant* if it continues providing the required service to the user in
 spite of certain faults occurring. If a system cannot tolerate a certain part becoming faulty, we
@@ -407,7 +417,7 @@ matters, for example: if an attacker has compromised a system and gained access 
 that event cannot be undone. However, this book mostly deals with the kinds of faults that can be
 cured, as described in the following sections.
 
-## Hardware and Software Faults
+### Hardware and Software Faults
 
 When we think of causes of system failure, hardware faults quickly come to mind:
 
@@ -434,7 +444,7 @@ These events are rare enough that you often don’t need to worry about them whe
 system, as long as you can easily replace hardware that becomes faulty. However, in a large-scale
 system, hardware faults happen often enough that they become part of the normal system operation.
 
-### Tolerating hardware faults through redundancy
+#### Tolerating hardware faults through redundancy
 
 Our first response to unreliable hardware is usually to add redundancy to the individual hardware
 components in order to reduce the failure rate of the system. Disks may be set up in a RAID
@@ -470,7 +480,7 @@ system security patches, for example), whereas a multi-node fault-tolerant syste
 restarting one node at a time, without affecting the service for users. This is called a *rolling
 upgrade*, and we will discuss it further in [Chapter 5](/en/ch5#ch_encoding).
 
-### Software faults
+#### Software faults
 
 Although hardware failures can be weakly correlated, they are still mostly independent: for
 example, if one disk fails, it’s likely that other disks in the same machine will be fine for
@@ -486,14 +496,11 @@ uncorrelated hardware faults [^47]. For example:
  operation (less than 4 years), rendering the data on them unrecoverable [^62].
 * A runaway process that uses up some shared, limited resource, such as CPU time, memory, disk
  space, network bandwidth, or threads [^63]. For example, a process that consumes too much memory while processing a large request may be
- killed by the operating system. A bug in a client library could cause a much higher request
- volume than anticipated [^64].
-* A service that the system depends on slows down, becomes unresponsive, or starts returning
- corrupted responses.
-* An interaction between different systems results in emergent behavior that does not occur when
- each system was tested in isolation [^65].
+ killed by the operating system. A bug in a client library could cause a much higher request volume than anticipated [^64].
+* A service that the system depends on slows down, becomes unresponsive, or starts returning corrupted responses.
+* An interaction between different systems results in emergent behavior that does not occur when each system was tested in isolation [^65].
 * Cascading failures, where a problem in one component causes another component to become overloaded
- and slow down, which in turn brings down another component [^66] [^67]].
+ and slow down, which in turn brings down another component [^66] [^67].
 
 The bugs that cause these kinds of software faults often lie dormant for a long time until they are
 triggered by an unusual set of circumstances. In those circumstances, it is revealed that the
@@ -505,7 +512,7 @@ help: carefully thinking about assumptions and interactions in the system; thoro
 isolation; allowing processes to crash and restart; avoiding feedback loops such as retry storms
 (see [“When an overloaded system won’t recover”](/en/ch2#sidebar_metastable)); measuring, monitoring, and analyzing system behavior in production.
 
-## Humans and Reliability
+### Humans and Reliability
 
 Humans design and build software systems, and the operators who keep the systems running are also
 human. Unlike machines, humans don’t just follow rules; their strength is being creative and
@@ -537,8 +544,7 @@ problem is the organization’s priorities.
 
 Increasingly, organizations are adopting a culture of *blameless postmortems*: after an incident,
 the people involved are encouraged to share full details about what happened, without fear of
-punishment, since this allows others in the organization to learn how to prevent similar problems in
-the future [^73].
+punishment, since this allows others in the organization to learn how to prevent similar problems in the future [^73].
 This process may uncover a need to change business priorities, a need to invest in areas that have
 been neglected, a need to change the incentives for the people involved, or some other systemic
 issue that needs to be brought to the management’s attention.
@@ -549,7 +555,9 @@ neither is “We must rewrite the backend in Haskell.” Instead, management sho
 to learn the details of how the sociotechnical system works from the point of view of the people who
 work with it every day, and take steps to improve it based on this feedback [^71].
 
-# How Important Is Reliability?
+--------
+
+> [!TIP] How Important Is Reliability?
 
 Reliability is not just for nuclear power stations and air traffic control—more mundane applications
 are also expected to work reliably. Bugs in business applications cause lost productivity (and legal
@@ -577,7 +585,9 @@ There are situations in which we may choose to sacrifice reliability in order to
 cost (e.g., when developing a prototype product for an unproven market)—but we should be very
 conscious of when we are cutting corners and keep in mind the potential consequences.
 
-# Scalability
+--------
+
+## Scalability
 
 Even if a system is working reliably today, that doesn’t mean it will necessarily work reliably in
 the future. One common reason for degradation is increased load: perhaps the system has grown from
@@ -610,7 +620,7 @@ you will learn where your performance bottlenecks lie, and therefore you will kn
 dimensions you need to scale. At that point it’s time to start worrying about techniques for
 scalability.
 
-## Describing Load
+### Describing Load
 
 First, we need to succinctly describe the current load on the system; only then can we discuss
 growth questions (what happens if our load doubles?). Often this will be a measure of throughput:
@@ -650,7 +660,7 @@ inefficiency. For example, if you have a lot of data, then processing a single w
 involve more work than if you have a small amount of data, even if the size of the request is the
 same.
 
-## Shared-Memory, Shared-Disk, and Shared-Nothing Architecture
+### Shared-Memory, Shared-Disk, and Shared-Nothing Architecture
 
 The simplest way of increasing the hardware resources of a service is to move it to a more powerful
 machine. Individual CPU cores are no longer getting significantly faster, but you can buy a machine
@@ -670,8 +680,7 @@ are connected via a fast network: *Network-Attached Storage* (NAS) or *Storage A
 This architecture has traditionally been used for on-premises data warehousing workloads, but
 contention and the overhead of locking limit the scalability of the shared-disk approach [^81].
 
-By contrast, the *shared-nothing architecture*
-[^82]
+By contrast, the *shared-nothing architecture* [^82]
 (also called *horizontal scaling* or *scaling out*) has gained a lot of popularity. In this
 approach, we use a distributed system with multiple nodes, each of which has its own CPUs, RAM, and
 disks. Any coordination between nodes is done at the software level, via a conventional network.
@@ -690,7 +699,7 @@ scalability problems of older systems: instead of providing a filesystem (NAS) o
 abstraction, the storage service offers a specialized API that is designed for the specific needs of
 the database [^83].
 
-## Principles for Scalability
+### Principles for Scalability
 
 The architecture of systems that operate at large scale is usually highly specific to the
 application—there is no such thing as a generic, one-size-fits-all scalable architecture
@@ -720,7 +729,7 @@ load is fairly predictable, a manually scaled system may have fewer operational 
 [“Operations: Automatic or Manual Rebalancing”](/en/ch7#sec_sharding_operations)). A system with five services is simpler than one with fifty. Good
 architectures usually involve a pragmatic mixture of approaches.
 
-# Maintainability
+## Maintainability
 
 Software does not wear out or suffer material fatigue, so it does not break in the same ways as
 mechanical objects do. But the requirements for an application frequently change, the environment
@@ -757,13 +766,13 @@ Evolvability
 : Make it easy for engineers to make changes to the system in the future, adapting it and extending
  it for unanticipated use cases as requirements change.
 
-## Operability: Making Life Easy for Operations
+
+### Operability: Making Life Easy for Operations
 
 We previously discussed the role of operations in [“Operations in the Cloud Era”](/en/ch1#sec_introduction_operations), and we saw that
 human processes are at least as important for reliable operations as software tools. In fact, it has
 been suggested that “good operations can often work around the limitations of bad (or incomplete)
-software, but good software cannot run reliably with bad operations”
-[^60].
+software, but good software cannot run reliably with bad operations” [^60].
 
 In large-scale systems consisting of many thousands of machines, manual maintenance would be
 unreasonably expensive, and automation is essential. However, automation can be a two-edged sword:
@@ -790,13 +799,12 @@ on high-value activities. Data systems can do various things to make routine tas
 * Self-healing where appropriate, but also giving administrators manual control over the system state when needed
 * Exhibiting predictable behavior, minimizing surprises
 
-## Simplicity: Managing Complexity
+### Simplicity: Managing Complexity
 
 Small software projects can have delightfully simple and expressive code, but as projects get
 larger, they often become very complex and difficult to understand. This complexity slows down
 everyone who needs to work on the system, further increasing the cost of maintenance. A software
-project mired in complexity is sometimes described as a *big ball of mud*
-[^91].
+project mired in complexity is sometimes described as a *big ball of mud* [^91].
 
 When complexity makes maintenance hard, budgets and schedules are often overrun. In complex
 software, there is also a greater risk of introducing bugs when making a change: when the system is
@@ -809,15 +817,12 @@ Simple systems are easier to understand, and therefore we should try to solve a 
 simplest way possible. Unfortunately, this is easier said than done. Whether something is simple or
 not is often a subjective matter of taste, as there is no objective standard of simplicity [^92].
 For example, one system may hide a complex implementation behind a simple interface, whereas another
-may have a simple implementation that exposes more internal detail to its users—which one is
-simpler?
+may have a simple implementation that exposes more internal detail to its users—which one is simpler?
 
-One attempt at reasoning about complexity has been to break it down into two categories, *essential*
-and *accidental* complexity [^93].
+One attempt at reasoning about complexity has been to break it down into two categories, *essential* and *accidental* complexity [^93].
 The idea is that essential complexity is inherent in the problem domain of the application, while
 accidental complexity arises only because of limitations of our tooling. Unfortunately, this
-distinction is also flawed, because boundaries between the essential and the accidental shift as our
-tooling evolves [^94].
+distinction is also flawed, because boundaries between the essential and the accidental shift as our tooling evolves [^94].
 
 One of the best tools we have for managing complexity is *abstraction*. A good abstraction can hide
 a great deal of implementation detail behind a clean, simple-to-understand façade. A good
@@ -831,16 +836,14 @@ concurrent requests from other clients, and inconsistencies after crashes. Of co
 programming in a high-level language, we are still using machine code; we are just not using it
 *directly*, because the programming language abstraction saves us from having to think about it.
 
-Abstractions for application code, which aim to reduce its complexity, can be created using
-methodologies such as *design patterns*
-[^95]
-and *domain-driven design* (DDD) [^96].
+Abstractions for application code, which aim to reduce its complexity,
+can be created using methodologies such as *design patterns* [^95] and *domain-driven design* (DDD) [^96].
 This book is not about such application-specific abstractions, but rather about general-purpose
 abstractions on top of which you can build your applications, such as database transactions,
 indexes, and event logs. If you want to use techniques such as DDD, you can implement them on top of
 the foundations described in this book.
 
-## Evolvability: Making Change Easy
+### Evolvability: Making Change Easy
 
 It’s extremely unlikely that your system’s requirements will remain unchanged forever. They are much more
 likely to be in constant flux: you learn new facts, previously unanticipated use cases emerge,
@@ -856,14 +859,14 @@ consisting of several different applications or services with different characte
 The ease with which you can modify a data system, and adapt it to changing requirements, is closely
 linked to its simplicity and its abstractions: loosely-coupled, simple systems are usually easier to
 modify than tightly-coupled, complex ones. Since this is such an important idea, we will use a
-different word to refer to agility on a data system level: *evolvability*
-[^97].
+different word to refer to agility on a data system level: *evolvability* [^97].
 
 One major factor that makes change difficult in large systems is when some action is irreversible,
 and therefore that action needs to be taken very carefully [^98].
 For example, say you are migrating from one database to another: if you cannot switch back to the
 old system in case of problems with the new one, the stakes are much higher than if you can easily go
 back. Minimizing irreversibility improves flexibility.
+
 
 ## Summary
 

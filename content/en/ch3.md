@@ -32,8 +32,7 @@ question is: how is it *represented* in terms of the next-lower layer? For examp
 In a complex application there may be more intermediary levels, such as APIs built upon APIs, but
 the basic idea is still the same: each layer hides the complexity of the layers below it by
 providing a clean data model. These abstractions allow different groups of people—for example,
-the engineers at the database vendor and the application developers using their database—to work
-together effectively.
+the engineers at the database vendor and the application developers using their database—to work together effectively.
 
 Several different data models are widely used in practice, often for different purposes. Some types
 of data and some queries are easy to express in one model, and awkward in another. In this chapter
@@ -41,14 +40,15 @@ we will explore those trade-offs by comparing the relational model, the document
 data models, event sourcing, and dataframes. We will also briefly look at query languages that allow
 you to work with these models. This comparison will help you decide when to use which model.
 
-# Terminology: Declarative Query Languages
+--------
+
+> [!TIP] Terminology: Declarative Query Languages
 
 Many of the query languages in this chapter (such as SQL, Cypher, SPARQL, or Datalog) are
 *declarative*, which means that you specify the pattern of the data you want—what conditions the
 results must meet, and how you want the data to be transformed (e.g., sorted, grouped, and
 aggregated)—but not *how* to achieve that goal. The database system’s query optimizer can decide
-which indexes and which join algorithms to use, and in which order to execute various parts of the
-query.
+which indexes and which join algorithms to use, and in which order to execute various parts of the query.
 
 In contrast, with most programming languages you would have to write an *algorithm*—i.e., telling
 the computer which operations to perform in which order. A declarative query language is attractive
@@ -60,12 +60,12 @@ For example, a database might be able to execute a declarative query in parallel
 cores and machines, without you having to worry about how to implement that parallelism [^2].
 In a hand-coded algorithm it would be a lot of work to implement such parallel execution yourself.
 
-# Relational Model versus Document Model
+--------
 
-The best-known data model today is probably that of SQL, based on the relational model proposed by
-Edgar Codd in 1970 [^3]:
-data is organized into *relations* (called *tables* in SQL), where each relation is an unordered collection
-of *tuples* (*rows* in SQL).
+## Relational Model versus Document Model
+
+The best-known data model today is probably that of SQL, based on the relational model proposed by Edgar Codd in 1970 [^3]:
+data is organized into *relations* (called *tables* in SQL), where each relation is an unordered collection of *tuples* (*rows* in SQL).
 
 The relational model was originally a theoretical proposal, and many people at the time doubted whether it
 could be implemented efficiently. However, by the mid-1980s, relational database management systems
@@ -98,13 +98,14 @@ documents are thought to be more flexible.
 The pros and cons of document and relational data have been debated extensively; let’s examine some
 of the key points of that debate.
 
-## The Object-Relational Mismatch
+### The Object-Relational Mismatch
 
 Much application development today is done in object-oriented programming languages, which leads to
 a common criticism of the SQL data model: if data is stored in relational tables, an awkward
 translation layer is required between the objects in the application code and the database model of
-tables, rows, and columns. The disconnect between the models is sometimes called an *impedance
-mismatch*.
+tables, rows, and columns. The disconnect between the models is sometimes called an *impedance mismatch*.
+
+--------
 
 > [!NOTE]
 > The term *impedance mismatch* is borrowed from electronics. Every electric circuit has a certain
@@ -113,7 +114,9 @@ mismatch*.
 > the output and input impedances of the two circuits match. An impedance mismatch can lead to signal
 > reflections and other troubles.
 
-### Object-relational mapping (ORM)
+--------
+
+#### Object-relational mapping (ORM)
 
 Object-relational mapping (ORM) frameworks like ActiveRecord and Hibernate reduce the amount of
 boilerplate code required for this translation layer, but they are often criticized [^6].
@@ -128,10 +131,8 @@ Some commonly cited problems are:
  as search engines, graph databases, and NoSQL systems might find ORM support lacking.
 * Some ORMs generate relational schemas automatically, but these might be awkward for the users who
  are accessing the relational data directly, and they might be inefficient on the underlying
- database. Customizing the ORM’s schema and query generation can be complex and negate the benefit
- of using the ORM in the first place.
-* ORMs make it easy to accidentally write inefficient queries, such as the *N+1 query problem*
- [^7].
+ database. Customizing the ORM’s schema and query generation can be complex and negate the benefit of using the ORM in the first place.
+* ORMs make it easy to accidentally write inefficient queries, such as the *N+1 query problem* [^7].
  For example, say you want to display a list of user comments on a page, so you perform one query
  that returns *N* comments, each containing the ID of its author. To show the name of the comment
  author you need to look up the ID in the users table. In hand-written SQL you would probably
@@ -147,11 +148,10 @@ Nevertheless, ORMs also have advantages:
  persistent relational and the in-memory object representation is inevitable, and ORMs reduce the
  amount of boilerplate code required for this translation. Complicated queries may still need to be
  handled outside of the ORM, but the ORM can help with the simple and repetitive cases.
-* Some ORMs help with caching the results of database queries, which can help reduce the load on the
- database.
+* Some ORMs help with caching the results of database queries, which can help reduce the load on the database.
 * ORMs can also help with managing schema migrations and other administrative activities.
 
-### The document data model for one-to-many relationships
+#### The document data model for one-to-many relationships
 
 Not all data lends itself well to a relational representation; let’s look at an example to explore a
 limitation of the relational model. [Figure 3-1](/en/ch3#fig_obama_relational) illustrates how a résumé (a LinkedIn
@@ -165,34 +165,34 @@ representing such *one-to-many relationships* is to put positions, education, an
 information in separate tables, with a foreign key reference to the `users` table, as in
 [Figure 3-1](/en/ch3#fig_obama_relational).
 
-{{< figure src="/fig/ddia_0301.png" id="fig_obama_relational" title="Figure 3-1. Representing a LinkedIn profile using a relational schema." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0301.png" id="fig_obama_relational" caption="Figure 3-1. Representing a LinkedIn profile using a relational schema." class="w-full my-4" >}}
 
 Another way of representing the same information, which is perhaps more natural and maps more
 closely to an object structure in application code, is as a JSON document as shown in
 [Example 3-1](/en/ch3#fig_obama_json).
 
-##### Example 3-1. Representing a LinkedIn profile as a JSON document
+{{< figure id="fig_obama_json" caption="Example 3-1. Representing a LinkedIn profile as a JSON document" class="w-full my-4" >}}
 
-```
+```json
 {
- "user_id": 251,
- "first_name": "Barack",
- "last_name": "Obama",
- "headline": "Former President of the United States of America",
- "region_id": "us:91",
- "photo_url": "/p/7/000/253/05b/308dd6e.jpg",
- "positions": [
- {"job_title": "President", "organization": "United States of America"},
- {"job_title": "US Senator (D-IL)", "organization": "United States Senate"}
- ],
- "education": [
- {"school_name": "Harvard University", "start": 1988, "end": 1991},
- {"school_name": "Columbia University", "start": 1981, "end": 1983}
- ],
- "contact_info": {
- "website": "https://barackobama.com",
- "twitter": "https://twitter.com/barackobama"
- }
+    "user_id": 251,
+    "first_name": "Barack",
+    "last_name": "Obama",
+    "headline": "Former President of the United States of America",
+    "region_id": "us:91",
+    "photo_url": "/p/7/000/253/05b/308dd6e.jpg",
+    "positions": [
+        {"job_title": "President", "organization": "United States of America"},
+        {"job_title": "US Senator (D-IL)", "organization": "United States Senate"}
+    ],
+    "education": [
+        {"school_name": "Harvard University", "start": 1988, "end": 1991},
+        {"school_name": "Columbia University", "start": 1981, "end": 1983}
+    ],
+    "contact_info": {
+        "website": "https://barackobama.com",
+        "twitter": "https://twitter.com/barackobama"
+    }
 }
 ```
 
@@ -212,7 +212,9 @@ The one-to-many relationships from the user profile to the user’s positions, e
 contact information imply a tree structure in the data, and the JSON representation makes this tree
 structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 
-{{< figure src="/fig/ddia_0302.png" id="fig_json_tree" title="Figure 3-2. One-to-many relationships forming a tree structure." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0302.png" id="fig_json_tree" caption="Figure 3-2. One-to-many relationships forming a tree structure." class="w-full my-4" >}}
+
+--------
 
 > [!NOTE]
 > This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé typically has a small number of positions [^9] [^10].
@@ -220,7 +222,9 @@ structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 > celebrity’s social media post, of which there could be many thousands—embedding them all in the same
 > document may be too unwieldy, so the relational approach in [Figure 3-1](/en/ch3#fig_obama_relational) is preferable.
 
-## Normalization, Denormalization, and Joins
+--------
+
+### Normalization, Denormalization, and Joins
 
 In [Example 3-1](/en/ch3#fig_obama_json) in the preceding section, `region_id` is given as an ID, not as the plain-text
 string `"Washington, DC, United States"`. Why?
@@ -257,7 +261,7 @@ The downside of a normalized representation is that every time you want to displ
 containing an ID, you have to do an additional lookup to resolve the ID into something
 human-readable. In a relational data model, this is done using a *join*, for example:
 
-```
+```sql
 SELECT users.*, regions.region_name
 FROM users
 JOIN regions ON users.region_id = regions.id
@@ -272,19 +276,19 @@ perform them in application code—that is, you first fetch a document containin
 perform a second query to resolve that ID into another document. In MongoDB, it is also possible to
 perform a join using the `$lookup` operator in an aggregation pipeline:
 
-```
+```mongodb-json
 db.users.aggregate([
- { $match: { _id: 251 } },
- { $lookup: {
- from: "regions",
- localField: "region_id",
- foreignField: "_id",
- as: "region"
- } }
+    { $match: { _id: 251 } },
+    { $lookup: {
+        from: "regions",
+        localField: "region_id",
+        foreignField: "_id",
+        as: "region"
+    } }
 ])
 ```
 
-### Trade-offs of normalization
+#### Trade-offs of normalization
 
 In the résumé example, while the `region_id` field is a reference into a standardized set of
 regions, the name of the `organization` (the company or government where the person worked) and
@@ -324,7 +328,7 @@ moderate scale, a normalized data model is often best, because you don’t have 
 multiple copies of the data consistent with each other, and the cost of performing joins is
 acceptable. However, in very large-scale systems, the cost of joins can become problematic.
 
-### Denormalization in the social networking case study
+#### Denormalization in the social networking case study
 
 In [“Case Study: Social Network Home Timelines”](/en/ch2#sec_introduction_twitter) we compared a normalized representation ([Figure 2-1](/en/ch2#fig_twitter_relational))
 and a denormalized one (precomputed, materialized timelines): here, the join between `posts` and
@@ -337,12 +341,13 @@ actual text of each post: each entry actually only stores the post ID, the ID of
 it, and a little bit of extra information to identify reposts and replies [^11].
 In other words, it is a precomputed result of (approximately) the following query:
 
-```
-SELECT posts.id, posts.sender_id FROM posts
- JOIN follows ON posts.sender_id = follows.followee_id
- WHERE follows.follower_id = current_user
- ORDER BY posts.timestamp DESC
- LIMIT 1000
+```sql
+SELECT posts.id, posts.sender_id 
+FROM posts
+JOIN follows ON posts.sender_id = follows.followee_id
+WHERE follows.follower_id = current_user
+ORDER BY posts.timestamp DESC
+LIMIT 1000
 ```
 
 This means that whenever the timeline is read, the service still needs to perform two joins: look up
@@ -371,7 +376,7 @@ outliers, such as users with many follows/followers in the case of a typical soc
 Normalization and denormalization are not inherently good or bad—they are just a trade-off in terms
 of performance of reads and writes, as well as the amount of effort to implement.
 
-## Many-to-One and Many-to-Many Relationships
+### Many-to-One and Many-to-Many Relationships
 
 While `positions` and `education` in [Figure 3-1](/en/ch3#fig_obama_relational) are examples of one-to-many or
 one-to-few relationships (one résumé has several positions, but each position belongs only to one
@@ -384,7 +389,7 @@ an organization has several past or present employees). In a relational model, s
 is usually represented as an *associative table* or *join table*, as shown in
 [Figure 3-3](/en/ch3#fig_datamodels_m2m_rel): each position associates one user ID with one organization ID.
 
-{{< figure src="/fig/ddia_0303.png" id="fig_datamodels_m2m_rel" title="Figure 3-3. Many-to-many relationships in the relational model." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0303.png" id="fig_datamodels_m2m_rel" caption="Figure 3-3. Many-to-many relationships in the relational model." class="w-full my-4" >}}
 
 Many-to-one and many-to-many relationships do not easily fit within one self-contained JSON
 document; they lend themselves more to a normalized representation. In a document model, one
@@ -393,22 +398,22 @@ possible representation is given in [Example 3-2](/en/ch3#fig_datamodels_m2m_js
 document, but the links to organizations and schools are best represented as references to other
 documents.
 
-##### Example 3-2. A résumé that references organizations by ID.
+{{< figure id="fig_datamodels_m2m_json" caption="Example 3-2. A résumé that references organizations by ID." class="w-full my-4" >}}
 
-```
+```json
 {
- "user_id": 251,
- "first_name": "Barack",
- "last_name": "Obama",
- "positions": [
- {"start": 2009, "end": 2017, "job_title": "President", "org_id": 513},
- {"start": 2005, "end": 2008, "job_title": "US Senator (D-IL)", "org_id": 514}
- ],
- ...
+    "user_id": 251,
+    "first_name": "Barack",
+    "last_name": "Obama",
+    "positions": [
+        {"start": 2009, "end": 2017, "job_title": "President", "org_id": 513},
+        {"start": 2005, "end": 2008, "job_title": "US Senator (D-IL)", "org_id": 514}
+    ],
+    ...
 }
 ```
 
-{{< figure src="/fig/ddia_0304.png" id="fig_datamodels_many_to_many" title="Figure 3-4. Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0304.png" id="fig_datamodels_many_to_many" caption="Figure 3-4. Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document." class="w-full my-4" >}}
 
 Many-to-many relationships often need to be queried in “both directions”: for example, finding all
 of the organizations that a particular person has worked for, and finding all of the people who have
@@ -427,12 +432,11 @@ In the document model of [Example 3-2](/en/ch3#fig_datamodels_m2m_json), the da
 of objects inside the `positions` array. Many document databases and relational databases with JSON
 support are able to create such indexes on values inside a document.
 
-## Stars and Snowflakes: Schemas for Analytics
+### Stars and Snowflakes: Schemas for Analytics
 
 Data warehouses (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) are usually relational, and there are a few
 widely-used conventions for the structure of tables in a data warehouse: a *star schema*,
-*snowflake schema*, *dimensional modeling*
-[^12],
+*snowflake schema*, *dimensional modeling* [^12],
 and *one big table* (OBT). These structures are optimized for the needs of business analysts. ETL
 processes translate data from operational systems into this schema.
 
@@ -442,12 +446,11 @@ retailer. At the center of the schema is a so-called *fact table* (in this examp
 (here, each row represents a customer’s purchase of a product). If we were analyzing website traffic
 rather than retail sales, each row might represent a page view or a click by a user.
 
-{{< figure src="/fig/ddia_0305.png" id="fig_dwh_schema" title="Figure 3-5. Example of a star schema for use in a data warehouse." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0305.png" id="fig_dwh_schema" caption="Figure 3-5. Example of a star schema for use in a data warehouse." class="w-full my-4" >}}
 
 Usually, facts are captured as individual events, because this allows maximum flexibility of
 analysis later. However, this means that the fact table can become extremely large. A big enterprise
-may have many petabytes of transaction history in its data warehouse, mostly represented as fact
-tables.
+may have many petabytes of transaction history in its data warehouse, mostly represented as fact tables.
 
 Some of the columns in the fact table are attributes, such as the price at which the product was
 sold and the cost of buying it from the supplier (allowing the profit margin to be calculated).
@@ -480,8 +483,7 @@ In a typical data warehouse, tables are often quite wide: fact tables often have
 sometimes several hundred. Dimension tables can also be wide, as they include all the metadata that
 may be relevant for analysis—for example, the `dim_store` table may include details of which
 services are offered at each store, whether it has an in-store bakery, the square footage, the date
-when the store was first opened, when it was last remodeled, how far it is from the nearest highway,
-etc.
+when the store was first opened, when it was last remodeled, how far it is from the nearest highway, etc.
 
 A star or snowflake schema consists mostly of many-to-one relationships (e.g., many sales occur for
 one particular product, in one particular store), represented as the fact table having foreign keys
@@ -502,7 +504,7 @@ represents a log of historical data that is not going to change (except maybe fo
 correcting an error). The issues of data consistency and write overheads that occur with
 denormalization in OLTP systems are not as pressing in analytics.
 
-## When to Use Which Model
+### When to Use Which Model
 
 The main arguments in favor of the document data model are schema flexibility, better performance
 due to locality, and that for some applications it is closer to the object model used by the
@@ -512,9 +514,8 @@ many-to-many relationships. Let’s examine these arguments in more detail.
 If the data in your application has a document-like structure (i.e., a tree of one-to-many
 relationships, where typically the entire tree is loaded at once), then it’s probably a good idea to
 use a document model. The relational technique of *shredding*—splitting a document-like structure
-into multiple tables (like `positions`, `education`, and `contact_info` in
-[Figure 3-1](/en/ch3#fig_obama_relational))—can lead to cumbersome schemas and unnecessarily complicated application
-code.
+into multiple tables (like `positions`, `education`, and `contact_info` in [Figure 3-1](/en/ch3#fig_obama_relational))
+— can lead to cumbersome schemas and unnecessarily complicated application code.
 
 The document model has limitations: for example, you cannot refer directly to a nested item within a
 document, but instead you need to say something like “the second item in the list of positions for
@@ -526,10 +527,9 @@ issue tracker where the user can drag and drop tasks to reorder them. The docume
 such applications well, because the items (or their IDs) can simply be stored in a JSON array to
 determine their order. In relational databases there isn’t a standard way of representing such
 reorderable lists, and various tricks are used: sorting by an integer column (requiring renumbering
-when you insert into the middle), a linked list of IDs, or fractional indexing
-[^14] [^15] [^16].
+when you insert into the middle), a linked list of IDs, or fractional indexing [^14] [^15] [^16].
 
-### Schema flexibility in the document model
+#### Schema flexibility in the document model
 
 Most document databases, and the JSON support in relational databases, do not enforce any schema on
 the data in documents. XML support in relational databases usually comes with optional schema
@@ -556,10 +556,10 @@ name in one field, and you instead want to store the first name and last name se
 In a document database, you would just start writing new documents with the new fields and have
 code in the application that handles the case when old documents are read. For example:
 
-```
+```mongodb-json
 if (user && user.name && !user.first_name) {
- // Documents written before Dec 8, 2023 don't have first_name
- user.first_name = user.name.split(" ")[0];
+    // Documents written before Dec 8, 2023 don't have first_name
+    user.first_name = user.name.split(" ")[0];
 }
 ```
 
@@ -568,7 +568,7 @@ now needs to deal with documents in old formats that may have been written a lon
 On the other hand, in a schema-on-write database, you would typically perform a *migration* along
 the lines of:
 
-```
+```sql
 ALTER TABLE users ADD COLUMN first_name text DEFAULT NULL;
 UPDATE users SET first_name = split_part(name, ' ', 1); -- PostgreSQL
 UPDATE users SET first_name = substring_index(name, ' ', 1); -- MySQL
@@ -579,8 +579,7 @@ on large tables. However, running the `UPDATE` statement is likely to be slow on
 since every row needs to be rewritten, and other schema operations (such as changing the data type
 of a column) also typically require the entire table to be copied.
 
-Various tools exist to allow this type of schema changes to be performed in the background without downtime
-[^21] [^22] [^23] [^24],
+Various tools exist to allow this type of schema changes to be performed in the background without downtime [^21] [^22] [^23] [^24],
 but performing such migrations on large databases remains operationally challenging. Complicated
 migrations can be avoided by only adding the `first_name` column with a default value of `NULL`
 (which is fast), and filling it in at read time, like you would with a document database.
@@ -588,17 +587,15 @@ migrations can be avoided by only adding the `first_name` column with a default 
 The schema-on-read approach is advantageous if the items in the collection don’t all have the same
 structure for some reason (i.e., the data is heterogeneous)—for example, because:
 
-* There are many different types of objects, and it is not practicable to put each type of object in
- its own table.
-* The structure of the data is determined by external systems over which you have no control and
- which may change at any time.
+* There are many different types of objects, and it is not practicable to put each type of object in its own table.
+* The structure of the data is determined by external systems over which you have no control and which may change at any time.
 
 In situations like these, a schema may hurt more than it helps, and schemaless documents can be a
 much more natural data model. But in cases where all records are expected to have the same
 structure, schemas are a useful mechanism for documenting and enforcing that structure. We will
 discuss schemas and schema evolution in more detail in [Chapter 5](/en/ch5#ch_encoding).
 
-### Data locality for reads and writes
+#### Data locality for reads and writes
 
 A document is usually stored as a single continuous string, encoded as JSON, XML, or a binary variant
 thereof (such as MongoDB’s BSON). If your application often needs to access the entire document
@@ -614,14 +611,12 @@ and avoid frequent small updates to a document.
 
 However, the idea of storing related data together for locality is not limited to the document
 model. For example, Google’s Spanner database offers the same locality properties in a relational
-data model, by allowing the schema to declare that a table’s rows should be interleaved (nested)
-within a parent table [^25].
-Oracle allows the same, using a feature called *multi-table index cluster tables*
-[^26].
+data model, by allowing the schema to declare that a table’s rows should be interleaved (nested) within a parent table [^25].
+Oracle allows the same, using a feature called *multi-table index cluster tables* [^26].
 The *wide-column* data model popularized by Google’s Bigtable, and used e.g. in HBase and Accumulo,
 has a concept of *column families*, which have a similar purpose of managing locality [^27].
 
-### Query languages for documents
+#### Query languages for documents
 
 Another difference between a relational and a document database is the language or API that you use
 to query it. Most relational databases are queried using SQL, but document databases are more
@@ -632,18 +627,16 @@ XML databases are often queried using XQuery and XPath, which are designed to al
 including joins across multiple documents, and also format their results as XML [^28]. JSON Pointer [^29] and JSONPath [^30] provide an equivalent to XPath for JSON.
 
 MongoDB’s aggregation pipeline, whose `$lookup` operator for joins we saw in
-[“Normalization, Denormalization, and Joins”](/en/ch3#sec_datamodels_normalization), is an example of a query language for collections of JSON
-documents.
+[“Normalization, Denormalization, and Joins”](/en/ch3#sec_datamodels_normalization), is an example of a query language for collections of JSON documents.
 
 Let’s look at another example to get a feel for this language—this time an aggregation, which is
 especially needed for analytics. Imagine you are a marine biologist, and you add an observation
 record to your database every time you see animals in the ocean. Now you want to generate a report
-saying how many sharks you have sighted per month. In PostgreSQL you might express that query like
-this:
+saying how many sharks you have sighted per month. In PostgreSQL you might express that query like this:
 
-```
+```sql
 SELECT date_trunc('month', observation_timestamp) AS observation_month, ❶ 
- sum(num_animals) AS total_animals
+    sum(num_animals) AS total_animals
 FROM observations
 WHERE family = 'Sharks'
 GROUP BY observation_month;
@@ -658,16 +651,16 @@ the observations by the calendar month in which they occurred, and finally adds 
 animals seen in all observations in that month. The same query can be expressed using MongoDB’s
 aggregation pipeline as follows:
 
-```
+```mongodb-json
 db.observations.aggregate([
- { $match: { family: "Sharks" } },
- { $group: {
- _id: {
- year: { $year: "$observationTimestamp" },
- month: { $month: "$observationTimestamp" }
- },
- totalAnimals: { $sum: "$numAnimals" }
- } }
+    { $match: { family: "Sharks" } },
+    { $group: {
+    _id: {
+        year: { $year: "$observationTimestamp" },
+        month: { $month: "$observationTimestamp" }
+    },
+    totalAnimals: { $sum: "$numAnimals" }
+    } }
 ]);
 ```
 
@@ -675,7 +668,7 @@ The aggregation pipeline language is similar in expressiveness to a subset of SQ
 JSON-based syntax rather than SQL’s English-sentence-style syntax; the difference is perhaps a
 matter of taste.
 
-### Convergence of document and relational databases
+#### Convergence of document and relational databases
 
 Document databases and relational databases started out as very different approaches to data
 management, but they have grown more similar over time [^31].
@@ -686,8 +679,9 @@ added support for joins, secondary indexes, and declarative query languages.
 This convergence of the models is good news for application developers, because the relational model
 and the document model work best when you can combine both in the same database. Many document
 databases need relational-style references to other documents, and many relational databases have
-sections where schema flexibility is beneficial. Relational-document hybrids are a powerful
-combination.
+sections where schema flexibility is beneficial. Relational-document hybrids are a powerful combination.
+
+--------
 
 > [!NOTE]
 > Codd’s original description of the relational model [^3] actually allowed something similar to JSON
@@ -696,7 +690,10 @@ combination.
 > nested relation (table)—so you can have an arbitrarily nested tree structure as a value, much like
 > the JSON or XML support that was added to SQL over 30 years later.
 
-# Graph-Like Data Models
+--------
+
+
+## Graph-Like Data Models
 
 We saw earlier that the type of relationships is an important distinguishing feature between
 different data models. If your application has mostly one-to-many relationships (tree-structured
@@ -739,17 +736,14 @@ types of objects in a single database. For example:
 * Facebook maintains a single graph with many different types of vertices and edges: vertices
  represent people, locations, events, checkins, and comments made by users; edges indicate which
  people are friends with each other, which checkin happened in which location, who commented on
- which post, who attended which event, and so on
- [^33].
+ which post, who attended which event, and so on [^33].
 * Knowledge graphs are used by search engines to record facts about entities that often occur in
- search queries, such as organizations, people, and places
- [^34].
+ search queries, such as organizations, people, and places [^34].
  This information is obtained by crawling and analyzing the text on websites; some websites, such
  as Wikidata, also publish graph data in a structured form.
 
 There are several different, but related, ways of structuring and querying data in graphs. In this
-section we will discuss the *property graph* model (implemented by Neo4j, Memgraph, KùzuDB [^35],
-and others [^36])
+section we will discuss the *property graph* model (implemented by Neo4j, Memgraph, KùzuDB [^35], and others [^36])
 and the *triple-store* model (implemented by Datomic, AllegroGraph, Blazegraph, and others). These
 models are fairly similar in what they can express, and some graph databases (such as Amazon
 Neptune) support both models.
@@ -765,9 +759,9 @@ are married and living in London. Each person and each location is represented a
 relationships between them as edges. This example will help demonstrate some queries that are easy
 in graph databases, but difficult in other models.
 
-{{< figure src="/fig/ddia_0306.png" id="fig_datamodels_graph" title="Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges)." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0306.png" id="fig_datamodels_graph" caption="Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges)." class="w-full my-4" >}}
 
-## Property Graphs
+### Property Graphs
 
 In the *property graph* (also known as *labeled property graph*) model, each vertex consists of:
 
@@ -791,21 +785,21 @@ store the properties of each vertex or edge). The head and tail vertex are store
 you want the set of incoming or outgoing edges for a vertex, you can query the `edges` table by
 `head_vertex` or `tail_vertex`, respectively.
 
-##### Example 3-3. Representing a property graph using a relational schema
+{{< figure id="fig_graph_sql_schema" caption="Example 3-3. Representing a property graph using a relational schema" class="w-full my-4" >}}
 
-```
+```sql
 CREATE TABLE vertices (
- vertex_id integer PRIMARY KEY,
- label text,
- properties jsonb
+    vertex_id integer PRIMARY KEY,
+    label text,
+    properties jsonb
 );
 
 CREATE TABLE edges (
- edge_id integer PRIMARY KEY,
- tail_vertex integer REFERENCES vertices (vertex_id),
- head_vertex integer REFERENCES vertices (vertex_id),
- label text,
- properties jsonb
+    edge_id integer PRIMARY KEY,
+    tail_vertex integer REFERENCES vertices (vertex_id),
+    head_vertex integer REFERENCES vertices (vertex_id),
+    label text,
+    properties jsonb
 );
 
 CREATE INDEX edges_tails ON edges (tail_vertex);
@@ -829,12 +823,16 @@ The edges table is like the many-to-many associative table/join table we saw in
 stored in the same table. There may also be indexes on the labels and the properties, allowing
 vertices or edges with certain properties to be found efficiently.
 
+--------
+
 > [!NOTE]
 > A limitation of graph models is that an edge can only associate two vertices with each other,
 > whereas a relational join table can represent three-way or even higher-degree relationships by
 > having multiple foreign key references on a single row. Such relationships can be represented in a
 > graph by creating an additional vertex corresponding to each row of the join table, and edges
 > to/from that vertex, or by using a *hypergraph*.
+
+--------
 
 Those features give graphs a great deal of flexibility for data modeling, as illustrated in
 [Figure 3-6](/en/ch3#fig_datamodels_graph). The figure shows a few things that would be difficult to express in a
@@ -852,12 +850,10 @@ substances. Then you could write a query to find out what is safe for each perso
 Graphs are good for evolvability: as you add features to your application, a graph can easily be
 extended to accommodate changes in your application’s data structures.
 
-## The Cypher Query Language
+### The Cypher Query Language
 
 *Cypher* is a query language for property graphs, originally created for the Neo4j graph database,
-and later developed into an open standard as *openCypher*
-[^38].
-Besides Neo4j, Cypher is supported by Memgraph, KùzuDB [^35],
+and later developed into an open standard as *openCypher* [^38]. Besides Neo4j, Cypher is supported by Memgraph, KùzuDB [^35],
 Amazon Neptune, Apache AGE (with storage in PostgreSQL), and others. It is named after a character
 in the movie *The Matrix* and is not related to ciphers in cryptography [^39].
 
@@ -868,16 +864,16 @@ only used internally within the query to create edges between the vertices, usin
 `(idaho) -[:WITHIN]-> (usa)` creates an edge labeled `WITHIN`, with `idaho` as the tail node and
 `usa` as the head node.
 
-##### Example 3-4. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as a Cypher query
+{{< figure id="fig_cypher_create" caption="Example 3-4. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as a Cypher query" class="w-full my-4" >}}
 
 ```
 CREATE
- (namerica :Location {name:'North America', type:'continent'}),
- (usa :Location {name:'United States', type:'country' }),
- (idaho :Location {name:'Idaho', type:'state' }),
- (lucy :Person {name:'Lucy' }),
- (idaho) -[:WITHIN ]-> (usa) -[:WITHIN]-> (namerica),
- (lucy) -[:BORN_IN]-> (idaho)
+    (namerica :Location {name:'North America', type:'continent'}),
+    (usa :Location {name:'United States', type:'country' }),
+    (idaho :Location {name:'Idaho', type:'state' }),
+    (lucy :Person {name:'Lucy' }),
+    (idaho) -[:WITHIN ]-> (usa) -[:WITHIN]-> (namerica),
+    (lucy) -[:BORN_IN]-> (idaho)
 ```
 
 When all the vertices and edges of [Figure 3-6](/en/ch3#fig_datamodels_graph) are added to the database, we can start
@@ -891,12 +887,12 @@ property of each of those vertices.
 that are related by an edge labeled `BORN_IN`. The tail vertex of that edge is bound to the
 variable `person`, and the head vertex is left unnamed.
 
-##### Example 3-5. Cypher query to find people who emigrated from the US to Europe
+{{< figure id="fig_cypher_query" caption="Example 3-5. Cypher query to find people who emigrated from the US to Europe" class="w-full my-4" >}}
 
 ```
 MATCH
- (person) -[:BORN_IN]-> () -[:WITHIN*0..]-> (:Location {name:'United States'}),
- (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (:Location {name:'Europe'})
+    (person) -[:BORN_IN]-> () -[:WITHIN*0..]-> (:Location {name:'United States'}),
+    (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (:Location {name:'Europe'})
 RETURN person.name
 ```
 
@@ -923,7 +919,7 @@ Europe. Then you can proceed to find all locations (states, regions, cities, etc
 Europe respectively by following all incoming `WITHIN` edges. Finally, you can look for people who
 can be found through an incoming `BORN_IN` or `LIVES_IN` edge at one of the location vertices.
 
-## Graph Queries in SQL
+### Graph Queries in SQL
 
 [Example 3-3](/en/ch3#fig_graph_sql_schema) suggested that graph data can be represented in a relational database. But
 if we put graph data in a relational structure, can we also query it using SQL?
@@ -949,50 +945,50 @@ something called *recursive common table expressions* (the `WITH RECURSIVE` synt
 to Europe—expressed in SQL using this technique. However, the syntax is very clumsy in comparison to
 Cypher.
 
-##### Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions
+{{< figure id="fig_graph_sql_query" caption="Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions" class="w-full my-4" >}}
 
 ```sql
 WITH RECURSIVE
 
- -- in_usa is the set of vertex IDs of all locations within the United States
- in_usa(vertex_id) AS (
- SELECT vertex_id FROM vertices
- WHERE label = 'Location' AND properties->>'name' = 'United States' ❶ 
- UNION
- SELECT edges.tail_vertex FROM edges ❷
- JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
- WHERE edges.label = 'within'
- ),
-
- -- in_europe is the set of vertex IDs of all locations within Europe
- in_europe(vertex_id) AS (
- SELECT vertex_id FROM vertices
- WHERE label = 'location' AND properties->>'name' = 'Europe' ❸
- UNION
- SELECT edges.tail_vertex FROM edges
- JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
- WHERE edges.label = 'within'
- ),
-
- -- born_in_usa is the set of vertex IDs of all people born in the US
- born_in_usa(vertex_id) AS ( ❹
- SELECT edges.tail_vertex FROM edges
- JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
- WHERE edges.label = 'born_in'
- ),
-
- -- lives_in_europe is the set of vertex IDs of all people living in Europe
- lives_in_europe(vertex_id) AS ( ❺
- SELECT edges.tail_vertex FROM edges
- JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
- WHERE edges.label = 'lives_in'
- )
-
-SELECT vertices.properties->>'name'
-FROM vertices
--- join to find those people who were both born in the US *and* live in Europe
-JOIN born_in_usa ON vertices.vertex_id = born_in_usa.vertex_id ❻
-JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
+    -- in_usa is the set of vertex IDs of all locations within the United States
+    in_usa(vertex_id) AS (
+        SELECT vertex_id FROM vertices
+            WHERE label = 'Location' AND properties->>'name' = 'United States' ❶ 
+      UNION
+        SELECT edges.tail_vertex FROM edges ❷
+            JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
+            WHERE edges.label = 'within'
+    ),
+    
+    -- in_europe is the set of vertex IDs of all locations within Europe
+    in_europe(vertex_id) AS (
+        SELECT vertex_id FROM vertices
+            WHERE label = 'location' AND properties->>'name' = 'Europe' ❸
+      UNION
+        SELECT edges.tail_vertex FROM edges
+            JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
+            WHERE edges.label = 'within'
+    ),
+    
+    -- born_in_usa is the set of vertex IDs of all people born in the US
+    born_in_usa(vertex_id) AS ( ❹
+        SELECT edges.tail_vertex FROM edges
+            JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
+            WHERE edges.label = 'born_in'
+    ),
+    
+    -- lives_in_europe is the set of vertex IDs of all people living in Europe
+    lives_in_europe(vertex_id) AS ( ❺
+        SELECT edges.tail_vertex FROM edges
+            JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
+            WHERE edges.label = 'lives_in'
+    )
+    
+    SELECT vertices.properties->>'name'
+    FROM vertices
+    -- join to find those people who were both born in the US *and* live in Europe
+    JOIN born_in_usa ON vertices.vertex_id = born_in_usa.vertex_id ❻
+    JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
 ```
 
 ❶: First find the vertex whose `name` property has the value `"United States"`, and make it the first element of the set
@@ -1017,14 +1013,12 @@ right choice of data model and query language can make. And this is just the beg
 more details to consider, e.g., around handling cycles, and choosing between breadth-first or
 depth-first traversal [^40].
 
-Oracle has a different SQL extension for recursive queries, which it calls *hierarchical*
-[^41].
+Oracle has a different SQL extension for recursive queries, which it calls *hierarchical* [^41].
 
 However, the situation may be improving: at the time of writing, there are plans to add a graph
-query language called GQL to the SQL standard [^42] [^43],
-which will provide a syntax inspired by Cypher, GSQL [^44], and PGQL [^45].
+query language called GQL to the SQL standard [^42] [^43], which will provide a syntax inspired by Cypher, GSQL [^44], and PGQL [^45].
 
-## Triple-Stores and SPARQL
+### Triple-Stores and SPARQL
 
 The triple-store model is mostly equivalent to the property graph model, using different words to
 describe the same ideas. It is nevertheless worth discussing, because there are various tools and
@@ -1058,7 +1052,7 @@ The subject of a triple is equivalent to a vertex in a graph. The object is one 
 [Example 3-7](/en/ch3#fig_graph_n3_triples) shows the same data as in [Example 3-4](/en/ch3#fig_cypher_create), written as
 triples in a format called *Turtle*, a subset of *Notation3* (*N3*) [^48].
 
-##### Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples
+{{< figure id="fig_graph_n3_triples" caption="Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples" class="w-full my-4" >}}
 
 ```
 @prefix : <urn:example:>.
@@ -1081,14 +1075,13 @@ _:namerica :type "continent".
 In this example, vertices of the graph are written as `_:someName`. The name doesn’t mean anything
 outside of this file; it exists only because we otherwise wouldn’t know which triples refer to the
 same vertex. When the predicate represents an edge, the object is a vertex, as in `_:idaho :within
-_:usa`. When the predicate is a property, the object is a string literal, as in `_:usa :name
-"United States"`.
+_:usa`. When the predicate is a property, the object is a string literal, as in `_:usa :name "United States"`.
 
 It’s quite repetitive to repeat the same subject over and over again, but fortunately you can use
 semicolons to say multiple things about the same subject. This makes the Turtle format quite
 readable: see [Example 3-8](/en/ch3#fig_graph_n3_shorthand).
 
-##### Example 3-8. A more concise way of writing the data in [Example 3-7](/en/ch3#fig_graph_n3_triples)
+{{< figure id="fig_graph_n3_shorthand" caption="Example 3-8. A more concise way of writing the data in [Example 3-7](/en/ch3#fig_graph_n3_triples)" class="w-full my-4" >}}
 
 ```
 @prefix : <urn:example:>.
@@ -1098,26 +1091,24 @@ _:usa a :Location; :name "United States"; :type "country"; :within _:namerica.
 _:namerica a :Location; :name "North America"; :type "continent".
 ```
 
-# The Semantic Web
+--------
+
+> [!TIP] The Semantic Web
 
 Some of the research and development effort on triple stores was motivated by the *Semantic Web*, an
 early-2000s effort to facilitate internet-wide data exchange by publishing data not only as
 human-readable web pages, but also in a standardized, machine-readable format. Although the Semantic
-Web as originally envisioned did not succeed
-[^49] [^50],
+Web as originally envisioned did not succeed [^49] [^50],
 the legacy of the Semantic Web project lives on in a couple of specific technologies: *linked data*
-standards such as JSON-LD [^51],
-*ontologies* used in biomedical science [^52],
-Facebook’s Open Graph protocol [^53]
-(which is used for link unfurling [^54]),
-knowledge graphs such as Wikidata, and standardized vocabularies for structured data maintained by
-[`schema.org`](https://schema.org/).
+standards such as JSON-LD [^51], *ontologies* used in biomedical science [^52], Facebook’s Open Graph protocol [^53]
+(which is used for link unfurling [^54]), knowledge graphs such as Wikidata, and standardized vocabularies for structured data maintained by [`schema.org`](https://schema.org/).
 
 Triple-stores are another Semantic Web technology that has found use outside of its original use
-case: even if you have no interest in the Semantic Web, triples can be a good internal data model
-for applications.
+case: even if you have no interest in the Semantic Web, triples can be a good internal data model for applications.
 
-### The RDF data model
+--------
+
+#### The RDF data model
 
 The Turtle language we used in [Example 3-8](/en/ch3#fig_graph_n3_shorthand) is actually a way of encoding data in the
 *Resource Description Framework* (RDF) [^55],
@@ -1125,33 +1116,33 @@ a data model that was designed for the Semantic Web. RDF data can also be encode
 example (more verbosely) in XML, as shown in [Example 3-9](/en/ch3#fig_graph_rdf_xml). Tools like Apache Jena can
 automatically convert between different RDF encodings.
 
-##### Example 3-9. The data of [Example 3-8](/en/ch3#fig_graph_n3_shorthand), expressed using RDF/XML syntax
+{{< figure id="fig_graph_rdf_xml" caption="Example 3-9. The data of [Example 3-8](/en/ch3#fig_graph_n3_shorthand), expressed using RDF/XML syntax" class="w-full my-4" >}}
 
-```
+```xml
 <rdf:RDF xmlns="urn:example:"
- xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
 
- <Location rdf:nodeID="idaho">
- <name>Idaho</name>
- <type>state</type>
- <within>
- <Location rdf:nodeID="usa">
- <name>United States</name>
- <type>country</type>
- <within>
- <Location rdf:nodeID="namerica">
- <name>North America</name>
- <type>continent</type>
- </Location>
- </within>
- </Location>
- </within>
- </Location>
+    <Location rdf:nodeID="idaho">
+        <name>Idaho</name>
+        <type>state</type>
+        <within>
+            <Location rdf:nodeID="usa">
+                <name>United States</name>
+                <type>country</type>
+                <within>
+                    <Location rdf:nodeID="namerica">
+                        <name>North America</name>
+                        <type>continent</type>
+                    </Location>
+                </within>
+            </Location>
+        </within>
+    </Location>
 
- <Person rdf:nodeID="lucy">
- <name>Lucy</name>
- <bornIn rdf:nodeID="idaho"/>
- </Person>
+    <Person rdf:nodeID="lucy">
+        <name>Lucy</name>
+        <bornIn rdf:nodeID="idaho"/>
+    </Person>
 </rdf:RDF>
 ```
 
@@ -1168,7 +1159,7 @@ RDF’s point of view, it is simply a namespace. To avoid potential confusion wi
 examples in this section use non-resolvable URIs such as `urn:example:within`. Fortunately, you can
 just specify this prefix once at the top of the file, and then forget about it.
 
-### The SPARQL query language
+#### The SPARQL query language
 
 *SPARQL* is a query language for triple-stores using the RDF data model [^56].
 (It is an acronym for *SPARQL Protocol and RDF Query Language*, pronounced “sparkle.”)
@@ -1178,7 +1169,7 @@ similar.
 The same query as before—finding people who have moved from the US to Europe—is similarly concise in
 SPARQL as it is in Cypher (see [Example 3-10](/en/ch3#fig_sparql_query)).
 
-##### Example 3-10. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in SPARQL
+{{< figure id="fig_sparql_query" caption="Example 3-10. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in SPARQL" class="w-full my-4" >}}
 
 ```
 PREFIX : <urn:example:>
@@ -1212,15 +1203,13 @@ bound to any vertex that has a `name` property whose value is the string `"Unite
 SPARQL is supported by Amazon Neptune, AllegroGraph, Blazegraph, OpenLink Virtuoso, Apache Jena, and
 various other triple stores [^36].
 
-## Datalog: Recursive Relational Queries
+### Datalog: Recursive Relational Queries
 
-Datalog is a much older language than SPARQL or Cypher: it arose from academic research in the 1980s
-[^57] [^58] [^59].
+Datalog is a much older language than SPARQL or Cypher: it arose from academic research in the 1980s [^57] [^58] [^59].
 It is less well known among software engineers and not widely supported in mainstream databases, but
 it ought to be better-known since it is a very expressive language that is particularly powerful for
 complex queries. Several niche databases, including Datomic, LogicBlox, CozoDB, and LinkedIn’s
-LIquid [^60] use Datalog as
-their query language.
+LIquid [^60] use Datalog as their query language.
 
 Datalog is actually based on a relational data model, not a graph, but it appears in the graph
 databases section of this book because recursive queries on graphs are a particular strength of
@@ -1238,7 +1227,7 @@ the second column contains `val2`, and so on.
 are represented as two-column join tables. For example, Lucy has the ID 100 and Idaho has the ID 3,
 so the relationship “Lucy was born in Idaho” is represented as `born_in(100, 3)`.
 
-##### Example 3-11. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Datalog facts
+{{< figure id="fig_datalog_triples" caption="Example 3-11. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Datalog facts" class="w-full my-4" >}}
 
 ```
 location(1, "North America", "continent").
@@ -1257,7 +1246,7 @@ Now that we have defined the data, we can write the same query as before, as sho
 let that put you off. Datalog is a subset of Prolog, a programming language that you might have seen
 before if you’ve studied computer science.
 
-##### Example 3-12. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in Datalog
+{{< figure id="fig_datalog_query" title="Example 3-12. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in Datalog" class="w-full my-4" >}}
 
 ```sql
 within_recursive(LocID, PlaceName) :- location(LocID, PlaceName, _). /* Rule 1 */
@@ -1291,19 +1280,13 @@ try to find rows that match a certain pattern in the tables. For example, `perso
 matches the row `person(100, "Lucy")`, with the variable `PersonID` bound to the value `100` and the
 variable `PName` bound to the value `"Lucy"`. A rule applies if the system can find a match for
 *all* patterns on the righthand side of the `:-` operator. When the rule applies, it’s as though the
-lefthand side of the `:-` was added to the database (with variables replaced by the values they
-matched).
+lefthand side of the `:-` was added to the database (with variables replaced by the values they matched).
 
 One possible way of applying the rules is thus (and as illustrated in [Figure 3-7](/en/ch3#fig_datalog_naive)):
 
-1. `location(1, "North America", "continent")` exists in the database, so rule 1
- applies. It generates `within_recursive(1, "North America")`.
-2. `within(2, 1)` exists in the database and the previous step generated
- `within_recursive(1, "North America")`, so rule 2 applies. It generates
- `within_recursive(2, "North America")`.
-3. `within(3, 2)` exists in the database and the previous step generated
- `within_recursive(2, "North America")`, so rule 2 applies. It generates
- `within_recursive(3, "North America")`.
+1. `location(1, "North America", "continent")` exists in the database, so rule 1 applies. It generates `within_recursive(1, "North America")`.
+2. `within(2, 1)` exists in the database and the previous step generated `within_recursive(1, "North America")`, so rule 2 applies. It generates `within_recursive(2, "North America")`.
+3. `within(3, 2)` exists in the database and the previous step generated `within_recursive(2, "North America")`, so rule 2 applies. It generates `within_recursive(3, "North America")`.
 
 By repeated application of rules 1 and 2, the `within_recursive` virtual table can tell us all the
 locations in North America (or any other location) contained in our database.
@@ -1324,14 +1307,13 @@ referring to other rules, similarly to the way that you break down code into fun
 each other. Just like functions can be recursive, Datalog rules can also invoke themselves, like
 rule 2 in [Example 3-12](/en/ch3#fig_datalog_query), which enables graph traversals in Datalog queries.
 
-## GraphQL
+### GraphQL
 
 GraphQL is a query language that, by design, is much more restrictive than the other query languages
 we have seen in this chapter. The purpose of GraphQL is to allow client software running on a user’s
 device (such as a mobile app or a JavaScript web app frontend) to request a JSON document with a
 particular structure, containing the fields necessary for rendering its user interface. GraphQL
-interfaces allow developers to rapidly change queries in client code without changing server-side
-APIs.
+interfaces allow developers to rapidly change queries in client code without changing server-side APIs.
 
 GraphQL’s flexibility comes at a cost. Organizations that adopt GraphQL often need tooling to
 convert GraphQL queries into requests to internal services, which often use REST or gRPC (see
@@ -1351,27 +1333,27 @@ for the sender of the message. Moreover, if a message is a reply to another mess
 requests the sender name and the content of the message it is replying to (which might be rendered
 in a smaller font above the reply, in order to provide some context).
 
-##### Example 3-13. Example GraphQL query for a group chat application
+{{< figure id="fig_graphql_query" title="Example 3-13. Example GraphQL query for a group chat application" class="w-full my-4" >}}
 
 ```
 query ChatApp {
- channels {
- name
- recentMessages(latest: 50) {
- timestamp
- content
- sender {
- fullName
- imageUrl
- }
- replyTo {
- content
- sender {
- fullName
- }
- }
- }
- }
+    channels {
+        name
+        recentMessages(latest: 50) {
+            timestamp
+            content
+        sender {
+            fullName
+            imageUrl
+        }
+    replyTo {
+        content
+        sender {
+            fullName
+        }
+    }
+    }
+    }
 }
 ```
 
@@ -1384,31 +1366,31 @@ request a profile picture URL for the sender of the `replyTo` message, but if th
 were changed to add that profile picture, it would be easy for the client to add the required
 `imageUrl` attribute to the query without changing the server.
 
-##### Example 3-14. A possible response to the query in [Example 3-13](/en/ch3#fig_graphql_query)
+{{< figure id="fig_graphql_response" title="Example 3-14. A possible response to the query in [Example 3-13](/en/ch3#fig_graphql_query)" class="w-full my-4" >}}
 
-```
+```json
 {
- "data": {
- "channels": [
- {
- "name": "#general",
- "recentMessages": [
- {
- "timestamp": 1693143014,
- "content": "Hey! How are y'all doing?",
- "sender": {"fullName": "Aaliyah", "imageUrl": "https://..."},
- "replyTo": null
- },
- {
- "timestamp": 1693143024,
- "content": "Great! And you?",
- "sender": {"fullName": "Caleb", "imageUrl": "https://..."},
- "replyTo": {
- "content": "Hey! How are y'all doing?",
- "sender": {"fullName": "Aaliyah"}
- }
- },
- ...
+"data": {
+    "channels": [
+        {
+        "name": "#general",
+        "recentMessages": [
+        {
+        "timestamp": 1693143014,
+        "content": "Hey! How are y'all doing?",
+        "sender": {"fullName": "Aaliyah", "imageUrl": "https://..."},
+        "replyTo": null
+        },
+        {
+            "timestamp": 1693143024,
+            "content": "Great! And you?",
+            "sender": {"fullName": "Caleb", "imageUrl": "https://..."},
+            "replyTo": {
+            "content": "Hey! How are y'all doing?",
+            "sender": {"fullName": "Aaliyah"}
+        }
+},
+...
 ```
 
 In [Example 3-14](/en/ch3#fig_graphql_response) the name and image URL of a message sender is embedded directly in the
@@ -1433,7 +1415,8 @@ Even though the response to a GraphQL query looks similar to a response from a d
 and even though it has “graph” in the name, GraphQL can be implemented on top of any type of
 database—relational, document, or graph.
 
-# Event Sourcing and CQRS
+
+## Event Sourcing and CQRS
 
 In all the data models we have discussed so far, the data is queried in the same form as it is
 written—be it JSON documents, rows in tables, or vertices and edges in a graph. However, in complex
@@ -1475,8 +1458,7 @@ and a third that generates files for the printer that produces the attendees’ 
 The idea of using events as the source of truth, and expressing every state change as an event, is
 known as *event sourcing* [^62] [^63].
 The principle of maintaining separate read-optimized representations and deriving them from the
-write-optimized representation is called *command query responsibility segregation (CQRS)*
-[^64].
+write-optimized representation is called *command query responsibility segregation (CQRS)* [^64].
 These terms originated in the domain-driven design (DDD) community, although similar ideas have been
 around for a long time, for example in *state machine replication* (see [“Using shared logs”](/en/ch10#sec_consistency_smr)).
 
@@ -1562,7 +1544,8 @@ The only important requirement is that the event storage system must guarantee t
 views process the events in exactly the same order as they appear in the log; as we shall see in
 [Chapter 10](/en/ch10#ch_consistency), this is not always easy to achieve in a distributed system.
 
-# Dataframes, Matrices, and Arrays
+
+## Dataframes, Matrices, and Arrays
 
 The data models we have seen so far in this chapter are generally used for both transaction
 processing and analytics purposes (see [“Analytical versus Operational Systems”](/en/ch1#sec_introduction_analytics)). There are also some data
@@ -1589,8 +1572,7 @@ copy of the dataset, often on their local machine, although the end result may b
 users.
 
 Dataframe APIs also offer a wide variety of operations that go far beyond what relational databases
-offer, and the data model is often used in ways that are very different from typical relational data
-modelling [^65].
+offer, and the data model is often used in ways that are very different from typical relational data modelling [^65].
 For example, a common use of dataframes is to transform data from a relational-like representation
 into a matrix or multidimensional array representation, which is the form that many machine learning
 algorithms expect of their input.
@@ -1624,11 +1606,9 @@ like. Dataframes are flexible enough to allow data to be gradually evolved from 
 into a matrix representation, while giving the data scientist control over the representation that
 is most suitable for achieving the goals of the data analysis or model training process.
 
-There are also databases such as TileDB [^66]
-that specialize in storing large multidimensional arrays of numbers; they are called *array
+There are also databases such as TileDB [^66] that specialize in storing large multidimensional arrays of numbers; they are called *array
 databases* and are most commonly used for scientific datasets such as geospatial measurements
-(raster data on a regularly spaced grid), medical imaging, or observations from astronomical
-telescopes [^67].
+(raster data on a regularly spaced grid), medical imaging, or observations from astronomical telescopes [^67].
 Dataframes are also used in the financial industry for representing *time series data*, such as the
 prices of assets and trades over time [^68].
 
@@ -1672,8 +1652,7 @@ efficient queries, the event log is translated into read-optimized materialized 
 One thing that non-relational data models have in common is that they typically don’t enforce a
 schema for the data they store, which can make it easier to adapt applications to changing
 requirements. However, your application most likely still assumes that data has a certain structure;
-it’s just a question of whether the schema is explicit (enforced on write) or implicit (assumed on
-read).
+it’s just a question of whether the schema is explicit (enforced on write) or implicit (assumed on read).
 
 Although we have covered a lot of ground, there are still data models left unmentioned. To give just
 a few brief examples:

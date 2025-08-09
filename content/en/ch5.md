@@ -33,10 +33,8 @@ instantaneously:
 * With server-side applications you may want to perform a *rolling upgrade*
  (also known as a *staged rollout*), deploying the new version to a few nodes at a time, checking
  whether the new version is running smoothly, and gradually working your way through all the nodes.
- This allows new versions to be deployed without service downtime, and thus encourages more
- frequent releases and better evolvability.
-* With client-side applications you’re at the mercy of the user, who may not install the update for
- some time.
+ This allows new versions to be deployed without service downtime, and thus encourages more frequent releases and better evolvability.
+* With client-side applications you’re at the mercy of the user, who may not install the update for some time.
 
 This means that old and new versions of the code, and old and new data formats, may potentially all
 coexist in the system at the same time. In order for the system to continue running smoothly, we
@@ -61,9 +59,7 @@ desirable behavior is usually for the old code to keep the new field intact, eve
 be interpreted. But if the record is decoded into a model object that does not explicitly
 preserve unknown fields, data can be lost, like in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
 
-![ddia 0501](/fig/ddia_0501.png)
-
-###### Figure 5-1. When an older version of the application updates data previously written by a newer version of the application, data may be lost if you’re not careful.
+{{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="When an older version of the application updates data previously written by a newer version of the application, data may be lost if you’re not careful." class="w-full my-4" >}}
 
 In this chapter we will look at several formats for encoding data, including JSON, XML, Protocol
 Buffers, and Avro. In particular, we will look at how they handle schema changes and how they
@@ -72,7 +68,7 @@ formats are used for data storage and for communication: in databases, web servi
 remote procedure calls (RPC), workflow engines, and event-driven systems such as actors and
 message queues.
 
-# Formats for Encoding Data
+## Formats for Encoding Data
 
 Programs usually work with data in (at least) two different representations:
 
@@ -89,11 +85,15 @@ in-memory representation to a byte sequence is called *encoding* (also known as 
 *marshalling*), and the reverse is called *decoding* (*parsing*, *deserialization*,
 *unmarshalling*).
 
-# Terminology clash
+--------
+
+> [!TIP] TERMINOLOGY CLASH
 
 *Serialization* is unfortunately also used in the context of transactions (see [Chapter 8](/en/ch8#ch_transactions)),
 with a completely different meaning. To avoid overloading the word we’ll stick with *encoding* in
 this book, even though *serialization* is perhaps a more common term.
+
+--------
 
 There are exceptions in which encoding/decoding is not needed—for example, when a database operates
 directly on compressed data loaded from disk, as discussed in [“Query Execution: Compilation and Vectorization”](/en/ch4#sec_storage_vectorized). There are
@@ -104,7 +104,7 @@ However, most systems need to convert between in-memory objects and flat byte se
 such a common problem, there are a myriad different libraries and encoding formats to choose from.
 Let’s do a brief overview.
 
-## Language-Specific Formats
+### Language-Specific Formats
 
 Many programming languages come with built-in support for encoding in-memory objects into byte
 sequences. For example, Java has `java.io.Serializable`, Python has `pickle`, Ruby has `Marshal`,
@@ -123,8 +123,7 @@ restored with minimal additional code. However, they also have a number of deep 
  arbitrary classes, which in turn often allows them to do terrible things such as remotely
  executing arbitrary code [^2] [^3].
 * Versioning data is often an afterthought in these libraries: as they are intended for quick and
- easy encoding of data, they often neglect the inconvenient problems of forward and backward
- compatibility [^4].
+ easy encoding of data, they often neglect the inconvenient problems of forward and backward compatibility [^4].
 * Efficiency (CPU time taken to encode or decode, and the size of the encoded structure) is also
  often an afterthought. For example, Java’s built-in serialization is notorious for its bad
  performance and bloated encoding [^5].
@@ -132,7 +131,7 @@ restored with minimal additional code. However, they also have a number of deep 
 For these reasons it’s generally a bad idea to use your language’s built-in encoding for anything
 other than very transient purposes.
 
-## JSON, XML, and Binary Variants
+### JSON, XML, and Binary Variants
 
 When moving to standardized encodings that can be written and read by many programming languages, JSON
 and XML are the obvious contenders. They are widely known, widely supported, and almost as widely
@@ -178,7 +177,7 @@ another). In these situations, as long as people agree on what the format is, it
 matter how pretty or efficient the format is. The difficulty of getting different organizations to
 agree on *anything* outweighs most other concerns.
 
-### JSON Schema
+#### JSON Schema
 
 JSON Schema has become widely adopted as a way to model data whenever it’s exchanged between systems
 or written to storage. You’ll find JSON schemas in web services (see [“Web services”](/en/ch5#sec_web_services)) as part
@@ -204,18 +203,19 @@ type that can contain string keys, and values of any type. You can then constrai
 JSON Schema so that keys may only contain digits, and values can only be strings, using
 `patternProperties` and `additionalProperties` as shown in [Example 5-1](/en/ch5#fig_encoding_json_schema).
 
-##### Example 5-1. Example JSON Schema with integer keys and string values. Integer keys are represented as strings containing only integers since JSON Schema requires all keys to be strings.
+
+{{< figure id="fig_encoding_json_schema" title="Example 5-1. Example JSON Schema with integer keys and string values. Integer keys are represented as strings containing only integers since JSON Schema requires all keys to be strings." class="w-full my-4" >}}
 
 ```json
 {
- "$schema": "http://json-schema.org/draft-07/schema#",
- "type": "object",
- "patternProperties": {
- "^[0-9]+$": {
- "type": "string"
- }
- },
- "additionalProperties": false
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "patternProperties": {
+        "^[0-9]+$": {
+        "type": "string"
+    }
+    },
+    "additionalProperties": false
 }
 ```
 
@@ -223,17 +223,15 @@ In addition to open and closed content models and validators, JSON Schema suppor
 if/else schema logic, named types, references to remote schemas, and much more. All of this makes
 for a very powerful schema language. Such features also make for unwieldy definitions. It can be
 challenging to resolve remote schemas, reason about conditional rules, or evolve schemas in a
-forwards or backwards compatible way [^10].
-Similar concerns apply to XML Schema [^11].
+forwards or backwards compatible way [^10]. Similar concerns apply to XML Schema [^11].
 
-### Binary encoding
+#### Binary encoding
 
 JSON is less verbose than XML, but both still use a lot of space compared to binary formats. This
 observation led to the development of a profusion of binary encodings for JSON (MessagePack, CBOR,
 BSON, BJSON, UBJSON, BISON, Hessian, and Smile, to name a few) and for XML (WBXML and Fast Infoset,
 for example). These formats have been adopted in various niches, as they are more compact and
-sometimes faster to parse, but none of them are as widely adopted as the textual versions of JSON
-and XML [^12].
+sometimes faster to parse, but none of them are as widely adopted as the textual versions of JSON and XML [^12].
 
 Some of these formats extend the set of datatypes (e.g., distinguishing integers and floating-point numbers,
 or adding support for binary strings), but otherwise they keep the JSON/XML data model unchanged. In
@@ -241,13 +239,13 @@ particular, since they don’t prescribe a schema, they need to include all the 
 the encoded data. That is, in a binary encoding of the JSON document in [Example 5-2](/en/ch5#fig_encoding_json), they
 will need to include the strings `userName`, `favoriteNumber`, and `interests` somewhere.
 
-##### Example 5-2. Example record which we will encode in several binary formats in this chapter
+{{< figure id="fig_encoding_json" caption="Example 5-2. Example record which we will encode in several binary formats in this chapter" class="w-full my-4" >}}
 
 ```json
 {
- "userName": "Martin",
- "favoriteNumber": 1337,
- "interests": ["daydreaming", "hacking"]
+    "userName": "Martin",
+    "favoriteNumber": 1337,
+    "interests": ["daydreaming", "hacking"]
 }
 ```
 
@@ -270,13 +268,12 @@ textual JSON encoding (with whitespace removed). All the binary encodings of JSO
 this regard. It’s not clear whether such a small space reduction (and perhaps a speedup in parsing)
 is worth the loss of human-readability.
 
-In the following sections we will see how we can do much better, and encode the same record in just
-32 bytes.
+In the following sections we will see how we can do much better, and encode the same record in just 32 bytes.
 
-{{< figure src="/fig/ddia_0502.png" id="fig_encoding_messagepack" title="Figure 5-2. Example record ([Example 5-2](/en/ch5#fig_encoding_json)) encoded using MessagePack." class="w-full my-4" >}}
+{{< figure link="#fig_encoding_json" src="/fig/ddia_0502.png" id="fig_encoding_messagepack" caption="Figure 5-2. Example record Example 5-2 encoded using MessagePack." class="w-full my-4" >}}
 
 
-## Protocol Buffers
+### Protocol Buffers
 
 Protocol Buffers (protobuf) is a binary encoding library developed at Google.
 It is similar to Apache Thrift, which was originally developed by Facebook [^13];
@@ -286,13 +283,13 @@ Protocol Buffers requires a schema for any data that is encoded. To encode the d
 in [Example 5-2](/en/ch5#fig_encoding_json) in Protocol Buffers, you would describe the schema in the Protocol Buffers
 interface definition language (IDL) like this:
 
-```
+```protobuf
 syntax = "proto3";
 
 message Person {
- string user_name = 1;
- int64 favorite_number = 2;
- repeated string interests = 3;
+    string user_name = 1;
+    int64 favorite_number = 2;
+    repeated string interests = 3;
 }
 ```
 
@@ -302,10 +299,9 @@ application code can call this generated code to encode or decode records of the
 language is very simple compared to JSON Schema: it only defines the fields of records and their
 types, but it does not support other restrictions on the possible values of fields.
 
-Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in
-[Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
+Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in [Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
 
-{{< figure src="/fig/ddia_0503.png" id="fig_encoding_protobuf" title="Figure 5-3. Example record encoded using Protocol Buffers." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0503.png" id="fig_encoding_protobuf" caption="Figure 5-3. Example record encoded using Protocol Buffers." class="w-full my-4" >}}
 
 
 Similarly to [Figure 5-2](/en/ch5#fig_encoding_messagepack), each field has a type annotation (to indicate whether it
@@ -330,11 +326,10 @@ on the `interests` field indicates that the field contains a list of values, rat
 value. In the binary encoding, the list elements are represented simply as repeated occurrences of
 the same field tag within the same record.
 
-### Field tags and schema evolution
+#### Field tags and schema evolution
 
 We said previously that schemas inevitably need to change over time. We call this *schema
-evolution*. How does Protocol Buffers handle schema changes while keeping backward and forward
-compatibility?
+evolution*. How does Protocol Buffers handle schema changes while keeping backward and forward compatibility?
 
 As you can see from the examples, an encoded record is just the concatenation of its encoded fields.
 Each field is identified by its tag number (the numbers `1`, `2`, `3` in the sample schema) and
@@ -368,7 +363,7 @@ because the parser can fill in any missing bits with zeros. However, if old code
 by new code, the old code is still using a 32-bit variable to hold the value. If the decoded 64-bit
 value won’t fit in 32 bits, it will be truncated.
 
-## Avro
+### Avro
 
 Apache Avro is another binary encoding format that is interestingly different from Protocol Buffers.
 It was started in 2009 as a subproject of Hadoop, as a result of Protocol Buffers not being a good
@@ -381,25 +376,25 @@ and not complex validation rules like in JSON Schema.
 
 Our example schema, written in Avro IDL, might look like this:
 
-```
+```c
 record Person {
- string userName;
- union { null, long } favoriteNumber = null;
- array<string> interests;
+    string                  userName;
+    union { null, long }    favoriteNumber = null;
+    array<string>           interests;
 }
 ```
 
 The equivalent JSON representation of that schema is as follows:
 
-```
+```c
 {
- "type": "record",
- "name": "Person",
- "fields": [
- {"name": "userName", "type": "string"},
- {"name": "favoriteNumber", "type": ["null", "long"], "default": null},
- {"name": "interests", "type": {"type": "array", "items": "string"}}
- ]
+    "type": "record",
+    "name": "Person",
+    "fields": [
+        {"name": "userName",        "type": "string"},
+        {"name": "favoriteNumber",  "type": ["null", "long"], "default": null},
+        {"name": "interests",       "type": {"type": "array", "items": "string"}}
+    ]
 }
 ```
 
@@ -414,7 +409,7 @@ prefix followed by UTF-8 bytes, but there’s nothing in the encoded data that t
 string. It could just as well be an integer, or something else entirely. An integer is encoded using
 a variable-length encoding.
 
-{{< figure src="/fig/ddia_0504.png" id="fig_encoding_avro" title="Figure 5-4. Example record encoded using Avro." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0504.png" id="fig_encoding_avro" caption="Figure 5-4. Example record encoded using Avro." class="w-full my-4" >}}
 
 
 To parse the binary data, you go through the fields in the order that they appear in the schema and
@@ -425,7 +420,7 @@ decoded data.
 
 So, how does Avro support schema evolution?
 
-### The writer’s schema and the reader’s schema
+#### The writer’s schema and the reader’s schema
 
 When an application wants to encode some data (to write it to a file or database, to send it over
 the network, etc.), it encodes the data using whatever version of the schema it knows about—for
@@ -437,15 +432,12 @@ encoding, and the *reader’s schema*, which may be different. This is illustrat
 [Figure 5-5](/en/ch5#fig_encoding_avro_schemas). The reader’s schema defines the fields of each record that the
 application code is expecting, and their types.
 
-{{< figure src="/fig/ddia_0505.png" id="fig_encoding_avro_schemas" title="Figure 5-5. In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer's schema must be identical to the one used for encoding, but the reader's schema can be an older or newer version." class="w-full my-4" >}}
-
+{{< figure src="/fig/ddia_0505.png" id="fig_encoding_avro_schemas" caption="Figure 5-5. In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer's schema must be identical to the one used for encoding, but the reader's schema can be an older or newer version." class="w-full my-4" >}}
 
 If the reader’s and writer’s schema are the same, decoding is easy. If they are different, Avro
 resolves the differences by looking at the writer’s schema and the reader’s schema side by side and
-translating the data from the writer’s schema into the reader’s schema. The Avro specification
-[^16] [^17]
-defines exactly how this resolution works, and it is illustrated in
-[Figure 5-6](/en/ch5#fig_encoding_avro_resolution).
+translating the data from the writer’s schema into the reader’s schema. The Avro specification [^16] [^17]
+defines exactly how this resolution works, and it is illustrated in [Figure 5-6](/en/ch5#fig_encoding_avro_resolution).
 
 For example, it’s no problem if the writer’s schema and the reader’s schema have their fields in a
 different order, because the schema resolution matches up the fields by field name. If the code
@@ -454,10 +446,9 @@ schema, it is ignored. If the code reading the data expects some field, but the 
 not contain a field of that name, it is filled in with a default value declared in the reader’s
 schema.
 
-{{< figure src="/fig/ddia_0506.png" id="fig_encoding_avro_resolution" title="Figure 5-6. An Avro reader resolves differences between the writer's schema and the reader's schema." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0506.png" id="fig_encoding_avro_resolution" caption="Figure 5-6. An Avro reader resolves differences between the writer's schema and the reader's schema." class="w-full my-4" >}}
 
-
-### Schema evolution rules
+#### Schema evolution rules
 
 With Avro, forward compatibility means that you can have a new version of the schema as writer and
 an old version of the schema as reader. Conversely, backward compatibility means that you can have a
@@ -487,7 +478,7 @@ names, so it can match an old writer’s schema field names against the aliases.
 changing a field name is backward compatible but not forward compatible. Similarly, adding a branch
 to a union type is backward compatible but not forward compatible.
 
-### But what is the writer’s schema?
+#### But what is the writer’s schema?
 
 There is an important question that we’ve glossed over so far: how does the reader know the writer’s
 schema with which a particular piece of data was encoded? We can’t just include the entire schema
@@ -521,7 +512,7 @@ A database of schema versions is a useful thing to have in any case, since it ac
 and gives you a chance to check schema compatibility [^21].
 As the version number, you could use a simple incrementing integer, or you could use a hash of the schema.
 
-### Dynamically generated schemas
+#### Dynamically generated schemas
 
 One advantage of Avro’s approach, compared to Protocol Buffers, is that the schema doesn’t contain
 any tag numbers. But why is this important? What’s the problem with keeping a couple of numbers in
@@ -550,7 +541,7 @@ automate this, but the schema generator would have to be very careful to not ass
 field tags.) This kind of dynamically generated schema simply wasn’t a design goal of Protocol
 Buffers, whereas it was for Avro.
 
-## The Merits of Schemas
+### The Merits of Schemas
 
 As we saw, Protocol Buffers and Avro both use a schema to describe a binary encoding format. Their
 schema languages are much simpler than XML Schema or JSON Schema, which support much more detailed
@@ -589,7 +580,7 @@ In summary, schema evolution allows the same kind of flexibility as schemaless/s
 databases provide (see [“Schema flexibility in the document model”](/en/ch3#sec_datamodels_schema_flexibility)), while also providing better
 guarantees about your data and better tooling.
 
-# Modes of Dataflow
+## Modes of Dataflow
 
 At the beginning of this chapter we said that whenever you want to send some data to another process
 with which you don’t share memory—for example, whenever you want to send data over the network or
@@ -610,7 +601,7 @@ most common ways how data flows between processes:
 * Via workflow engines (see [“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows))
 * Via asynchronous messages (see [“Event-Driven Architectures”](/en/ch5#sec_encoding_dataflow_msg))
 
-## Dataflow Through Databases
+### Dataflow Through Databases
 
 In a database, the process that writes to the database encodes the data, and the process that reads
 from the database decodes it. There may just be a single process accessing the database, in which
@@ -632,7 +623,7 @@ This means that a value in the database may be written by a *newer* version of t
 subsequently read by an *older* version of the code that is still running. Thus, forward
 compatibility is also often required for databases.
 
-### Different values written at different times
+#### Different values written at different times
 
 A database generally allows any value to be updated at any time. This means that within a single
 database you may have some values that were written five milliseconds ago, and some values that were
@@ -657,7 +648,7 @@ More complex schema changes—for example, changing a single-valued attribute to
 moving some data into a separate table—still require data to be rewritten, often at the application level [^27].
 Maintaining forward and backward compatibility across such migrations is still a research problem [^28].
 
-### Archival storage
+#### Archival storage
 
 Perhaps you take a snapshot of your database from time to time, say for backup purposes or for
 loading into a data warehouse (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)). In this case, the data dump will typically
@@ -671,7 +662,7 @@ analytics-friendly column-oriented format such as Parquet (see [“Column Compre
 
 In [Link to Come] we will talk more about using data in archival storage.
 
-## Dataflow Through Services: REST and RPC
+### Dataflow Through Services: REST and RPC
 
 When you have processes that need to communicate over a network, there are a few different ways of
 arranging that communication. The most common arrangement is to have two roles: *clients* and
@@ -705,7 +696,7 @@ versions of the service frequently, without having to coordinate with other team
 therefore expect old and new versions of servers and clients to be running at the same time, and so
 the data encoding used by servers and clients must be compatible across versions of the service API.
 
-### Web services
+#### Web services
 
 When HTTP is used as the underlying protocol for talking to the service, it is called a *web
 service*. Web services are commonly used when building a service oriented or microservices
@@ -714,8 +705,7 @@ perhaps a slight misnomer, because web services are not only used on the web, bu
 different contexts. For example:
 
 1. A client application running on a user’s device (e.g., a native app on a mobile device, or a
- JavaScript web app in a browser) making requests to a service over HTTP. These requests typically
- go over the public internet.
+ JavaScript web app in a browser) making requests to a service over HTTP. These requests typically go over the public internet.
 2. One service making requests to another service owned by the same organization, often located
  within the same datacenter, as part of a service-oriented/microservices architecture.
 3. One service making requests to a service owned by a different organization, usually via the
@@ -741,30 +731,30 @@ Developers typically write OpenAPI service definitions in JSON or YAML; see [Exa
 The service definition allows developers to define service endpoints, documentation, versions, data
 models, and much more. gRPC definitions look similar, but are defined using Protocol Buffers service definitions.
 
-##### Example 5-3. Example OpenAPI service definition in YAML
+{{< figure id="fig_open_api_def" caption="Example 5-3. Example OpenAPI service definition in YAML" class="w-full my-4" >}}
 
 ```yaml
 openapi: 3.0.0
 info:
- title: Ping, Pong
- version: 1.0.0
+  title: Ping, Pong
+  version: 1.0.0
 servers:
- - url: http://localhost:8080
+  - url: http://localhost:8080
 paths:
- /ping:
- get:
- summary: Given a ping, returns a pong message
- responses:
- '200':
- description: A pong
- content:
- application/json:
- schema:
- type: object
- properties:
- message:
- type: string
- example: Pong!
+  /ping:
+    get:
+      summary: Given a ping, returns a pong message
+      responses:
+        '200':
+          description: A pong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Pong!
 ```
 
 Even if a design philosophy and IDL are adopted, developers must still write the code that
@@ -774,21 +764,21 @@ business logic for each API endpoint while the framework code handles routing, m
 authentication, and so on. [Example 5-4](/en/ch5#fig_fastapi_def) shows an example Python implementation of the service
 defined in [Example 5-3](/en/ch5#fig_open_api_def).
 
-##### Example 5-4. Example FastAPI service implementing the definition from [Example 5-3](/en/ch5#fig_open_api_def)
+{{< figure id="fig_fastapi_def" title="Example 5-4. Example FastAPI service implementing the definition from [Example 5-3](/en/ch5#fig_open_api_def)" class="w-full my-4" >}}
 
-```
+```python
 from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI(title="Ping, Pong", version="1.0.0")
 
 class PongResponse(BaseModel):
- message: str = "Pong!"
+    message: str = "Pong!"
 
 @app.get("/ping", response_model=PongResponse,
- summary="Given a ping, returns a pong message")
+         summary="Given a ping, returns a pong message")
 async def ping():
- return PongResponse()
+    return PongResponse()
 ```
 
 Many frameworks couple service definitions and server code together. In some cases, such as with the
@@ -799,24 +789,20 @@ in a variety of languages from the service definition. In addition to code gener
 such as Swagger’s can generate documentation, verify schema change compatibility, and provide a
 graphical user interfaces for developers to query and test services.
 
-### The problems with remote procedure calls (RPCs)
+#### The problems with remote procedure calls (RPCs)
 
 Web services are merely the latest incarnation of a long line of technologies for making API
 requests over a network, many of which received a lot of hype but have serious problems. Enterprise
 JavaBeans (EJB) and Java’s Remote Method Invocation (RMI) are limited to Java. The Distributed
 Component Object Model (DCOM) is limited to Microsoft platforms. The Common Object Request Broker
-Architecture (CORBA) is excessively complex, and does not provide backward or forward
-compatibility [^33].
+Architecture (CORBA) is excessively complex, and does not provide backward or forward compatibility [^33].
 SOAP and the WS-\* web services framework aim to provide interoperability across vendors, but are
-also plagued by complexity and compatibility problems
-[^34] [^35] [^36].
+also plagued by complexity and compatibility problems [^34] [^35] [^36].
 
-All of these are based on the idea of a *remote procedure call* (RPC), which has been around since
-the 1970s [^37].
+All of these are based on the idea of a *remote procedure call* (RPC), which has been around since the 1970s [^37].
 The RPC model tries to make a request to a remote network service look the same as calling a function or
 method in your programming language, within the same process (this abstraction is called *location
-transparency*). Although RPC seems convenient at first, the approach is fundamentally flawed
-[^38] [^39].
+transparency*). Although RPC seems convenient at first, the approach is fundamentally flawed [^38] [^39].
 A network request is very different from a local function call:
 
 * A local function call is predictable and either succeeds or fails, depending only on parameters
@@ -830,12 +816,9 @@ A network request is very different from a local function call:
  what happened: if you don’t get a response from the remote service, you have no way of knowing
  whether the request got through or not. (We discuss this issue in more detail in [Chapter 9](/en/ch9#ch_distributed).)
 * If you retry a failed network request, it could happen that the previous request actually got
- through, and only the response was lost.
- In that case, retrying will cause the action to
- be performed multiple times, unless you build a mechanism for deduplication (*idempotence*) into
- the protocol [^40].
- Local function calls don’t have this problem. (We discuss idempotence in more detail
- in [Link to Come].)
+ through, and only the response was lost. In that case, retrying will cause the action to
+ be performed multiple times, unless you build a mechanism for deduplication (*idempotence*) into the protocol [^40].
+ Local function calls don’t have this problem. (We discuss idempotence in more detail in [Link to Come].)
 * Every time you call a local function, it normally takes about the same time to execute. A network
  request is much slower than a function call, and its latency is also wildly variable: at good
  times it may complete in less than a millisecond, but when the network is congested or the remote
@@ -848,15 +831,15 @@ A network request is very different from a local function call:
 * The client and the service may be implemented in different programming languages, so the RPC
  framework must translate datatypes from one language into another. This can end up ugly, since not
  all languages have the same types—recall JavaScript’s problems with numbers greater than 253,
- for example (see [“JSON, XML, and Binary Variants”](/en/ch5#sec_encoding_json)). This problem doesn’t exist in a single process written in
- a single language.
+ for example (see [“JSON, XML, and Binary Variants”](/en/ch5#sec_encoding_json)).
+ This problem doesn’t exist in a single process written in a single language.
 
 All of these factors mean that there’s no point trying to make a remote service look too much like a
 local object in your programming language, because it’s a fundamentally different thing. Part of the
 appeal of REST is that it treats state transfer over a network as a process that is distinct from a
 function call.
 
-### Load balancers, service discovery, and service meshes
+#### Load balancers, service discovery, and service meshes
 
 All services communicate over the network. For this reason, a client must know the address of the
 service it’s connecting to—a problem known as *service discovery*. The simplest approach is to
@@ -866,8 +849,7 @@ overloaded, the client has to be manually reconfigured.
 
 To provide higher availability and scalability, there are usually multiple instances of a service
 running on different machines, any of which can handle an incoming request. Spreading requests
-across these instances is called *load balancing*
-[^41].
+across these instances is called *load balancing* [^41].
 There are many load balancing and service discovery solutions available:
 
 * *Hardware load balancers* are specialized pieces of equipment that are installed in data centers.
@@ -915,7 +897,7 @@ as Istio or Linkerd. Specialized infrastructure such as databases or messaging s
 their own purpose-built load balancer. Simpler deployments are best served with software load
 balancers.
 
-### Data encoding and evolution for RPC
+#### Data encoding and evolution for RPC
 
 For evolvability, it is important that RPC clients and servers can be changed and deployed
 independently. Compared to data flowing through databases (as described in the last section), we can make a
@@ -923,11 +905,9 @@ simplifying assumption in the case of dataflow through services: it is reasonabl
 all the servers will be updated first, and all the clients second. Thus, you only need backward
 compatibility on requests, and forward compatibility on responses.
 
-The backward and forward compatibility properties of an RPC scheme are inherited from whatever
-encoding it uses:
+The backward and forward compatibility properties of an RPC scheme are inherited from whatever encoding it uses:
 
-* gRPC (Protocol Buffers) and Avro RPC can be evolved according to the compatibility rules of the
- respective encoding format.
+* gRPC (Protocol Buffers) and Avro RPC can be evolved according to the compatibility rules of the respective encoding format.
 * RESTful APIs most commonly use JSON for responses, and JSON or URI-encoded/form-encoded request
  parameters for requests. Adding optional request parameters and adding new fields to response
  objects are usually considered changes that maintain compatibility.
@@ -945,7 +925,7 @@ number in the URL or in the HTTP `Accept` header. For services that use API keys
 particular client, another option is to store a client’s requested API version on the server and to
 allow this version selection to be updated through a separate administrative interface [^43].
 
-## Durable Execution and Workflows
+### Durable Execution and Workflows
 
 By definition, service-based architectures have multiple services that are all responsible for
 different portions of an application. Consider a payment processing application that charges a
@@ -960,11 +940,14 @@ Workflows are typically defined as a graph of tasks. Workflow definitions may be
 general-purpose programming language, a domain specific language (DSL), or a markup language such as
 Business Process Execution Language (BPEL) [^44].
 
-# Tasks, Activities, and Functions
+--------
+
+> [!TIP] Tasks, Activities, and Functions
 
 Different workflow engines use different names for tasks. Temporal, for example, uses the term
-*activity*. Others refer to tasks as *durable functions*. Though the names differ, the concepts are
-the same.
+*activity*. Others refer to tasks as *durable functions*. Though the names differ, the concepts are the same.
+
+--------
 
 {{< figure src="/fig/ddia_0507.png" id="fig_encoding_workflow" title="Figure 5-7. Example of a workflow expressed using Business Process Model and Notation (BPMN), a graphical notation." class="w-full my-4" >}}
 
@@ -986,7 +969,7 @@ as Camunda and Orkes, provide a graphical notation for workflows (such as BPMN, 
 [Figure 5-7](/en/ch5#fig_encoding_workflow)) so that non-engineers can more easily define and execute workflows. Still
 others, such as Temporal and Restate provide *durable execution*.
 
-### Durable execution
+#### Durable execution
 
 Durable execution frameworks have become a popular way to build service-based architectures that
 require transactionality. In our payment example, we would like to process each payment exactly
@@ -999,31 +982,30 @@ Durable execution frameworks are a way to provide *exactly-once semantics* for w
 task fails, the framework will re-execute the task, but will skip any RPC calls or state changes
 that the task made successfully before failing. Instead, the framework will pretend to make the
 call, but will instead return the results from the previous call. This is possible because durable
-execution frameworks log all RPCs and state changes to durable storage like a write-ahead log
-[^45] [^46].
+execution frameworks log all RPCs and state changes to durable storage like a write-ahead log [^45] [^46].
 [Example 5-5](/en/ch5#fig_temporal_workflow) shows an example of a workflow definition that supports durable execution
 using Temporal.
 
-##### Example 5-5. A Temporal workflow definition fragment for the payment workflow in [Figure 5-7](/en/ch5#fig_encoding_workflow).
+{{< figure id="fig_temporal_workflow" title="Example 5-5. A Temporal workflow definition fragment for the payment workflow in [Figure 5-7](/en/ch5#fig_encoding_workflow)." class="w-full my-4" >}}
 
-```
+```python
 @workflow.defn
 class PaymentWorkflow:
- @workflow.run
- async def run(self, payment: PaymentRequest) -> PaymentResult:
- is_fraud = await workflow.execute_activity(
- check_fraud,
- payment,
- start_to_close_timeout=timedelta(seconds=15),
- )
- if is_fraud:
- return PaymentResultFraudulent
- credit_card_response = await workflow.execute_activity(
- debit_credit_card,
- payment,
- start_to_close_timeout=timedelta(seconds=15),
- )
- # ...
+    @workflow.run
+    async def run(self, payment: PaymentRequest) -> PaymentResult:
+        is_fraud = await workflow.execute_activity(
+            check_fraud,
+            payment,
+            start_to_close_timeout=timedelta(seconds=15),
+        )
+        if is_fraud:
+            return PaymentResultFraudulent
+        credit_card_response = await workflow.execute_activity(
+            debit_credit_card,
+            payment,
+            start_to_close_timeout=timedelta(seconds=15),
+        )
+        # ...
 ```
 
 Frameworks like Temporal are not without their challenges. External services, such as the
@@ -1037,18 +1019,20 @@ code separately, so that re-executions of existing workflow invocations continue
 version, and only new invocations use the new code [^49].
 
 Similarly, because durable execution frameworks expect to replay all code deterministically (the
-same inputs produce the same outputs), nondeterministic code such as random number generators or
-system clocks are problematic [^48].
+same inputs produce the same outputs), nondeterministic code such as random number generators or system clocks are problematic [^48].
 Frameworks often provide their own, deterministic implementations of such library functions, but
 you have to remember to use them. In some cases, such as with Temporal’s workflowcheck tool,
-frameworks provide static analysis tools to determine if nondeterministic behavior has been
-introduced.
+frameworks provide static analysis tools to determine if nondeterministic behavior has been introduced.
+
+--------
 
 > [!NOTE]
 > Making code deterministic is a powerful idea, but tricky to do robustly. In
 > [“The Power of Determinism”](/en/ch9#sidebar_distributed_determinism) we will return to this topic.
 
-## Event-Driven Architectures
+--------
+
+### Event-Driven Architectures
 
 In this final section, we will briefly look at *event-driven architectures*, which are another way
 how encoded data can flow from one process to another. A request is called an *event* or *message*;
@@ -1059,21 +1043,17 @@ intermediary called a *message broker* (also called an *event broker*, *message 
 
 Using a message broker has several advantages compared to direct RPC:
 
-* It can act as a buffer if the recipient is unavailable or overloaded, and thus improve system
- reliability.
-* It can automatically redeliver messages to a process that has crashed, and thus prevent messages from
- being lost.
-* It avoids the need for service discovery, since senders do not need to directly connect to the IP
- address of the recipient.
+* It can act as a buffer if the recipient is unavailable or overloaded, and thus improve system reliability.
+* It can automatically redeliver messages to a process that has crashed, and thus prevent messages from being lost.
+* It avoids the need for service discovery, since senders do not need to directly connect to the IP address of the recipient.
 * It allows the same message to be sent to several recipients.
-* It logically decouples the sender from the recipient (the sender just publishes messages and
- doesn’t care who consumes them).
+* It logically decouples the sender from the recipient (the sender just publishes messages and doesn’t care who consumes them).
 
 The communication via a message broker is *asynchronous*: the sender doesn’t wait for the message to
 be delivered, but simply sends it and then forgets about it. It’s possible to implement a
 synchronous RPC-like model by having the sender wait for a response on a separate channel.
 
-### Message brokers
+#### Message brokers
 
 In the past, the landscape of message brokers was dominated by commercial enterprise software from
 companies such as TIBCO, IBM WebSphere, and webMethods, before open source implementations such as
@@ -1092,10 +1072,8 @@ message distribution patterns are most often used:
 Message brokers typically don’t enforce any particular data model—a message is just a sequence of
 bytes with some metadata, so you can use any encoding format. A common approach is to use Protocol
 Buffers, Avro, or JSON, and to deploy a schema registry alongside the message broker to store all
-the valid schema versions and check their compatibility
-[^19] [^21].
-AsyncAPI, a messaging-based equivalent of OpenAPI, can also be used to specify the schema of
-messages.
+the valid schema versions and check their compatibility [^19] [^21].
+AsyncAPI, a messaging-based equivalent of OpenAPI, can also be used to specify the schema of messages.
 
 Message brokers differ in terms of how durable their messages are. Many write messages to disk, so
 that they are not lost in case the message broker crashes or needs to be restarted. Unlike
@@ -1107,7 +1085,7 @@ If a consumer republishes messages to another topic, you may need to be careful 
 fields, to prevent the issue described previously in the context of databases
 ([Figure 5-1](/en/ch5#fig_encoding_preserve_field)).
 
-### Distributed actor frameworks
+#### Distributed actor frameworks
 
 The *actor model* is a programming model for concurrency in a single process. Rather than dealing
 directly with threads (and the associated problems of race conditions, locking, and deadlock), logic
@@ -1133,6 +1111,7 @@ model into a single framework. However, if you want to perform rolling upgrades 
 application, you still have to worry about forward and backward compatibility, as messages may be
 sent from a node running the new version to a node running the old version, and vice versa. This can
 be achieved by using one of the encodings discussed in this chapter.
+
 
 ## Summary
 
