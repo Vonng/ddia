@@ -165,9 +165,7 @@ representing such *one-to-many relationships* is to put positions, education, an
 information in separate tables, with a foreign key reference to the `users` table, as in
 [Figure 3-1](/en/ch3#fig_obama_relational).
 
-![ddia 0301](/fig/ddia_0301.png)
-
-###### Figure 3-1. Representing a LinkedIn profile using a relational schema.
+{{< figure src="/fig/ddia_0301.png" id="fig_obama_relational" title="Figure 3-1. Representing a LinkedIn profile using a relational schema." class="w-full my-4" >}}
 
 Another way of representing the same information, which is perhaps more natural and maps more
 closely to an object structure in application code, is as a JSON document as shown in
@@ -214,9 +212,7 @@ The one-to-many relationships from the user profile to the user’s positions, e
 contact information imply a tree structure in the data, and the JSON representation makes this tree
 structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 
-![ddia 0302](/fig/ddia_0302.png)
-
-###### Figure 3-2. One-to-many relationships forming a tree structure.
+{{< figure src="/fig/ddia_0302.png" id="fig_json_tree" title="Figure 3-2. One-to-many relationships forming a tree structure." class="w-full my-4" >}}
 
 > [!NOTE]
 > This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé typically has a small number of positions [^9] [^10].
@@ -388,9 +384,7 @@ an organization has several past or present employees). In a relational model, s
 is usually represented as an *associative table* or *join table*, as shown in
 [Figure 3-3](/en/ch3#fig_datamodels_m2m_rel): each position associates one user ID with one organization ID.
 
-![ddia 0303](/fig/ddia_0303.png)
-
-###### Figure 3-3. Many-to-many relationships in the relational model.
+{{< figure src="/fig/ddia_0303.png" id="fig_datamodels_m2m_rel" title="Figure 3-3. Many-to-many relationships in the relational model." class="w-full my-4" >}}
 
 Many-to-one and many-to-many relationships do not easily fit within one self-contained JSON
 document; they lend themselves more to a normalized representation. In a document model, one
@@ -414,9 +408,7 @@ documents.
 }
 ```
 
-![ddia 0304](/fig/ddia_0304.png)
-
-###### Figure 3-4. Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document.
+{{< figure src="/fig/ddia_0304.png" id="fig_datamodels_many_to_many" title="Figure 3-4. Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document." class="w-full my-4" >}}
 
 Many-to-many relationships often need to be queried in “both directions”: for example, finding all
 of the organizations that a particular person has worked for, and finding all of the people who have
@@ -450,9 +442,7 @@ retailer. At the center of the schema is a so-called *fact table* (in this examp
 (here, each row represents a customer’s purchase of a product). If we were analyzing website traffic
 rather than retail sales, each row might represent a page view or a click by a user.
 
-![ddia 0305](/fig/ddia_0305.png)
-
-###### Figure 3-5. Example of a star schema for use in a data warehouse.
+{{< figure src="/fig/ddia_0305.png" id="fig_dwh_schema" title="Figure 3-5. Example of a star schema for use in a data warehouse." class="w-full my-4" >}}
 
 Usually, facts are captured as individual events, because this allows maximum flexibility of
 analysis later. However, this means that the fact table can become extremely large. A big enterprise
@@ -775,9 +765,7 @@ are married and living in London. Each person and each location is represented a
 relationships between them as edges. This example will help demonstrate some queries that are easy
 in graph databases, but difficult in other models.
 
-![ddia 0306](/fig/ddia_0306.png)
-
-###### Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges).
+{{< figure src="/fig/ddia_0306.png" id="fig_datamodels_graph" title="Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges)." class="w-full my-4" >}}
 
 ## Property Graphs
 
@@ -1271,7 +1259,7 @@ before if you’ve studied computer science.
 
 ##### Example 3-12. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in Datalog
 
-```
+```sql
 within_recursive(LocID, PlaceName) :- location(LocID, PlaceName, _). /* Rule 1 */
 
 within_recursive(LocID, PlaceName) :- within(LocID, ViaID), /* Rule 2 */
@@ -1320,9 +1308,9 @@ One possible way of applying the rules is thus (and as illustrated in [Figure 3
 By repeated application of rules 1 and 2, the `within_recursive` virtual table can tell us all the
 locations in North America (or any other location) contained in our database.
 
-![ddia 0307](/fig/ddia_0307.png)
+{{< figure link="#fig_datalog_query" src="/fig/ddia_0307.png" id="fig_datalog_naive" title="Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from Example 3-12." class="w-full my-4" >}}
 
-###### Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from [Example 3-12](/en/ch3#fig_datalog_query).
+> Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from [Example 3-12](/en/ch3#fig_datalog_query).
 
 Now rule 3 can find people who were born in some location `BornIn` and live in some location
 `LivingIn`. Rule 4 invokes rule 3 with `BornIn = 'United States'` and
@@ -1474,9 +1462,7 @@ and so on. Reservations may also be cancelled, and meanwhile, the conference org
 the capacity of the event by moving it to a different room. With all of this going on, simply
 calculating the number of available seats becomes a challenging query.
 
-![ddia 0308](/fig/ddia_0308.png)
-
-###### Figure 3-8. Using a log of immutable events as source of truth, and deriving materialized views from it.
+{{< figure src="/fig/ddia_0308.png" id="fig_event_sourcing" title="Figure 3-8. Using a log of immutable events as source of truth, and deriving materialized views from it." class="w-full my-4" >}}
 
 In [Figure 3-8](/en/ch3#fig_event_sourcing), every change to the state of the conference (such as the organizer
 opening registrations, or attendees making and cancelling registrations) is first stored as an
@@ -1617,9 +1603,7 @@ is no data for many user-movie combinations, but this is fine. This matrix may h
 of columns and would therefore not fit well in a relational database, but dataframes and libraries
 that offer sparse arrays (such as NumPy for Python) can handle such data easily.
 
-![ddia 0309](/fig/ddia_0309.png)
-
-###### Figure 3-9. Transforming a relational database of movie ratings into a matrix representation.
+{{< figure src="/fig/ddia_0309.png" id="fig_dataframe_to_matrix" title="Figure 3-9. Transforming a relational database of movie ratings into a matrix representation." class="w-full my-4" >}}
 
 A matrix can only contain numbers, and various techniques are used to transform non-numerical data
 into numbers in the matrix. For example:

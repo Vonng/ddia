@@ -243,7 +243,7 @@ will need to include the strings `userName`, `favoriteNumber`, and `interests` s
 
 ##### Example 5-2. Example record which we will encode in several binary formats in this chapter
 
-```
+```json
 {
  "userName": "Martin",
  "favoriteNumber": 1337,
@@ -273,9 +273,8 @@ is worth the loss of human-readability.
 In the following sections we will see how we can do much better, and encode the same record in just
 32 bytes.
 
-![ddia 0502](/fig/ddia_0502.png)
+{{< figure src="/fig/ddia_0502.png" id="fig_encoding_messagepack" title="Figure 5-2. Example record ([Example 5-2](/en/ch5#fig_encoding_json)) encoded using MessagePack." class="w-full my-4" >}}
 
-###### Figure 5-2. Example record ([Example 5-2](/en/ch5#fig_encoding_json)) encoded using MessagePack.
 
 ## Protocol Buffers
 
@@ -306,9 +305,8 @@ types, but it does not support other restrictions on the possible values of fiel
 Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in
 [Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
 
-![ddia 0503](/fig/ddia_0503.png)
+{{< figure src="/fig/ddia_0503.png" id="fig_encoding_protobuf" title="Figure 5-3. Example record encoded using Protocol Buffers." class="w-full my-4" >}}
 
-###### Figure 5-3. Example record encoded using Protocol Buffers.
 
 Similarly to [Figure 5-2](/en/ch5#fig_encoding_messagepack), each field has a type annotation (to indicate whether it
 is a string, integer, etc.) and, where required, a length indication (such as the length of a
@@ -416,9 +414,8 @@ prefix followed by UTF-8 bytes, but there’s nothing in the encoded data that t
 string. It could just as well be an integer, or something else entirely. An integer is encoded using
 a variable-length encoding.
 
-![ddia 0504](/fig/ddia_0504.png)
+{{< figure src="/fig/ddia_0504.png" id="fig_encoding_avro" title="Figure 5-4. Example record encoded using Avro." class="w-full my-4" >}}
 
-###### Figure 5-4. Example record encoded using Avro.
 
 To parse the binary data, you go through the fields in the order that they appear in the schema and
 use the schema to tell you the datatype of each field. This means that the binary data can only be
@@ -440,9 +437,8 @@ encoding, and the *reader’s schema*, which may be different. This is illustrat
 [Figure 5-5](/en/ch5#fig_encoding_avro_schemas). The reader’s schema defines the fields of each record that the
 application code is expecting, and their types.
 
-![ddia 0505](/fig/ddia_0505.png)
+{{< figure src="/fig/ddia_0505.png" id="fig_encoding_avro_schemas" title="Figure 5-5. In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer's schema must be identical to the one used for encoding, but the reader's schema can be an older or newer version." class="w-full my-4" >}}
 
-###### Figure 5-5. In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer’s schema must be identical to the one used for encoding, but the reader’s schema can be an older or newer version.
 
 If the reader’s and writer’s schema are the same, decoding is easy. If they are different, Avro
 resolves the differences by looking at the writer’s schema and the reader’s schema side by side and
@@ -458,9 +454,8 @@ schema, it is ignored. If the code reading the data expects some field, but the 
 not contain a field of that name, it is filled in with a default value declared in the reader’s
 schema.
 
-![ddia 0506](/fig/ddia_0506.png)
+{{< figure src="/fig/ddia_0506.png" id="fig_encoding_avro_resolution" title="Figure 5-6. An Avro reader resolves differences between the writer's schema and the reader's schema." class="w-full my-4" >}}
 
-###### Figure 5-6. An Avro reader resolves differences between the writer’s schema and the reader’s schema.
 
 ### Schema evolution rules
 
@@ -515,11 +510,7 @@ Database with individually written records
  and then fetch the writer’s schema for that version number from the database. Using that writer’s
  schema, it can decode the rest of the record.
 
- Confluent’s schema registry for Apache Kafka
- [^19]
- and LinkedIn’s Espresso
- [^20]
- work this way, for example.
+ Confluent’s schema registry for Apache Kafka [^19] and LinkedIn’s Espresso [^20] work this way, for example.
 
 Sending records over a network connection
 : When two processes are communicating over a bidirectional network connection, they can negotiate
@@ -528,8 +519,7 @@ Sending records over a network connection
 
 A database of schema versions is a useful thing to have in any case, since it acts as documentation
 and gives you a chance to check schema compatibility [^21].
-As the version number, you could use a simple incrementing integer, or you could use a hash of the
-schema.
+As the version number, you could use a simple incrementing integer, or you could use a hash of the schema.
 
 ### Dynamically generated schemas
 
@@ -570,13 +560,11 @@ implement and simpler to use, they have grown to support a fairly wide range of 
 languages.
 
 The ideas on which these encodings are based are by no means new. For example, they have a lot in
-common with ASN.1, a schema definition language that was first standardized in 1984
-[^23] [^24].
+common with ASN.1, a schema definition language that was first standardized in 1984 [^23] [^24].
 It was used to define various network protocols, and its binary encoding (DER) is still used to encode
 SSL certificates (X.509), for example [^25].
 ASN.1 supports schema evolution using tag numbers, similar to Protocol Buffers [^26].
-However, it’s also very complex and badly documented, so ASN.1
-is probably not a good choice for new applications.
+However, it’s also very complex and badly documented, so ASN.1 is probably not a good choice for new applications.
 
 Many data systems also implement some kind of proprietary binary encoding for their data. For
 example, most relational databases have a network protocol over which you can send queries to the
@@ -666,8 +654,7 @@ schema, even though the underlying storage may contain records encoded with vari
 versions of the schema.
 
 More complex schema changes—for example, changing a single-valued attribute to be multi-valued, or
-moving some data into a separate table—still require data to be rewritten, often at the application
-level [^27].
+moving some data into a separate table—still require data to be rewritten, often at the application level [^27].
 Maintaining forward and backward compatibility across such migrations is still a research problem [^28].
 
 ### Archival storage
@@ -736,8 +723,7 @@ different contexts. For example:
  category includes public APIs provided by online services, such as credit card processing
  systems, or OAuth for shared access to user data.
 
-The most popular service design philosophy is REST, which builds upon the principles of HTTP
-[^30] [^31].
+The most popular service design philosophy is REST, which builds upon the principles of HTTP [^30] [^31].
 It emphasizes simple data formats, using URLs for identifying resources and using HTTP features for
 cache control, authentication, and content type negotiation. An API designed according to the
 principles of REST is called *RESTful*.
@@ -753,12 +739,11 @@ and receive Protocol Buffers.
 
 Developers typically write OpenAPI service definitions in JSON or YAML; see [Example 5-3](/en/ch5#fig_open_api_def).
 The service definition allows developers to define service endpoints, documentation, versions, data
-models, and much more. gRPC definitions look similar, but are defined using Protocol Buffers service
-definitions.
+models, and much more. gRPC definitions look similar, but are defined using Protocol Buffers service definitions.
 
 ##### Example 5-3. Example OpenAPI service definition in YAML
 
-```
+```yaml
 openapi: 3.0.0
 info:
  title: Ping, Pong
@@ -981,9 +966,8 @@ Different workflow engines use different names for tasks. Temporal, for example,
 *activity*. Others refer to tasks as *durable functions*. Though the names differ, the concepts are
 the same.
 
-![ddia 0507](/fig/ddia_0507.png)
+{{< figure src="/fig/ddia_0507.png" id="fig_encoding_workflow" title="Figure 5-7. Example of a workflow expressed using Business Process Model and Notation (BPMN), a graphical notation." class="w-full my-4" >}}
 
-###### Figure 5-7. Example of a workflow expressed using Business Process Model and Notation (BPMN), a graphical notation.
 
 Workflows are run, or executed, by a *workflow engine*. Workflow engines determine when to run each
 task, on which machine a task must be run, what to do if a task fails (e.g., if the machine crashes

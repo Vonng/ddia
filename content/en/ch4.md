@@ -41,7 +41,7 @@ queries, such as text retrieval.
 
 Consider the world’s simplest database, implemented as two Bash functions:
 
-```
+```bash
 #!/bin/bash
 
 db_set () {
@@ -60,14 +60,13 @@ recent value associated with that particular key and returns it.
 
 And it works:
 
-```
+```bash
 $ db_set 12 '{"name":"London","attractions":["Big Ben","London Eye"]}'
 
 $ db_set 42 '{"name":"San Francisco","attractions":["Golden Gate Bridge"]}'
 
 $ db_get 42
 {"name":"San Francisco","attractions":["Golden Gate Bridge"]}
-
 ```
 
 The storage format is very simple: a text file where each line contains a key-value pair, separated
@@ -76,7 +75,7 @@ the end of the file. If you update a key several times, old versions of the valu
 overwritten—you need to look at the last occurrence of a key in a file to find the latest value
 (hence the `tail -n 1` in `db_get`):
 
-```
+```bash
 $ db_set 42 '{"name":"San Francisco","attractions":["Exploratorium"]}'
 
 $ db_get 42
@@ -136,9 +135,7 @@ To start, let’s assume that you want to continue storing data in the append-on
 memory, in which every key is mapped to the byte offset in the file at which the most recent value
 for that key can be found, as illustrated in [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
 
-![ddia 0401](/fig/ddia_0401.png)
-
-###### Figure 4-1. Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map.
+{{< figure src="/fig/ddia_0401.png" id="fig_storage_csv_hash_index" title="Figure 4-1. Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map." class="w-full my-4" >}}
 
 Whenever you append a new key-value pair to the file, you also update the hash map to reflect the
 offset of the data you just wrote. When you want to look up a value, you use the hash map to find
@@ -162,15 +159,12 @@ This approach is much faster, but it still suffers from several problems:
 ### The SSTable file format
 
 In practice, hash tables are not used very often for database indexes, and instead it is much more
-common to keep data in a structure that is *sorted by key*
-[^3].
+common to keep data in a structure that is *sorted by key* [^3].
 One example of such a structure is a *Sorted String Table*, or *SSTable* for short, as shown in
 [Figure 4-2](/en/ch4#fig_storage_sstable_index). This file format also stores key-value pairs, but it ensures that
 they are sorted by key, and each key only appears once in the file.
 
-![ddia 0402](/fig/ddia_0402.png)
-
-###### Figure 4-2. An SSTable with a sparse index, allowing queries to jump to the right block.
+{{< figure src="/fig/ddia_0402.png" id="fig_storage_sstable_index" title="Figure 4-2. An SSTable with a sparse index, allowing queries to jump to the right block." class="w-full my-4" >}}
 
 Now you do not need to keep all the keys in memory: you can group the key-value pairs within an
 SSTable into *blocks* of a few kilobytes, and then store the first key of each block in the index.
@@ -224,9 +218,7 @@ the same key appears in more than one input file, keep only the more recent valu
 new merged segment file, also sorted by key, with one value per key, and it uses minimal memory
 because we can iterate over the SSTables one key at a time.
 
-![ddia 0403](/fig/ddia_0403.png)
-
-###### Figure 4-3. Merging several SSTable segments, retaining only the most recent value for each key.
+{{< figure src="/fig/ddia_0403.png" id="fig_storage_sstable_merging" title="Figure 4-3. Merging several SSTable segments, retaining only the most recent value for each key." class="w-full my-4" >}}
 
 To ensure that the data in the memtable is not lost if the database crashes, the storage engine
 keeps a separate log on disk to which every write is immediately appended. This log is not sorted by
@@ -285,9 +277,7 @@ We set the bits corresponding to those indexes to 1, and leave the rest as 0. Fo
 is then stored as part of the SSTable, along with the sparse index of keys. This takes a bit of
 extra space, but the Bloom filter is generally small compared to the rest of the SSTable.
 
-![ddia 0404](/fig/ddia_0404.png)
-
-###### Figure 4-4. A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable.
+{{< figure src="/fig/ddia_0404.png" id="fig_storage_bloom" title="Figure 4-4. A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable." class="w-full my-4" >}}
 
 When we want to know whether a key appears in the SSTable, we compute the same hash of that key as
 before, and check the bits at those indexes. For example, in [Figure 4-4](/en/ch4#fig_storage_bloom), we’re querying
@@ -366,8 +356,7 @@ for scaling a database across multiple machines.
 The log-structured approach is popular, but it is not the only form of key-value storage. The most
 widely used structure for reading and writing database records by key is the *B-tree*.
 
-Introduced in 1970 [^21]
-and called “ubiquitous” less than 10 years later [^22],
+Introduced in 1970 [^21] and called “ubiquitous” less than 10 years later [^22],
 B-trees have stood the test of time very well. They remain the standard index implementation in
 almost all relational databases, and many nonrelational databases use them too.
 
@@ -387,9 +376,7 @@ multiplying the page number by the page size gives us the byte offset in the fil
 located. We can use these page references to construct a tree of pages, as illustrated in
 [Figure 4-5](/en/ch4#fig_storage_b_tree).
 
-![ddia 0405](/fig/ddia_0405.png)
-
-###### Figure 4-5. Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270.
+{{< figure src="/fig/ddia_0405.png" id="fig_storage_b_tree" title="Figure 4-5. Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270." class="w-full my-4" >}}
 
 One page is designated as the *root* of the B-tree; whenever you want to look up a key in the index,
 you start here. The page contains several keys and references to child pages.
@@ -416,9 +403,7 @@ it to that page. If there isn’t enough free space in the page to accommodate t
 is split into two half-full pages, and the parent page is updated to account for the new subdivision
 of key ranges.
 
-![ddia 0406](/fig/ddia_0406.png)
-
-###### Figure 4-6. Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children.
+{{< figure src="/fig/ddia_0406.png" id="fig_storage_b_tree_split" title="Figure 4-6. Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children." class="w-full my-4" >}}
 
 In the example of [Figure 4-6](/en/ch4#fig_storage_b_tree_split), we want to insert the key 334, but the page for the
 range 333–345 is already full. We therefore split it into a page for the range 333–337 (including
@@ -444,8 +429,7 @@ modify files in place.
 Overwriting several pages at once, like in a page split, is a dangerous operation: if the database
 crashes after only some of the pages have been written, you end up with a corrupted tree (e.g.,
 there may be an *orphan* page that is not a child of any parent). If the hardware can’t atomically
-write an entire page, you can also end up with a partially written page (this is known as a *torn
-page* [^23]).
+write an entire page, you can also end up with a partially written page (this is known as a *torn page* [^23]).
 
 In order to make the database resilient to crashes, it is common for B-tree implementations to
 include an additional data structure on disk: a *write-ahead log* (WAL). This is an append-only file
@@ -509,8 +493,7 @@ High write throughput can cause latency spikes in a log-structured storage engin
 memtable fills up. This happens if data can’t be written out to disk fast enough, perhaps because
 the compaction process cannot keep up with incoming writes. Many storage engines, including RocksDB,
 perform *backpressure* in this situation: they suspend all reads and writes until the memtable has
-been written out to disk
-[^30] [^31].
+been written out to disk [^30] [^31].
 
 Regarding read throughput, modern SSDs (and especially NVMe) can perform many independent read
 requests in parallel. Both LSM-trees and B-trees are able to provide high read throughput, but
@@ -552,8 +535,7 @@ A sequential write workload writes larger chunks of data at a time, so it is lik
 512 KiB block belongs to a single file; when that file is later deleted again, the whole block
 can be erased without having to perform any GC. On the other hand, with a random write workload, it
 is more likely that a block contains a mixture of pages with valid and invalid data, so the GC has
-to perform more work before a block can be erased
-[^34] [^35] [^36].
+to perform more work before a block can be erased [^34] [^35] [^36].
 
 The write bandwidth consumed by GC is then not available for the application. Moreover, the
 additional writes performed by GC contribute to wear on the flash memory; therefore, random writes
@@ -654,14 +636,12 @@ The key in an index is the thing that queries search by, but the value can be on
 
 * If the actual data (row, document, vertex) is stored directly within the index structure, it is
  called a *clustered index*. For example, in MySQL’s InnoDB storage engine, the primary key of a
- table is always a clustered index, and in SQL Server, you can specify one clustered index per
- table [^43].
+ table is always a clustered index, and in SQL Server, you can specify one clustered index per table [^43].
 * Alternatively, the value can be a reference to the actual data: either the primary key of the row
  in question (InnoDB does this for secondary indexes), or a direct reference to a location on disk.
  In the latter case, the place where rows are stored is known as a *heap file*, and it stores data
  in no particular order (it may be append-only, or it may keep track of deleted rows in order to
- overwrite them with new data later). For example, Postgres uses the heap file approach
- [^44].
+ overwrite them with new data later). For example, Postgres uses the heap file approach [^44].
 * A middle ground between the two is a *covering index* or *index with included columns*, which
  stores *some* of a table’s columns within the index, in addition to storing the full row on the
  heap or in the primary key clustered index [^45].
@@ -707,8 +687,7 @@ easily be backed up, inspected, and analyzed by external utilities.
 
 Products such as VoltDB, SingleStore, and Oracle TimesTen are in-memory databases with a relational model,
 and the vendors claim that they can offer big performance improvements by removing all the overheads
-associated with managing on-disk data structures
-[^46] [^47].
+associated with managing on-disk data structures [^46] [^47].
 RAMCloud is an open source, in-memory key-value store with durability (using a log-structured
 approach for the data in memory as well as the data on disk) [^48].
 
@@ -741,8 +720,7 @@ Some databases, such as Microsoft SQL Server, SAP HANA, and SingleStore, have su
 transaction processing and data warehousing in the same product. However, these hybrid transactional
 and analytical processing (HTAP) databases (introduced in [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) are increasingly
 becoming two separate storage and query engines, which happen to be accessible through a common SQL
-interface
-[^50] [^51] [^52] [^53].
+interface [^50] [^51] [^52] [^53].
 
 ## Cloud Data Warehouses
 
@@ -774,8 +752,7 @@ Query engine
 
 Storage format
 : The storage format determines how the rows of a table are encoded as bytes in a file, which is
- then typically stored in object storage or a distributed filesystem
- [^12].
+ then typically stored in object storage or a distributed filesystem [^12].
  This data can then be accessed by the query engine, but also by other applications using the data
  lake. Examples of such storage formats are Parquet, ORC, Lance, or Nimble, and we will see more
  about them in the next section.
@@ -833,8 +810,7 @@ How can we execute this query efficiently?
 
 In most OLTP databases, storage is laid out in a *row-oriented* fashion: all the values from one row
 of a table are stored next to each other. Document databases are similar: an entire document is
-typically stored as one contiguous sequence of bytes. You can see this in the CSV example of
-[Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
+typically stored as one contiguous sequence of bytes. You can see this in the CSV example of [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
 
 In order to process a query like [Example 4-1](/en/ch4#fig_storage_analytics_query), you may have indexes on
 `fact_sales.date_key` and/or `fact_sales.product_sk` that tell the storage engine where to find
@@ -851,16 +827,10 @@ an expanded version of the fact table from [Figure 3-5](/en/ch3#fig_dwh_schema)
 
 > [!NOTE]
 > Column storage is easiest to understand in a relational data model, but it applies equally to
-> nonrelational data. For example, Parquet
-> [^57]
-> is a columnar storage format that supports a document data model, based on Google’s Dremel
-> [^58],
-> using a technique known as *shredding* or *striping*
-> [^59].
+> nonrelational data. For example, Parquet [^57] is a columnar storage format that supports a document data model, based on Google’s Dremel [^58],
+> using a technique known as *shredding* or *striping* [^59].
 
-![ddia 0407](/fig/ddia_0407.png)
-
-###### Figure 4-7. Storing relational data by column, rather than by row.
+{{< figure src="/fig/ddia_0407.png" id="fig_column_store" title="Figure 4-7. Storing relational data by column, rather than by row." class="w-full my-4" >}}
 
 The column-oriented storage layout relies on each column storing the rows in the same order.
 Thus, if you need to reassemble an entire row, you can take the 23rd entry from each of the
@@ -873,20 +843,10 @@ Since many queries are restricted to a particular date range, it is common to ma
 contain the rows for a particular timestamp range. A query then only needs to load the columns it
 needs in those blocks that overlap with the required date range.
 
-Columnar storage is used in almost all analytic databases nowadays [^60],
-ranging from large-scale cloud data warehouses such as Snowflake [^61]
-to single-node embedded databases such as DuckDB [^62],
-and product analytics systems such as Pinot [^63]
-and Druid [^64].
-It is used in storage formats such as Parquet, ORC
-[^65] [^66],
-Lance [^67],
-and Nimble [^68],
-and in-memory analytics formats like Apache Arrow
-[^65] [^69]
-and Pandas/NumPy [^70].
-Some time-series databases, such as InfluxDB IOx [^71] and TimescaleDB [^72],
-are also based on column-oriented storage.
+Columnar storage is used in almost all analytic databases nowadays [^60], ranging from large-scale cloud data warehouses such as Snowflake [^61]
+to single-node embedded databases such as DuckDB [^62], and product analytics systems such as Pinot [^63] and Druid [^64].
+It is used in storage formats such as Parquet, ORC [^65] [^66], Lance [^67], and Nimble [^68], and in-memory analytics formats like Apache Arrow
+[^65] [^69] and Pandas/NumPy [^70]. Some time-series databases, such as InfluxDB IOx [^71] and TimescaleDB [^72], are also based on column-oriented storage.
 
 ### Column Compression
 
@@ -899,9 +859,7 @@ repetitive, which is a good sign for compression. Depending on the data in the c
 compression techniques can be used. One technique that is particularly effective in data warehouses
 is *bitmap encoding*, illustrated in [Figure 4-8](/en/ch4#fig_bitmap_index).
 
-![ddia 0408](/fig/ddia_0408.png)
-
-###### Figure 4-8. Compressed, bitmap-indexed storage of a single column.
+{{< figure src="/fig/ddia_0408.png" id="fig_bitmap_index" title="Figure 4-8. Compressed, bitmap-indexed storage of a single column." class="w-full my-4" >}}
 
 Often, the number of distinct values in a column is small compared to the number of rows (for
 example, a retailer may have billions of sales transactions, but only 100,000 distinct products).
@@ -1041,9 +999,7 @@ Vectorized processing
  shown in [Figure 4-9](/en/ch4#fig_bitmap_and). The result would be a bitmap containing a 1 for all sales of bananas in
  a particular store.
 
-![ddia 0409](/fig/ddia_0409.png)
-
-###### Figure 4-9. A bitwise AND between two bitmaps lends itself to vectorization.
+{{< figure src="/fig/ddia_0409.png" id="fig_bitmap_and" title="Figure 4-9. A bitwise AND between two bitmaps lends itself to vectorization." class="w-full my-4" >}}
 
 The two approaches are very different in terms of their implementation, but both are used in
 practice [^77]. Both can achieve very good
@@ -1081,9 +1037,7 @@ queries use most often? A *data cube* or *OLAP cube* does this by creating a gri
 grouped by different dimensions [^82].
 [Figure 4-10](/en/ch4#fig_data_cube) shows an example.
 
-![ddia 0410](/fig/ddia_0410.png)
-
-###### Figure 4-10. Two dimensions of a data cube, aggregating data by summing.
+{{< figure src="/fig/ddia_0410.png" id="fig_data_cube" title="Figure 4-10. Two dimensions of a data cube, aggregating data by summing." class="w-full my-4" >}}
 
 Imagine for now that each fact has foreign keys to only two dimension tables—in [Figure 4-10](/en/ch4#fig_data_cube),
 these are `date_key` and `product_sk`. You can now draw a two-dimensional table, with
@@ -1282,9 +1236,7 @@ Hierarchical Navigable Small World (HNSW)
  query vector. The process continues until the last layer is reached. As with IVF indexes, HNSW
  indexes are approximate.
 
-![ddia 0411](/fig/ddia_0411.png)
-
-###### Figure 4-11. Searching for the database entry that is closest to a given query vector in a HNSW index.
+{{< figure src="/fig/ddia_0411.png" id="fig_vector_hnsw" title="Figure 4-11. Searching for the database entry that is closest to a given query vector in a HNSW index." class="w-full my-4" >}}
 
 Many popular vector databases implement IVF and HNSW indexes. Facebook’s Faiss library has many
 variations of each [^101],

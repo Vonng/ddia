@@ -82,10 +82,7 @@ much weaker set of guarantees than had previously been understood.
 The hype around NoSQL distributed databases led to a popular belief that transactions were
 fundamentally unscalable, and that any large-scale system would have to abandon transactions in
 order to maintain good performance and high availability. More recently, that belief has turned out
-to be wrong. So-called “NewSQL” databases such as CockroachDB [^5],
-TiDB [^6],
-Spanner [^7],
-FoundationDB [^8],
+to be wrong. So-called “NewSQL” databases such as CockroachDB [^5], TiDB [^6], Spanner [^7], FoundationDB [^8],
 and Yugabyte have shown that transactional systems can scale to large data volumes and high
 throughput. These systems combine sharding with consensus protocols ([Chapter 10](/en/ch10#ch_consistency)) to provide
 strong ACID guarantees at scale.
@@ -99,19 +96,16 @@ operation and in various extreme (but realistic) circumstances.
 
 The safety guarantees provided by transactions are often described by the well-known acronym *ACID*,
 which stands for *Atomicity*, *Consistency*, *Isolation*, and *Durability*. It was coined in 1983 by
-Theo Härder and Andreas Reuter [^9]
-in an effort to establish precise terminology for fault-tolerance mechanisms in databases.
+Theo Härder and Andreas Reuter [^9] in an effort to establish precise terminology for fault-tolerance mechanisms in databases.
 
 However, in practice, one database’s implementation of ACID does not equal another’s implementation.
-For example, as we shall see, there is a lot of ambiguity around the meaning of *isolation*
-[^10].
+For example, as we shall see, there is a lot of ambiguity around the meaning of *isolation* [^10].
 The high-level idea is sound, but the devil is in the details. Today, when a system claims to be
 “ACID compliant,” it’s unclear what guarantees you can actually expect. ACID has unfortunately
 become mostly a marketing term.
 
 (Systems that do not meet the ACID criteria are sometimes called *BASE*, which stands for
-*Basically Available*, *Soft state*, and *Eventual consistency*
-[^11].
+*Basically Available*, *Soft state*, and *Eventual consistency* [^11].
 This is even more vague than the definition of ACID. It seems that the only sensible definition of
 BASE is “not ACID”; i.e., it can mean almost anything you want.)
 
@@ -199,9 +193,8 @@ current value, add 1, and write the new value back (assuming there is no increme
 into the database). In [Figure 8-1](/en/ch8#fig_transactions_increment) the counter should have increased from 42 to
 44, because two increments happened, but it actually only went to 43 because of the race condition.
 
-![ddia 0801](/fig/ddia_0801.png)
+{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" title="Figure 8-1. A race condition between two clients concurrently incrementing a counter." class="w-full my-4" >}}
 
-###### Figure 8-1. A race condition between two clients concurrently incrementing a counter.
 
 *Isolation* in the sense of ACID means that concurrently executing transactions are isolated from
 each other: they cannot step on each other’s toes. The classic database textbooks formalize
@@ -300,9 +293,8 @@ number of unread messages for a user, you could query something like:
 SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 ```
 
-![ddia 0802](/fig/ddia_0802.png)
+{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" title="Figure 8-2. Violating isolation: one transaction reads another transaction's uncommitted writes (a \"dirty read\")." class="w-full my-4" >}}
 
-###### Figure 8-2. Violating isolation: one transaction reads another transaction’s uncommitted writes (a “dirty read”).
 
 However, you might find this query to be too slow if there are many emails, and decide to store the
 number of unread messages in a separate field (a kind of denormalization, which we discuss in
@@ -322,9 +314,8 @@ over the course of the transaction, the contents of the mailbox and the unread c
 of sync. In an atomic transaction, if the update to the counter fails, the transaction is aborted
 and the inserted email is rolled back.
 
-![ddia 0803](/fig/ddia_0803.png)
+{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" title="Figure 8-3. Atomicity ensures that if an error occurs any prior writes from that transaction are undone, to avoid an inconsistent state." class="w-full my-4" >}}
 
-###### Figure 8-3. Atomicity ensures that if an error occurs any prior writes from that transaction are undone, to avoid an inconsistent state.
 
 Multi-object transactions require some way of determining which read and write operations belong to
 the same transaction. In relational databases, that is typically done based on the client’s TCP
@@ -473,18 +464,14 @@ levels of isolation are much harder to understand, and they can lead to subtle b
 nevertheless used in practice [^29].
 
 Concurrency bugs caused by weak transaction isolation are not just a theoretical problem. They have
-caused substantial loss of money
-[^30] [^31] [^32],
-led to investigation by financial auditors [^33],
-and caused customer data to be corrupted [^34].
-A popular comment on revelations of such problems is “Use an ACID database if you’re handling
+caused substantial loss of money [^30] [^31] [^32], led to investigation by financial auditors [^33],
+and caused customer data to be corrupted [^34]. A popular comment on revelations of such problems is “Use an ACID database if you’re handling
 financial data!”—but that misses the point. Even many popular relational database systems (which
 are usually considered “ACID”) use weak isolation, so they wouldn’t necessarily have prevented these
 bugs from occurring.
 
 > [!NOTE]
-> Incidentally, much of the banking system relies on text files that are exchanged via secure FTP
-> [^35].
+> Incidentally, much of the banking system relies on text files that are exchanged via secure FTP [^35].
 > In this context, having an audit trail and some human-level fraud prevention measures is actually
 > more important than ACID properties.
 
@@ -499,17 +486,14 @@ practice, and discuss in detail what kinds of race conditions can and cannot occ
 decide what level is appropriate to your application. Once we’ve done that, we will discuss
 serializability in detail (see [“Serializability”](/en/ch8#sec_transactions_serializability)). Our discussion of isolation
 levels will be informal, using examples. If you want rigorous definitions and analyses of their
-properties, you can find them in the academic literature
-[^36] [^37] [^38] [^39].
+properties, you can find them in the academic literature [^36] [^37] [^38] [^39].
 
 ## Read Committed
 
 The most basic level of transaction isolation is *read committed*. It makes two guarantees:
 
-1. When reading from the database, you will only see data that has been committed (no *dirty
- reads*).
-2. When writing to the database, you will only overwrite data that has been committed (no *dirty
- writes*).
+1. When reading from the database, you will only see data that has been committed (no *dirty reads*).
+2. When writing to the database, you will only overwrite data that has been committed (no *dirty writes*).
 
 Some databases support an even weaker isolation level called *read uncommitted*. It prevents dirty
 writes, but does not prevent dirty reads. Let’s discuss these two guarantees in more detail.
@@ -526,9 +510,8 @@ all of its writes become visible at once). This is illustrated in
 [Figure 8-4](/en/ch8#fig_transactions_read_committed), where user 1 has set *x* = 3, but user 2’s *get x* still
 returns the old value, 2, while user 1 has not yet committed.
 
-![ddia 0804](/fig/ddia_0804.png)
+{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" title="Figure 8-4. No dirty reads: user 2 sees the new value for x only after user 1's transaction has committed." class="w-full my-4" >}}
 
-###### Figure 8-4. No dirty reads: user 2 sees the new value for *x* only after user 1’s transaction has committed.
 
 There are a few reasons why it’s useful to prevent dirty reads:
 
@@ -550,8 +533,7 @@ know in which order the writes will happen, but we normally assume that the late
 the earlier write.
 
 However, what happens if the earlier write is part of a transaction that has not yet committed, so
-the later write overwrites an uncommitted value? This is called a *dirty write*
-[^36]. Transactions running at the read
+the later write overwrites an uncommitted value? This is called a *dirty write* [^36]. Transactions running at the read
 committed isolation level must prevent dirty writes, usually by delaying the second write until the
 first write’s transaction has committed or aborted.
 
@@ -570,9 +552,8 @@ By preventing dirty writes, this isolation level avoids some kinds of concurrenc
  has committed, so it’s not a dirty write. It’s still incorrect, but for a different reason—in
  [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update) we will discuss how to make such counter increments safe.
 
-![ddia 0805](/fig/ddia_0805.png)
+{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" title="Figure 8-5. With dirty writes, conflicting writes from different transactions can be mixed up." class="w-full my-4" >}}
 
-###### Figure 8-5. With dirty writes, conflicting writes from different transactions can be mixed up.
 
 ### Implementing read committed
 
@@ -623,9 +604,8 @@ However, there are still plenty of ways in which you can have concurrency bugs w
 isolation level. For example, [Figure 8-6](/en/ch8#fig_transactions_item_many_preceders) illustrates a problem that
 can occur with read committed.
 
-![ddia 0806](/fig/ddia_0806.png)
+{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" title="Figure 8-6. Read skew: Aaliyah observes the database in an inconsistent state." class="w-full my-4" >}}
 
-###### Figure 8-6. Read skew: Aaliyah observes the database in an inconsistent state.
 
 Say Aaliyah has $1,000 of savings at a bank, split across two accounts with $500 each. Now a
 transaction transfers $100 from one of her accounts to the other. If she is unlucky enough to look at her
@@ -705,9 +685,8 @@ transaction ID of the writer. (To be precise, transaction IDs in PostgreSQL are 
 they overflow after approximately 4 billion transactions. The vacuum process performs cleanup to
 ensure that overflow does not affect the data.)
 
-![ddia 0807](/fig/ddia_0807.png)
+{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" title="Figure 8-7. Implementing snapshot isolation using multi-version concurrency control." class="w-full my-4" >}}
 
-###### Figure 8-7. Implementing snapshot isolation using multi-version concurrency control.
 
 Each row in a table has a `inserted_by` field, containing the ID of the transaction that inserted
 this row into the table. Moreover, each row has a `deleted_by` field, which is initially empty. If a
@@ -726,8 +705,7 @@ $400 which was inserted by transaction 13.
 All of the versions of a row are stored within the same database heap (see
 [“Storing values within the index”](/en/ch4#sec_storage_index_heap)), regardless of whether the transactions that wrote them have committed
 or not. The versions of the same row form a linked list, going either from newest version to oldest
-version or the other way round, so that queries can internally iterate over all versions of a row
-[^45] [^46].
+version or the other way round, so that queries can internally iterate over all versions of a row [^45] [^46].
 
 ### Visibility rules for observing a consistent snapshot
 
@@ -774,8 +752,7 @@ query that uses the index must then iterate over the rows to find one that is vi
 value matches what the query is looking for. When garbage collection removes old row versions that
 are no longer visible to any transaction, the corresponding index entries can also be removed.
 
-Many implementation details affect the performance of multi-version concurrency control
-[^45] [^46].
+Many implementation details affect the performance of multi-version concurrency control [^45] [^46].
 For example, PostgreSQL has optimizations for avoiding index updates if different versions of the
 same row can fit on the same page [^40].
 Some other databases avoid storing full copies of modified rows, and only store differences between
@@ -852,7 +829,7 @@ read-modify-write cycles in application code. They are usually the best solution
 expressed in terms of those operations. For example, the following instruction is concurrency-safe
 in most relational databases:
 
-```
+```sql
 UPDATE counters SET value = value + 1 WHERE key = 'foo';
 ```
 
@@ -888,12 +865,12 @@ players from concurrently moving the same piece, as illustrated in [Example 8-1
 
 ##### Example 8-1. Explicitly locking rows to prevent lost updates
 
-```
+```sql
 BEGIN TRANSACTION;
 
 SELECT * FROM figures
  WHERE name = 'robot' AND game_id = 222
- FOR UPDATE; ![1](/fig/1.png)
+ FOR UPDATE; ❶
 
 -- Check whether move is valid, then update the position
 -- of the piece that was returned by the previous SELECT.
@@ -902,9 +879,7 @@ UPDATE figures SET position = 'c4' WHERE id = 1234;
 COMMIT;
 ```
 
-[![1](/fig/1.png)](/en/ch8#co_transactions_CO1-1)
-: The `FOR UPDATE` clause indicates that the database should take a lock on all rows returned by
- this query.
+❶: The `FOR UPDATE` clause indicates that the database should take a lock on all rows returned by this query.
 
 This works, but to get it right, you need to carefully think about your application logic. It’s easy
 to forget to add a necessary lock somewhere in the code, and thus introduce a race condition.
@@ -924,8 +899,7 @@ its read-modify-write cycle.
 An advantage of this approach is that databases can perform this check efficiently in conjunction
 with snapshot isolation. Indeed, PostgreSQL’s repeatable read, Oracle’s serializable, and SQL
 Server’s snapshot isolation levels automatically detect when a lost update has occurred and abort
-the offending transaction. However, MySQL/InnoDB’s repeatable read does not detect lost updates
-[^29] [^41].
+the offending transaction. However, MySQL/InnoDB’s repeatable read does not detect lost updates [^29] [^41].
 Some authors [^36] [^38] argue that a database must prevent lost
 updates in order to qualify as providing snapshot isolation, so MySQL does not provide snapshot
 isolation under this definition.
@@ -948,7 +922,7 @@ For example, to prevent two users concurrently updating the same wiki page, you 
 like this, expecting the update to occur only if the content of the page hasn’t changed since the
 user started editing it:
 
-```
+```sql
 -- This may or may not be safe, depending on the database implementation
 UPDATE wiki_pages SET content = 'new content'
  WHERE id = 1234 AND content = 'old content';
@@ -991,8 +965,8 @@ behind CRDTs, which we encountered in [“CRDTs and Operational Transformation�
 conditional writes cannot be made commutative.
 
 On the other hand, the *last write wins* (LWW) conflict resolution method is prone to lost updates,
-as discussed in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww). Unfortunately, LWW is the default in many replicated
-databases.
+as discussed in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww). 
+Unfortunately, LWW is the default in many replicated databases.
 
 ## Write Skew and Phantoms
 
@@ -1007,17 +981,15 @@ concurrent writes. In this section we will see some subtler examples of conflict
 To begin, imagine this example: you are writing an application for doctors to manage their on-call
 shifts at a hospital. The hospital usually tries to have several doctors on call at any one time,
 but it absolutely must have at least one doctor on call. Doctors can give up their shifts (e.g., if
-they are sick themselves), provided that at least one colleague remains on call in that shift
-[^53] [^54].
+they are sick themselves), provided that at least one colleague remains on call in that shift [^53] [^54].
 
 Now imagine that Aaliyah and Bryce are the two on-call doctors for a particular shift. Both are
 feeling unwell, so they both decide to request leave. Unfortunately, they happen to click the button
 to go off call at approximately the same time. What happens next is illustrated in
 [Figure 8-8](/en/ch8#fig_transactions_write_skew).
 
-![ddia 0808](/fig/ddia_0808.png)
+{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" title="Figure 8-8. Example of write skew causing an application bug." class="w-full my-4" >}}
 
-###### Figure 8-8. Example of write skew causing an application bug.
 
 In each transaction, your application first checks that two or more doctors are currently on call;
 if yes, it assumes it’s safe for one doctor to go off call. Since the database is using snapshot
@@ -1047,9 +1019,8 @@ options are more restricted:
 * The automatic detection of lost updates that you find in some implementations of snapshot
  isolation unfortunately doesn’t help either: write skew is not automatically detected in
  PostgreSQL’s repeatable read, MySQL/InnoDB’s repeatable read, Oracle’s serializable, or SQL
- Server’s snapshot isolation level [^29].
- Automatically preventing write skew requires true serializable isolation (see
- [“Serializability”](/en/ch8#sec_transactions_serializability)).
+ Server’s snapshot isolation level [^29]. 
+ Automatically preventing write skew requires true serializable isolation (see [“Serializability”](/en/ch8#sec_transactions_serializability)).
 * Some databases allow you to configure constraints, which are then enforced by the database (e.g.,
  uniqueness, foreign key constraints, or restrictions on a particular value). However, in order to
  specify that at least one doctor must be on call, you would need a constraint that involves
@@ -1060,12 +1031,12 @@ options are more restricted:
  to explicitly lock the rows that the transaction depends on. In the doctors example, you could
  write something like the following:
 
- ```
+ ```sql
  BEGIN TRANSACTION;
 
  SELECT * FROM doctors
  WHERE on_call = true
- AND shift_id = 1234 FOR UPDATE; ![1](/fig/1.png)
+ AND shift_id = 1234 FOR UPDATE; ❶
 
  UPDATE doctors
  SET on_call = false
@@ -1075,8 +1046,7 @@ options are more restricted:
  COMMIT;
  ```
 
- [![1](/fig/1.png)](/en/ch8#co_transactions_CO2-1)
- : As before, `FOR UPDATE` tells the database to lock all rows returned by this query.
+❶: As before, `FOR UPDATE` tells the database to lock all rows returned by this query.
 
 ### More examples of write skew
 
@@ -1084,15 +1054,14 @@ Write skew may seem like an esoteric issue at first, but once you’re aware of 
 more situations in which it can occur. Here are some more examples:
 
 Meeting room booking system
-: Say you want to enforce that there cannot be two bookings for the same meeting room at the same
- time [^55].
+: Say you want to enforce that there cannot be two bookings for the same meeting room at the same time [^55].
  When someone wants to make a booking, you first check for any conflicting bookings (i.e.,
  bookings for the same room with an overlapping time range), and if none are found, you create the
  meeting (see [Example 8-2](/en/ch8#fig_transactions_meeting_rooms)).
 
  ##### Example 8-2. A meeting room booking system tries to avoid double-booking (not safe under snapshot isolation)
 
- ```
+ ```sql
  BEGIN TRANSACTION;
 
  -- Check for any existing bookings that overlap with the period of noon-1pm
@@ -1168,8 +1137,7 @@ This effect, where a write in one transaction changes the result of a search que
 transaction, is called a *phantom* [^4].
 Snapshot isolation avoids phantoms in read-only queries, but in read-write transactions like the
 examples we discussed, phantoms can lead to particularly tricky cases of write skew. The SQL
-generated by ORMs is also prone to write skew
-[^50] [^51].
+generated by ORMs is also prone to write skew [^50] [^51].
 
 ### Materializing conflicts
 
@@ -1300,9 +1268,8 @@ The differences between interactive transactions and stored procedures is illust
 [Figure 8-9](/en/ch8#fig_transactions_stored_proc). Provided that all data required by a transaction is in memory, the
 stored procedure can execute very quickly, without waiting for any network or disk I/O.
 
-![ddia 0809](/fig/ddia_0809.png)
+{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" title="Figure 8-9. The difference between an interactive transaction and a stored procedure (using the example transaction of [Figure 8-8](/en/ch8#fig_transactions_write_skew))." class="w-full my-4" >}}
 
-###### Figure 8-9. The difference between an interactive transaction and a stored procedure (using the example transaction of [Figure 8-8](/en/ch8#fig_transactions_write_skew)).
 
 ### Pros and cons of stored procedures
 
@@ -1321,8 +1288,7 @@ SQL standard (SQL/PSM) since 1999. They have gained a somewhat bad reputation, f
  (e.g., using a lot of memory or CPU time) in a database can cause much more trouble than equivalent
  badly written code in an application server.
 * In a multitenant system that allows tenants to write their own stored procedures, it’s a security
- risk to execute untrusted code in the same process as the database kernel
- [^62].
+ risk to execute untrusted code in the same process as the database kernel [^62].
 
 However, those issues can be overcome. Modern implementations of stored procedures have abandoned
 PL/SQL and use existing general-purpose programming languages instead: VoltDB uses Java or Groovy,
@@ -1332,8 +1298,7 @@ Stored procedures are also useful in cases where application logic can’t easil
 elsewhere. Applications that use GraphQL, for example, might directly expose their database through
 a GraphQL proxy. If the proxy doesn’t support complex validation logic, you can embed such logic
 directly in the database using a stored procedure. If the database doesn’t support stored
-procedures, you would have to deploy a validation service between the proxy and the database to do
-validation.
+procedures, you would have to deploy a validation service between the proxy and the database to do validation.
 
 With stored procedures and in-memory data, executing all transactions on a single thread becomes
 feasible. When stored procedures don’t need to wait for I/O and avoid the overhead of other
@@ -1494,8 +1459,7 @@ transaction is not allowed to concurrently insert or update another booking for 
 time range. (It’s okay to concurrently insert bookings for other rooms, or for the same room at a
 different time that doesn’t affect the proposed booking.)
 
-How do we implement this? Conceptually, we need a *predicate lock*
-[^4]. It works similarly to the
+How do we implement this? Conceptually, we need a *predicate lock* [^4]. It works similarly to the
 shared/exclusive lock described earlier, but rather than belonging to a particular object (e.g., one
 row in a table), it belongs to all objects that match some search condition, such as:
 
@@ -1569,15 +1533,11 @@ serializable isolation and good performance fundamentally at odds with each othe
 
 It seems not: an algorithm called *serializable snapshot isolation* (SSI) provides full
 serializability with only a small performance penalty compared to snapshot isolation. SSI is
-comparatively new: it was first described in 2008
-[^53] [^65].
+comparatively new: it was first described in 2008 [^53] [^65].
 
 Today SSI and similar algorithms are used in single-node databases (the serializable isolation level
-in PostgreSQL [^54], SQL Server’s In-Memory
-OLTP/Hekaton [^66], and HyPer [^67]),
-distributed databases (CockroachDB [^5] and
-FoundationDB [^8]), and embedded storage
-engines such as BadgerDB.
+in PostgreSQL [^54], SQL Server’s In-Memory OLTP/Hekaton [^66], and HyPer [^67]), distributed databases (CockroachDB [^5] and
+FoundationDB [^8]), and embedded storage engines such as BadgerDB.
 
 ### Pessimistic versus optimistic concurrency control
 
@@ -1658,9 +1618,8 @@ now taken effect, and transaction 43’s premise is no longer true. Things get e
 when a writer inserts data that didn’t exist before (see [“Phantoms causing write skew”](/en/ch8#sec_transactions_phantom)). We’ll
 discuss detecting phantom writes for SSI in [“Detecting writes that affect prior reads”](/en/ch8#sec_detecting_writes_affect_reads).
 
-![ddia 0810](/fig/ddia_0810.png)
+{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" title="Figure 8-10. Detecting when a transaction reads outdated values from an MVCC snapshot." class="w-full my-4" >}}
 
-###### Figure 8-10. Detecting when a transaction reads outdated values from an MVCC snapshot.
 
 In order to prevent this anomaly, the database needs to track when a transaction ignores another
 transaction’s writes due to MVCC visibility rules. When the transaction wants to commit, the
@@ -1680,9 +1639,8 @@ isolation’s support for long-running reads from a consistent snapshot.
 The second case to consider is when another transaction modifies data after it has been read. This
 case is illustrated in [Figure 8-11](/en/ch8#fig_transactions_detect_index_range).
 
-![ddia 0811](/fig/ddia_0811.png)
+{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" title="Figure 8-11. In serializable snapshot isolation, detecting when one transaction modifies another transaction's reads." class="w-full my-4" >}}
 
-###### Figure 8-11. In serializable snapshot isolation, detecting when one transaction modifies another transaction’s reads.
 
 In the context of two-phase locking we discussed index-range locks (see
 [“Index-range locks”](/en/ch8#sec_transactions_2pl_range)), which allow the database to lock access to all rows matching some
@@ -1788,9 +1746,8 @@ some nodes and fails on other nodes, as shown in [Figure 8-12](/en/ch8#fig_tran
 * Some nodes may crash before the commit record is fully written and roll back on recovery, while
  others successfully commit.
 
-![ddia 0812](/fig/ddia_0812.png)
+{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" title="Figure 8-12. When a transaction involves multiple database nodes, it may commit on some and fail on others." class="w-full my-4" >}}
 
-###### Figure 8-12. When a transaction involves multiple database nodes, it may commit on some and fail on others.
 
 If some nodes commit the transaction but others abort it, the nodes become inconsistent with each
 other. And once a transaction has been committed on one node, it cannot be retracted again if it
@@ -1808,21 +1765,17 @@ problem.
 ## Two-Phase Commit (2PC)
 
 Two-phase commit is an algorithm for achieving atomic transaction commit across multiple nodes. It
-is a classic algorithm in distributed databases
-[^13] [^71] [^72]. 2PC is used
-internally in some databases and also made available to applications in the form of *XA transactions*
-[^73]
+is a classic algorithm in distributed databases [^13] [^71] [^72]. 2PC is used
+internally in some databases and also made available to applications in the form of *XA transactions* [^73]
 (which are supported by the Java Transaction API, for example) or via WS-AtomicTransaction for SOAP
-web services
-[^74] [^75].
+web services [^74] [^75].
 
 The basic flow of 2PC is illustrated in [Figure 8-13](/en/ch8#fig_transactions_two_phase_commit). Instead of a single
 commit request, as with a single-node transaction, the commit/abort process in 2PC is split into two
 phases (hence the name).
 
-![ddia 0813](/fig/ddia_0813.png)
+{{< figure src="/fig/ddia_0813.png" id="fig_transactions_two_phase_commit" title="Figure 8-13. A successful execution of two-phase commit (2PC)." class="w-full my-4" >}}
 
-###### Figure 8-13. A successful execution of two-phase commit (2PC).
 
 2PC uses a new component that does not normally appear in single-node transactions: a
 *coordinator* (also known as *transaction manager*). The coordinator is often implemented as a
@@ -1839,8 +1792,7 @@ participants:
 
 * If all participants reply “yes,” indicating they are ready to commit, then the coordinator sends
  out a *commit* request in phase 2, and the commit actually takes place.
-* If any of the participants replies “no,” the coordinator sends an *abort* request to all nodes in
- phase 2.
+* If any of the participants replies “no,” the coordinator sends an *abort* request to all nodes in phase 2.
 
 This process is somewhat like the traditional marriage ceremony in Western cultures: the minister
 asks the bride and groom individually whether each wants to marry the other, and typically receives
@@ -1920,9 +1872,8 @@ not know whether to commit or abort. Even a timeout does not help here: if datab
 aborts after a timeout, it will end up inconsistent with database 2, which has committed. Similarly,
 it is not safe to unilaterally commit, because another participant may have aborted.
 
-![ddia 0814](/fig/ddia_0814.png)
+{{< figure src="/fig/ddia_0814.png" id="fig_transactions_2pc_crash" title="Figure 8-14. The coordinator crashes after participants vote \"yes.\" Database 1 does not know whether to commit or abort." class="w-full my-4" >}}
 
-###### Figure 8-14. The coordinator crashes after participants vote “yes.” Database 1 does not know whether to commit or abort.
 
 Without hearing from the coordinator, the participant has no way of knowing whether to commit or
 abort. In principle, the participants could communicate among themselves to find out how each
@@ -1942,8 +1893,7 @@ stuck waiting for the coordinator to recover. It is possible to make an atomic c
 *nonblocking*, so that it does not get stuck if a node fails. However, making this work in practice
 is not so straightforward.
 
-As an alternative to 2PC, an algorithm called *three-phase commit* (3PC) has been proposed
-[^13] [^77].
+As an alternative to 2PC, an algorithm called *three-phase commit* (3PC) has been proposed [^13] [^77].
 However, 3PC assumes a network with bounded delay and nodes with bounded response times; in most
 practical systems with unbounded network delay and process pauses (see [Chapter 9](/en/ch9#ch_distributed)), it
 cannot guarantee atomicity.
@@ -1957,8 +1907,7 @@ Distributed transactions and two-phase commit have a mixed reputation. On the on
 seen as providing an important safety guarantee that would be hard to achieve otherwise; on the
 other hand, they are criticized for causing operational problems, killing performance, and promising
 more than they can deliver [^78] [^79] [^80] [^81].
-Many cloud services choose not to implement distributed transactions due to the operational
-problems they engender [^82].
+Many cloud services choose not to implement distributed transactions due to the operational problems they engender [^82].
 
 Some implementations of distributed transactions carry a heavy performance penalty. Much of the
 performance cost inherent in two-phase commit is due to the additional disk forcing (`fsync`) that
@@ -2073,8 +2022,7 @@ transaction is resolved.
 ### Recovering from coordinator failure
 
 In theory, if the coordinator crashes and is restarted, it should cleanly recover its state from the
-log and resolve any in-doubt transactions. However, in practice, *orphaned* in-doubt transactions do
-occur [^83] [^84]—that is,
+log and resolve any in-doubt transactions. However, in practice, *orphaned* in-doubt transactions do occur [^83] [^84] — that is,
 transactions for which the coordinator cannot decide the outcome for whatever reason (e.g., because
 the transaction log has been lost or corrupted due to a software bug). These transactions cannot be
 resolved automatically, so they sit forever in the database, holding locks and blocking other
@@ -2135,11 +2083,8 @@ As explained previously, there is a big difference between distributed transacti
 multiple heterogeneous storage technologies, and those that are internal to a system—i.e., where all
 the participating nodes are shards of the same database running the same software. Such internal
 distributed transactions are a defining feature of “NewSQL” databases such as
-CockroachDB [^5],
-TiDB [^6],
-Spanner [^7],
-FoundationDB [^8], and YugabyteDB, for
-example. Some message brokers such as Kafka also support internal distributed transactions [^85].
+CockroachDB [^5], TiDB [^6], Spanner [^7], FoundationDB [^8], and YugabyteDB, for example. 
+Some message brokers such as Kafka also support internal distributed transactions [^85].
 
 Many of these systems use 2-phase commit to ensure atomicity of transactions that write to multiple
 shards, and yet they don’t suffer the same problems as XA transactions. The reason is that because
@@ -2149,14 +2094,10 @@ are more reliable and faster.
 
 The biggest problems with XA can be fixed by:
 
-* Replicating the coordinator, with automatic failover to another coordinator node if the primary
- one crashes;
-* Allowing the coordinator and data shards to communicate directly without going via application
- code;
-* Replicating the participating shards, so that the risk of having to abort a transaction because of
- a fault in one of the shards is reduced; and
-* Coupling the atomic commitment protocol with a distributed concurrency control protocol that
- supports deadlock detection and consistent reads across shards.
+* Replicating the coordinator, with automatic failover to another coordinator node if the primary one crashes;
+* Allowing the coordinator and data shards to communicate directly without going via application code;
+* Replicating the participating shards, so that the risk of having to abort a transaction because of a fault in one of the shards is reduced; and
+* Coupling the atomic commitment protocol with a distributed concurrency control protocol that supports deadlock detection and consistent reads across shards.
 
 Consensus algorithms are commonly used to replicate the coordinator and the database shards. We will
 see in [Chapter 10](/en/ch10#ch_consistency) how atomic commitment for distributed transactions can be implemented
@@ -2240,12 +2181,12 @@ discussing various examples of race conditions, summarized in [Table 8-1](/en/c
 
 Table 8-1. Summary of anomalies that can occur at various isolation levels
 
-| Isolation level | Dirty reads | Read skew | Phantom reads | Lost updates | Write skew |
+| Isolation level    | Dirty reads | Read skew   | Phantom reads | Lost updates | Write skew  |
 |--------------------|-------------|-------------|---------------|--------------|-------------|
-| Read uncommitted | ✗ Possible | ✗ Possible | ✗ Possible | ✗ Possible | ✗ Possible |
-| Read committed | ✓ Prevented | ✗ Possible | ✗ Possible | ✗ Possible | ✗ Possible |
-| Snapshot isolation | ✓ Prevented | ✓ Prevented | ✓ Prevented | ? Depends | ✗ Possible |
-| Serializable | ✓ Prevented | ✓ Prevented | ✓ Prevented | ✓ Prevented | ✓ Prevented |
+| Read uncommitted   | ✗ Possible  | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
+| Read committed     | ✓ Prevented | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
+| Snapshot isolation | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ? Depends    | ✗ Possible  |
+| Serializable       | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ✓ Prevented  | ✓ Prevented |
 
 Dirty reads
 : One client reads another client’s writes before they have been committed. The read committed
@@ -2305,9 +2246,7 @@ mechanisms. Fortunately, idempotence can ensure exactly-once semantics without r
 commit across different storage technologies, and we will see more on this in later chapters.
 
 The examples in this chapter used a relational data model. However, as discussed in
-[“The need for multi-object transactions”](/en/ch8#sec_transactions_need), transactions are a valuable database feature, no matter which data model
-is used.
-
+[“The need for multi-object transactions”](/en/ch8#sec_transactions_need), transactions are a valuable database feature, no matter which data model is used.
 
 
 

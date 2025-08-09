@@ -117,9 +117,8 @@ a request and expect a response, many things could go wrong (some of which are i
 6. The remote node may have processed your request, but the response has been delayed and will be
  delivered later (perhaps the network or your own machine is overloaded).
 
-![ddia 0901](/fig/ddia_0901.png)
+{{< figure src="/fig/ddia_0901.png" id="fig_distributed_network" title="Figure 9-1. If you send a request and don't get a response, it's not possible to distinguish whether (a) the request was lost, (b) the remote node is down, or (c) the response was lost." class="w-full my-4" >}}
 
-###### Figure 9-1. If you send a request and don’t get a response, it’s not possible to distinguish whether (a) the request was lost, (b) the remote node is down, or (c) the response was lost.
 
 The sender can’t even tell whether the packet was delivered: the only option is for the recipient to
 send a response message, which may in turn be lost or delayed. These issues are indistinguishable in
@@ -147,8 +146,7 @@ TCP is often described as providing “reliable” delivery, in the sense that i
 retransmits dropped packets, it detects reordered packets and puts them back in the correct order,
 and it detects packet corruption using a simple checksum. It also figures out how fast it can send
 data so that it is transferred as quickly as possible, but without overloading the network or the
-receiving node; this is known as *congestion control*, *flow control*, or *backpressure*
-[^5].
+receiving node; this is known as *congestion control*, *flow control*, or *backpressure* [^5].
 
 When you “send” some data by writing it to a socket, it actually doesn’t get sent immediately,
 but it’s only placed in a buffer managed by your operating system. When the congestion control
@@ -252,8 +250,7 @@ that something is not working:
  or refuse TCP connections by sending a `RST` or `FIN` packet in reply.
 * If a node process crashed (or was killed by an administrator) but the node’s operating system is
  still running, a script can notify other nodes about the crash so that another node can take over
- quickly without having to wait for a timeout to expire. For example, HBase does this
- [^26].
+ quickly without having to wait for a timeout to expire. For example, HBase does this [^26].
 * If you have access to the management interface of the network switches in your datacenter, you can
  query them to detect link failures at a hardware level (e.g., if the remote machine is powered
  down). This option is ruled out if you’re connecting via the internet, or if you’re in a shared
@@ -282,9 +279,7 @@ to a load spike on the node or the network).
 Prematurely declaring a node dead is problematic: if the node is actually alive and in the middle of
 performing some action (for example, sending an email), and another node takes over, the action may
 end up being performed twice. We will discuss this issue in more detail in
-[“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth), and in
-Chapters [^10]
-and [Link to Come].
+[“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth), and in Chapters [^10] and [Link to Come].
 
 When a node is declared dead, its responsibilities need to be transferred to other nodes, which
 places additional load on other nodes and the network. If the system is already struggling with high
@@ -322,19 +317,16 @@ Similarly, the variability of packet delays on computer networks is most often d
  the network is functioning fine.
 * When a packet reaches the destination machine, if all CPU cores are currently busy, the incoming
  request from the network is queued by the operating system until the application is ready to
- handle it. Depending on the load on the machine, this may take an arbitrary length of time
- [^28].
+ handle it. Depending on the load on the machine, this may take an arbitrary length of time [^28].
 * In virtualized environments, a running operating system is often paused for tens of milliseconds
  while another virtual machine uses a CPU core. During this time, the VM cannot consume any data
- from the network, so the incoming data is queued (buffered) by the virtual machine monitor
- [^29],
+ from the network, so the incoming data is queued (buffered) by the virtual machine monitor [^29],
  further increasing the variability of network delays.
 * As mentioned earlier, in order to avoid overloading the network, TCP limits the rate at which it
  sends data. This means additional queueing at the sender before the data even enters the network.
 
-![ddia 0902](/fig/ddia_0902.png)
+{{< figure src="/fig/ddia_0902.png" id="fig_distributed_switch_queueing" title="Figure 9-2. If several machines send network traffic to the same destination, its switch queue can fill up. Here, ports 1, 2, and 4 are all trying to send packets to port 3." class="w-full my-4" >}}
 
-###### Figure 9-2. If several machines send network traffic to the same destination, its switch queue can fill up. Here, ports 1, 2, and 4 are all trying to send packets to port 3.
 
 Moreover, when TCP detects and automatically retransmits a lost packet, although the application
 does not see the packet loss directly, it does see the resulting delay (waiting for the timeout to
@@ -588,26 +580,21 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
 
 * The quartz clock in a computer is not very accurate: it *drifts* (runs faster or slower than it
  should). Clock drift varies depending on the temperature of the machine. Google assumes a clock
- drift of up to 200 ppm (parts per million) for its servers
- [^45],
+ drift of up to 200 ppm (parts per million) for its servers  [^45],
  which is equivalent to 6 ms drift for a clock that is resynchronized with a server every 30
  seconds, or 17 seconds drift for a clock that is resynchronized once a day. This drift limits the best
  possible accuracy you can achieve, even if everything is working correctly.
 * If a computer’s clock differs too much from an NTP server, it may refuse to synchronize, or the
- local clock will be forcibly reset [^39]. Any
- applications observing the time before and after this reset may see time go backward or suddenly
- jump forward.
+ local clock will be forcibly reset [^39]. Any applications observing the time before and after this reset may see time go backward or suddenly jump forward.
 * If a node is accidentally firewalled off from NTP servers, the misconfiguration may go
  unnoticed for some time, during which the drift may add up to large discrepancies between
  different nodes’ clocks. Anecdotal evidence suggests that this does happen in practice.
 * NTP synchronization can only be as good as the network delay, so there is a limit to its
  accuracy when you’re on a congested network with variable packet delays. One experiment showed
- that a minimum error of 35 ms is achievable when synchronizing over the internet
- [^46],
+ that a minimum error of 35 ms is achievable when synchronizing over the internet [^46],
  though occasional spikes in network delay lead to errors of around a second. Depending on the
  configuration, large network delays can cause the NTP client to give up entirely.
-* Some NTP servers are wrong or misconfigured, reporting time that is off by hours
- [^47] [^48].
+* Some NTP servers are wrong or misconfigured, reporting time that is off by hours [^47] [^48].
  NTP clients mitigate such errors by querying several servers and ignoring outliers.
  Nevertheless, it’s somewhat worrying to bet the correctness of your systems on the time that you
  were told by a stranger on the internet.
@@ -619,9 +606,7 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
  adjustment gradually over the course of a day (this is known as *smearing*) [^51] [^52],
  although actual NTP server behavior varies in practice [^53].
  Leap seconds will no longer be used from 2035 onwards, so this problem will fortunately go away.
-* In virtual machines, the hardware clock is virtualized, which raises additional challenges for
- applications that need accurate timekeeping
- [^54].
+* In virtual machines, the hardware clock is virtualized, which raises additional challenges for applications that need accurate timekeeping [^54].
  When a CPU core is shared between virtual machines, each VM is paused for tens of milliseconds
  while another VM is running. From an application’s point of view, this pause manifests itself as
  the clock suddenly jumping forward [^29].
@@ -642,8 +627,7 @@ Such accuracy can be achieved with some special hardware (GPS receivers and/or a
 Precision Time Protocol (PTP) and careful deployment and monitoring [^58] [^59].
 Relying on GPS alone can be risky because GPS signals can easily be jammed. In some locations this
 happens frequently, e.g. close to military facilities [^60].
-Some cloud providers have begun offering high-accuracy clock synchronization for their virtual
-machines [^61].
+Some cloud providers have begun offering high-accuracy clock synchronization for their virtual machines [^61].
 However, clock synchronization still requires a lot of care. If your NTP daemon is misconfigured, or
 a firewall is blocking NTP traffic, the clock error due to drift can quickly become large.
 
@@ -664,8 +648,7 @@ its network is misconfigured, it most likely won’t work at all, so it will qui
 fixed. On the other hand, if its quartz clock is defective or its NTP client is misconfigured, most
 things will seem to work fine, even though its clock gradually drifts further and further away from
 reality. If some piece of software is relying on an accurately synchronized clock, the result is
-more likely to be silent and subtle data loss than a dramatic crash
-[^62] [^63].
+more likely to be silent and subtle data loss than a dramatic crash [^62] [^63].
 
 Thus, if you use software that requires synchronized clocks, it is essential that you also carefully
 monitor the clock offsets between all the machines. Any node whose clock drifts too far from the
@@ -684,9 +667,8 @@ multi-leader replication (the example is similar to [Figure 6-8](/en/ch6#fig_re
 *x* = 1 on node 1; the write is replicated to node 3; client B increments *x* on node
 3 (we now have *x* = 2); and finally, both writes are replicated to node 2.
 
-![ddia 0903](/fig/ddia_0903.png)
+{{< figure src="/fig/ddia_0903.png" id="fig_distributed_timestamps" title="Figure 9-3. The write by client B is causally later than the write by client A, but B's write has an earlier timestamp." class="w-full my-4" >}}
 
-###### Figure 9-3. The write by client B is causally later than the write by client A, but B’s write has an earlier timestamp.
 
 In [Figure 9-3](/en/ch9#fig_distributed_timestamps), when a write is replicated to other nodes, it is tagged with a
 timestamp according to the time-of-day clock on the node where the write originated. The clock
@@ -710,12 +692,10 @@ a higher timestamp than the overwritten value, even if that timestamp is ahead o
 clock. However, that incurs the cost of an additional read to find the greatest existing timestamp.
 Some systems, including Cassandra and ScyllaDB, want to write to all replicas in a single round
 trip, and therefore they simply use the client clock’s timestamp along with a last write wins
-policy [^62]. This approach has some
-serious problems:
+policy [^62]. This approach has some serious problems:
 
 * Database writes can mysteriously disappear: a node with a lagging clock is unable to overwrite
- values previously written by a node with a fast clock until the clock skew between the nodes has
- elapsed [^63] [^65].
+ values previously written by a node with a fast clock until the clock skew between the nodes has elapsed [^63] [^65].
  This scenario can cause arbitrary amounts of data to be silently dropped without any error being
  reported to the application.
 * LWW cannot distinguish between writes that occurred sequentially in quick succession (in
@@ -741,9 +721,7 @@ time, in addition to other sources of error such as quartz drift. To guarantee a
 you would need the clock error to be significantly lower than the network delay, which is not
 possible.
 
-So-called *logical clocks*
-[^66],
-which are based on incrementing counters rather than an oscillating quartz crystal, are a safer
+So-called *logical clocks* [^66], which are based on incrementing counters rather than an oscillating quartz crystal, are a safer
 alternative for ordering events (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)). Logical clocks do not measure
 the time of day or the number of seconds elapsed, only the relative ordering of events (whether one
 event happened before or after another). In contrast, time-of-day and monotonic clocks, which
@@ -810,13 +788,11 @@ Can we use the timestamps from synchronized time-of-day clocks as transaction ID
 the synchronization good enough, they would have the right properties: later transactions have a
 higher timestamp. The problem, of course, is the uncertainty about clock accuracy.
 
-Spanner implements snapshot isolation across datacenters in this way
-[^68] [^69].
+Spanner implements snapshot isolation across datacenters in this way [^68] [^69].
 It uses the clock’s confidence interval as reported by the TrueTime API, and is based on the
 following observation: if you have two confidence intervals, each consisting of an earliest and
-latest possible timestamp (*A* = [*Aearliest*, *Alatest*] and
-*B* = [*Bearliest*, *Blatest*]), and those two intervals do not overlap (i.e.,
-*Aearliest* < *Alatest* < *Bearliest* < *Blatest*), then B definitely happened after A—there
+latest possible timestamp (*A* = [*Aearliest*, *Alatest*] and *B* = [*Bearliest*, *Blatest*]), and those two intervals do not overlap 
+(i.e., *Aearliest* < *Alatest* < *Bearliest* < *Blatest*), then B definitely happened after A—there
 can be no doubt. Only if the intervals overlap are we unsure in which order A and B happened.
 
 In order to ensure that transaction timestamps reflect causality, Spanner deliberately waits for the
@@ -824,8 +800,7 @@ length of the confidence interval before committing a read-write transaction. By
 ensures that any transaction that may read the data is at a sufficiently later time, so their
 confidence intervals do not overlap. In order to keep the wait time as short as possible, Spanner
 needs to keep the clock uncertainty as small as possible; for this purpose, Google deploys a GPS
-receiver or atomic clock in each datacenter, allowing clocks to be synchronized to within about
-7 ms [^45].
+receiver or atomic clock in each datacenter, allowing clocks to be synchronized to within about 7 ms [^45].
 
 The atomic clocks and GPS receivers are not strictly necessary in Spanner: the important thing is to
 have a confidence interval, and the accurate clock sources only help keep that interval small. Other
@@ -839,8 +814,7 @@ database with a single leader per shard. Only the leader is allowed to accept wr
 node know that it is still leader (that it hasn’t been declared dead by the others), and that it may
 safely accept writes?
 
-One option is for the leader to obtain a *lease* from the other nodes, which is similar to a lock
-with a timeout [^73].
+One option is for the leader to obtain a *lease* from the other nodes, which is similar to a lock with a timeout [^73].
 Only one node can hold the lease at any one time—thus, when a node obtains a lease, it knows that
 it is the leader for some amount of time, until the lease expires. In order to remain leader, the
 node must periodically renew the lease before it expires. If the node fails, it stops renewing the
@@ -887,12 +861,10 @@ various reasons why this could happen:
 
 * Contention among threads accessing a shared resource, such as a lock or queue, can cause threads
  to spend a lot of their time waiting. Moving to a machine with more CPU cores can make such
- problems worse, and contention problems can be difficult to diagnose
- [^74].
+ problems worse, and contention problems can be difficult to diagnose [^74].
 * Many programming language runtimes (such as the Java Virtual Machine) have a *garbage collector*
  (GC) that occasionally needs to stop all running threads. In the past, such *“stop-the-world” GC
- pauses* would sometimes last for several minutes
- [^75]!
+ pauses* would sometimes last for several minutes [^75]!
  With modern GC algorithms this is less of a problem, but GC pauses can still be noticable (see
  [“Limiting the impact of garbage collection”](/en/ch9#sec_distributed_gc_impact)).
 * In virtualized environments, a virtual machine can be *suspended* (pausing the execution of all
@@ -900,8 +872,7 @@ various reasons why this could happen:
  memory and continuing execution). This pause can occur at any time in a process’s execution and can
  last for an arbitrary length of time. This feature is sometimes used for *live migration* of
  virtual machines from one host to another without a reboot, in which case the length of the pause
- depends on the rate at which processes are writing to memory
- [^76].
+ depends on the rate at which processes are writing to memory [^76].
 * On end-user devices such as laptops and phones, execution may also be suspended and resumed
  arbitrarily, e.g., when the user closes the lid of their laptop.
 * When the operating system context-switches to another thread, or when the hypervisor switches to a
@@ -914,11 +885,9 @@ various reasons why this could happen:
  disk I/O operation to complete [^77]. In many languages, disk access can happen
  surprisingly, even if the code doesn’t explicitly mention file access—for example, the Java
  classloader lazily loads class files when they are first used, which could happen at any time in
- the program execution. I/O pauses and GC pauses may even conspire to combine their delays
- [^78].
+ the program execution. I/O pauses and GC pauses may even conspire to combine their delays [^78].
  If the disk is actually a network filesystem or network block device (such as Amazon’s EBS), the
- I/O latency is further subject to the variability of network delays
- [^31].
+ I/O latency is further subject to the variability of network delays [^31].
 * If the operating system is configured to allow *swapping to disk* (*paging*), a simple memory
  access may result in a page fault that requires a page from disk to be loaded into memory. The
  thread is paused while this slow I/O operation takes place. If memory pressure is high, this may
@@ -1126,9 +1095,8 @@ become corrupted. You try to implement this by requiring a client to obtain a le
 service before accessing the file. Such a lock service is often implemented using a consensus
 algorithm; we will discuss this further in [Chapter 10](/en/ch10#ch_consistency).
 
-![ddia 0904](/fig/ddia_0904.png)
+{{< figure src="/fig/ddia_0904.png" id="fig_distributed_lease_pause" title="Figure 9-4. Incorrect implementation of a distributed lock: client 1 believes that it still has a valid lease, even though it has expired, and thus corrupts a file in storage." class="w-full my-4" >}}
 
-###### Figure 9-4. Incorrect implementation of a distributed lock: client 1 believes that it still has a valid lease, even though it has expired, and thus corrupts a file in storage.
 
 The problem is an example of what we discussed in [“Process Pauses”](/en/ch9#sec_distributed_clocks_pauses): if the client
 holding the lease is paused for too long, its lease expires. Another client can obtain a lease for
@@ -1144,9 +1112,8 @@ or more.) By the time the write request arrives at the storage service, the leas
 out, allowing client 2 to acquire it and issue a write of its own. The result is corruption similar
 to [Figure 9-4](/en/ch9#fig_distributed_lease_pause).
 
-![ddia 0905](/fig/ddia_0905.png)
+{{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" title="Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease." class="w-full my-4" >}}
 
-###### Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease.
 
 ### Fencing off zombies and delayed requests
 
@@ -1166,9 +1133,8 @@ detected and shut down, it may already be too late and data may already have bee
 A more robust fencing solution, which protects against both zombies and delayed requests, is
 illustrated in [Figure 9-6](/en/ch9#fig_distributed_fencing).
 
-![ddia 0906](/fig/ddia_0906.png)
+{{< figure src="/fig/ddia_0906.png" id="fig_distributed_fencing" title="Figure 9-6. Making access to storage safe by allowing writes only in the order of increasing fencing tokens." class="w-full my-4" >}}
 
-###### Figure 9-6. Making access to storage safe by allowing writes only in the order of increasing fencing tokens.
 
 Let’s assume that every time the lock service grants a lock or lease, it also returns a *fencing
 token*, which is a number that increases every time a lock is granted (e.g., incremented by the lock
@@ -1221,9 +1187,8 @@ the most significant bits or digits of the timestamp. You can then be sure that 
 generated by the new leaseholder will be greater than any timestamp from the old leaseholder, even
 if the old leaseholder’s writes happened later.
 
-![ddia 0907](/fig/ddia_0907.png)
+{{< figure src="/fig/ddia_0907.png" id="fig_distributed_fencing_leaderless" title="Figure 9-7. Using fencing tokens to protect writes to a leaderless replicated database." class="w-full my-4" >}}
 
-###### Figure 9-7. Using fencing tokens to protect writes to a leaderless replicated database.
 
 In [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), Client 2 has a fencing token of 34, so all of its
 timestamps starting with 34…​ are greater than any timestamps starting with 33…​ that are
@@ -1252,13 +1217,11 @@ playing by the rules of the protocol.
 Distributed systems problems become much harder if there is a risk that nodes may “lie” (send
 arbitrary faulty or corrupted responses)—for example, it might cast multiple contradictory votes in
 the same election. Such behavior is known as a *Byzantine fault*, and the problem of reaching
-consensus in this untrusting environment is known as the *Byzantine Generals Problem*
-[^94].
+consensus in this untrusting environment is known as the *Byzantine Generals Problem* [^94].
 
 # The Byzantine Generals Problem
 
-The Byzantine Generals Problem is a generalization of the so-called *Two Generals Problem*
-[^95],
+The Byzantine Generals Problem is a generalization of the so-called *Two Generals Problem* [^95],
 which imagines a situation in which two army generals need to agree on a battle plan. As they
 have set up camp on two different sites, they can only communicate by messenger, and the messengers
 sometimes get delayed or lost (like packets in a network). We will discuss this problem of
@@ -1290,8 +1253,7 @@ with the network. This concern is relevant in certain specific circumstances. Fo
  defraud others. In such circumstances, it is not safe for a node to simply trust another node’s
  messages, since they may be sent with malicious intent. For example, cryptocurrencies like
  Bitcoin and other blockchains can be considered to be a way of getting mutually untrusting parties
- to agree whether a transaction happened or not, without relying on a central authority
- [^100].
+ to agree whether a transaction happened or not, without relying on a central authority [^100].
 
 However, in the kinds of systems we discuss in this book, we can usually safely assume that there
 are no Byzantine faults. In a datacenter, all the nodes are controlled by your organization (so
@@ -1308,8 +1270,7 @@ end-user control, such as web browsers. This is why input validation, sanitizati
 escaping are so important: to prevent SQL injection and cross-site scripting, for example. However,
 we typically don’t use Byzantine fault-tolerant protocols here, but simply make the server the
 authority on deciding what client behavior is and isn’t allowed. In peer-to-peer networks, where
-there is no such central authority, Byzantine fault tolerance is more relevant
-[^103] [^104].
+there is no such central authority, Byzantine fault tolerance is more relevant [^103] [^104].
 
 A bug in the software could be regarded as a Byzantine fault, but if you deploy the same software to
 all nodes, then a Byzantine fault-tolerant algorithm cannot save you. Most Byzantine fault-tolerant
@@ -1336,18 +1297,15 @@ pragmatic steps toward better reliability. For example:
  drivers, routers, etc. Usually, corrupted packets are caught by the checksums built into TCP and
  UDP, but sometimes they evade detection [^105] [^106] [^107].
  Simple measures are usually sufficient protection against such corruption, such as checksums in
- the application-level protocol. TLS-encrypted connections also offer protection against
- corruption.
+ the application-level protocol. TLS-encrypted connections also offer protection against corruption.
 * A publicly accessible application must carefully sanitize any inputs from users, for example
  checking that a value is within a reasonable range and limiting the size of strings to prevent
  denial of service through large memory allocations. An internal service behind a firewall may be
- able to get away with less strict checks on inputs, but basic checks in protocol parsers are still
- a good idea [^105].
+ able to get away with less strict checks on inputs, but basic checks in protocol parsers are still a good idea [^105].
 * NTP clients can be configured with multiple server addresses. When synchronizing, the client
  contacts all of them, estimates their errors, and checks that a majority of servers agree on some
  time range. As long as most of the servers are okay, a misconfigured NTP server that is reporting an
- incorrect time is detected as an outlier and is excluded from synchronization
- [^39]. The use of multiple servers makes NTP
+ incorrect time is detected as an outlier and is excluded from synchronization [^39]. The use of multiple servers makes NTP
  more robust than if it only uses a single server.
 
 ## System Model and Reality
@@ -1367,15 +1325,13 @@ With regard to timing assumptions, three system models are in common use:
 Synchronous model
 : The synchronous model assumes bounded network delay, bounded process pauses, and bounded clock
  error. This does not imply exactly synchronized clocks or zero network delay; it just means you
- know that network delay, pauses, and clock drift will never exceed some fixed upper bound
- [^108].
+ know that network delay, pauses, and clock drift will never exceed some fixed upper bound [^108].
  The synchronous model is not a realistic model of most practical
  systems, because (as discussed in this chapter) unbounded delays and pauses do occur.
 
 Partially synchronous model
 : Partial synchrony means that a system behaves like a synchronous system *most of the time*, but it
- sometimes exceeds the bounds for network delay, process pauses, and clock drift
- [^108]. This is a realistic model of many
+ sometimes exceeds the bounds for network delay, process pauses, and clock drift [^108]. This is a realistic model of many
  systems: most of the time, networks and processes are quite well behaved—otherwise we would never
  be able to get anything done—but we have to reckon with the fact that any timing assumptions
  may be shattered occasionally. When this happens, network delay, pauses, and clock error may become
@@ -1391,8 +1347,7 @@ nodes are:
 
 Crash-stop faults
 : In the *crash-stop* (or *fail-stop*) model, an algorithm may assume that a node can fail in only
- one way, namely by crashing
- [^109].
+ one way, namely by crashing [^109].
  This means that the node may suddenly stop responding at any moment, and thereafter that node is
  gone forever—it never comes back.
 
@@ -1405,19 +1360,14 @@ Crash-recovery faults
 Degraded performance and partial functionality
 : In addition to crashing and restarting, nodes may go slow: they may still be able to respond to
  health check requests, while being too slow to get any real work done. For example, a Gigabit
- network interface could suddenly drop to 1 Kb/s throughput due to a driver bug
- [^110];
- a process that is under memory pressure may spend most of its time performing garbage collection
- [^111];
+ network interface could suddenly drop to 1 Kb/s throughput due to a driver bug [^110];
+ a process that is under memory pressure may spend most of its time performing garbage collection [^111];
  worn-out SSDs can have erratic performance; and hardware can be affected by high temperature,
- loose connectors, mechanical vibration, power supply problems, firmware bugs, and more
- [^112].
- Such a situation is called a *limping node*, *gray failure*, or *fail-slow*
- [^113],
+ loose connectors, mechanical vibration, power supply problems, firmware bugs, and more [^112].
+ Such a situation is called a *limping node*, *gray failure*, or *fail-slow* [^113],
  and it can be even more difficult to deal with than a cleanly failed node. A related problem is
  when a process stops doing some of the things it is supposed to do while other aspects continue
- working, for example because a background thread is crashed or deadlocked
- [^114].
+ working, for example because a background thread is crashed or deadlocked [^114].
 
 Byzantine (arbitrary) faults
 : Nodes may do absolutely anything, including trying to trick and deceive other nodes, as described
@@ -1558,15 +1508,13 @@ longer executions would then not be found.
 
 Still, model checkers strike a nice balance between ease of use and the ability to find non-obvious
 bugs. CockroachDB, TiDB, Kafka, and many other distributed systems use model specifications to find
-and fix bugs
-[^122] [^123] [^124]. For example,
+and fix bugs [^122] [^123] [^124]. For example,
 using TLA+, researchers were able to demonstrate the potential for data loss in viewstamped
 replication (VR) caused by ambiguity in the prose description of the algorithm [^125].
 
 By design, model checkers don’t run your actual code, but rather a simplified model that specifies
 only the core ideas of your protocol. This makes it more tractable to systematically explore the
-state space, but it risks that your specification and your implementation go out of sync with each
-other [^126].
+state space, but it risks that your specification and your implementation go out of sync with each other [^126].
 It is possible to check whether the model and the real implementation have equivalent behavior, but
 this requires instrumentation in the real implementation [^127].
 
@@ -1596,8 +1544,7 @@ The myriad of tools required to trigger failures make fault injection tests cumb
 It’s common to adopt a fault injection framework like Jepsen to run fault injection tests to
 simplify the process. Such frameworks come with integrations for various operating systems and many
 pre-built fault injectors [^129].
-Jepsen has been remarkably effective at finding critical bugs in many widely-used systems
-[^130] [^131].
+Jepsen has been remarkably effective at finding critical bugs in many widely-used systems [^130] [^131].
 
 ### Deterministic simulation testing
 
@@ -1620,19 +1567,16 @@ Application-level
 : Some systems are built from the ground-up to make it easy to execute code deterministically. For
  example, FoundationDB, one of the pioneers in the DST space, is built using an asynchronous
  communication library called Flow. Flow provides a point for developers to inject a deterministic
- network simulation into the system
- [^132].
+ network simulation into the system [^132].
  Similarly, TigerBeetle is an online transaction processing (OLTP) database with first-class DST
  support. The system’s state is modeled as a state machine, with all mutations occuring within a
  single event loop. When combined with mock deterministic primitives such as clocks, such an
- architecture is able to run deterministically
- [^133].
+ architecture is able to run deterministically [^133].
 
 Runtime-level
 : Languages with asynchronous runtimes and commonly used libraries provide an insertion point
  to introduce determinism. A single-threaded runtime is used to force all asynchronous code to run
- sequentially. FrostDB, for example, patches Go’s runtime to execute goroutines sequentially
- [^134].
+ sequentially. FrostDB, for example, patches Go’s runtime to execute goroutines sequentially [^134].
  Rust’s madsim library works in a similar manner. Madsim provides deterministic implementations of
  Tokio’s asynchronous runtime API, AWS’s S3 library, Kafka’s Rust library, and many others.
  Applications can swap in deterministic libraries and runtimes to get deterministic test executions
@@ -1710,8 +1654,7 @@ node to be falsely suspected of crashing. Handling limping nodes, which are resp
 slow to do anything useful, is even harder.
 
 Once a fault is detected, making a system tolerate it is not easy either: there is no global
-variable, no shared memory, no common knowledge or any other kind of shared state between the
-machines [^83].
+variable, no shared memory, no common knowledge or any other kind of shared state between the machines [^83].
 Nodes can’t even agree on what time it is, let alone on anything more profound. The only way
 information can flow from one node to another is by sending it over the unreliable network. Major
 decisions cannot be safely made by a single node, so we require protocols that enlist help from
@@ -1722,8 +1665,7 @@ where the same operation always deterministically returns the same result, then 
 physical reality of distributed systems can be a bit of a shock. Conversely, distributed systems
 engineers will often regard a problem as trivial if it can be solved on a single computer [^4],
 and indeed a single computer can do a lot nowadays. If you can avoid opening Pandora’s box and
-simply keep things on a single machine, for example by using an embedded storage engine (see
-[“Embedded storage engines”](/en/ch4#sidebar_embedded)), it is generally worth doing so.
+simply keep things on a single machine, for example by using an embedded storage engine (see [“Embedded storage engines”](/en/ch4#sidebar_embedded)), it is generally worth doing so.
 
 However, as discussed in [“Distributed versus Single-Node Systems”](/en/ch1#sec_introduction_distributed), scalability is not the only reason for
 wanting to use a distributed system. Fault tolerance and low latency (by placing data geographically

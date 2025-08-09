@@ -56,9 +56,7 @@ Barack Obama have over 100 million followers).
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
 have one table for users, one table for posts, and one table for follow relationships.
 
-![ddia 0201](/fig/ddia_0201.png)
-
-###### Figure 2-1. Simple relational schema for a social network in which users can follow each other.
+{{< figure src="/fig/ddia_0201.png" id="fig_twitter_relational" title="Figure 2-1. Simple relational schema for a social network in which users can follow each other." class="w-full my-4" >}}
 
 Let’s say the main read operation that our social network must support is the *home timeline*, which
 displays recent posts by people you are following (for simplicity we will ignore ads, suggested
@@ -111,9 +109,7 @@ because the home timelines are derived data that needs to be updated. The proces
 carried out, we use the term *fan-out* to describe the factor by which the number of requests
 increases.
 
-![ddia 0202](/fig/ddia_0202.png)
-
-###### Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post.
+{{< figure src="/fig/ddia_0202.png" id="fig_twitter_timelines" title="Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post." class="w-full my-4" >}}
 
 At a rate of 5,700 posts posted per second, if the average post reaches 200 followers (i.e., a
 fan-out factor of 200), we will need to do just over 1 million home timeline writes per second. This
@@ -171,9 +167,7 @@ the process of handling an earlier request, and therefore the incoming request n
 the earlier request has been completed. As throughput approaches the maximum that the hardware can
 handle, queueing delays increase sharply.
 
-![ddia 0203](/fig/ddia_0203.png)
-
-###### Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing.
+{{< figure src="/fig/ddia_0203.png" id="fig_throughput" title="Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing." class="w-full my-4" >}}
 
 # When an overloaded system won’t recover
 
@@ -217,9 +211,7 @@ terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)
  i.e., during which it is *latent*. In particular, *network latency* or *network delay* refers to
  the time that request and response spend traveling through the network.
 
-![ddia 0204](/fig/ddia_0204.png)
-
-###### Figure 2-4. Response time, service time, network latency, and queueing delay.
+{{< figure src="/fig/ddia_0204.png" id="fig_response_time" title="Figure 2-4. Response time, service time, network latency, and queueing delay." class="w-full my-4" >}}
 
 In [Figure 2-4](/en/ch2#fig_response_time), time flows from left to right, each communicating node is shown as a
 horizontal line, and a request or response message is shown as a thick diagonal arrow from one node
@@ -247,9 +239,7 @@ gray bar represents a request to a service, and its height shows how long that r
 requests are reasonably fast, but there are occasional *outliers* that take much longer.
 Variation in network delay is also known as *jitter*.
 
-![ddia 0205](/fig/ddia_0205.png)
-
-###### Figure 2-5. Illustrating mean and percentiles: response times for a sample of 100 requests to a service.
+{{< figure src="/fig/ddia_0205.png" id="fig_lognormal" title="Figure 2-5. Illustrating mean and percentiles: response times for a sample of 100 requests to a service." class="w-full my-4" >}}
 
 It’s common to report the *average* response time of a service (technically, the *arithmetic mean*:
 that is, sum all the response times, and divide by the number of requests). The mean response time
@@ -322,9 +312,7 @@ increases if an end-user request requires multiple backend calls, and so a highe
 end-user requests end up being slow (an effect known as *tail latency amplification*
 [^26]).
 
-![ddia 0206](/fig/ddia_0206.png)
-
-###### Figure 2-6. When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request.
+{{< figure src="/fig/ddia_0206.png" id="fig_tail_amplification" title="Figure 2-6. When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request." class="w-full my-4" >}}
 
 Percentiles are often used in *service level objectives* (SLOs) and *service level agreements*
 (SLAs) as ways of defining the expected performance and availability of a service [^27].
@@ -423,16 +411,12 @@ cured, as described in the following sections.
 
 When we think of causes of system failure, hardware faults quickly come to mind:
 
-* Approximately 2–5% of magnetic hard drives fail per year [^40] [^41];
- in a storage cluster with 10,000 disks, we should therefore expect on average one disk failure per day.
+* Approximately 2–5% of magnetic hard drives fail per year [^40] [^41]; in a storage cluster with 10,000 disks, we should therefore expect on average one disk failure per day.
  Recent data suggests that disks are getting more reliable, but failure rates remain significant [^42].
-* Approximately 0.5–1% of solid state drives (SSDs) fail per year [^43].
- Small numbers of bit errors are corrected automatically [^44],
- but uncorrectable errors occur approximately once per year per drive, even in drives that are
+* Approximately 0.5–1% of solid state drives (SSDs) fail per year [^43]. Small numbers of bit errors are corrected automatically [^44], but uncorrectable errors occur approximately once per year per drive, even in drives that are
  fairly new (i.e., that have experienced little wear); this error rate is higher than that of
  magnetic hard drives [^45], [^46].
-* Other hardware components such as power supplies, RAID controllers, and memory modules also fail,
- although less frequently than hard drives [^47] [^48].
+* Other hardware components such as power supplies, RAID controllers, and memory modules also fail, although less frequently than hard drives [^47] [^48].
 * Approximately one in 1,000 machines has a CPU core that occasionally computes the wrong result,
  likely due to manufacturing defects [^49] [^50] [^51]. In some cases, an erroneous computation leads to a crash, but in other cases it leads to a program simply returning the wrong result.
 * Data in RAM can also be corrupted, either due to random events such as cosmic rays, or due to
