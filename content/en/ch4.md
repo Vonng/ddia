@@ -331,7 +331,7 @@ characteristics in more detail in [“Comparing B-Trees and LSM-Trees”](/en/ch
 
 --------
 
-> [!TIP] Embedded storage engines
+> [!TIP] EMBEDDED STORAGE ENGINES
 
 Many databases run as a service that accepts queries over a network, but there are also *embedded*
 databases that don’t expose a network API. Instead, they are libraries that run in the same process
@@ -518,7 +518,7 @@ state drives (SSDs) that most databases use today, the difference is smaller, bu
 
 --------
 
-> [!TIP] Sequential vs. Random Writes on SSDs
+> [!TIP] SEQUENTIAL VS. RANDOM WRITES ON SSDS
 
 On spinning-disk hard drives (HDDs), sequential writes are much faster than random writes: a random
 write has to mechanically move the disk head to a new position and wait for the right part of the
@@ -794,7 +794,7 @@ buying fruit or candy during the 2024 calendar year), but it only needs to acces
 the `fact_sales` table: `date_key`, `product_sk`,
 and `quantity`. The query ignores all other columns.
 
-{{< figure id="fig_storage_analytics_query" caption="Example 4-1. Analyzing whether people are more inclined to buy fresh fruit or candy, depending on the day of the week" class="w-full my-4" >}}
+{{< figure id="fig_storage_analytics_query" title="Example 4-1. Analyzing whether people are more inclined to buy fresh fruit or candy, depending on the day of the week" class="w-full my-4" >}}
 
 ```sql
 SELECT

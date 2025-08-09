@@ -378,7 +378,7 @@ have the same partition key, they will be in the same shard.
 
 --------
 
-> [!TIPS] PARTITIONING AND RANGE QUERIES IN DATA WAREHOUSES
+> [!TIP] PARTITIONING AND RANGE QUERIES IN DATA WAREHOUSES
 
 Data warehouses such as BigQuery, Snowflake, and Delta Lake support a similar indexing approach,
 though the terminology differs. In BigQuery, for example, the partition key determines which

@@ -875,7 +875,7 @@ needs to ensure that a player’s move abides by the rules of the game, which in
 you cannot sensibly implement as a database query. Instead, you may use a lock to prevent two
 players from concurrently moving the same piece, as illustrated in [Example 8-1](/en/ch8#fig_transactions_select_for_update).
 
-{{< figure id="fig_transactions_select_for_update" caption="Example 8-1. Explicitly locking rows to prevent lost updates" class="w-full my-4" >}}
+{{< figure id="fig_transactions_select_for_update" title="Example 8-1. Explicitly locking rows to prevent lost updates" class="w-full my-4" >}}
 
 ```sql
 BEGIN TRANSACTION;

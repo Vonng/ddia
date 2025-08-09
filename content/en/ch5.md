@@ -239,7 +239,7 @@ particular, since they don’t prescribe a schema, they need to include all the 
 the encoded data. That is, in a binary encoding of the JSON document in [Example 5-2](/en/ch5#fig_encoding_json), they
 will need to include the strings `userName`, `favoriteNumber`, and `interests` somewhere.
 
-{{< figure id="fig_encoding_json" caption="Example 5-2. Example record which we will encode in several binary formats in this chapter" class="w-full my-4" >}}
+{{< figure id="fig_encoding_json" title="Example 5-2. Example record which we will encode in several binary formats in this chapter" class="w-full my-4" >}}
 
 ```json
 {
@@ -731,7 +731,7 @@ Developers typically write OpenAPI service definitions in JSON or YAML; see [Exa
 The service definition allows developers to define service endpoints, documentation, versions, data
 models, and much more. gRPC definitions look similar, but are defined using Protocol Buffers service definitions.
 
-{{< figure id="fig_open_api_def" caption="Example 5-3. Example OpenAPI service definition in YAML" class="w-full my-4" >}}
+{{< figure id="fig_open_api_def" title="Example 5-3. Example OpenAPI service definition in YAML" class="w-full my-4" >}}
 
 ```yaml
 openapi: 3.0.0
@@ -942,7 +942,7 @@ Business Process Execution Language (BPEL) [^44].
 
 --------
 
-> [!TIP] Tasks, Activities, and Functions
+> [!TIP] TASKS, ACTIVITIES, AND FUNCTIONS
 
 Different workflow engines use different names for tasks. Temporal, for example, uses the term
 *activity*. Others refer to tasks as *durable functions*. Though the names differ, the concepts are the same.

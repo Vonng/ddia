@@ -42,7 +42,7 @@ you to work with these models. This comparison will help you decide when to use 
 
 --------
 
-> [!TIP] Terminology: Declarative Query Languages
+> [!TIP] TERMINOLOGY: DECLARATIVE QUERY LANGUAGES
 
 Many of the query languages in this chapter (such as SQL, Cypher, SPARQL, or Datalog) are
 *declarative*, which means that you specify the pattern of the data you want—what conditions the
@@ -171,7 +171,7 @@ Another way of representing the same information, which is perhaps more natural 
 closely to an object structure in application code, is as a JSON document as shown in
 [Example 3-1](/en/ch3#fig_obama_json).
 
-{{< figure id="fig_obama_json" caption="Example 3-1. Representing a LinkedIn profile as a JSON document" class="w-full my-4" >}}
+{{< figure id="fig_obama_json" title="Example 3-1. Representing a LinkedIn profile as a JSON document" class="w-full my-4" >}}
 
 ```json
 {
@@ -398,7 +398,7 @@ possible representation is given in [Example 3-2](/en/ch3#fig_datamodels_m2m_js
 document, but the links to organizations and schools are best represented as references to other
 documents.
 
-{{< figure id="fig_datamodels_m2m_json" caption="Example 3-2. A résumé that references organizations by ID." class="w-full my-4" >}}
+{{< figure id="fig_datamodels_m2m_json" title="Example 3-2. A résumé that references organizations by ID." class="w-full my-4" >}}
 
 ```json
 {
@@ -785,7 +785,7 @@ store the properties of each vertex or edge). The head and tail vertex are store
 you want the set of incoming or outgoing edges for a vertex, you can query the `edges` table by
 `head_vertex` or `tail_vertex`, respectively.
 
-{{< figure id="fig_graph_sql_schema" caption="Example 3-3. Representing a property graph using a relational schema" class="w-full my-4" >}}
+{{< figure id="fig_graph_sql_schema" title="Example 3-3. Representing a property graph using a relational schema" class="w-full my-4" >}}
 
 ```sql
 CREATE TABLE vertices (
@@ -864,7 +864,7 @@ only used internally within the query to create edges between the vertices, usin
 `(idaho) -[:WITHIN]-> (usa)` creates an edge labeled `WITHIN`, with `idaho` as the tail node and
 `usa` as the head node.
 
-{{< figure id="fig_cypher_create" caption="Example 3-4. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as a Cypher query" class="w-full my-4" >}}
+{{< figure id="fig_cypher_create" title="Example 3-4. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as a Cypher query" class="w-full my-4" >}}
 
 ```
 CREATE
@@ -887,7 +887,7 @@ property of each of those vertices.
 that are related by an edge labeled `BORN_IN`. The tail vertex of that edge is bound to the
 variable `person`, and the head vertex is left unnamed.
 
-{{< figure id="fig_cypher_query" caption="Example 3-5. Cypher query to find people who emigrated from the US to Europe" class="w-full my-4" >}}
+{{< figure id="fig_cypher_query" title="Example 3-5. Cypher query to find people who emigrated from the US to Europe" class="w-full my-4" >}}
 
 ```
 MATCH
@@ -945,7 +945,7 @@ something called *recursive common table expressions* (the `WITH RECURSIVE` synt
 to Europe—expressed in SQL using this technique. However, the syntax is very clumsy in comparison to
 Cypher.
 
-{{< figure id="fig_graph_sql_query" caption="Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions" class="w-full my-4" >}}
+{{< figure id="fig_graph_sql_query" title="Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions" class="w-full my-4" >}}
 
 ```sql
 WITH RECURSIVE
@@ -1052,7 +1052,7 @@ The subject of a triple is equivalent to a vertex in a graph. The object is one 
 [Example 3-7](/en/ch3#fig_graph_n3_triples) shows the same data as in [Example 3-4](/en/ch3#fig_cypher_create), written as
 triples in a format called *Turtle*, a subset of *Notation3* (*N3*) [^48].
 
-{{< figure id="fig_graph_n3_triples" caption="Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples" class="w-full my-4" >}}
+{{< figure id="fig_graph_n3_triples" title="Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples" class="w-full my-4" >}}
 
 ```
 @prefix : <urn:example:>.
@@ -1081,7 +1081,7 @@ It’s quite repetitive to repeat the same subject over and over again, but fort
 semicolons to say multiple things about the same subject. This makes the Turtle format quite
 readable: see [Example 3-8](/en/ch3#fig_graph_n3_shorthand).
 
-{{< figure id="fig_graph_n3_shorthand" caption="Example 3-8. A more concise way of writing the data in [Example 3-7](/en/ch3#fig_graph_n3_triples)" class="w-full my-4" >}}
+{{< figure id="fig_graph_n3_shorthand" title="Example 3-8. A more concise way of writing the data in [Example 3-7](/en/ch3#fig_graph_n3_triples)" class="w-full my-4" >}}
 
 ```
 @prefix : <urn:example:>.
@@ -1093,7 +1093,7 @@ _:namerica a :Location; :name "North America"; :type "continent".
 
 --------
 
-> [!TIP] The Semantic Web
+> [!TIP] THE SEMANTIC WEB
 
 Some of the research and development effort on triple stores was motivated by the *Semantic Web*, an
 early-2000s effort to facilitate internet-wide data exchange by publishing data not only as
@@ -1116,7 +1116,7 @@ a data model that was designed for the Semantic Web. RDF data can also be encode
 example (more verbosely) in XML, as shown in [Example 3-9](/en/ch3#fig_graph_rdf_xml). Tools like Apache Jena can
 automatically convert between different RDF encodings.
 
-{{< figure id="fig_graph_rdf_xml" caption="Example 3-9. The data of [Example 3-8](/en/ch3#fig_graph_n3_shorthand), expressed using RDF/XML syntax" class="w-full my-4" >}}
+{{< figure id="fig_graph_rdf_xml" title="Example 3-9. The data of [Example 3-8](/en/ch3#fig_graph_n3_shorthand), expressed using RDF/XML syntax" class="w-full my-4" >}}
 
 ```xml
 <rdf:RDF xmlns="urn:example:"
@@ -1169,7 +1169,7 @@ similar.
 The same query as before—finding people who have moved from the US to Europe—is similarly concise in
 SPARQL as it is in Cypher (see [Example 3-10](/en/ch3#fig_sparql_query)).
 
-{{< figure id="fig_sparql_query" caption="Example 3-10. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in SPARQL" class="w-full my-4" >}}
+{{< figure id="fig_sparql_query" title="Example 3-10. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in SPARQL" class="w-full my-4" >}}
 
 ```
 PREFIX : <urn:example:>
@@ -1227,7 +1227,7 @@ the second column contains `val2`, and so on.
 are represented as two-column join tables. For example, Lucy has the ID 100 and Idaho has the ID 3,
 so the relationship “Lucy was born in Idaho” is represented as `born_in(100, 3)`.
 
-{{< figure id="fig_datalog_triples" caption="Example 3-11. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Datalog facts" class="w-full my-4" >}}
+{{< figure id="fig_datalog_triples" title="Example 3-11. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Datalog facts" class="w-full my-4" >}}
 
 ```
 location(1, "North America", "continent").

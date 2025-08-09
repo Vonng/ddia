@@ -173,7 +173,7 @@ handle, queueing delays increase sharply.
 
 --------
 
-> [!TIP] When an overloaded system won’t recover
+> [!TIP] WHEN AN OVERLOADED SYSTEM WON'T RECOVER
 
 If a system is close to overload, with throughput pushed close to the limit, it can sometimes enter a
 vicious cycle where it becomes less efficient and hence even more overloaded. For example, if there
@@ -282,7 +282,7 @@ control, and the benefits are diminishing.
 
 --------
 
-> [!TIP] The user impact of response times
+> [!TIP] THE USER IMPACT OF RESPONSE TIMES
 
 It seems intuitively obvious that a fast service is better for users than a slow service [^20].
 However, it is surprisingly difficult to get hold of reliable data to quantify the effect that
@@ -331,7 +331,7 @@ practice, defining good availability metrics for SLOs and SLAs is not straightfo
 
 --------
 
-> [!TIP] Computing percentiles
+> [!TIP] COMPUTING PERCENTILES
 
 If you want to add response time percentiles to the monitoring dashboards for your services, you
 need to efficiently calculate them on an ongoing basis. For example, you may want to keep a rolling
@@ -557,7 +557,7 @@ work with it every day, and take steps to improve it based on this feedback [^71
 
 --------
 
-> [!TIP] How Important Is Reliability?
+> [!TIP] HOW IMPORTANT IS RELIABILITY?
 
 Reliability is not just for nuclear power stations and air traffic control—more mundane applications
 are also expected to work reliably. Bugs in business applications cause lost productivity (and legal

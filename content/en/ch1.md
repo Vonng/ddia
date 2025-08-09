@@ -9,7 +9,7 @@ breadcrumbs: false
 >
 > [Thomas Sowell](https://www.youtube.com/watch?v=2YUtKr8-_Fg), Interview with Fred Barnes (2005)
 
-> [!TIP] A Note for Early Release Readers
+> [!TIP] A NOTE FOR EARLY RELEASE READERS
 > With Early Release ebooks, you get books in their earliest form—the author’s raw and unedited content as they write—so you can take advantage of these technologies long before the official release of these titles.
 >
 > This will be the 1st chapter of the final book. The GitHub repo for this book is https://github.com/ept/ddia2-feedback.
@@ -84,7 +84,7 @@ concepts, and explores their trade-offs:
 
 Moreover, this chapter will provide you with terminology that we will need for the rest of the book.
 
-> [!TIP] Terminology: Frontends and Backends
+> [!TIP] TERMINOLOGY: FRONTENDS AND BACKENDS
 
 Much of what we will discuss in this book relates to *backend development*. To explain that term:
 for web applications, the client-side code (which runs in a web browser) is called the *frontend*,
