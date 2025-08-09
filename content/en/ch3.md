@@ -62,7 +62,7 @@ In a hand-coded algorithm it would be a lot of work to implement such parallel e
 
 --------
 
-## Relational Model versus Document Model
+## Relational Model versus Document Model {#sec_datamodels_history}
 
 The best-known data model today is probably that of SQL, based on the relational model proposed by Edgar Codd in 1970 [^3]:
 data is organized into *relations* (called *tables* in SQL), where each relation is an unordered collection of *tuples* (*rows* in SQL).
@@ -98,7 +98,7 @@ documents are thought to be more flexible.
 The pros and cons of document and relational data have been debated extensively; let’s examine some
 of the key points of that debate.
 
-### The Object-Relational Mismatch
+### The Object-Relational Mismatch {#the-object-relational-mismatch}
 
 Much application development today is done in object-oriented programming languages, which leads to
 a common criticism of the SQL data model: if data is stored in relational tables, an awkward
@@ -116,7 +116,7 @@ tables, rows, and columns. The disconnect between the models is sometimes called
 
 --------
 
-#### Object-relational mapping (ORM)
+#### Object-relational mapping (ORM) {#object-relational-mapping-orm}
 
 Object-relational mapping (ORM) frameworks like ActiveRecord and Hibernate reduce the amount of
 boilerplate code required for this translation layer, but they are often criticized [^6].
@@ -151,7 +151,7 @@ Nevertheless, ORMs also have advantages:
 * Some ORMs help with caching the results of database queries, which can help reduce the load on the database.
 * ORMs can also help with managing schema migrations and other administrative activities.
 
-#### The document data model for one-to-many relationships
+#### The document data model for one-to-many relationships {#the-document-data-model-for-one-to-many-relationships}
 
 Not all data lends itself well to a relational representation; let’s look at an example to explore a
 limitation of the relational model. [Figure 3-1](/en/ch3#fig_obama_relational) illustrates how a résumé (a LinkedIn
@@ -224,7 +224,7 @@ structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 
 --------
 
-### Normalization, Denormalization, and Joins
+### Normalization, Denormalization, and Joins {#sec_datamodels_normalization}
 
 In [Example 3-1](/en/ch3#fig_obama_json) in the preceding section, `region_id` is given as an ID, not as the plain-text
 string `"Washington, DC, United States"`. Why?
@@ -288,7 +288,7 @@ db.users.aggregate([
 ])
 ```
 
-#### Trade-offs of normalization
+#### Trade-offs of normalization {#trade-offs-of-normalization}
 
 In the résumé example, while the `region_id` field is a reference into a standardized set of
 regions, the name of the `organization` (the company or government where the person worked) and
@@ -328,7 +328,7 @@ moderate scale, a normalized data model is often best, because you don’t have 
 multiple copies of the data consistent with each other, and the cost of performing joins is
 acceptable. However, in very large-scale systems, the cost of joins can become problematic.
 
-#### Denormalization in the social networking case study
+#### Denormalization in the social networking case study {#denormalization-in-the-social-networking-case-study}
 
 In [“Case Study: Social Network Home Timelines”](/en/ch2#sec_introduction_twitter) we compared a normalized representation ([Figure 2-1](/en/ch2#fig_twitter_relational))
 and a denormalized one (precomputed, materialized timelines): here, the join between `posts` and
@@ -376,7 +376,7 @@ outliers, such as users with many follows/followers in the case of a typical soc
 Normalization and denormalization are not inherently good or bad—they are just a trade-off in terms
 of performance of reads and writes, as well as the amount of effort to implement.
 
-### Many-to-One and Many-to-Many Relationships
+### Many-to-One and Many-to-Many Relationships {#sec_datamodels_many_to_many}
 
 While `positions` and `education` in [Figure 3-1](/en/ch3#fig_obama_relational) are examples of one-to-many or
 one-to-few relationships (one résumé has several positions, but each position belongs only to one
@@ -432,7 +432,7 @@ In the document model of [Example 3-2](/en/ch3#fig_datamodels_m2m_json), the da
 of objects inside the `positions` array. Many document databases and relational databases with JSON
 support are able to create such indexes on values inside a document.
 
-### Stars and Snowflakes: Schemas for Analytics
+### Stars and Snowflakes: Schemas for Analytics {#sec_datamodels_analytics}
 
 Data warehouses (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) are usually relational, and there are a few
 widely-used conventions for the structure of tables in a data warehouse: a *star schema*,
@@ -504,7 +504,7 @@ represents a log of historical data that is not going to change (except maybe fo
 correcting an error). The issues of data consistency and write overheads that occur with
 denormalization in OLTP systems are not as pressing in analytics.
 
-### When to Use Which Model
+### When to Use Which Model {#sec_datamodels_document_summary}
 
 The main arguments in favor of the document data model are schema flexibility, better performance
 due to locality, and that for some applications it is closer to the object model used by the
@@ -529,7 +529,7 @@ determine their order. In relational databases there isn’t a standard way of r
 reorderable lists, and various tricks are used: sorting by an integer column (requiring renumbering
 when you insert into the middle), a linked list of IDs, or fractional indexing [^14] [^15] [^16].
 
-#### Schema flexibility in the document model
+#### Schema flexibility in the document model {#sec_datamodels_schema_flexibility}
 
 Most document databases, and the JSON support in relational databases, do not enforce any schema on
 the data in documents. XML support in relational databases usually comes with optional schema
@@ -595,7 +595,7 @@ much more natural data model. But in cases where all records are expected to hav
 structure, schemas are a useful mechanism for documenting and enforcing that structure. We will
 discuss schemas and schema evolution in more detail in [Chapter 5](/en/ch5#ch_encoding).
 
-#### Data locality for reads and writes
+#### Data locality for reads and writes {#sec_datamodels_document_locality}
 
 A document is usually stored as a single continuous string, encoded as JSON, XML, or a binary variant
 thereof (such as MongoDB’s BSON). If your application often needs to access the entire document
@@ -616,7 +616,7 @@ Oracle allows the same, using a feature called *multi-table index cluster tables
 The *wide-column* data model popularized by Google’s Bigtable, and used e.g. in HBase and Accumulo,
 has a concept of *column families*, which have a similar purpose of managing locality [^27].
 
-#### Query languages for documents
+#### Query languages for documents {#query-languages-for-documents}
 
 Another difference between a relational and a document database is the language or API that you use
 to query it. Most relational databases are queried using SQL, but document databases are more
@@ -668,7 +668,7 @@ The aggregation pipeline language is similar in expressiveness to a subset of SQ
 JSON-based syntax rather than SQL’s English-sentence-style syntax; the difference is perhaps a
 matter of taste.
 
-#### Convergence of document and relational databases
+#### Convergence of document and relational databases {#convergence-of-document-and-relational-databases}
 
 Document databases and relational databases started out as very different approaches to data
 management, but they have grown more similar over time [^31].
@@ -693,7 +693,7 @@ sections where schema flexibility is beneficial. Relational-document hybrids are
 --------
 
 
-## Graph-Like Data Models
+## Graph-Like Data Models {#graph-like-data-models}
 
 We saw earlier that the type of relationships is an important distinguishing feature between
 different data models. If your application has mostly one-to-many relationships (tree-structured
@@ -761,7 +761,7 @@ in graph databases, but difficult in other models.
 
 {{< figure src="/fig/ddia_0306.png" id="fig_datamodels_graph" caption="Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges)." class="w-full my-4" >}}
 
-### Property Graphs
+### Property Graphs {#property-graphs}
 
 In the *property graph* (also known as *labeled property graph*) model, each vertex consists of:
 
@@ -850,7 +850,7 @@ substances. Then you could write a query to find out what is safe for each perso
 Graphs are good for evolvability: as you add features to your application, a graph can easily be
 extended to accommodate changes in your application’s data structures.
 
-### The Cypher Query Language
+### The Cypher Query Language {#the-cypher-query-language}
 
 *Cypher* is a query language for property graphs, originally created for the Neo4j graph database,
 and later developed into an open standard as *openCypher* [^38]. Besides Neo4j, Cypher is supported by Memgraph, KùzuDB [^35],
@@ -919,7 +919,7 @@ Europe. Then you can proceed to find all locations (states, regions, cities, etc
 Europe respectively by following all incoming `WITHIN` edges. Finally, you can look for people who
 can be found through an incoming `BORN_IN` or `LIVES_IN` edge at one of the location vertices.
 
-### Graph Queries in SQL
+### Graph Queries in SQL {#graph-queries-in-sql}
 
 [Example 3-3](/en/ch3#fig_graph_sql_schema) suggested that graph data can be represented in a relational database. But
 if we put graph data in a relational structure, can we also query it using SQL?
@@ -1018,7 +1018,7 @@ Oracle has a different SQL extension for recursive queries, which it calls *hier
 However, the situation may be improving: at the time of writing, there are plans to add a graph
 query language called GQL to the SQL standard [^42] [^43], which will provide a syntax inspired by Cypher, GSQL [^44], and PGQL [^45].
 
-### Triple-Stores and SPARQL
+### Triple-Stores and SPARQL {#triple-stores-and-sparql}
 
 The triple-store model is mostly equivalent to the property graph model, using different words to
 describe the same ideas. It is nevertheless worth discussing, because there are various tools and
@@ -1108,7 +1108,7 @@ case: even if you have no interest in the Semantic Web, triples can be a good in
 
 --------
 
-#### The RDF data model
+#### The RDF data model {#the-rdf-data-model}
 
 The Turtle language we used in [Example 3-8](/en/ch3#fig_graph_n3_shorthand) is actually a way of encoding data in the
 *Resource Description Framework* (RDF) [^55],
@@ -1159,7 +1159,7 @@ RDF’s point of view, it is simply a namespace. To avoid potential confusion wi
 examples in this section use non-resolvable URIs such as `urn:example:within`. Fortunately, you can
 just specify this prefix once at the top of the file, and then forget about it.
 
-#### The SPARQL query language
+#### The SPARQL query language {#the-sparql-query-language}
 
 *SPARQL* is a query language for triple-stores using the RDF data model [^56].
 (It is an acronym for *SPARQL Protocol and RDF Query Language*, pronounced “sparkle.”)
@@ -1203,7 +1203,7 @@ bound to any vertex that has a `name` property whose value is the string `"Unite
 SPARQL is supported by Amazon Neptune, AllegroGraph, Blazegraph, OpenLink Virtuoso, Apache Jena, and
 various other triple stores [^36].
 
-### Datalog: Recursive Relational Queries
+### Datalog: Recursive Relational Queries {#datalog-recursive-relational-queries}
 
 Datalog is a much older language than SPARQL or Cypher: it arose from academic research in the 1980s [^57] [^58] [^59].
 It is less well known among software engineers and not widely supported in mainstream databases, but
@@ -1307,7 +1307,7 @@ referring to other rules, similarly to the way that you break down code into fun
 each other. Just like functions can be recursive, Datalog rules can also invoke themselves, like
 rule 2 in [Example 3-12](/en/ch3#fig_datalog_query), which enables graph traversals in Datalog queries.
 
-### GraphQL
+### GraphQL {#graphql}
 
 GraphQL is a query language that, by design, is much more restrictive than the other query languages
 we have seen in this chapter. The purpose of GraphQL is to allow client software running on a user’s
@@ -1416,7 +1416,7 @@ and even though it has “graph” in the name, GraphQL can be implemented on to
 database—relational, document, or graph.
 
 
-## Event Sourcing and CQRS
+## Event Sourcing and CQRS {#sec_datamodels_events}
 
 In all the data models we have discussed so far, the data is queried in the same form as it is
 written—be it JSON documents, rows in tables, or vertices and edges in a graph. However, in complex
@@ -1545,7 +1545,7 @@ views process the events in exactly the same order as they appear in the log; as
 [Chapter 10](/en/ch10#ch_consistency), this is not always easy to achieve in a distributed system.
 
 
-## Dataframes, Matrices, and Arrays
+## Dataframes, Matrices, and Arrays {#sec_datamodels_dataframes}
 
 The data models we have seen so far in this chapter are generally used for both transaction
 processing and analytics purposes (see [“Analytical versus Operational Systems”](/en/ch1#sec_introduction_analytics)). There are also some data
@@ -1612,7 +1612,7 @@ databases* and are most commonly used for scientific datasets such as geospatial
 Dataframes are also used in the financial industry for representing *time series data*, such as the
 prices of assets and trades over time [^68].
 
-## Summary
+## Summary {#summary}
 
 Data models are a huge subject, and in this chapter we have taken a quick look at a broad variety of
 different models. We didn’t have space to go into all the details of each model, but hopefully the
@@ -1676,7 +1676,7 @@ come into play when *implementing* the data models described in this chapter.
 
 
 
-### References
+### References {#references}
 
 [^1]: Jamie Brandon. [Unexplanations: query optimization works because sql is declarative](https://www.scattered-thoughts.net/writing/unexplanations-sql-declarative/). *scattered-thoughts.net*, February 2024. Archived at [perma.cc/P6W2-WMFZ](https://perma.cc/P6W2-WMFZ) 
 [^2]: Joseph M. Hellerstein. [The Declarative Imperative: Experiences and Conjectures in Distributed Logic](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf). Tech report UCB/EECS-2010-90, Electrical Engineering and Computer Sciences, University of California at Berkeley, June 2010. Archived at [perma.cc/K56R-VVQM](https://perma.cc/K56R-VVQM) 

@@ -38,7 +38,7 @@ quite dry; to make the ideas more concrete, we will start this chapter with a ca
 social networking service might work, which will provide practical examples of performance and
 scalability.
 
-## Case Study: Social Network Home Timelines
+## Case Study: Social Network Home Timelines {#sec_introduction_twitter}
 
 Imagine you are given the task of implementing a social network in the style of X (formerly
 Twitter), in which users can post messages and follow other users. This will be a huge
@@ -51,7 +51,7 @@ Let’s also assume that the average user follows 200 people and has 200 followe
 a very wide range: most people have only a handful of followers, and a few celebrities such as
 Barack Obama have over 100 million followers).
 
-### Representing Users, Posts, and Follows
+### Representing Users, Posts, and Follows {#representing-users-posts-and-follows}
 
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
 have one table for users, one table for posts, and one table for follow relationships.
@@ -90,7 +90,7 @@ million times per second—a huge number. And that is the average case. Some use
 thousands of accounts; for them, this query is very expensive to execute, and difficult to make
 fast.
 
-### Materializing and Updating Timelines
+### Materializing and Updating Timelines {#sec_introduction_materializing}
 
 How can we do better? Firstly, instead of polling, it would be better if the server actively pushed
 new posts to any followers who are currently online. Secondly, we should precompute the results of
@@ -143,7 +143,7 @@ extreme cases:
  on a social network can require a lot of infrastructure
  [^6].
 
-## Describing Performance
+## Describing Performance {#sec_introduction_percentiles}
 
 Most discussions of software performance consider two main types of metric:
 
@@ -201,7 +201,7 @@ the current hardware can handle, the capacity needs to be expanded; a system is 
 In this section we will focus primarily on response times, and we will return to throughput and
 scalability in [“Scalability”](/en/ch2#sec_introduction_scalability).
 
-### Latency and Response Time
+### Latency and Response Time {#latency-and-response-time}
 
 “Latency” and “response time” are sometimes used interchangeably, but in this book we will use the
 terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)):
@@ -237,7 +237,7 @@ service times, the client will see a slow overall response time due to the time 
 prior request to complete. The queueing delay is not part of the service time, and for this reason
 it is important to measure response times on the client side.
 
-### Average, Median, and Percentiles
+### Average, Median, and Percentiles {#average-median-and-percentiles}
 
 Because the response time varies from one request to the next, we need to think of it not as a
 single number, but as a *distribution* of values that you can measure. In [Figure 2-5](/en/ch2#fig_lognormal), each
@@ -309,7 +309,7 @@ fast and slow responses is 1.25 seconds or more.
 
 --------
 
-### Use of Response Time Metrics
+### Use of Response Time Metrics {#sec_introduction_slo_sla}
 
 High percentiles are especially important in backend services that are called multiple times as
 part of serving a single end-user request. Even if you make the calls in parallel, the end-user
@@ -352,7 +352,7 @@ is to add the histograms [^34].
 --------
 
 
-## Reliability and Fault Tolerance
+## Reliability and Fault Tolerance {#sec_introduction_reliability}
 
 Everybody has an intuitive idea of what it means for something to be reliable or unreliable. For
 software, typical expectations include:
@@ -382,7 +382,7 @@ However, if the system you’re talking about contains many hard drives, then th
 hard drive is only a fault from the point of view of the bigger system, and the bigger system might
 be able to tolerate that fault by having a copy of the data on another hard drive.
 
-### Fault Tolerance
+### Fault Tolerance {#fault-tolerance}
 
 We call a system *fault-tolerant* if it continues providing the required service to the user in
 spite of certain faults occurring. If a system cannot tolerate a certain part becoming faulty, we
@@ -417,7 +417,7 @@ matters, for example: if an attacker has compromised a system and gained access 
 that event cannot be undone. However, this book mostly deals with the kinds of faults that can be
 cured, as described in the following sections.
 
-### Hardware and Software Faults
+### Hardware and Software Faults {#sec_introduction_hardware_faults}
 
 When we think of causes of system failure, hardware faults quickly come to mind:
 
@@ -444,7 +444,7 @@ These events are rare enough that you often don’t need to worry about them whe
 system, as long as you can easily replace hardware that becomes faulty. However, in a large-scale
 system, hardware faults happen often enough that they become part of the normal system operation.
 
-#### Tolerating hardware faults through redundancy
+#### Tolerating hardware faults through redundancy {#tolerating-hardware-faults-through-redundancy}
 
 Our first response to unreliable hardware is usually to add redundancy to the individual hardware
 components in order to reduce the failure rate of the system. Disks may be set up in a RAID
@@ -480,7 +480,7 @@ system security patches, for example), whereas a multi-node fault-tolerant syste
 restarting one node at a time, without affecting the service for users. This is called a *rolling
 upgrade*, and we will discuss it further in [Chapter 5](/en/ch5#ch_encoding).
 
-#### Software faults
+#### Software faults {#software-faults}
 
 Although hardware failures can be weakly correlated, they are still mostly independent: for
 example, if one disk fails, it’s likely that other disks in the same machine will be fine for
@@ -512,7 +512,7 @@ help: carefully thinking about assumptions and interactions in the system; thoro
 isolation; allowing processes to crash and restart; avoiding feedback loops such as retry storms
 (see [“When an overloaded system won’t recover”](/en/ch2#sidebar_metastable)); measuring, monitoring, and analyzing system behavior in production.
 
-### Humans and Reliability
+### Humans and Reliability {#humans-and-reliability}
 
 Humans design and build software systems, and the operators who keep the systems running are also
 human. Unlike machines, humans don’t just follow rules; their strength is being creative and
@@ -587,7 +587,7 @@ conscious of when we are cutting corners and keep in mind the potential conseque
 
 --------
 
-## Scalability
+## Scalability {#sec_introduction_scalability}
 
 Even if a system is working reliably today, that doesn’t mean it will necessarily work reliably in
 the future. One common reason for degradation is increased load: perhaps the system has grown from
@@ -620,7 +620,7 @@ you will learn where your performance bottlenecks lie, and therefore you will kn
 dimensions you need to scale. At that point it’s time to start worrying about techniques for
 scalability.
 
-### Describing Load
+### Describing Load {#describing-load}
 
 First, we need to succinctly describe the current load on the system; only then can we discuss
 growth questions (what happens if our load doubles?). Often this will be a measure of throughput:
@@ -660,7 +660,7 @@ inefficiency. For example, if you have a lot of data, then processing a single w
 involve more work than if you have a small amount of data, even if the size of the request is the
 same.
 
-### Shared-Memory, Shared-Disk, and Shared-Nothing Architecture
+### Shared-Memory, Shared-Disk, and Shared-Nothing Architecture {#sec_introduction_shared_nothing}
 
 The simplest way of increasing the hardware resources of a service is to move it to a more powerful
 machine. Individual CPU cores are no longer getting significantly faster, but you can buy a machine
@@ -699,7 +699,7 @@ scalability problems of older systems: instead of providing a filesystem (NAS) o
 abstraction, the storage service offers a specialized API that is designed for the specific needs of
 the database [^83].
 
-### Principles for Scalability
+### Principles for Scalability {#principles-for-scalability}
 
 The architecture of systems that operate at large scale is usually highly specific to the
 application—there is no such thing as a generic, one-size-fits-all scalable architecture
@@ -729,7 +729,7 @@ load is fairly predictable, a manually scaled system may have fewer operational 
 [“Operations: Automatic or Manual Rebalancing”](/en/ch7#sec_sharding_operations)). A system with five services is simpler than one with fifty. Good
 architectures usually involve a pragmatic mixture of approaches.
 
-## Maintainability
+## Maintainability {#sec_introduction_maintainability}
 
 Software does not wear out or suffer material fatigue, so it does not break in the same ways as
 mechanical objects do. But the requirements for an application frequently change, the environment
@@ -767,7 +767,7 @@ Evolvability
  it for unanticipated use cases as requirements change.
 
 
-### Operability: Making Life Easy for Operations
+### Operability: Making Life Easy for Operations {#operability-making-life-easy-for-operations}
 
 We previously discussed the role of operations in [“Operations in the Cloud Era”](/en/ch1#sec_introduction_operations), and we saw that
 human processes are at least as important for reliable operations as software tools. In fact, it has
@@ -799,7 +799,7 @@ on high-value activities. Data systems can do various things to make routine tas
 * Self-healing where appropriate, but also giving administrators manual control over the system state when needed
 * Exhibiting predictable behavior, minimizing surprises
 
-### Simplicity: Managing Complexity
+### Simplicity: Managing Complexity {#simplicity-managing-complexity}
 
 Small software projects can have delightfully simple and expressive code, but as projects get
 larger, they often become very complex and difficult to understand. This complexity slows down
@@ -843,7 +843,7 @@ abstractions on top of which you can build your applications, such as database t
 indexes, and event logs. If you want to use techniques such as DDD, you can implement them on top of
 the foundations described in this book.
 
-### Evolvability: Making Change Easy
+### Evolvability: Making Change Easy {#sec_introduction_evolvability}
 
 It’s extremely unlikely that your system’s requirements will remain unchanged forever. They are much more
 likely to be in constant flux: you learn new facts, previously unanticipated use cases emerge,
@@ -868,7 +868,7 @@ old system in case of problems with the new one, the stakes are much higher than
 back. Minimizing irreversibility improves flexibility.
 
 
-## Summary
+## Summary {#summary}
 
 In this chapter we examined several examples of nonfunctional requirements: performance,
 reliability, scalability, and maintainability. Through these topics we have also encountered
@@ -896,7 +896,7 @@ There are no easy answers on how to achieve these things, but one thing that can
 applications using well-understood building blocks that provide useful abstractions. The rest of
 this book will cover a selection of building blocks that have proved to be valuable in practice.
 
-### References
+### References {#references}
 
 [^1]: Mike Cvet. [How We Learned to Stop Worrying and Love Fan-In at Twitter](https://www.youtube.com/watch?v=WEgCjwyXvwc). At *QCon San Francisco*, December 2016. 
 [^2]: Raffi Krikorian. [Timelines at Scale](https://www.infoq.com/presentations/Twitter-Timeline-Scalability/). At *QCon San Francisco*, November 2012. Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK) 

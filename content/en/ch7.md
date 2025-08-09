@@ -64,7 +64,7 @@ the network between nodes. We will discuss such faults in [Chapter 9](/en/ch9#c
 
 --------
 
-## Pros and Cons of Sharding
+## Pros and Cons of Sharding {#pros-and-cons-of-sharding}
 
 The primary reason for sharding a database is *scalability*: it’s a solution if the volume of data
 or the write throughput has become too great for a single node to handle, as it allows you to spread
@@ -108,7 +108,7 @@ access* (NUMA) architecture in which some banks of memory are closer to one CPU 
 For example, Redis, VoltDB, and FoundationDB use one process per core, and rely on sharding to
 spread load across CPU cores in the same machine [^6].
 
-### Sharding for Multitenancy
+### Sharding for Multitenancy {#sharding-for-multitenancy}
 
 Software as a Service (SaaS) products and cloud services are often *multitenant*, where each tenant
 is a customer. Multiple users may have logins on the same tenant, but each tenant has a
@@ -171,7 +171,7 @@ The main challenges around using sharding for multitenancy are:
 
 
 
-## Sharding of Key-Value Data
+## Sharding of Key-Value Data {#sharding-of-key-value-data}
 
 Say you have a large amount of data, and you want to shard it. How do you decide which records to
 store on which nodes?
@@ -195,7 +195,7 @@ necessarily its primary key). That algorithm needs to be amenable to rebalancing
 hot spots.
 
 
-### Sharding by Key Range
+### Sharding by Key Range {#sharding-by-key-range}
 
 One way of sharding is to assign a contiguous range of partition keys (from some minimum to some
 maximum) to each shard, like the volumes of a paper encyclopedia, as illustrated in
@@ -238,7 +238,7 @@ active at the same time, the write load will end up more evenly spread across th
 downside is that when you want to fetch the values of multiple sensors within a time range, you now
 need to perform a separate range query for each sensor.
 
-#### Rebalancing key-range sharded data
+#### Rebalancing key-range sharded data {#rebalancing-key-range-sharded-data}
 
 When you first set up your database, there are no key ranges to split into shards. Some databases,
 such as HBase and MongoDB, allow you to configure an initial set of shards on an empty database,
@@ -267,7 +267,7 @@ all of its data to be rewritten into new files, similarly to a compaction in a l
 storage engine. A shard that needs splitting is often also one that is under high load, and the cost
 of splitting can exacerbate that load, risking it becoming overloaded.
 
-### Sharding by Hash of Key
+### Sharding by Hash of Key {#sharding-by-hash-of-key}
 
 Key-range sharding is useful if you want records with nearby (but different) partition keys to be
 grouped into the same shard; for example, this might be the case with timestamps. If you don’t care
@@ -285,7 +285,7 @@ functions built in (as they are used for hash tables), but they may not be suita
 for example, in Java’s `Object.hashCode()` and Ruby’s `Object#hash`, the same key may have a
 different hash value in different processes, making them unsuitable for sharding [^16].
 
-#### Hash modulo number of nodes
+#### Hash modulo number of nodes {#hash-modulo-number-of-nodes}
 
 Once you have hashed the key, how do you choose which shard to store it in? Maybe your first thought
 is to take the hash value *modulo* the number of nodes in the system (using the `%` operator in many
@@ -305,7 +305,7 @@ The *mod N* function is easy to compute, but it leads to very inefficient rebala
 is a lot of unnecessary movement of records from one node to another. We need an approach that
 doesn’t move data around more than necessary.
 
-#### Fixed number of shards
+#### Fixed number of shards {#fixed-number-of-shards}
 
 One simple but widely-used solution is to create many more shards than there are nodes, and to
 assign several shards to each node. For example, a database running on a cluster of 10 nodes may be
@@ -350,7 +350,7 @@ expensive. But if shards are too small, they incur too much overhead. The best p
 achieved when the size of shards is “just right,” neither too big nor too small, which can be hard
 to achieve if the number of shards is fixed but the dataset size varies.
 
-#### Sharding by hash range
+#### Sharding by hash range {#sharding-by-hash-range}
 
 If the required number of shards can’t be predicted in advance, it’s better to use a scheme in which
 the number of shards can adapt easily to the workload. The aforementioned key-range sharding scheme
@@ -407,7 +407,7 @@ transfers parts of two of its ranges to node 3, and node 2 transfers part of one
 node 3. This has the effect of giving the new node an approximately fair share of the dataset,
 without transferring more data than necessary from one node to another.
 
-#### Consistent hashing
+#### Consistent hashing {#sec_sharding_consistent_hashing}
 
 A *consistent hashing* algorithm is a hash function that maps keys to a specified number of shards
 in a way that satisfies two properties:
@@ -427,7 +427,7 @@ sub-ranges; on the other hand, with rendezvous and jump consistent hashes, the n
 individual keys that were previously scattered across all of the other nodes. Which one is
 preferable depends on the application.
 
-### Skewed Workloads and Relieving Hot Spots
+### Skewed Workloads and Relieving Hot Spots {#sec_sharding_skew}
 
 Consistent hashing ensures that keys are uniformly distributed across nodes, but that doesn’t mean
 that the actual load is uniformly distributed. If the workload is highly skewed—that is, the amount
@@ -466,7 +466,7 @@ Some systems (especially cloud services designed for large scale) have automated
 dealing with hot shards; for example, Amazon calls it *heat management* [^28] or *adaptive capacity* [^17].
 The details of how these systems work go beyond the scope of this book.
 
-### Operations: Automatic or Manual Rebalancing
+### Operations: Automatic or Manual Rebalancing {#sec_sharding_operations}
 
 There is one important question with regard to rebalancing that we have glossed over: does the
 splitting of shards and rebalancing happen automatically or manually?
@@ -499,7 +499,7 @@ than a fully automatic process, but it can help prevent operational surprises.
 
 
 
-## Request Routing
+## Request Routing {#sec_sharding_routing}
 
 We have discussed how to shard a dataset across multiple nodes, and how to rebalance those shards as
 nodes are added or removed. Now let’s move on to the question: if you want to read or write a
@@ -573,7 +573,7 @@ typically have a very different kind of query execution: rather than executing i
 query typically needs to aggregate and join data from many different shards in parallel. We will
 discuss techniques for such parallel query execution in [Link to Come].
 
-## Sharding and Secondary Indexes
+## Sharding and Secondary Indexes {#sec_sharding_secondary_indexes}
 
 The sharding schemes we have discussed so far rely on the client knowing the partition key for any
 record it wants to access. This is most easily done in a key-value data model, where the partition
@@ -592,7 +592,7 @@ search engines such as Solr and Elasticsearch. The problem with secondary indexe
 map neatly to shards. There are two main approaches to sharding a database with secondary indexes:
 local and global indexes.
 
-### Local Secondary Indexes
+### Local Secondary Indexes {#local-secondary-indexes}
 
 For example, imagine you are operating a website for selling used cars (illustrated in
 [Figure 7-9](/en/ch7#fig_sharding_local_secondary)). Each listing has a unique ID, and you use that ID as partition
@@ -642,7 +642,7 @@ process every query anyway.
 Nevertheless, local secondary indexes are widely used [^31]: for example, MongoDB, Riak, Cassandra [^32], Elasticsearch [^33], 
 SolrCloud, and VoltDB [^34] all use local secondary indexes.
 
-### Global Secondary Indexes
+### Global Secondary Indexes {#global-secondary-indexes}
 
 Rather than each shard having its own, local secondary index, we can construct a *global index* that
 covers data in all shards. However, we can’t just store that index on one node, since it would
@@ -689,7 +689,7 @@ Nevertheless, global indexes are useful if read throughput is higher than write 
 the postings lists are not too long.
 
 
-## Summary
+## Summary {#summary}
 
 In this chapter we explored different ways of sharding a large dataset into smaller subsets.
 Sharding is necessary when you have so much data that storing and processing it on a single machine
@@ -744,7 +744,7 @@ that question in the following chapters.
 
 
 
-### References
+### References {#references}
 
 [^1]: Claire Giordano. [Understanding partitioning and sharding in Postgres and Citus](https://www.citusdata.com/blog/2023/08/04/understanding-partitioning-and-sharding-in-postgres-and-citus/). *citusdata.com*, August 2023. Archived at [perma.cc/8BTK-8959](https://perma.cc/8BTK-8959) 
 [^2]: Brandur Leach. [Partitioning in Postgres, 2022 edition](https://brandur.org/fragments/postgres-partitioning-2022). *brandur.org*, October 2022. Archived at [perma.cc/Z5LE-6AKX](https://perma.cc/Z5LE-6AKX) 

@@ -37,7 +37,7 @@ Later in [“Data Storage for Analytics”](/en/ch4#sec_storage_analytics) we’
 analytics, and in [“Multidimensional and Full-Text Indexes”](/en/ch4#sec_storage_multidimensional) we’ll briefly look at indexes for more advanced
 queries, such as text retrieval.
 
-## Storage and Indexing for OLTP
+## Storage and Indexing for OLTP {#storage-and-indexing-for-oltp}
 
 Consider the world’s simplest database, implemented as two Bash functions:
 
@@ -133,7 +133,7 @@ writing the application or administering the database—to choose indexes manual
 knowledge of the application’s typical query patterns. You can then choose the indexes that give
 your application the greatest benefit, without introducing more overhead on writes than necessary.
 
-### Log-Structured Storage
+### Log-Structured Storage {#log-structured-storage}
 
 To start, let’s assume that you want to continue storing data in the append-only file written by
 `db_set`, and you just want to speed up reads. One way you could do this is by keeping a hash map in
@@ -160,7 +160,7 @@ This approach is much faster, but it still suffers from several problems:
 * Range queries are not efficient. For example, you cannot easily scan over all keys between `10000`
  and `19999`—you’d have to look up each key individually in the hash map.
 
-#### The SSTable file format
+#### The SSTable file format {#the-sstable-file-format}
 
 In practice, hash tables are not used very often for database indexes, and instead it is much more
 common to keep data in a structure that is *sorted by key* [^3].
@@ -187,7 +187,7 @@ Moreover, each block of records can be compressed (indicated by the shaded area 
 [Figure 4-2](/en/ch4#fig_storage_sstable_index)). Besides saving disk space, compression also reduces the I/O
 bandwidth use, at the cost of using a bit more CPU time.
 
-#### Constructing and merging SSTables
+#### Constructing and merging SSTables {#constructing-and-merging-sstables}
 
 The SSTable file format is better for reading than an append-only log, but it makes writes more
 difficult. We can’t simply append at the end, because then the file would no longer be sorted
@@ -258,7 +258,7 @@ was a crash halfway through writing a record, or if the disk was full; these are
 by including checksums in the log, and discarding corrupted or incomplete log entries. We will talk
 more about durability and crash recovery in [Chapter 8](/en/ch8#ch_transactions).
 
-#### Bloom filters
+#### Bloom filters {#bloom-filters}
 
 With LSM storage it can be slow to read a key that was last updated a long time ago, or that does
 not exist, since the storage engine needs to check several segment files. In order to speed up such
@@ -303,7 +303,7 @@ In the context of an LSM storage engines, false positives are no problem:
  have done a bit of unnecessary work, but otherwise no harm is done—we just continue the search
  with the next-oldest segment.
 
-#### Compaction strategies
+#### Compaction strategies {#sec_storage_lsm_compaction}
 
 An important detail is how the LSM storage chooses when to perform compaction, and which SSTables to
 include in a compaction. Many LSM-based storage systems allow you to configure which compaction
@@ -352,7 +352,7 @@ for scaling a database across multiple machines.
 
 --------
 
-### B-Trees
+### B-Trees {#sec_storage_b_trees}
 
 The log-structured approach is popular, but it is not the only form of key-value storage. The most
 widely used structure for reading and writing database records by key is the *B-tree*.
@@ -419,7 +419,7 @@ of *O*(log *n*). Most databases can fit into a B-tree that is three or four lev
 you don’t need to follow many page references to find the page you are looking for. (A four-level
 tree of 4 KiB pages with a branching factor of 500 can store up to 250 TB.)
 
-#### Making B-trees reliable
+#### Making B-trees reliable {#sec_storage_btree_wal}
 
 The basic underlying write operation of a B-tree is to overwrite a page on disk with new data. It is
 assumed that the overwrite does not change the location of the page; i.e., all references to that
@@ -445,7 +445,7 @@ ensures that data is not lost in the case of a crash: as long as data has been w
 and flushed to disk using the `fsync()` system call, the data will be durable as the database will
 be able to recover it after a crash [^25].
 
-#### B-tree variants
+#### B-tree variants {#b-tree-variants}
 
 As B-trees have been around for so long, many variants have been developed over the years. To
 mention just a few:
@@ -466,7 +466,7 @@ mention just a few:
  its sibling pages to the left and right, which allows scanning keys in order without jumping back
  to parent pages.
 
-### Comparing B-Trees and LSM-Trees
+### Comparing B-Trees and LSM-Trees {#sec_storage_btree_lsm_comparison}
 
 As a rule of thumb, LSM-trees are better suited for write-heavy applications, whereas B-trees are faster for reads [^27] [^28].
 However, benchmarks are often sensitive to details of the workload. You need to test systems with
@@ -475,7 +475,7 @@ choice between LSM and B-trees: storage engines sometimes blend characteristics 
 for example by having multiple B-trees and merging them LSM-style. In this section we will briefly
 discuss a few things that are worth considering when measuring the performance of a storage engine.
 
-#### Read performance
+#### Read performance {#read-performance}
 
 In a B-tree, looking up a key involves reading one page at each level of the B-tree. Since the
 number of levels is usually quite small, this means that reads from a B-tree are generally fast and
@@ -500,7 +500,7 @@ Regarding read throughput, modern SSDs (and especially NVMe) can perform many in
 requests in parallel. Both LSM-trees and B-trees are able to provide high read throughput, but
 storage engines need to be carefully designed to take advantage of this parallelism [^32].
 
-#### Sequential vs. random writes
+#### Sequential vs. random writes {#sidebar_sequential}
 
 With a B-tree, if the application writes keys that are scattered all over the key space, the
 resulting disk operations are also scattered randomly, since the pages that the storage engine needs
@@ -546,7 +546,7 @@ wear out the drive faster than sequential writes.
 
 --------
 
-#### Write amplification
+#### Write amplification {#write-amplification}
 
 With any type of storage engine, one write request from the application turns into multiple I/O
 operations on the underlying disk. With LSM-trees, a value is first written to the log for
@@ -581,7 +581,7 @@ long enough that the effects of write amplification become clear. When writing t
 there are no compactions going on yet, so all of the disk bandwidth is available for new writes. As
 the database grows, new writes need to share the disk bandwidth with compaction.
 
-#### Disk space usage
+#### Disk space usage {#disk-space-usage}
 
 B-trees can become *fragmented* over time: for example, if a large number of keys are deleted, the
 database file may contain a lot of pages that are no longer used by the B-tree. Subsequent additions
@@ -613,7 +613,7 @@ actually copy them. In a B-tree whose pages are overwritten, taking such a snaps
 more difficult.
 
 
-### Multi-Column and Secondary Indexes
+### Multi-Column and Secondary Indexes {#sec_storage_index_multicolumn}
 
 So far we have only discussed key-value indexes, which are like a *primary key* index in the
 relational model. A primary key uniquely identifies one row in a relational table, or one document
@@ -634,7 +634,7 @@ postings list in a full-text index) or by making each entry unique by appending 
 it. Storage engines with in-place updates, like B-trees, and log-structured storage can both be used
 to implement an index.
 
-#### Storing values within the index
+#### Storing values within the index {#sec_storage_index_heap}
 
 The key in an index is the thing that queries search by, but the value can be one of several things:
 
@@ -663,7 +663,7 @@ more complicated if the new value is larger, as it probably needs to be moved to
 the heap where there is enough space. In that case, either all indexes need to be updated to point
 at the new heap location of the record, or a forwarding pointer is left behind in the old heap location [^2].
 
-### Keeping everything in memory
+### Keeping everything in memory {#sec_storage_inmemory}
 
 The data structures discussed so far in this chapter have all been answers to the limitations of
 disks. Compared to main memory, disks are awkward to deal with. With both magnetic disks and SSDs,
@@ -708,7 +708,7 @@ interface to various data structures such as priority queues and sets. Because i
 memory, its implementation is comparatively simple.
 
 
-## Data Storage for Analytics
+## Data Storage for Analytics {#sec_storage_analytics}
 
 The data model of a data warehouse is most commonly relational, because SQL is generally a good fit
 for analytic queries. There are many graphical data analysis tools that generate SQL queries,
@@ -726,7 +726,7 @@ and analytical processing (HTAP) databases (introduced in [“Data Warehousing�
 becoming two separate storage and query engines, which happen to be accessible through a common SQL
 interface [^50] [^51] [^52] [^53].
 
-### Cloud Data Warehouses
+### Cloud Data Warehouses {#cloud-data-warehouses}
 
 Data warehouse vendors such as Teradata, Vertica, and SAP HANA sell both on-premises warehouses
 under commercial licenses and cloud-based solutions. But as many of their customers move to the
@@ -779,7 +779,7 @@ Data catalog
  integrated, but decoupling them has enabled data discovery and data governance systems
  (discussed in [“Data Systems, Law, and Society”](/en/ch1#sec_introduction_compliance)) to access a catalog’s metadata as well.
 
-### Column-Oriented Storage
+### Column-Oriented Storage {#column-oriented-storage}
 
 As discussed in [“Stars and Snowflakes: Schemas for Analytics”](/en/ch3#sec_datamodels_analytics), data warehouses by convention often use a relational
 schema with a big fact table that contains foreign key references into dimension tables.
@@ -856,7 +856,7 @@ to single-node embedded databases such as DuckDB [^62], and product analytics sy
 It is used in storage formats such as Parquet, ORC [^65] [^66], Lance [^67], and Nimble [^68], and in-memory analytics formats like Apache Arrow
 [^65] [^69] and Pandas/NumPy [^70]. Some time-series databases, such as InfluxDB IOx [^71] and TimescaleDB [^72], are also based on column-oriented storage.
 
-#### Column Compression
+#### Column Compression {#sec_storage_column_compression}
 
 Besides only loading those columns from disk that are required for a query, we can further reduce
 the demands on disk throughput and network bandwidth by compressing data. Fortunately,
@@ -907,7 +907,7 @@ There are also various other compression schemes for columnar databases, which y
 
 --------
 
-#### Sort Order in Column Storage
+#### Sort Order in Column Storage {#sort-order-in-column-storage}
 
 In a column store, it doesn’t necessarily matter in which order the rows are stored. It’s easiest to
 store them in the order in which they were inserted, since then inserting a new row just means
@@ -942,7 +942,7 @@ more jumbled up, and thus not have such long runs of repeated values. Columns fu
 sorting priority appear in essentially random order, so they probably won’t compress as well. But
 having the first few columns sorted is still a win overall.
 
-#### Writing to Column-Oriented Storage
+#### Writing to Column-Oriented Storage {#writing-to-column-oriented-storage}
 
 We saw in [“Characterizing Transaction Processing and Analytics”](/en/ch1#sec_introduction_oltp) that reads in data warehouses tend to consist of aggregations
 over a large number of rows; column-oriented storage, compression, and sorting all help to make
@@ -964,7 +964,7 @@ of view, data that has been modified with inserts, updates, or deletes is immedi
 subsequent queries. Snowflake, Vertica, Apache Pinot, Apache Druid, and many others do this [^61] [^63] [^64] [^76].
 
 
-### Query Execution: Compilation and Vectorization
+### Query Execution: Compilation and Vectorization {#sec_storage_vectorized}
 
 A complex SQL query for analytics is broken down into a *query plan* consisting of multiple stages,
 called *operators*, which may be distributed across multiple machines for parallel execution. Query
@@ -1018,7 +1018,7 @@ performance by taking advantages of the characteristics of modern CPUs:
 * operating directly on compressed data without decoding it into a separate in-memory
  representation, which saves memory allocation and copying costs.
 
-### Materialized Views and Data Cubes
+### Materialized Views and Data Cubes {#materialized-views-and-data-cubes}
 
 We previously encountered *materialized views* in [“Materializing and Updating Timelines”](/en/ch2#sec_introduction_materializing):
 in a relational data model, they are table-like object whose contents are the results of some
@@ -1065,7 +1065,7 @@ because the price isn’t one of the dimensions. Most data warehouses therefore 
 raw data as possible, and use aggregates such as data cubes only as a performance boost for certain queries.
 
 
-## Multidimensional and Full-Text Indexes
+## Multidimensional and Full-Text Indexes {#sec_storage_multidimensional}
 
 The B-trees and LSM-trees we saw in the first half of this chapter allow range queries over a single
 attribute: for example, if the key is a username, you can use them as an index to efficiently find
@@ -1110,7 +1110,7 @@ one-dimensional index, you would have to either scan over all the records from 2
 temperature) and then filter them by temperature, or vice versa. A 2D index could narrow down by
 timestamp and temperature simultaneously [^87].
 
-### Full-Text Search
+### Full-Text Search {#sec_storage_full_text}
 
 Full-text search allows you to search a collection of text documents (web pages, product
 descriptions, etc.) by keywords that might appear anywhere in the text [^88].
@@ -1156,7 +1156,7 @@ It does this by storing the set of terms as a finite state automaton over the ch
 and transforming it into a *Levenshtein automaton*, which supports efficient search for words within a given edit distance [^97].
 
 
-### Vector Embeddings
+### Vector Embeddings {#vector-embeddings}
 
 Semantic search goes beyond synonyms and typos to try and understand document concepts
 and user intentions. For example, if your help pages contain a page titled “cancelling your
@@ -1238,7 +1238,7 @@ Hierarchical Navigable Small World (HNSW)
 Many popular vector databases implement IVF and HNSW indexes. Facebook’s Faiss library has many variations of each [^101], and PostgreSQL’s pgvector supports both as well [^102].
 The full details of the IVF and HNSW algorithms are beyond the scope of this book, but their papers are an excellent resource [^103] [^104].
 
-## Summary
+## Summary {#summary}
 
 In this chapter we tried to get to the bottom of how databases perform storage and retrieval. What
 happens when you store data in a database, and what does the database do when you query for the
@@ -1288,7 +1288,7 @@ documentation for the database of your choice.
 
 
 
-### References
+### References {#references}
 
 [^1]: Nikolay Samokhvalov. [How partial, covering, and multicolumn indexes may slow down UPDATEs in PostgreSQL](https://postgres.ai/blog/20211029-how-partial-and-covering-indexes-affect-update-performance-in-postgresql). *postgres.ai*, October 2021. Archived at [perma.cc/PBK3-F4G9](https://perma.cc/PBK3-F4G9) 
 [^2]: Goetz Graefe. [Modern B-Tree Techniques](https://w6113.github.io/files/papers/btreesurvey-graefe.pdf). *Foundations and Trends in Databases*, volume 3, issue 4, pages 203–402, August 2011. [doi:10.1561/1900000028](https://doi.org/10.1561/1900000028) 

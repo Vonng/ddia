@@ -103,7 +103,7 @@ from one request to another needs to be stored either on the client, or in the s
 infrastructure.
 
 
-## Analytical versus Operational Systems
+## Analytical versus Operational Systems {#sec_introduction_analytics}
 
 If you are working on data systems in an enterprise, you are likely to encounter several different
 types of people who work with data. The first type are *backend engineers* who build services that
@@ -147,7 +147,7 @@ lifecycle of data within an organization. We will explore in-depth the data infr
 used to deliver services both to internal and external users, so that you can work better with your
 colleagues on the other side of this divide.
 
-### Characterizing Transaction Processing and Analytics
+### Characterizing Transaction Processing and Analytics {#sec_introduction_oltp}
 
 In the early days of business data processing, a write to the database typically corresponded to a
 *commercial transaction* taking place: making a sale, placing an order with a supplier, paying an
@@ -212,7 +212,7 @@ over many records) but that are embedded into user-facing products. This categor
 *product analytics* or *real-time analytics*, and systems designed for this type of use include
 Pinot, Druid, and ClickHouse [^6].
 
-### Data Warehousing
+### Data Warehousing {#sec_introduction_dwh}
 
 At first, the same databases were used for both transaction processing and analytic queries. SQL
 turned out to be quite flexible in this regard: it works well for both types of queries.
@@ -284,7 +284,7 @@ have become more demanding, systems have become more specialized and optimized f
 workloads. General-purpose systems can handle small data volumes comfortably, but the greater the
 scale, the more specialized systems tend to become [^11].
 
-#### From data warehouse to data lake
+#### From data warehouse to data lake {#from-data-warehouse-to-data-lake}
 
 A data warehouse often uses a *relational* data model that is queried through SQL (see
 [Chapter 3](/en/ch3#ch_datamodels)), perhaps using specialized business intelligence software. This model works well
@@ -334,7 +334,7 @@ that extend the data lake’s file storage [^17].
 
 Apache Hive, Spark SQL, Presto, and Trino are examples of this approach.
 
-#### Beyond the data lake
+#### Beyond the data lake {#beyond-the-data-lake}
 
 As analytics practices have matured, organizations have been increasingly paying attention to the
 management and operations of analytics systems and data pipelines, as captured for example in the
@@ -356,7 +356,7 @@ bought Y”. Such deployed outputs of analytics systems are also known as *data 
 Machine learning models can be deployed to operational systems using specialized tools such as
 TFX, Kubeflow, or MLflow.
 
-### Systems of Record and Derived Data
+### Systems of Record and Derived Data {#sec_introduction_derived}
 
 Related to the distinction between operational and analytical systems, this book also distinguishes
 between *systems of record* and *derived data systems*. These terms are useful because they can help
@@ -407,7 +407,7 @@ section, we will examine another trade-off that you might have already seen deba
 
 
 
-## Cloud versus Self-Hosting
+## Cloud versus Self-Hosting {#sec_introduction_cloud}
 
 With anything that an organization needs to do, one of the first questions is: should it be done
 in-house, or should it be outsourced? Should you build or should you buy?
@@ -438,7 +438,7 @@ cloud or on-premises—for example, whether you use an orchestration framework s
 However, choice of deployment tooling is out of scope of this book, since other factors have a
 greater influence on the architecture of data systems.
 
-### Pros and Cons of Cloud Services
+### Pros and Cons of Cloud Services {#pros-and-cons-of-cloud-services}
 
 Using a cloud service, rather than running comparable software yourself, essentially outsources the
 operation of that software to the cloud provider. There are good arguments for and against cloud
@@ -507,7 +507,7 @@ requirements that existing cloud services cannot meet, in-house systems remain n
 example, very latency-sensitive applications such as high-frequency trading require full control of
 the hardware.
 
-### Cloud-Native System Architecture
+### Cloud-Native System Architecture {#sec_introduction_cloud_native}
 
 Besides having a different economic model (subscribing to a service instead of buying hardware and
 licensing software to run on it), the rise of the cloud has also had a profound effect on how data
@@ -528,7 +528,7 @@ quickly scale computing resources to match the load, and supporting larger datas
 | Operational/OLTP | MySQL, PostgreSQL, MongoDB  | AWS Aurora [^25], Azure SQL DB Hyperscale [^26], Google Cloud Spanner |
 | Analytical/OLAP  | Teradata, ClickHouse, Spark | Snowflake [^27], Google BigQuery, Azure Synapse Analytics             |
 
-#### Layering of cloud services
+#### Layering of cloud services {#layering-of-cloud-services}
 
 Many self-hosted data systems have very simple system requirements: they run on a conventional
 operating system such as Linux or Windows, they store their data as files on the filesystem, and
@@ -563,7 +563,7 @@ higher-level system will probably provide what you need with much less hassle th
 yourself from lower-level systems. On the other hand, if there is no high-level system that meets
 your needs, then building it yourself from lower-level components is the only option.
 
-#### Separation of storage and compute
+#### Separation of storage and compute {#sec_introduction_storage_compute}
 
 In traditional computing, disk storage is regarded as durable (we assume that once something is
 written to disk, it will not be lost). To tolerate the failure of an individual hard disk, RAID
@@ -608,7 +608,7 @@ Multitenancy can enable better hardware utilization, easier scalability, and eas
 the cloud provider, but it also requires careful engineering to ensure that one customer’s activity
 does not affect the performance or security of the system for other customers [^33].
 
-### Operations in the Cloud Era
+### Operations in the Cloud Era {#sec_introduction_operations}
 
 Traditionally, the people managing an organization’s server-side data infrastructure were known as
 *database administrators* (DBAs) or *system administrators* (sysadmins). More recently, many
@@ -672,7 +672,7 @@ for operations is as great as ever.
 
 
 
-## Distributed versus Single-Node Systems
+## Distributed versus Single-Node Systems {#sec_introduction_distributed}
 
 A system that involves several machines communicating via a network is called a *distributed
 system*. Each of the processes participating in a distributed system is called a *node*. There are
@@ -733,7 +733,7 @@ Sustainability
 These reasons apply both to services that you write yourself (application code) and services
 consisting of off-the-shelf software (such as databases).
 
-### Problems with Distributed Systems
+### Problems with Distributed Systems {#sec_introduction_dist_sys_problems}
 
 Distributed systems also have downsides. Every request and API call that goes via the network needs
 to deal with the possibility of failure: the network may be interrupted, or the service may be
@@ -772,7 +772,7 @@ CPUs, memory, and disks have grown larger, faster, and more reliable. When combi
 databases such as DuckDB, SQLite, and KùzuDB, many workloads can now run on a single node. We will
 explore more on this topic in [Chapter 4](/en/ch4#ch_storage).
 
-### Microservices and Serverless
+### Microservices and Serverless {#sec_introduction_microservices}
 
 The most common way of distributing a system across multiple machines is to divide them into clients
 and servers, and let the clients make requests to the servers. Most commonly HTTP is used for this
@@ -832,7 +832,7 @@ a metered billing model, the serverless approach is bringing metered billing to 
 only pay for the time that your application code is actually running, rather than having to
 provision resources in advance.
 
-### Cloud Computing versus Supercomputing
+### Cloud Computing versus Supercomputing {#cloud-computing-versus-supercomputing}
 
 Cloud computing is not the only way of building large-scale computing systems; an alternative is
 *high-performance computing* (HPC), also known as *supercomputing*. Although there are overlaps, HPC
@@ -865,7 +865,7 @@ Large-scale analytics systems sometimes share some characteristics with supercom
 it can be worth knowing about these techniques if you are working in this area. However, this book
 is mostly concerned with services that need to be continually available, as discussed in [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability).
 
-## Data Systems, Law, and Society
+## Data Systems, Law, and Society {#sec_introduction_compliance}
 
 So far you’ve seen in this chapter that the architecture of data systems is influenced not only by
 technical goals and requirements, but also by the human needs of the organizations that they
@@ -941,7 +941,7 @@ whose data you are collecting and processing. There is much more to this topic; 
 will go deeper into the topics of ethics and legal compliance, including the problems of bias and
 discrimination.
 
-## Summary
+## Summary {#summary}
 
 The theme of this chapter has been to understand trade-offs: that is, to recognize that for many
 questions there is not one right answer, but several different approaches that each have various
@@ -973,7 +973,7 @@ data is being processed—an aspect that many engineers are prone to ignoring. H
 requirements into technical implementations is not yet well understood, but it’s important to keep
 this question in mind as we move through the rest of this book.
 
-### References
+### References {#references}
 
 [^1]: Richard T. Kouzes, Gordon A. Anderson, Stephen T. Elbert, Ian Gorton, and Deborah K. Gracio. [The Changing Paradigm of Data-Intensive Computing](http://www2.ic.uff.br/~boeres/slides_AP/papers/TheChanginParadigmDataIntensiveComputing_2009.pdf). *IEEE Computer*, volume 42, issue 1, January 2009. [doi:10.1109/MC.2009.26](https://doi.org/10.1109/MC.2009.26)
 [^2]: Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan. [Local-first software: you own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/). At *2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software* (Onward!), October 2019. [doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)

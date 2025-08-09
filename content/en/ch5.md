@@ -68,7 +68,7 @@ formats are used for data storage and for communication: in databases, web servi
 remote procedure calls (RPC), workflow engines, and event-driven systems such as actors and
 message queues.
 
-## Formats for Encoding Data
+## Formats for Encoding Data {#formats-for-encoding-data}
 
 Programs usually work with data in (at least) two different representations:
 
@@ -104,7 +104,7 @@ However, most systems need to convert between in-memory objects and flat byte se
 such a common problem, there are a myriad different libraries and encoding formats to choose from.
 Let’s do a brief overview.
 
-### Language-Specific Formats
+### Language-Specific Formats {#language-specific-formats}
 
 Many programming languages come with built-in support for encoding in-memory objects into byte
 sequences. For example, Java has `java.io.Serializable`, Python has `pickle`, Ruby has `Marshal`,
@@ -131,7 +131,7 @@ restored with minimal additional code. However, they also have a number of deep 
 For these reasons it’s generally a bad idea to use your language’s built-in encoding for anything
 other than very transient purposes.
 
-### JSON, XML, and Binary Variants
+### JSON, XML, and Binary Variants {#sec_encoding_json}
 
 When moving to standardized encodings that can be written and read by many programming languages, JSON
 and XML are the obvious contenders. They are widely known, widely supported, and almost as widely
@@ -177,7 +177,7 @@ another). In these situations, as long as people agree on what the format is, it
 matter how pretty or efficient the format is. The difficulty of getting different organizations to
 agree on *anything* outweighs most other concerns.
 
-#### JSON Schema
+#### JSON Schema {#json-schema}
 
 JSON Schema has become widely adopted as a way to model data whenever it’s exchanged between systems
 or written to storage. You’ll find JSON schemas in web services (see [“Web services”](/en/ch5#sec_web_services)) as part
@@ -225,7 +225,7 @@ for a very powerful schema language. Such features also make for unwieldy defini
 challenging to resolve remote schemas, reason about conditional rules, or evolve schemas in a
 forwards or backwards compatible way [^10]. Similar concerns apply to XML Schema [^11].
 
-#### Binary encoding
+#### Binary encoding {#binary-encoding}
 
 JSON is less verbose than XML, but both still use a lot of space compared to binary formats. This
 observation led to the development of a profusion of binary encodings for JSON (MessagePack, CBOR,
@@ -273,7 +273,7 @@ In the following sections we will see how we can do much better, and encode the 
 {{< figure link="#fig_encoding_json" src="/fig/ddia_0502.png" id="fig_encoding_messagepack" caption="Figure 5-2. Example record Example 5-2 encoded using MessagePack." class="w-full my-4" >}}
 
 
-### Protocol Buffers
+### Protocol Buffers {#protocol-buffers}
 
 Protocol Buffers (protobuf) is a binary encoding library developed at Google.
 It is similar to Apache Thrift, which was originally developed by Facebook [^13];
@@ -326,7 +326,7 @@ on the `interests` field indicates that the field contains a list of values, rat
 value. In the binary encoding, the list elements are represented simply as repeated occurrences of
 the same field tag within the same record.
 
-#### Field tags and schema evolution
+#### Field tags and schema evolution {#field-tags-and-schema-evolution}
 
 We said previously that schemas inevitably need to change over time. We call this *schema
 evolution*. How does Protocol Buffers handle schema changes while keeping backward and forward compatibility?
@@ -363,7 +363,7 @@ because the parser can fill in any missing bits with zeros. However, if old code
 by new code, the old code is still using a 32-bit variable to hold the value. If the decoded 64-bit
 value won’t fit in 32 bits, it will be truncated.
 
-### Avro
+### Avro {#avro}
 
 Apache Avro is another binary encoding format that is interestingly different from Protocol Buffers.
 It was started in 2009 as a subproject of Hadoop, as a result of Protocol Buffers not being a good
@@ -420,7 +420,7 @@ decoded data.
 
 So, how does Avro support schema evolution?
 
-#### The writer’s schema and the reader’s schema
+#### The writer’s schema and the reader’s schema {#the-writers-schema-and-the-readers-schema}
 
 When an application wants to encode some data (to write it to a file or database, to send it over
 the network, etc.), it encodes the data using whatever version of the schema it knows about—for
@@ -448,7 +448,7 @@ schema.
 
 {{< figure src="/fig/ddia_0506.png" id="fig_encoding_avro_resolution" caption="Figure 5-6. An Avro reader resolves differences between the writer's schema and the reader's schema." class="w-full my-4" >}}
 
-#### Schema evolution rules
+#### Schema evolution rules {#schema-evolution-rules}
 
 With Avro, forward compatibility means that you can have a new version of the schema as writer and
 an old version of the schema as reader. Conversely, backward compatibility means that you can have a
@@ -478,7 +478,7 @@ names, so it can match an old writer’s schema field names against the aliases.
 changing a field name is backward compatible but not forward compatible. Similarly, adding a branch
 to a union type is backward compatible but not forward compatible.
 
-#### But what is the writer’s schema?
+#### But what is the writer’s schema? {#but-what-is-the-writers-schema}
 
 There is an important question that we’ve glossed over so far: how does the reader know the writer’s
 schema with which a particular piece of data was encoded? We can’t just include the entire schema
@@ -512,7 +512,7 @@ A database of schema versions is a useful thing to have in any case, since it ac
 and gives you a chance to check schema compatibility [^21].
 As the version number, you could use a simple incrementing integer, or you could use a hash of the schema.
 
-#### Dynamically generated schemas
+#### Dynamically generated schemas {#dynamically-generated-schemas}
 
 One advantage of Avro’s approach, compared to Protocol Buffers, is that the schema doesn’t contain
 any tag numbers. But why is this important? What’s the problem with keeping a couple of numbers in
@@ -541,7 +541,7 @@ automate this, but the schema generator would have to be very careful to not ass
 field tags.) This kind of dynamically generated schema simply wasn’t a design goal of Protocol
 Buffers, whereas it was for Avro.
 
-### The Merits of Schemas
+### The Merits of Schemas {#the-merits-of-schemas}
 
 As we saw, Protocol Buffers and Avro both use a schema to describe a binary encoding format. Their
 schema languages are much simpler than XML Schema or JSON Schema, which support much more detailed
@@ -580,7 +580,7 @@ In summary, schema evolution allows the same kind of flexibility as schemaless/s
 databases provide (see [“Schema flexibility in the document model”](/en/ch3#sec_datamodels_schema_flexibility)), while also providing better
 guarantees about your data and better tooling.
 
-## Modes of Dataflow
+## Modes of Dataflow {#modes-of-dataflow}
 
 At the beginning of this chapter we said that whenever you want to send some data to another process
 with which you don’t share memory—for example, whenever you want to send data over the network or
@@ -601,7 +601,7 @@ most common ways how data flows between processes:
 * Via workflow engines (see [“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows))
 * Via asynchronous messages (see [“Event-Driven Architectures”](/en/ch5#sec_encoding_dataflow_msg))
 
-### Dataflow Through Databases
+### Dataflow Through Databases {#sec_encoding_dataflow_db}
 
 In a database, the process that writes to the database encodes the data, and the process that reads
 from the database decodes it. There may just be a single process accessing the database, in which
@@ -623,7 +623,7 @@ This means that a value in the database may be written by a *newer* version of t
 subsequently read by an *older* version of the code that is still running. Thus, forward
 compatibility is also often required for databases.
 
-#### Different values written at different times
+#### Different values written at different times {#different-values-written-at-different-times}
 
 A database generally allows any value to be updated at any time. This means that within a single
 database you may have some values that were written five milliseconds ago, and some values that were
@@ -648,7 +648,7 @@ More complex schema changes—for example, changing a single-valued attribute to
 moving some data into a separate table—still require data to be rewritten, often at the application level [^27].
 Maintaining forward and backward compatibility across such migrations is still a research problem [^28].
 
-#### Archival storage
+#### Archival storage {#archival-storage}
 
 Perhaps you take a snapshot of your database from time to time, say for backup purposes or for
 loading into a data warehouse (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)). In this case, the data dump will typically
@@ -662,7 +662,7 @@ analytics-friendly column-oriented format such as Parquet (see [“Column Compre
 
 In [Link to Come] we will talk more about using data in archival storage.
 
-### Dataflow Through Services: REST and RPC
+### Dataflow Through Services: REST and RPC {#sec_encoding_dataflow_rpc}
 
 When you have processes that need to communicate over a network, there are a few different ways of
 arranging that communication. The most common arrangement is to have two roles: *clients* and
@@ -696,7 +696,7 @@ versions of the service frequently, without having to coordinate with other team
 therefore expect old and new versions of servers and clients to be running at the same time, and so
 the data encoding used by servers and clients must be compatible across versions of the service API.
 
-#### Web services
+#### Web services {#sec_web_services}
 
 When HTTP is used as the underlying protocol for talking to the service, it is called a *web
 service*. Web services are commonly used when building a service oriented or microservices
@@ -789,7 +789,7 @@ in a variety of languages from the service definition. In addition to code gener
 such as Swagger’s can generate documentation, verify schema change compatibility, and provide a
 graphical user interfaces for developers to query and test services.
 
-#### The problems with remote procedure calls (RPCs)
+#### The problems with remote procedure calls (RPCs) {#sec_problems_with_rpc}
 
 Web services are merely the latest incarnation of a long line of technologies for making API
 requests over a network, many of which received a lot of hype but have serious problems. Enterprise
@@ -839,7 +839,7 @@ local object in your programming language, because it’s a fundamentally differ
 appeal of REST is that it treats state transfer over a network as a process that is distinct from a
 function call.
 
-#### Load balancers, service discovery, and service meshes
+#### Load balancers, service discovery, and service meshes {#sec_encoding_service_discovery}
 
 All services communicate over the network. For this reason, a client must know the address of the
 service it’s connecting to—a problem known as *service discovery*. The simplest approach is to
@@ -897,7 +897,7 @@ as Istio or Linkerd. Specialized infrastructure such as databases or messaging s
 their own purpose-built load balancer. Simpler deployments are best served with software load
 balancers.
 
-#### Data encoding and evolution for RPC
+#### Data encoding and evolution for RPC {#data-encoding-and-evolution-for-rpc}
 
 For evolvability, it is important that RPC clients and servers can be changed and deployed
 independently. Compared to data flowing through databases (as described in the last section), we can make a
@@ -925,7 +925,7 @@ number in the URL or in the HTTP `Accept` header. For services that use API keys
 particular client, another option is to store a client’s requested API version on the server and to
 allow this version selection to be updated through a separate administrative interface [^43].
 
-### Durable Execution and Workflows
+### Durable Execution and Workflows {#sec_encoding_dataflow_workflows}
 
 By definition, service-based architectures have multiple services that are all responsible for
 different portions of an application. Consider a payment processing application that charges a
@@ -969,7 +969,7 @@ as Camunda and Orkes, provide a graphical notation for workflows (such as BPMN, 
 [Figure 5-7](/en/ch5#fig_encoding_workflow)) so that non-engineers can more easily define and execute workflows. Still
 others, such as Temporal and Restate provide *durable execution*.
 
-#### Durable execution
+#### Durable execution {#durable-execution}
 
 Durable execution frameworks have become a popular way to build service-based architectures that
 require transactionality. In our payment example, we would like to process each payment exactly
@@ -1032,7 +1032,7 @@ frameworks provide static analysis tools to determine if nondeterministic behavi
 
 --------
 
-### Event-Driven Architectures
+### Event-Driven Architectures {#sec_encoding_dataflow_msg}
 
 In this final section, we will briefly look at *event-driven architectures*, which are another way
 how encoded data can flow from one process to another. A request is called an *event* or *message*;
@@ -1053,7 +1053,7 @@ The communication via a message broker is *asynchronous*: the sender doesn’t w
 be delivered, but simply sends it and then forgets about it. It’s possible to implement a
 synchronous RPC-like model by having the sender wait for a response on a separate channel.
 
-#### Message brokers
+#### Message brokers {#message-brokers}
 
 In the past, the landscape of message brokers was dominated by commercial enterprise software from
 companies such as TIBCO, IBM WebSphere, and webMethods, before open source implementations such as
@@ -1085,7 +1085,7 @@ If a consumer republishes messages to another topic, you may need to be careful 
 fields, to prevent the issue described previously in the context of databases
 ([Figure 5-1](/en/ch5#fig_encoding_preserve_field)).
 
-#### Distributed actor frameworks
+#### Distributed actor frameworks {#distributed-actor-frameworks}
 
 The *actor model* is a programming model for concurrency in a single process. Rather than dealing
 directly with threads (and the associated problems of race conditions, locking, and deadlock), logic
@@ -1113,7 +1113,7 @@ sent from a node running the new version to a node running the old version, and 
 be achieved by using one of the encodings discussed in this chapter.
 
 
-## Summary
+## Summary {#summary}
 
 In this chapter we looked at several ways of turning data structures into bytes on the network or
 bytes on disk. We saw how the details of these encodings affect not only their efficiency, but more
@@ -1160,7 +1160,7 @@ quite achievable. May your application’s evolution be rapid and your deploymen
 
 
 
-### References
+### References {#references}
 
 [^1]: [CWE-502: Deserialization of Untrusted Data](https://cwe.mitre.org/data/definitions/502.html). Common Weakness Enumeration, *cwe.mitre.org*, July 2006. Archived at [perma.cc/26EU-UK9Y](https://perma.cc/26EU-UK9Y) 
 [^2]: Steve Breen. [What Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This Vulnerability](https://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/). *foxglovesecurity.com*, November 2015. Archived at [perma.cc/9U97-UVVD](https://perma.cc/9U97-UVVD) 
