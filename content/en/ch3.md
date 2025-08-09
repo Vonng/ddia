@@ -652,15 +652,14 @@ saying how many sharks you have sighted per month. In PostgreSQL you might expre
 this:
 
 ```
-SELECT date_trunc('month', observation_timestamp) AS observation_month, ![1](/fig/1.png)
+SELECT date_trunc('month', observation_timestamp) AS observation_month, ❶ 
  sum(num_animals) AS total_animals
 FROM observations
 WHERE family = 'Sharks'
 GROUP BY observation_month;
 ```
 
-[![1](/fig/1.png)](/en/ch3#co_data_models_and_query_languages_CO1-1)
-: The `date_trunc('month', timestamp)` function determines the calendar month
+❶ : The `date_trunc('month', timestamp)` function determines the calendar month
  containing `timestamp`, and returns another timestamp representing the beginning of that month. In
  other words, it rounds a timestamp down to the nearest month.
 
@@ -701,8 +700,7 @@ sections where schema flexibility is beneficial. Relational-document hybrids are
 combination.
 
 > [!NOTE]
-> Codd’s original description of the relational model
-> [^3] actually allowed something similar to JSON
+> Codd’s original description of the relational model [^3] actually allowed something similar to JSON
 > within a relational schema. He called it *nonsimple domains*. The idea was that a value in a row
 > doesn’t have to just be a primitive datatype like a number or a string, but it could also be a
 > nested relation (table)—so you can have an arbitrarily nested tree structure as a value, much like
@@ -965,15 +963,15 @@ Cypher.
 
 ##### Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions
 
-```
+```sql
 WITH RECURSIVE
 
  -- in_usa is the set of vertex IDs of all locations within the United States
  in_usa(vertex_id) AS (
  SELECT vertex_id FROM vertices
- WHERE label = 'Location' AND properties->>'name' = 'United States' ![1](/fig/1.png)
+ WHERE label = 'Location' AND properties->>'name' = 'United States' ❶ 
  UNION
- SELECT edges.tail_vertex FROM edges ![2](/fig/2.png)
+ SELECT edges.tail_vertex FROM edges ❷
  JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
  WHERE edges.label = 'within'
  ),
@@ -981,7 +979,7 @@ WITH RECURSIVE
  -- in_europe is the set of vertex IDs of all locations within Europe
  in_europe(vertex_id) AS (
  SELECT vertex_id FROM vertices
- WHERE label = 'location' AND properties->>'name' = 'Europe' ![3](/fig/3.png)
+ WHERE label = 'location' AND properties->>'name' = 'Europe' ❸
  UNION
  SELECT edges.tail_vertex FROM edges
  JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
@@ -989,14 +987,14 @@ WITH RECURSIVE
  ),
 
  -- born_in_usa is the set of vertex IDs of all people born in the US
- born_in_usa(vertex_id) AS ( ![4](/fig/4.png)
+ born_in_usa(vertex_id) AS ( ❹
  SELECT edges.tail_vertex FROM edges
  JOIN in_usa ON edges.head_vertex = in_usa.vertex_id
  WHERE edges.label = 'born_in'
  ),
 
  -- lives_in_europe is the set of vertex IDs of all people living in Europe
- lives_in_europe(vertex_id) AS ( ![5](/fig/5.png)
+ lives_in_europe(vertex_id) AS ( ❺
  SELECT edges.tail_vertex FROM edges
  JOIN in_europe ON edges.head_vertex = in_europe.vertex_id
  WHERE edges.label = 'lives_in'
@@ -1005,31 +1003,25 @@ WITH RECURSIVE
 SELECT vertices.properties->>'name'
 FROM vertices
 -- join to find those people who were both born in the US *and* live in Europe
-JOIN born_in_usa ON vertices.vertex_id = born_in_usa.vertex_id ![6](/fig/6.png)
+JOIN born_in_usa ON vertices.vertex_id = born_in_usa.vertex_id ❻
 JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
 ```
 
-[![1](/fig/1.png)](/en/ch3#co_data_models_and_query_languages_CO2-1)
-: First find the vertex whose `name` property has the value `"United States"`, and make it the first element of the set
+❶: First find the vertex whose `name` property has the value `"United States"`, and make it the first element of the set
  of vertices `in_usa`.
 
-[![2](/fig/2.png)](/en/ch3#co_data_models_and_query_languages_CO2-2)
-: Follow all incoming `within` edges from vertices in the set `in_usa`, and add them to the same
+❷: Follow all incoming `within` edges from vertices in the set `in_usa`, and add them to the same
  set, until all incoming `within` edges have been visited.
 
-[![3](/fig/3.png)](/en/ch3#co_data_models_and_query_languages_CO2-3)
-: Do the same starting with the vertex whose `name` property has the value `"Europe"`, and build up
+❸: Do the same starting with the vertex whose `name` property has the value `"Europe"`, and build up
  the set of vertices `in_europe`.
 
-[![4](/fig/4.png)](/en/ch3#co_data_models_and_query_languages_CO2-4)
-: For each of the vertices in the set `in_usa`, follow incoming `born_in` edges to find people
+❹: For each of the vertices in the set `in_usa`, follow incoming `born_in` edges to find people
  who were born in some place within the United States.
 
-[![5](/fig/5.png)](/en/ch3#co_data_models_and_query_languages_CO2-5)
-: Similarly, for each of the vertices in the set `in_europe`, follow incoming `lives_in` edges to find people who live in Europe.
+❺: Similarly, for each of the vertices in the set `in_europe`, follow incoming `lives_in` edges to find people who live in Europe.
 
-[![6](/fig/6.png)](/en/ch3#co_data_models_and_query_languages_CO2-6)
-: Finally, intersect the set of people born in the USA with the set of people living in Europe, by
+❻: Finally, intersect the set of people born in the USA with the set of people living in Europe, by
  joining them.
 
 The fact that a 4-line Cypher query requires 31 lines in SQL shows how much of a difference the

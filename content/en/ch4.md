@@ -1345,10 +1345,6 @@ documentation for the database of your choice.
 
 ### References
 
-
-
-
-
 [^1]: Nikolay Samokhvalov. [How partial, covering, and multicolumn indexes may slow down UPDATEs in PostgreSQL](https://postgres.ai/blog/20211029-how-partial-and-covering-indexes-affect-update-performance-in-postgresql). *postgres.ai*, October 2021. Archived at [perma.cc/PBK3-F4G9](https://perma.cc/PBK3-F4G9) 
 [^2]: Goetz Graefe. [Modern B-Tree Techniques](https://w6113.github.io/files/papers/btreesurvey-graefe.pdf). *Foundations and Trends in Databases*, volume 3, issue 4, pages 203–402, August 2011. [doi:10.1561/1900000028](https://doi.org/10.1561/1900000028) 
 [^3]: Evan Jones. [Why databases use ordered indexes but programming uses hash tables](https://www.evanjones.ca/ordered-vs-unordered-indexes.html). *evanjones.ca*, December 2019. Archived at [perma.cc/NJX8-3ZZD](https://perma.cc/NJX8-3ZZD) 
