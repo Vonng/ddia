@@ -4,14 +4,23 @@ weight: 600
 breadcrumbs: false
 ---
 
+{{< callout type="warning" >}}
+This page is from the 1st edition， 2nd edition is not available yet.
+{{< /callout >}}
+
 ## About the Author
 
-**Martin Kleppmann** is a researcher in distributed systems at the University of Cam‐ bridge, UK. Previously he was a software engineer and entrepreneur at internet com‐ panies including LinkedIn and Rapportive, where he worked on large-scale data infrastructure. In the process he learned a few things the hard way, and he hopes this book will save you from repeating the same mistakes.
+**Martin Kleppmann** is a researcher in distributed systems at the University of Cambridge, UK.
+Previously he was a software engineer and entrepreneur at internet companies including LinkedIn and Rapportive, where he worked on large-scale data infrastructure.
+In the process he learned a few things the hard way, and he hopes this book will save you from repeating the same mistakes.
 
 Martin is a regular conference speaker, blogger, and open source contributor. He believes that profound technical ideas should be accessible to everyone, and that deeper understanding will help us develop better software.
 
 ![](http://martin.kleppmann.com/2017/03/ddia-poster.jpg)
 
+**Chris Riccomini** is a software engineer, startup investor, and author with 15+ years of experience at PayPal, LinkedIn, and WePay.
+He runs Materialized View Capital, where he invests in infrastructure startups. He is also the cocreator of Apache Samza and SlateDB,
+and coauthor of The Missing README: A Guide for the New Software Engineer.
 
 
 ## Colophon

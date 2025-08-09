@@ -4,8 +4,9 @@ weight: 50
 breadcrumbs: false
 ---
 
-> [!IMPORTANT]
-> This page is from the 1st edition
+{{< callout type="warning" >}}
+This page is from the 1st edition， 2nd edition is not available yet.
+{{< /callout >}}
 
 If you have worked in software engineering in recent years, especially in server-side and backend systems, you have probably been bombarded with a plethora of buzz‐ words relating to storage and processing of data. NoSQL! Big Data! Web-scale! Sharding! Eventual consistency! ACID! CAP theorem! Cloud services! MapReduce! Real-time!
 

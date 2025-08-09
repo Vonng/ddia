@@ -4,6 +4,10 @@ weight: 500
 breadcrumbs: false
 ---
 
+{{< callout type="warning" >}}
+This page is from the 1st edition， 2nd edition is not available yet.
+{{< /callout >}}
+
 > Please note that the definitions in this glossary are short and simple, intended to convey the core idea but not the full subtleties of a term. For more detail, please follow the references into the main text.
 
 ### asynchronous

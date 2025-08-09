@@ -6,10 +6,6 @@ breadcrumbs: false
 ---
 
 
-
-
-## Table of Contents
-
 ### [Preface](/en/preface)
 
 ### [Part I: Foundations of Data Systems](/en/part-i)
