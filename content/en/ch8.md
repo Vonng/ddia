@@ -384,11 +384,10 @@ Similarly popular is a *conditional write* operation, which allows a write to ha
 has not been concurrently changed by someone else (see [“Conditional writes (compare-and-set)”](/en/ch8#sec_transactions_compare_and_set)),
 similarly to a compare-and-set or compare-and-swap (CAS) operation in shared-memory concurrency.
 
-###### Note
-
-Strictly speaking, the term *atomic increment* uses the word *atomic* in the sense of multi-threaded
-programming. In the context of ACID, it should actually be called an *isolated* or *serializable*
-increment, but that’s not the usual term.
+> [!NOTE]
+> Strictly speaking, the term *atomic increment* uses the word *atomic* in the sense of multi-threaded
+> programming. In the context of ACID, it should actually be called an *isolated* or *serializable*
+> increment, but that’s not the usual term.
 
 These single-object operations are useful, as they can prevent lost updates when several clients try
 to write to the same object concurrently (see [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update)). However, they are
@@ -510,12 +509,11 @@ financial data!”—but that misses the point. Even many popular relational dat
 are usually considered “ACID”) use weak isolation, so they wouldn’t necessarily have prevented these
 bugs from occurring.
 
-###### Note
-
-Incidentally, much of the banking system relies on text files that are exchanged via secure FTP
-[^35].
-In this context, having an audit trail and some human-level fraud prevention measures is actually
-more important than ACID properties.
+> [!NOTE]
+> Incidentally, much of the banking system relies on text files that are exchanged via secure FTP
+> [^35].
+> In this context, having an audit trail and some human-level fraud prevention measures is actually
+> more important than ACID properties.
 
 Those examples also highlight an important point: even if concurrency issues are rare in normal
 operation, you have to consider the possibility that an attacker deliberately sends a burst of
@@ -676,10 +674,9 @@ account 1 again at the end of the transaction, she would see a different value (
 in her previous query. Read skew is considered acceptable under read committed isolation: the
 account balances that Aaliyah saw were indeed committed at the time when she read them.
 
-###### Note
-
-The term *skew* is unfortunately overloaded: we previously used it in the sense of an *unbalanced
-workload with hot spots* (see [“Skewed Workloads and Relieving Hot Spots”](/en/ch7#sec_sharding_skew)), whereas here it means *timing anomaly*.
+> [!NOTE]
+> The term *skew* is unfortunately overloaded: we previously used it in the sense of an *unbalanced
+> workload with hot spots* (see [“Skewed Workloads and Relieving Hot Spots”](/en/ch7#sec_sharding_skew)), whereas here it means *timing anomaly*.
 
 In Aaliyah’s case, this is not a lasting problem, because she will most likely see consistent account
 balances if she reloads the online banking website a few seconds later. However, some situations

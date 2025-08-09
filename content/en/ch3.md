@@ -110,13 +110,12 @@ translation layer is required between the objects in the application code and th
 tables, rows, and columns. The disconnect between the models is sometimes called an *impedance
 mismatch*.
 
-###### Note
-
-The term *impedance mismatch* is borrowed from electronics. Every electric circuit has a certain
-impedance (resistance to alternating current) on its inputs and outputs. When you connect one
-circuit’s output to another one’s input, the power transfer across the connection is maximized if
-the output and input impedances of the two circuits match. An impedance mismatch can lead to signal
-reflections and other troubles.
+> [!NOTE]
+> The term *impedance mismatch* is borrowed from electronics. Every electric circuit has a certain
+> impedance (resistance to alternating current) on its inputs and outputs. When you connect one
+> circuit’s output to another one’s input, the power transfer across the connection is maximized if
+> the output and input impedances of the two circuits match. An impedance mismatch can lead to signal
+> reflections and other troubles.
 
 ### Object-relational mapping (ORM)
 
@@ -225,15 +224,14 @@ structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 
 ###### Figure 3-2. One-to-many relationships forming a tree structure.
 
-###### Note
-
-This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé
-typically has a small number of positions
-[[9](/en/ch3#Zola2014),
-[10](/en/ch3#Andrews2023)].
-In situations where there may be a genuinely large number of related items—say, comments on a
-celebrity’s social media post, of which there could be many thousands—embedding them all in the same
-document may be too unwieldy, so the relational approach in [Figure 3-1](/en/ch3#fig_obama_relational) is preferable.
+> [!NOTE]
+> This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé
+> typically has a small number of positions
+> [[9](/en/ch3#Zola2014),
+> [10](/en/ch3#Andrews2023)].
+> In situations where there may be a genuinely large number of related items—say, comments on a
+> celebrity’s social media post, of which there could be many thousands—embedding them all in the same
+> document may be too unwieldy, so the relational approach in [Figure 3-1](/en/ch3#fig_obama_relational) is preferable.
 
 ## Normalization, Denormalization, and Joins
 
@@ -727,14 +725,13 @@ databases need relational-style references to other documents, and many relation
 sections where schema flexibility is beneficial. Relational-document hybrids are a powerful
 combination.
 
-###### Note
-
-Codd’s original description of the relational model
-[^3] actually allowed something similar to JSON
-within a relational schema. He called it *nonsimple domains*. The idea was that a value in a row
-doesn’t have to just be a primitive datatype like a number or a string, but it could also be a
-nested relation (table)—so you can have an arbitrarily nested tree structure as a value, much like
-the JSON or XML support that was added to SQL over 30 years later.
+> [!NOTE]
+> Codd’s original description of the relational model
+> [^3] actually allowed something similar to JSON
+> within a relational schema. He called it *nonsimple domains*. The idea was that a value in a row
+> doesn’t have to just be a primitive datatype like a number or a string, but it could also be a
+> nested relation (table)—so you can have an arbitrarily nested tree structure as a value, much like
+> the JSON or XML support that was added to SQL over 30 years later.
 
 # Graph-Like Data Models
 
@@ -874,13 +871,12 @@ The edges table is like the many-to-many associative table/join table we saw in
 stored in the same table. There may also be indexes on the labels and the properties, allowing
 vertices or edges with certain properties to be found efficiently.
 
-###### Note
-
-A limitation of graph models is that an edge can only associate two vertices with each other,
-whereas a relational join table can represent three-way or even higher-degree relationships by
-having multiple foreign key references on a single row. Such relationships can be represented in a
-graph by creating an additional vertex corresponding to each row of the join table, and edges
-to/from that vertex, or by using a *hypergraph*.
+> [!NOTE]
+> A limitation of graph models is that an edge can only associate two vertices with each other,
+> whereas a relational join table can represent three-way or even higher-degree relationships by
+> having multiple foreign key references on a single row. Such relationships can be represented in a
+> graph by creating an additional vertex corresponding to each row of the join table, and edges
+> to/from that vertex, or by using a *hypergraph*.
 
 Those features give graphs a great deal of flexibility for data modeling, as illustrated in
 [Figure 3-6](/en/ch3#fig_datamodels_graph). The figure shows a few things that would be difficult to express in a
@@ -1103,15 +1099,14 @@ The subject of a triple is equivalent to a vertex in a graph. The object is one 
    (*lucy*, *marriedTo*, *alain*) the subject and object *lucy* and *alain* are both vertices, and
    the predicate *marriedTo* is the label of the edge that connects them.
 
-###### Note
-
-To be precise, databases that offer a triple-like data model often need to store some additional
-metadata on each tuple. For example, AWS Neptune uses quads (4-tuples) by adding a graph ID to each
-triple [^46];
-Datomic uses 5-tuples, extending each triple with a transaction ID and a boolean to indicate
-deletion [^47].
-Since these databases retain the basic *subject-predicate-object* structure explained above, this
-book nevertheless calls them triple-stores.
+> [!NOTE]
+> To be precise, databases that offer a triple-like data model often need to store some additional
+> metadata on each tuple. For example, AWS Neptune uses quads (4-tuples) by adding a graph ID to each
+> triple [^46];
+> Datomic uses 5-tuples, extending each triple with a transaction ID and a boolean to indicate
+> deletion [^47].
+> Since these databases retain the basic *subject-predicate-object* structure explained above, this
+> book nevertheless calls them triple-stores.
 
 [Example 3-7](/en/ch3#fig_graph_n3_triples) shows the same data as in [Example 3-4](/en/ch3#fig_cypher_create), written as
 triples in a format called *Turtle*, a subset of *Notation3* (*N3*)

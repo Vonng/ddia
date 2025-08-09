@@ -139,11 +139,10 @@ messages (requests, responses) that are too big to fit in one packet. These appl
 use TCP, the Transmission Control Protocol, to establish a *connection* that breaks up large data
 streams into individual packets, and puts them back together again on the receiving side.
 
-###### Note
-
-Most of what we say about TCP applies also to its more recent alternative QUIC, as well as the
-Stream Control Transmission Protocol (SCTP) used in WebRTC, the BitTorrent uTP protocol, and
-other transport protocols. For a comparison to UDP, see [“TCP Versus UDP”](/en/ch9#sidebar_distributed_tcp_udp).
+> [!NOTE]
+> Most of what we say about TCP applies also to its more recent alternative QUIC, as well as the
+> Stream Control Transmission Protocol (SCTP) used in WebRTC, the BitTorrent uTP protocol, and
+> other transport protocols. For a comparison to UDP, see [“TCP Versus UDP”](/en/ch9#sidebar_distributed_tcp_udp).
 
 TCP is often described as providing “reliable” delivery, in the sense that it detects and
 retransmits dropped packets, it detects reordered packets and puts them back in the correct order,
@@ -1018,12 +1017,11 @@ must respond quickly and predictably to their sensor inputs. In these systems, t
 *deadline* by which the software must respond; if it doesn’t meet the deadline, that may cause a
 failure of the entire system. These are so-called *hard real-time* systems.
 
-###### Note
-
-In embedded systems, *real-time* means that a system is carefully designed and tested to meet
-specified timing guarantees in all circumstances. This meaning is in contrast to the more vague use of the
-term *real-time* on the web, where it describes servers pushing data to clients and stream
-processing without hard response time constraints (see [Link to Come]).
+> [!NOTE]
+> In embedded systems, *real-time* means that a system is carefully designed and tested to meet
+> specified timing guarantees in all circumstances. This meaning is in contrast to the more vague use of the
+> term *real-time* on the web, where it describes servers pushing data to clients and stream
+> processing without hard response time constraints (see [Link to Come]).
 
 For example, if your car’s onboard sensors detect that you are currently experiencing a crash, you
 wouldn’t want the release of the airbag to be delayed due to an inopportune GC pause in the airbag
@@ -1242,12 +1240,11 @@ token*, which is a number that increases every time a lock is granted (e.g., inc
 service). We can then require that every time a client sends a write request to the storage service,
 it must include its current fencing token.
 
-###### Note
-
-There are several alternative names for fencing tokens. In Chubby, Google’s lock service, they are
-called *sequencers* [^88], and in Kafka they are called *epoch numbers*.
-In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
-*term number* (Raft) serves a similar purpose.
+> [!NOTE]
+> There are several alternative names for fencing tokens. In Chubby, Google’s lock service, they are
+> called *sequencers* [^88], and in Kafka they are called *epoch numbers*.
+> In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
+> *term number* (Raft) serves a similar purpose.
 
 In [Figure 9-6](/en/ch9#fig_distributed_fencing), client 1 acquires the lease with a token of 33, but then
 it goes into a long pause and the lease expires. Client 2 acquires the lease with a token of 34 (the

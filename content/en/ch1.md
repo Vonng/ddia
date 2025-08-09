@@ -151,10 +151,9 @@ employee’s salary, etc. As databases expanded into areas that didn’t involve
 the term *transaction* nevertheless stuck, referring to a group of reads and writes that form a
 logical unit.
 
-###### Note
-
-[Chapter 8](/en/ch8#ch_transactions) explores in detail what we mean with a transaction. This chapter uses the term
-loosely to refer to low-latency reads and writes.
+> [!NOTE]
+> [Chapter 8](/en/ch8#ch_transactions) explores in detail what we mean with a transaction. This chapter uses the term
+> loosely to refer to low-latency reads and writes.
 
 Even though databases started being used for many different kinds of data—posts on social media,
 moves in a game, contacts in an address book, and many others—the basic access pattern
@@ -192,11 +191,10 @@ Table 1-1. Comparing characteristics of operational and analytic systems
 | Data represents | Latest state of data (current point in time) | History of events that happened over time |
 | Dataset size | Gigabytes to terabytes | Terabytes to petabytes |
 
-###### Note
-
-The meaning of *online* in *OLAP* is unclear; it probably refers to the fact that queries are not
-just for predefined reports, but that analysts use the OLAP system interactively for explorative
-queries.
+> [!NOTE]
+> The meaning of *online* in *OLAP* is unclear; it probably refers to the fact that queries are not
+> just for predefined reports, but that analysts use the OLAP system interactively for explorative
+> queries.
 
 With operational systems, users are generally not allowed to construct custom SQL queries and run
 them on the database, since that would potentially allow them to read or modify data that they do

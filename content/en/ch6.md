@@ -108,11 +108,10 @@ etcd, and RabbitMQ quorum queues (among others), are also based on a single lead
 automatically elect a new leader if the old one fails (we will discuss consensus in more detail in
 [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency)).
 
-###### Note
-
-In older documents you may see the term *master–slave replication*. It means the same as
-leader-based replication, but the term should be avoided as it is widely considered offensive
-[^8].
+> [!NOTE]
+> In older documents you may see the term *master–slave replication*. It means the same as
+> leader-based replication, but the term should be avoided as it is widely considered offensive
+> [^8].
 
 ## Synchronous Versus Asynchronous Replication
 
@@ -354,11 +353,10 @@ Failover is fraught with things that can go wrong:
   is already struggling with high load or network problems, an unnecessary failover is likely to
   make the situation worse, not better.
 
-###### Note
-
-Guarding against split brain by limiting or shutting down old leaders is known as *fencing* or, more
-emphatically, *Shoot The Other Node In The Head* (STONITH). We will discuss fencing in more detail
-in [“Distributed Locks and Leases”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#sec_distributed_lock_fencing).
+> [!NOTE]
+> Guarding against split brain by limiting or shutting down old leaders is known as *fencing* or, more
+> emphatically, *Shoot The Other Node In The Head* (STONITH). We will discuss fencing in more detail
+> in [“Distributed Locks and Leases”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#sec_distributed_lock_fencing).
 
 There are no easy solutions to these problems. For this reason, some operations teams prefer to
 perform failovers manually, even if the software supports automatic failover.
@@ -502,15 +500,14 @@ just a temporary state—if you stop writing to the database and wait a while, t
 eventually catch up and become consistent with the leader. For that reason, this effect is known
 as *eventual consistency* [^22].
 
-###### Note
-
-The term *eventual consistency* was coined by Douglas Terry et al.
-[^23],
-popularized by Werner Vogels
-[^24],
-and became the battle cry of many NoSQL projects. However, not only NoSQL databases are eventually
-consistent: followers in an asynchronously replicated relational database have the same
-characteristics.
+> [!NOTE]
+> The term *eventual consistency* was coined by Douglas Terry et al.
+> [^23],
+> popularized by Werner Vogels
+> [^24],
+> and became the battle cry of many NoSQL projects. However, not only NoSQL databases are eventually
+> consistent: followers in an asynchronously replicated relational database have the same
+> characteristics.
 
 The term “eventually” is deliberately vague: in general, there is no limit to how far a replica can
 fall behind. In normal operation, the delay between a write happening on the leader and being
@@ -846,10 +843,9 @@ and forwards those writes (plus any writes of its own) to one other node. Anothe
 has the shape of a *star*: one designated root node forwards writes to all of the other nodes. The
 star topology can be generalized to a tree.
 
-###### Note
-
-Don’t confuse a star-shaped network topology with a *star schema* (see
-[“Stars and Snowflakes: Schemas for Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_analytics)), which describes the structure of a data model.
+> [!NOTE]
+> Don’t confuse a star-shaped network topology with a *star schema* (see
+> [“Stars and Snowflakes: Schemas for Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_analytics)), which describes the structure of a data model.
 
 In circular and star topologies, a write may need to pass through several nodes before it reaches
 all replicas. Therefore, nodes need to forward data changes they receive from other nodes. To
@@ -1020,13 +1016,12 @@ This problem does not occur in a single-leader database.
 
 ###### Figure 6-9. A write conflict caused by two leaders concurrently updating the same record.
 
-###### Note
-
-We say that the two writes in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict) are *concurrent* because neither
-was “aware” of the other at the time the write was originally made. It doesn’t matter whether the
-writes literally happened at the same time; indeed, if the writes were made while offline, they
-might have actually happened some time apart. What matters is whether one write occurred in a state
-where the other write has already taken effect.
+> [!NOTE]
+> We say that the two writes in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict) are *concurrent* because neither
+> was “aware” of the other at the time the write was originally made. It doesn’t matter whether the
+> writes literally happened at the same time; indeed, if the writes were made while offline, they
+> might have actually happened some time apart. What matters is whether one write occurred in a state
+> where the other write has already taken effect.
 
 In [“Detecting Concurrent Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_concurrent) we will tackle the question of how a database can determine
 whether two writes are concurrent. For now we will assume that we can detect conflicts, and we want
@@ -1258,13 +1253,12 @@ a fashionable architecture for databases after Amazon used it for its in-house *
 Riak, Cassandra, and ScyllaDB are open source datastores with leaderless replication models inspired
 by Dynamo, so this kind of database is also known as *Dynamo-style*.
 
-###### Note
-
-The original *Dynamo* system was only described in a paper
-[^45], but never released outside of
-Amazon. The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a
-completely different architecture: it uses single-leader replication based on the Multi-Paxos
-consensus algorithm [^5].
+> [!NOTE]
+> The original *Dynamo* system was only described in a paper
+> [^45], but never released outside of
+> Amazon. The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a
+> completely different architecture: it uses single-leader replication based on the Multi-Paxos
+> consensus algorithm [^5].
 
 In some leaderless implementations, the client directly sends its writes to several replicas, while
 in others, a coordinator node does this on behalf of the client. However, unlike a leader database,
@@ -1357,11 +1351,10 @@ For example, a workload with few writes and many reads may benefit from setting 
 *r* = 1. This makes reads faster, but has the disadvantage that just one failed node causes all
 database writes to fail.
 
-###### Note
-
-There may be more than *n* nodes in the cluster, but any given value is stored only on *n*
-nodes. This allows the dataset to be sharded, supporting datasets that are larger than you can fit
-on one node. We will return to sharding in [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding).
+> [!NOTE]
+> There may be more than *n* nodes in the cluster, but any given value is stored only on *n*
+> nodes. This allows the dataset to be sharded, supporting datasets that are larger than you can fit
+> on one node. We will return to sharding in [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding).
 
 The quorum condition, *w* + *r* > *n*, allows the system to tolerate unavailable nodes
 as follows:

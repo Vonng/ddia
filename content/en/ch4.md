@@ -97,12 +97,11 @@ forever, and handling partially written records when recovering from a crash), b
 principle is the same. Logs are incredibly useful, and we will encounter them several times in this
 book.
 
-###### Note
-
-The word *log* is often used to refer to application logs, where an application outputs text that
-describes what’s happening. In this book, *log* is used in the more general sense: an append-only
-sequence of records on disk. It doesn’t have to be human-readable; it might be binary and intended
-only for internal use by the database system.
+> [!NOTE]
+> The word *log* is often used to refer to application logs, where an application outputs text that
+> describes what’s happening. In this book, *log* is used in the more general sense: an append-only
+> sequence of records on disk. It doesn’t have to be human-readable; it might be binary and intended
+> only for internal use by the database system.
 
 On the other hand, the `db_get` function has terrible performance if you have a large number of
 records in your database. Every time you want to look up a key, `db_get` has to scan the entire
@@ -889,15 +888,14 @@ If each column is stored separately, a query only needs to read and parse those 
 used in that query, which can save a lot of work. [Figure 4-7](/en/ch4#fig_column_store) shows this principle using
 an expanded version of the fact table from [Figure 3-5](/en/ch3#fig_dwh_schema).
 
-###### Note
-
-Column storage is easiest to understand in a relational data model, but it applies equally to
-nonrelational data. For example, Parquet
-[^57]
-is a columnar storage format that supports a document data model, based on Google’s Dremel
-[^58],
-using a technique known as *shredding* or *striping*
-[^59].
+> [!NOTE]
+> Column storage is easiest to understand in a relational data model, but it applies equally to
+> nonrelational data. For example, Parquet
+> [^57]
+> is a columnar storage format that supports a document data model, based on Google’s Dremel
+> [^58],
+> using a technique known as *shredding* or *striping*
+> [^59].
 
 ![ddia 0407](/fig/ddia_0407.png)
 
@@ -985,13 +983,12 @@ are followed by user *X* and who also follow user *Y*
 There are also various other compression schemes for columnar databases, which you can find in the
 references [^75].
 
-###### Note
-
-Don’t confuse column-oriented databases with the *wide-column* (also known as *column-family*) data
-model, in which a row can have thousands of columns, and there is no need for all the rows to have
-the same columns [^9]. Despite the similarity
-in name, wide-column databases are row-oriented, since they store all values from a row together.
-Google’s Bigtable, Apache Accumulo, and HBase are examples of the wide-column model.
+> [!NOTE]
+> Don’t confuse column-oriented databases with the *wide-column* (also known as *column-family*) data
+> model, in which a row can have thousands of columns, and there is no need for all the rows to have
+> the same columns [^9]. Despite the similarity
+> in name, wide-column databases are row-oriented, since they store all values from a row together.
+> Google’s Bigtable, Apache Accumulo, and HBase are examples of the wide-column model.
 
 ### Sort Order in Column Storage
 
@@ -1293,12 +1290,11 @@ location along one dimension’s axis. Embedding models generate vector embeddin
 each other (in this multi-dimensional space) when the embedding’s input documents are semantically
 similar.
 
-###### Note
-
-We saw the term *vectorized processing* in [“Query Execution: Compilation and Vectorization”](/en/ch4#sec_storage_vectorized).
-Vectors in semantic search have a different meaning. In vectorized processing, the vector refers to
-a batch of bits that can be processed with specially optimized code. In embedding models, vectors are a list of
-floating point numbers that represent a location in multi-dimensional space.
+> [!NOTE]
+> We saw the term *vectorized processing* in [“Query Execution: Compilation and Vectorization”](/en/ch4#sec_storage_vectorized).
+> Vectors in semantic search have a different meaning. In vectorized processing, the vector refers to
+> a batch of bits that can be processed with specially optimized code. In embedding models, vectors are a list of
+> floating point numbers that represent a location in multi-dimensional space.
 
 For example, a three-dimensional vector embedding for a Wikipedia page about agriculture might be
 [0.1, 0.22, 0.11]. A Wikipedia page about vegetables would be quite near, perhaps with an embedding

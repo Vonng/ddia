@@ -1086,10 +1086,9 @@ you have to remember to use them. In some cases, such as with Temporal’s workf
 frameworks provide static analysis tools to determine if nondeterministic behavior has been
 introduced.
 
-###### Note
-
-Making code deterministic is a powerful idea, but tricky to do robustly. In
-[“The Power of Determinism”](/en/ch9#sidebar_distributed_determinism) we will return to this topic.
+> [!NOTE]
+> Making code deterministic is a powerful idea, but tricky to do robustly. In
+> [“The Power of Determinism”](/en/ch9#sidebar_distributed_determinism) we will return to this topic.
 
 ## Event-Driven Architectures
 
