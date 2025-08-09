@@ -252,9 +252,7 @@ the data warehouse. This process of getting data into the data warehouse is know
 *transform* and *load* steps is swapped (i.e., the transformation is done in the data warehouse,
 after loading), resulting in *ELT*.
 
-![ddia 0101](/fig/ddia_0101.png)
-
-###### Figure 1-1. Simplified outline of ETL into a data warehouse.
+{{< figure src="/fig/ddia_0101.png" id="fig_dwh_etl" title="Figure 1-1. Simplified outline of ETL into a data warehouse." class="w-full my-4" >}}
 
 In some cases the data sources of the ETL processes are external SaaS products such as customer
 relationship management (CRM), email marketing, or credit card processing systems. In those cases,
@@ -428,9 +426,10 @@ the other extreme are widely-used cloud services or Software as a Service (SaaS)
 implemented and operated by an external vendor, and which you only access through a web interface or
 API.
 
-![ddia 0102](/fig/ddia_0102.png)
 
-###### Figure 1-2. A spectrum of types of software and its operations.
+{{< figure src="/fig/ddia_0102.png" id="fig_cloud_spectrum" title="Figure 1-2. A spectrum of types of software and its operations." class="w-full my-4" >}}
+
+
 
 The middle ground is off-the-shelf software (open source or commercial) that you *self-host*, i.e.,
 deploy yourself—for example, if you download MySQL and install it on a server you control. This
@@ -672,7 +671,7 @@ processes you can run concurrently), which you need to know about and plan for b
 Adopting a cloud service can be easier and quicker than running your own infrastructure, although
 even here there is a cost in learning how to use it, and perhaps working around its limitations.
 Integration between different services becomes a particular challenge as a growing number of vendors
-offers an ever broader range of cloud services targeting different use cases [^39][^40].
+offers an ever broader range of cloud services targeting different use cases [^39] [^40].
 
 ETL (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) is only part of the story; operational cloud services also need
 to be integrated with each other. At present, there is a lack of standards that would facilitate
@@ -740,7 +739,7 @@ Sustainability
 :   If you have flexibility on where and when to run your jobs, you might be able to run them in a
     time and place where plenty of renewable electricity is available, and avoid running them when the
     power grid is under strain. This can reduce your carbon emissions and allow you to take advantage
-    of cheap power when it is available [^42][^43].
+    of cheap power when it is available [^42] [^43].
 
 These reasons apply both to services that you write yourself (application code) and services
 consisting of off-the-shelf software (such as databases).
@@ -962,7 +961,7 @@ whose data you are collecting and processing. There is much more to this topic; 
 will go deeper into the topics of ethics and legal compliance, including the problems of bias and
 discrimination.
 
-# Summary
+## Summary
 
 The theme of this chapter has been to understand trade-offs: that is, to recognize that for many
 questions there is not one right answer, but several different approaches that each have various
@@ -994,9 +993,7 @@ data is being processed—an aspect that many engineers are prone to ignoring. H
 requirements into technical implementations is not yet well understood, but it’s important to keep
 this question in mind as we move through the rest of this book.
 
-## Footnotes
-
-## References
+### References
 
 [^1]: Richard T. Kouzes, Gordon A. Anderson, Stephen T. Elbert, Ian Gorton, and Deborah K. Gracio. [The Changing Paradigm of Data-Intensive Computing](http://www2.ic.uff.br/~boeres/slides_AP/papers/TheChanginParadigmDataIntensiveComputing_2009.pdf). *IEEE Computer*, volume 42, issue 1, January 2009. [doi:10.1109/MC.2009.26](https://doi.org/10.1109/MC.2009.26)
 [^2]: Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan. [Local-first software: you own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/). At *2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software* (Onward!), October 2019. [doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)

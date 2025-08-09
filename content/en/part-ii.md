@@ -105,7 +105,7 @@ Later, in Part III of this book, we will discuss how you can take several (poten
 - [9. The Trouble with Distributed Systems](/en/ch9)
 - [10. Consistency and Consensus](/en/ch10)
 
-## References
+### References
 
 1. Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
 1. Ben Stopford: “[Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” benstopford.com, November 24, 2009.

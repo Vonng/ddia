@@ -13,10 +13,10 @@ breadcrumbs: false
 A distributed database typically distributes data across nodes in two ways:
 
 1. Having a copy of the same data on multiple nodes: this is *replication*, which we discussed in
-   [Chapter 6](/en/ch6#ch_replication).
+ [Chapter 6](/en/ch6#ch_replication).
 2. If we don’t want every node to store all the data, we can split up a large amount of data into
-   smaller *shards* or *partitions*, and store different shards on different nodes. We’ll discuss
-   sharding in this chapter.
+ smaller *shards* or *partitions*, and store different shards on different nodes. We’ll discuss
+ sharding in this chapter.
 
 Normally, shards are defined in such a way that each piece of data (each record, row, or document)
 belongs to exactly one shard. There are various ways of achieving this, which we discuss in depth in
@@ -51,14 +51,12 @@ Some databases treat partitions and shards as two distinct concepts. For example
 partitioning is a way of splitting a large table into several files that are stored on the same
 machine (which has several advantages, such as making it very fast to delete an entire partition),
 whereas sharding splits a dataset across multiple machines
-[[1](/en/ch7#Giordano2023),
-[2](/en/ch7#Leach2022)].
+[[^1], [^2]].
 In many other systems, partitioning is just another word for sharding.
 
 While *partitioning* is quite descriptive, the term *sharding* is perhaps surprising. According to
 one theory, the term arose from the online role-play game *Ultima Online*, in which a magic crystal
-was shattered into pieces, and each of those shards refracted a copy of the game world
-[^3].
+was shattered into pieces, and each of those shards refracted a copy of the game world [^3].
 The term *shard* thus came to mean one of a set of parallel game servers, and later was carried over
 to databases. Another theory is that *shard* was originally an acronym of *System for Highly
 Available Replicated Data*—reportedly a 1980s database, details of which are lost to history.
@@ -87,8 +85,7 @@ single-shard database.
 
 The reason for this recommendation is that sharding often adds complexity: you typically have to
 decide which records to put in which shard by choosing a *partition key*; all records with the
-same partition key are placed in the same shard
-[^4].
+same partition key are placed in the same shard [^4].
 This choice matters because accessing a record is fast if you know which shard it’s in, but if you
 don’t know the shard you have to do an inefficient search across all shards, and the sharding scheme
 is difficult to change.
@@ -107,11 +104,9 @@ some systems don’t support them at all.
 
 Some systems use sharding even on a single machine, typically running one single-threaded process
 per CPU core to make use of the parallelism in the CPU, or to take advantage of a *nonuniform memory
-access* (NUMA) architecture in which some banks of memory are closer to one CPU than to others
-[^5].
+access* (NUMA) architecture in which some banks of memory are closer to one CPU than to others [^5].
 For example, Redis, VoltDB, and FoundationDB use one process per core, and rely on sharding to
-spread load across CPU cores in the same machine
-[^6].
+spread load across CPU cores in the same machine [^6].
 
 ## Sharding for Multitenancy
 
@@ -124,61 +119,60 @@ signups, delivery data etc. are separate from those of other businesses.
 Sometimes sharding is used to implement multitenant systems: either each tenant is given a separate
 shard, or multiple small tenants may be grouped together into a larger shard. These shards might be
 physically separate databases (which we previously touched on in [“Embedded storage engines”](/en/ch4#sidebar_embedded)), or
-separately manageable portions of a larger logical database
-[^7].
+separately manageable portions of a larger logical database [^7].
 Using sharding for multitenancy has several advantages:
 
 Resource isolation
-:   If one tenant performs a computationally expensive operation, it is less likely that other
-    tenants’ performance will be affected if they are running on different shards.
+: If one tenant performs a computationally expensive operation, it is less likely that other
+ tenants’ performance will be affected if they are running on different shards.
 
 Permission isolation
-:   If there is a bug in your access control logic, it’s less likely that you will accidentally give
-    one tenant access to another tenant’s data if those tenants’ datasets are stored physically
-    separately from each other.
+: If there is a bug in your access control logic, it’s less likely that you will accidentally give
+ one tenant access to another tenant’s data if those tenants’ datasets are stored physically
+ separately from each other.
 
 Cell-based architecture
-:   You can apply sharding not only at the data storage level, but also for the services running your
-    application code. In a *cell-based architecture*, the services and storage for a particular set of
-    tenants are grouped into a self-contained *cell*, and different cells are set up such that they
-    can run largely independently from each other. This approach provides *fault isolation*: that is,
-    a fault in one cell remains limited to that cell, and tenants in other cells are not affected
-    [^8].
+: You can apply sharding not only at the data storage level, but also for the services running your
+ application code. In a *cell-based architecture*, the services and storage for a particular set of
+ tenants are grouped into a self-contained *cell*, and different cells are set up such that they
+ can run largely independently from each other. This approach provides *fault isolation*: that is,
+ a fault in one cell remains limited to that cell, and tenants in other cells are not affected
+ [^8].
 
 Per-tenant backup and restore
-:   Backing up each tenant’s shard separately makes it possible to restore a tenant’s state from a
-    backup without affecting other tenants, which can be useful in case the tenant accidentally
-    deletes or overwrites important data
-    [^9].
+: Backing up each tenant’s shard separately makes it possible to restore a tenant’s state from a
+ backup without affecting other tenants, which can be useful in case the tenant accidentally
+ deletes or overwrites important data
+ [^9].
 
 Regulatory compliance
-:   Data privacy regulation such as the GDPR gives individuals the right to access and delete all data
-    stored about them. If each person’s data is stored in a separate shard, this translates into
-    simple data export and deletion operations on their shard
-    [^10].
+: Data privacy regulation such as the GDPR gives individuals the right to access and delete all data
+ stored about them. If each person’s data is stored in a separate shard, this translates into
+ simple data export and deletion operations on their shard
+ [^10].
 
 Data residence
-:   If a particular tenant’s data needs to be stored in a particular jurisdiction in order to comply
-    with data residency laws, a region-aware database can allow you to assign that tenant’s shard to a
-    particular region.
+: If a particular tenant’s data needs to be stored in a particular jurisdiction in order to comply
+ with data residency laws, a region-aware database can allow you to assign that tenant’s shard to a
+ particular region.
 
 Gradual schema rollout
-:   Schema migrations (previously discussed in [“Schema flexibility in the document model”](/en/ch3#sec_datamodels_schema_flexibility)) can be rolled
-    out gradually, one tenant at a time. This reduces risk, as you can detect problems before they
-    affect all tenants, but it can be difficult to do transactionally
-    [^11].
+: Schema migrations (previously discussed in [“Schema flexibility in the document model”](/en/ch3#sec_datamodels_schema_flexibility)) can be rolled
+ out gradually, one tenant at a time. This reduces risk, as you can detect problems before they
+ affect all tenants, but it can be difficult to do transactionally
+ [^11].
 
 The main challenges around using sharding for multitenancy are:
 
 * It assumes that each individual tenant is small enough to fit on a single node. If that is not the
-  case, and you have a single tenant that’s too big for one machine, you would need to additionally
-  perform sharding within a single tenant, which brings us back to the topic of sharding for
-  scalability [^12].
+ case, and you have a single tenant that’s too big for one machine, you would need to additionally
+ perform sharding within a single tenant, which brings us back to the topic of sharding for
+ scalability [^12].
 * If you have many small tenants, then creating a separate shard for each one may incur too much
-  overhead. You could group several small tenants together into a bigger shard, but then you have
-  the problem of how you move tenants from one shard to another as they grow.
+ overhead. You could group several small tenants together into a bigger shard, but then you have
+ the problem of how you move tenants from one shard to another as they grow.
 * If you ever need to support features that connect data across multiple tenants, these become
-  harder to implement if you need to join data across multiple shards.
+ harder to implement if you need to join data across multiple shards.
 
 # Sharding of Key-Value Data
 
@@ -226,8 +220,7 @@ to distribute the data evenly, the shard boundaries need to adapt to the data.
 The shard boundaries might be chosen manually by an administrator, or the database can choose them
 automatically. Manual key-range sharding is used by Vitess (a sharding layer for MySQL), for
 example; the automatic variant is used by Bigtable, its open source equivalent HBase, the
-range-based sharding option in MongoDB, CockroachDB, RethinkDB, and FoundationDB
-[^6]. YugabyteDB offers both manual and automatic
+range-based sharding option in MongoDB, CockroachDB, RethinkDB, and FoundationDB [^6]. YugabyteDB offers both manual and automatic
 tablet splitting.
 
 Within each shard, keys are stored in sorted order (e.g., in a B-tree or SSTables, as discussed in
@@ -241,8 +234,7 @@ A downside of key range sharding is that you can easily get a hot shard if there
 lot of writes to nearby keys. For example, if the key is a timestamp, then the shards correspond to
 ranges of time—e.g., one shard per month. Unfortunately, if you write data from the sensors to the
 database as the measurements happen, all the writes end up going to the same shard (the one for
-this month), so that shard can be overloaded with writes while others sit idle
-[^13].
+this month), so that shard can be overloaded with writes while others sit idle [^13].
 
 To avoid this problem in the sensor database, you need to use something other than the timestamp as
 the first element of the key. For example, you could prefix each timestamp with the sensor ID so
@@ -256,8 +248,7 @@ need to perform a separate range query for each sensor.
 When you first set up your database, there are no key ranges to split into shards. Some databases,
 such as HBase and MongoDB, allow you to configure an initial set of shards on an empty database,
 which is called *pre-splitting*. This requires that you already have some idea of what the key
-distribution is going to look like, so that you can choose appropriate key range boundaries
-[^14].
+distribution is going to look like, so that you can choose appropriate key range boundaries [^14].
 
 Later on, as your data volume and write throughput grow, a system with key-range sharding grows by
 splitting an existing shard into two or more smaller shards, each of which holds a contiguous
@@ -270,8 +261,8 @@ With databases that manage shard boundaries automatically, a shard split is typi
 
 * the shard reaching a configured size (for example, on HBase, the default is 10 GB), or
 * in some systems, the write throughput being persistently above some threshold. Thus, a hot shard
-  may be split even if it is not storing a lot of data, so that its write load can be distributed
-  more uniformly.
+ may be split even if it is not storing a lot of data, so that its write load can be distributed
+ more uniformly.
 
 An advantage of key-range sharding is that the number of shards adapts to the data volume. If there
 is only a small amount of data, a small number of shards is sufficient, so overheads are small; if
@@ -300,8 +291,7 @@ For sharding purposes, the hash function need not be cryptographically strong: f
 uses MD5, whereas Cassandra and ScyllaDB use Murmur3. Many programming languages have simple hash
 functions built in (as they are used for hash tables), but they may not be suitable for sharding:
 for example, in Java’s `Object.hashCode()` and Ruby’s `Object#hash`, the same key may have a
-different hash value in different processes, making them unsuitable for sharding
-[^16].
+different hash value in different processes, making them unsuitable for sharding [^16].
 
 ### Hash modulo number of nodes
 
@@ -411,16 +401,14 @@ cluster keys for a table. Delta Lake supports both manual and automatic partitio
 supports cluster keys. Clustering data not only improves range scan performance, but can
 improve compression and filtering performance as well.
 
-Hash-range sharding is used in YugabyteDB and DynamoDB
-[^17], and is an option in MongoDB.
+Hash-range sharding is used in YugabyteDB and DynamoDB [^17], and is an option in MongoDB.
 Cassandra and ScyllaDB use a variant of this approach that is illustrated in
 [Figure 7-6](/en/ch7#fig_sharding_cassandra): the space of hash values is split into a number of ranges proportional
 to the number of nodes (3 ranges per node in [Figure 7-6](/en/ch7#fig_sharding_cassandra), but actual numbers are 8
 per node in Cassandra by default, and 256 per node in ScyllaDB), with random boundaries between
 those ranges. This means some ranges are bigger than others, but by having multiple ranges per node
 those imbalances tend to even out
-[[15](/en/ch7#Evans2013),
-[18](/en/ch7#Williams2012)].
+[[^15], [^18]].
 
 ![ddia 0706](/fig/ddia_0706.png)
 
@@ -446,10 +434,8 @@ ACID consistency (see [Chapter 8](/en/ch8#ch_transactions)), but rather describ
 the same shard as much as possible.
 
 The sharding algorithm used by Cassandra and ScyllaDB is similar to the original definition of
-consistent hashing
-[^20],
-but several other consistent hashing algorithms have also been proposed
-[^21],
+consistent hashing [^20],
+but several other consistent hashing algorithms have also been proposed [^21],
 such as *highest random weight*, also known as *rendezvous hashing*
 [^22],
 and *jump consistent hash*
@@ -473,11 +459,9 @@ This event can result in a large volume of reads and writes to the same key (whe
 is perhaps the user ID of the celebrity, or the ID of the action that people are commenting on).
 
 In such situations, a more flexible sharding policy is required
-[[25](/en/ch7#Guo2020),
-[26](/en/ch7#Lee2021)].
+[[^25], [^26]].
 A system that defines shards based on ranges of keys (or ranges of hashes) makes it possible to put
-an individual hot key in a shard by its own, and perhaps even assigning it a dedicated machine
-[^27].
+an individual hot key in a shard by its own, and perhaps even assigning it a dedicated machine [^27].
 
 It’s also possible to compensate for skew at the application level. For example, if one key is known
 to be very hot, a simple technique is to add a random number to the beginning or end of the key.
@@ -518,16 +502,14 @@ Fully automated rebalancing can be convenient, because there is less operational
 normal maintenance, and such systems can even auto-scale to adapt to changes in workload. Cloud
 databases such as DynamoDB are promoted as being able to automatically add and remove shards to
 adapt to big increases or decreases of load within a matter of minutes
-[[17](/en/ch7#Elhemali2022_ch7),
-[29](/en/ch7#Houlihan2017)].
+[[^17], [^29]].
 
 However, automatic shard management can also be unpredictable. Rebalancing is an expensive
 operation, because it requires rerouting requests and moving a large amount of data from one node to
 another. If it is not done carefully, this process can overload the network or the nodes, and it
 might harm the performance of other requests. The system must continue processing writes while the
 rebalancing is in progress; if a system is near its maximum write throughput, the shard-splitting
-process might not even be able to keep up with the rate of incoming writes
-[^29].
+process might not even be able to keep up with the rate of incoming writes [^29].
 
 Such automation can be dangerous in combination with automatic failure detection. For example, say
 one node is overloaded and is temporarily slow to respond to requests. The other nodes conclude that
@@ -557,14 +539,14 @@ shards to nodes. On a high level, there are a few different approaches to this p
 in [Figure 7-7](/en/ch7#fig_sharding_routing)):
 
 1. Allow clients to contact any node (e.g., via a round-robin load balancer). If that node
-   coincidentally owns the shard to which the request applies, it can handle the request directly;
-   otherwise, it forwards the request to the appropriate node, receives the reply, and passes the
-   reply along to the client.
+ coincidentally owns the shard to which the request applies, it can handle the request directly;
+ otherwise, it forwards the request to the appropriate node, receives the reply, and passes the
+ reply along to the client.
 2. Send all requests from clients to a routing tier first, which determines the node that should
-   handle each request and forwards it accordingly. This routing tier does not itself handle any
-   requests; it only acts as a shard-aware load balancer.
+ handle each request and forwards it accordingly. This routing tier does not itself handle any
+ requests; it only acts as a shard-aware load balancer.
 3. Require that clients be aware of the sharding and the assignment of shards to nodes. In this
-   case, a client can connect directly to the appropriate node, without any intermediary.
+ case, a client can connect directly to the appropriate node, without any intermediary.
 
 ![ddia 0707](/fig/ddia_0707.png)
 
@@ -573,15 +555,15 @@ in [Figure 7-7](/en/ch7#fig_sharding_routing)):
 In all cases, there are some key problems:
 
 * Who decides which shard should live on which node? It’s simplest to have a single coordinator
-  making that decision, but in that case how do you make it fault-tolerant in case the node running
-  the coordinator goes down? And if the coordinator role can failover to another node, how do you
-  prevent a split-brain situation (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)) where two different
-  coordinators make contradictory shard assignments?
+ making that decision, but in that case how do you make it fault-tolerant in case the node running
+ the coordinator goes down? And if the coordinator role can failover to another node, how do you
+ prevent a split-brain situation (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)) where two different
+ coordinators make contradictory shard assignments?
 * How does the component performing the routing (which may be one of the nodes, or the routing tier,
-  or the client) learn about changes in the assignment of shards to nodes?
+ or the client) learn about changes in the assignment of shards to nodes?
 * While a shard is being moved from one node to another, there is a cutover period during which the
-  new node has taken over, but requests to the old node may still be in flight. How do you handle
-  those?
+ new node has taken over, but requests to the old node may still be in flight. How do you handle
+ those?
 
 Many distributed data systems rely on a separate coordination service such as ZooKeeper or etcd to
 keep track of shard assignments, as illustrated in [Figure 7-8](/en/ch7#fig_sharding_zookeeper). They use consensus
@@ -684,8 +666,7 @@ expensive. Even if you query the shards in parallel, it is prone to tail latency
 shards lets you store more data, but it doesn’t increase your query throughput if every shard has to
 process every query anyway.
 
-Nevertheless, local secondary indexes are widely used
-[^31]:
+Nevertheless, local secondary indexes are widely used [^31]:
 for example, MongoDB, Riak, Cassandra [^32],
 Elasticsearch [^33], SolrCloud,
 and VoltDB [^34]
@@ -742,7 +723,7 @@ indexes, so reads from a global index may be stale (similarly to replication lag
 Nevertheless, global indexes are useful if read throughput is higher than write throughput, and if
 the postings lists are not too long.
 
-# Summary
+## Summary
 
 In this chapter we explored different ways of sharding a large dataset into smaller subsets.
 Sharding is necessary when you have so much data that storing and processing it on a single machine
@@ -756,20 +737,20 @@ cluster.
 We discussed two main approaches to sharding:
 
 * *Key range sharding*, where keys are sorted, and a shard owns all the keys from some minimum up to
-  some maximum. Sorting has the advantage that efficient range queries are possible, but there is a
-  risk of hot spots if the application often accesses keys that are close together in the sorted
-  order.
+ some maximum. Sorting has the advantage that efficient range queries are possible, but there is a
+ risk of hot spots if the application often accesses keys that are close together in the sorted
+ order.
 
-  In this approach, shards are typically rebalanced by splitting the range into two subranges when a
-  shard gets too big.
+ In this approach, shards are typically rebalanced by splitting the range into two subranges when a
+ shard gets too big.
 * *Hash sharding*, where a hash function is applied to each key, and a shard owns a range of hash
-  values (or another consistent hashing algorithm may be used to map hashes to shards). This method
-  destroys the ordering of keys, making range queries inefficient, but it may distribute load more
-  evenly.
+ values (or another consistent hashing algorithm may be used to map hashes to shards). This method
+ destroys the ordering of keys, making range queries inefficient, but it may distribute load more
+ evenly.
 
-  When sharding by hash, it is common to create a fixed number of shards in advance, to assign several
-  shards to each node, and to move entire shards from one node to another when nodes are added or
-  removed. Splitting shards, like with key ranges, is also possible.
+ When sharding by hash, it is common to create a fixed number of shards in advance, to assign several
+ shards to each node, and to move entire shards from one node to another when nodes are added or
+ removed. Splitting shards, like with key ranges, is also possible.
 
 It is common to use the first part of the key as the partition key (i.e., to identify the shard),
 and to sort records within that shard by the rest of the key. That way you can still have efficient
@@ -779,13 +760,13 @@ We also discussed the interaction between sharding and secondary indexes. A seco
 needs to be sharded, and there are two methods:
 
 * *Local secondary indexes*, where the secondary indexes are stored
-  in the same shard as the primary key and value. This means that only a single shard needs to be
-  updated on write, but a lookup of the secondary index requires reading from all shards.
+ in the same shard as the primary key and value. This means that only a single shard needs to be
+ updated on write, but a lookup of the secondary index requires reading from all shards.
 * *Global secondary indexes*, which are sharded separately based on
-  the indexed values. An entry in the secondary index may refer to records from all shards of the
-  primary key. When a record is written, several secondary index shards may need to be updated;
-  however, a read of the postings list can be served from a single shard (fetching the actual
-  records still requires reading from multiple shards).
+ the indexed values. An entry in the secondary index may refer to records from all shards of the
+ primary key. When a record is written, several secondary index shards may need to be updated;
+ however, a read of the postings list can be served from a single shard (fetching the actual
+ records still requires reading from multiple shards).
 
 Finally, we discussed techniques for routing queries to the appropriate shard, and how a
 coordination service is often used to keep track of the assigment of shards to nodes.
@@ -795,43 +776,43 @@ to multiple machines. However, operations that need to write to several shards c
 for example, what happens if the write to one shard succeeds, but another fails? We will address
 that question in the following chapters.
 
-##### Footnotes
 
 
-##### References
+
+### Summary
 
 
-[^1]: Claire Giordano. [Understanding partitioning and sharding in Postgres and Citus](https://www.citusdata.com/blog/2023/08/04/understanding-partitioning-and-sharding-in-postgres-and-citus/). *citusdata.com*, August 2023. Archived at [perma.cc/8BTK-8959](https://perma.cc/8BTK-8959)
-[^2]: Brandur Leach. [Partitioning in Postgres, 2022 edition](https://brandur.org/fragments/postgres-partitioning-2022). *brandur.org*, October 2022. Archived at [perma.cc/Z5LE-6AKX](https://perma.cc/Z5LE-6AKX)
-[^3]: Raph Koster. [Database “sharding” came from UO?](https://www.raphkoster.com/2009/01/08/database-sharding-came-from-uo/) *raphkoster.com*, January 2009. Archived at [perma.cc/4N9U-5KYF](https://perma.cc/4N9U-5KYF)
-[^4]: Garrett Fidalgo. [Herding elephants: Lessons learned from sharding Postgres at Notion](https://www.notion.com/blog/sharding-postgres-at-notion). *notion.com*, October 2021. Archived at [perma.cc/5J5V-W2VX](https://perma.cc/5J5V-W2VX)
-[^5]: Ulrich Drepper. [What Every Programmer Should Know About Memory](https://www.akkadia.org/drepper/cpumemory.pdf). *akkadia.org*, November 2007. Archived at [perma.cc/NU6Q-DRXZ](https://perma.cc/NU6Q-DRXZ)
-[^6]: Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. [FoundationDB: A Distributed Unbundled Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559)
-[^7]: Marco Slot. [Citus 12: Schema-based sharding for PostgreSQL](https://www.citusdata.com/blog/2023/07/18/citus-12-schema-based-sharding-for-postgres/). *citusdata.com*, July 2023. Archived at [perma.cc/R874-EC9W](https://perma.cc/R874-EC9W)
-[^8]: Robisson Oliveira. [Reducing the Scope of Impact with Cell-Based Architecture](https://docs.aws.amazon.com/pdfs/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/reducing-scope-of-impact-with-cell-based-architecture.pdf). AWS Well-Architected white paper, Amazon Web Services, September 2023. Archived at [perma.cc/4KWW-47NR](https://perma.cc/4KWW-47NR)
-[^9]: Gwen Shapira. [Things DBs Don’t Do - But Should](https://www.thenile.dev/blog/things-dbs-dont-do). *thenile.dev*, February 2023. Archived at [perma.cc/C3J4-JSFW](https://perma.cc/C3J4-JSFW)
-[^10]: Malte Schwarzkopf, Eddie Kohler, M. Frans Kaashoek, and Robert Morris. [Position: GDPR Compliance by Construction](https://cs.brown.edu/people/malte/pub/papers/2019-poly-gdpr.pdf). At *Towards Polystores that manage multiple Databases, Privacy, Security and/or Policy Issues for Heterogenous Data* (Poly), August 2019. [doi:10.1007/978-3-030-33752-0\_3](https://doi.org/10.1007/978-3-030-33752-0_3)
-[^11]: Gwen Shapira. [Introducing pg\_karnak: Transactional schema migration across tenant databases](https://www.thenile.dev/blog/distributed-ddl). *thenile.dev*, November 2024. Archived at [perma.cc/R5RD-8HR9](https://perma.cc/R5RD-8HR9)
-[^12]: Arka Ganguli, Guido Iaquinti, Maggie Zhou, and Rafael Chacón. [Scaling Datastores at Slack with Vitess](https://slack.engineering/scaling-datastores-at-slack-with-vitess/). *slack.engineering*, December 2020. Archived at [perma.cc/UW8F-ALJK](https://perma.cc/UW8F-ALJK)
-[^13]: Ikai Lan. [App Engine Datastore Tip: Monotonically Increasing Values Are Bad](https://ikaisays.com/2011/01/25/app-engine-datastore-tip-monotonically-increasing-values-are-bad/). *ikaisays.com*, January 2011. Archived at [perma.cc/BPX8-RPJB](https://perma.cc/BPX8-RPJB)
-[^14]: Enis Soztutar. [Apache HBase Region Splitting and Merging](https://www.cloudera.com/blog/technical/apache-hbase-region-splitting-and-merging.html). *cloudera.com*, February 2013. Archived at [perma.cc/S9HS-2X2C](https://perma.cc/S9HS-2X2C)
-[^15]: Eric Evans. [Rethinking Topology in Cassandra](https://www.youtube.com/watch?v=Qz6ElTdYjjU). At *Cassandra Summit*, June 2013. Archived at [perma.cc/2DKM-F438](https://perma.cc/2DKM-F438)
-[^16]: Martin Kleppmann. [Java’s hashCode Is Not Safe for Distributed Systems](https://martin.kleppmann.com/2012/06/18/java-hashcode-unsafe-for-distributed-systems.html). *martin.kleppmann.com*, June 2012. Archived at [perma.cc/LK5U-VZSN](https://perma.cc/LK5U-VZSN)
-[^17]: Mostafa Elhemali, Niall Gallagher, Nicholas Gordon, Joseph Idziorek, Richard Krog, Colin Lazier, Erben Mo, Akhilesh Mritunjai, Somu Perianayagam, Tim Rath, Swami Sivasubramanian, James Christopher Sorenson III, Sroaj Sosothikul, Doug Terry, and Akshat Vig. [Amazon DynamoDB: A Scalable, Predictably Performant, and Fully Managed NoSQL Database Service](https://www.usenix.org/conference/atc22/presentation/elhemali). At *USENIX Annual Technical Conference* (ATC), July 2022.
-[^18]: Brandon Williams. [Virtual Nodes in Cassandra 1.2](https://www.datastax.com/blog/virtual-nodes-cassandra-12). *datastax.com*, December 2012. Archived at [perma.cc/N385-EQXV](https://perma.cc/N385-EQXV)
-[^19]: Branimir Lambov. [New Token Allocation Algorithm in Cassandra 3.0](https://www.datastax.com/blog/new-token-allocation-algorithm-cassandra-30). *datastax.com*, January 2016. Archived at [perma.cc/2BG7-LDWY](https://perma.cc/2BG7-LDWY)
-[^20]: David Karger, Eric Lehman, Tom Leighton, Rina Panigrahy, Matthew Levine, and Daniel Lewin. [Consistent Hashing and Random Trees: Distributed Caching Protocols for Relieving Hot Spots on the World Wide Web](https://people.csail.mit.edu/karger/Papers/web.pdf). At *29th Annual ACM Symposium on Theory of Computing* (STOC), May 1997. [doi:10.1145/258533.258660](https://doi.org/10.1145/258533.258660)
-[^21]: Damian Gryski. [Consistent Hashing: Algorithmic Tradeoffs](https://dgryski.medium.com/consistent-hashing-algorithmic-tradeoffs-ef6b8e2fcae8). *dgryski.medium.com*, April 2018. Archived at [perma.cc/B2WF-TYQ8](https://perma.cc/B2WF-TYQ8)
-[^22]: David G. Thaler and Chinya V. Ravishankar. [Using name-based mappings to increase hit rates](https://www.cs.kent.edu/~javed/DL/web/p1-thaler.pdf). *IEEE/ACM Transactions on Networking*, volume 6, issue 1, pages 1–14, February 1998. [doi:10.1109/90.663936](https://doi.org/10.1109/90.663936)
-[^23]: John Lamping and Eric Veach. [A Fast, Minimal Memory, Consistent Hash Algorithm](https://arxiv.org/abs/1406.2294). *arxiv.org*, June 2014.
-[^24]: Samuel Axon. [3% of Twitter’s Servers Dedicated to Justin Bieber](https://mashable.com/archive/justin-bieber-twitter). *mashable.com*, September 2010. Archived at [perma.cc/F35N-CGVX](https://perma.cc/F35N-CGVX)
-[^25]: Gerald Guo and Thawan Kooburat. [Scaling services with Shard Manager](https://engineering.fb.com/2020/08/24/production-engineering/scaling-services-with-shard-manager/). *engineering.fb.com*, August 2020. Archived at [perma.cc/EFS3-XQYT](https://perma.cc/EFS3-XQYT)
-[^26]: Sangmin Lee, Zhenhua Guo, Omer Sunercan, Jun Ying, Thawan Kooburat, Suryadeep Biswal, Jun Chen, Kun Huang, Yatpang Cheung, Yiding Zhou, Kaushik Veeraraghavan, Biren Damani, Pol Mauri Ruiz, Vikas Mehta, and Chunqiang Tang. [Shard Manager: A Generic Shard Management Framework for Geo-distributed Applications](https://dl.acm.org/doi/pdf/10.1145/3477132.3483546). *28th ACM SIGOPS Symposium on Operating Systems Principles* (SOSP), pages 553–569, October 2021. [doi:10.1145/3477132.3483546](https://doi.org/10.1145/3477132.3483546)
-[^27]: Scott Lystig Fritchie. [A Critique of Resizable Hash Tables: Riak Core & Random Slicing](https://www.infoq.com/articles/dynamo-riak-random-slicing/). *infoq.com*, August 2018. Archived at [perma.cc/RPX7-7BLN](https://perma.cc/RPX7-7BLN)
-[^28]: Andy Warfield. [Building and operating a pretty big storage system called S3](https://www.allthingsdistributed.com/2023/07/building-and-operating-a-pretty-big-storage-system.html). *allthingsdistributed.com*, July 2023. Archived at [perma.cc/6S7P-GLM4](https://perma.cc/6S7P-GLM4)
-[^29]: Rich Houlihan. [DynamoDB adaptive capacity: smooth performance for chaotic workloads (DAT327)](https://www.youtube.com/watch?v=kMY0_m29YzU). At *AWS re:Invent*, November 2017.
-[^30]: Christopher D. Manning, Prabhakar Raghavan, and Hinrich Schütze. [*Introduction to Information Retrieval*](https://nlp.stanford.edu/IR-book/). Cambridge University Press, 2008. ISBN: 978-0-521-86571-5, available online at [nlp.stanford.edu/IR-book](https://nlp.stanford.edu/IR-book/)
-[^31]: Michael Busch, Krishna Gade, Brian Larson, Patrick Lok, Samuel Luckenbill, and Jimmy Lin. [Earlybird: Real-Time Search at Twitter](https://cs.uwaterloo.ca/~jimmylin/publications/Busch_etal_ICDE2012.pdf). At *28th IEEE International Conference on Data Engineering* (ICDE), April 2012. [doi:10.1109/ICDE.2012.149](https://doi.org/10.1109/ICDE.2012.149)
-[^32]: Nadav Har’El. [Indexing in Cassandra 3](https://github.com/scylladb/scylladb/wiki/Indexing-in-Cassandra-3). *github.com*, April 2017. Archived at [perma.cc/3ENV-8T9P](https://perma.cc/3ENV-8T9P)
-[^33]: Zachary Tong. [Customizing Your Document Routing](https://www.elastic.co/blog/customizing-your-document-routing/). *elastic.co*, June 2013. Archived at [perma.cc/97VM-MREN](https://perma.cc/97VM-MREN)
+[^1]: Claire Giordano. [Understanding partitioning and sharding in Postgres and Citus](https://www.citusdata.com/blog/2023/08/04/understanding-partitioning-and-sharding-in-postgres-and-citus/). *citusdata.com*, August 2023. Archived at [perma.cc/8BTK-8959](https://perma.cc/8BTK-8959) 
+[^2]: Brandur Leach. [Partitioning in Postgres, 2022 edition](https://brandur.org/fragments/postgres-partitioning-2022). *brandur.org*, October 2022. Archived at [perma.cc/Z5LE-6AKX](https://perma.cc/Z5LE-6AKX) 
+[^3]: Raph Koster. [Database “sharding” came from UO?](https://www.raphkoster.com/2009/01/08/database-sharding-came-from-uo/) *raphkoster.com*, January 2009. Archived at [perma.cc/4N9U-5KYF](https://perma.cc/4N9U-5KYF) 
+[^4]: Garrett Fidalgo. [Herding elephants: Lessons learned from sharding Postgres at Notion](https://www.notion.com/blog/sharding-postgres-at-notion). *notion.com*, October 2021. Archived at [perma.cc/5J5V-W2VX](https://perma.cc/5J5V-W2VX) 
+[^5]: Ulrich Drepper. [What Every Programmer Should Know About Memory](https://www.akkadia.org/drepper/cpumemory.pdf). *akkadia.org*, November 2007. Archived at [perma.cc/NU6Q-DRXZ](https://perma.cc/NU6Q-DRXZ) 
+[^6]: Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. [FoundationDB: A Distributed Unbundled Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559) 
+[^7]: Marco Slot. [Citus 12: Schema-based sharding for PostgreSQL](https://www.citusdata.com/blog/2023/07/18/citus-12-schema-based-sharding-for-postgres/). *citusdata.com*, July 2023. Archived at [perma.cc/R874-EC9W](https://perma.cc/R874-EC9W) 
+[^8]: Robisson Oliveira. [Reducing the Scope of Impact with Cell-Based Architecture](https://docs.aws.amazon.com/pdfs/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/reducing-scope-of-impact-with-cell-based-architecture.pdf). AWS Well-Architected white paper, Amazon Web Services, September 2023. Archived at [perma.cc/4KWW-47NR](https://perma.cc/4KWW-47NR) 
+[^9]: Gwen Shapira. [Things DBs Don’t Do - But Should](https://www.thenile.dev/blog/things-dbs-dont-do). *thenile.dev*, February 2023. Archived at [perma.cc/C3J4-JSFW](https://perma.cc/C3J4-JSFW) 
+[^10]: Malte Schwarzkopf, Eddie Kohler, M. Frans Kaashoek, and Robert Morris. [Position: GDPR Compliance by Construction](https://cs.brown.edu/people/malte/pub/papers/2019-poly-gdpr.pdf). At *Towards Polystores that manage multiple Databases, Privacy, Security and/or Policy Issues for Heterogenous Data* (Poly), August 2019. [doi:10.1007/978-3-030-33752-0\_3](https://doi.org/10.1007/978-3-030-33752-0_3) 
+[^11]: Gwen Shapira. [Introducing pg\_karnak: Transactional schema migration across tenant databases](https://www.thenile.dev/blog/distributed-ddl). *thenile.dev*, November 2024. Archived at [perma.cc/R5RD-8HR9](https://perma.cc/R5RD-8HR9) 
+[^12]: Arka Ganguli, Guido Iaquinti, Maggie Zhou, and Rafael Chacón. [Scaling Datastores at Slack with Vitess](https://slack.engineering/scaling-datastores-at-slack-with-vitess/). *slack.engineering*, December 2020. Archived at [perma.cc/UW8F-ALJK](https://perma.cc/UW8F-ALJK) 
+[^13]: Ikai Lan. [App Engine Datastore Tip: Monotonically Increasing Values Are Bad](https://ikaisays.com/2011/01/25/app-engine-datastore-tip-monotonically-increasing-values-are-bad/). *ikaisays.com*, January 2011. Archived at [perma.cc/BPX8-RPJB](https://perma.cc/BPX8-RPJB) 
+[^14]: Enis Soztutar. [Apache HBase Region Splitting and Merging](https://www.cloudera.com/blog/technical/apache-hbase-region-splitting-and-merging.html). *cloudera.com*, February 2013. Archived at [perma.cc/S9HS-2X2C](https://perma.cc/S9HS-2X2C) 
+[^15]: Eric Evans. [Rethinking Topology in Cassandra](https://www.youtube.com/watch?v=Qz6ElTdYjjU). At *Cassandra Summit*, June 2013. Archived at [perma.cc/2DKM-F438](https://perma.cc/2DKM-F438) 
+[^16]: Martin Kleppmann. [Java’s hashCode Is Not Safe for Distributed Systems](https://martin.kleppmann.com/2012/06/18/java-hashcode-unsafe-for-distributed-systems.html). *martin.kleppmann.com*, June 2012. Archived at [perma.cc/LK5U-VZSN](https://perma.cc/LK5U-VZSN) 
+[^17]: Mostafa Elhemali, Niall Gallagher, Nicholas Gordon, Joseph Idziorek, Richard Krog, Colin Lazier, Erben Mo, Akhilesh Mritunjai, Somu Perianayagam, Tim Rath, Swami Sivasubramanian, James Christopher Sorenson III, Sroaj Sosothikul, Doug Terry, and Akshat Vig. [Amazon DynamoDB: A Scalable, Predictably Performant, and Fully Managed NoSQL Database Service](https://www.usenix.org/conference/atc22/presentation/elhemali). At *USENIX Annual Technical Conference* (ATC), July 2022. 
+[^18]: Brandon Williams. [Virtual Nodes in Cassandra 1.2](https://www.datastax.com/blog/virtual-nodes-cassandra-12). *datastax.com*, December 2012. Archived at [perma.cc/N385-EQXV](https://perma.cc/N385-EQXV) 
+[^19]: Branimir Lambov. [New Token Allocation Algorithm in Cassandra 3.0](https://www.datastax.com/blog/new-token-allocation-algorithm-cassandra-30). *datastax.com*, January 2016. Archived at [perma.cc/2BG7-LDWY](https://perma.cc/2BG7-LDWY) 
+[^20]: David Karger, Eric Lehman, Tom Leighton, Rina Panigrahy, Matthew Levine, and Daniel Lewin. [Consistent Hashing and Random Trees: Distributed Caching Protocols for Relieving Hot Spots on the World Wide Web](https://people.csail.mit.edu/karger/Papers/web.pdf). At *29th Annual ACM Symposium on Theory of Computing* (STOC), May 1997. [doi:10.1145/258533.258660](https://doi.org/10.1145/258533.258660) 
+[^21]: Damian Gryski. [Consistent Hashing: Algorithmic Tradeoffs](https://dgryski.medium.com/consistent-hashing-algorithmic-tradeoffs-ef6b8e2fcae8). *dgryski.medium.com*, April 2018. Archived at [perma.cc/B2WF-TYQ8](https://perma.cc/B2WF-TYQ8) 
+[^22]: David G. Thaler and Chinya V. Ravishankar. [Using name-based mappings to increase hit rates](https://www.cs.kent.edu/~javed/DL/web/p1-thaler.pdf). *IEEE/ACM Transactions on Networking*, volume 6, issue 1, pages 1–14, February 1998. [doi:10.1109/90.663936](https://doi.org/10.1109/90.663936) 
+[^23]: John Lamping and Eric Veach. [A Fast, Minimal Memory, Consistent Hash Algorithm](https://arxiv.org/abs/1406.2294). *arxiv.org*, June 2014. 
+[^24]: Samuel Axon. [3% of Twitter’s Servers Dedicated to Justin Bieber](https://mashable.com/archive/justin-bieber-twitter). *mashable.com*, September 2010. Archived at [perma.cc/F35N-CGVX](https://perma.cc/F35N-CGVX) 
+[^25]: Gerald Guo and Thawan Kooburat. [Scaling services with Shard Manager](https://engineering.fb.com/2020/08/24/production-engineering/scaling-services-with-shard-manager/). *engineering.fb.com*, August 2020. Archived at [perma.cc/EFS3-XQYT](https://perma.cc/EFS3-XQYT) 
+[^26]: Sangmin Lee, Zhenhua Guo, Omer Sunercan, Jun Ying, Thawan Kooburat, Suryadeep Biswal, Jun Chen, Kun Huang, Yatpang Cheung, Yiding Zhou, Kaushik Veeraraghavan, Biren Damani, Pol Mauri Ruiz, Vikas Mehta, and Chunqiang Tang. [Shard Manager: A Generic Shard Management Framework for Geo-distributed Applications](https://dl.acm.org/doi/pdf/10.1145/3477132.3483546). *28th ACM SIGOPS Symposium on Operating Systems Principles* (SOSP), pages 553–569, October 2021. [doi:10.1145/3477132.3483546](https://doi.org/10.1145/3477132.3483546) 
+[^27]: Scott Lystig Fritchie. [A Critique of Resizable Hash Tables: Riak Core & Random Slicing](https://www.infoq.com/articles/dynamo-riak-random-slicing/). *infoq.com*, August 2018. Archived at [perma.cc/RPX7-7BLN](https://perma.cc/RPX7-7BLN) 
+[^28]: Andy Warfield. [Building and operating a pretty big storage system called S3](https://www.allthingsdistributed.com/2023/07/building-and-operating-a-pretty-big-storage-system.html). *allthingsdistributed.com*, July 2023. Archived at [perma.cc/6S7P-GLM4](https://perma.cc/6S7P-GLM4) 
+[^29]: Rich Houlihan. [DynamoDB adaptive capacity: smooth performance for chaotic workloads (DAT327)](https://www.youtube.com/watch?v=kMY0_m29YzU). At *AWS re:Invent*, November 2017. 
+[^30]: Christopher D. Manning, Prabhakar Raghavan, and Hinrich Schütze. [*Introduction to Information Retrieval*](https://nlp.stanford.edu/IR-book/). Cambridge University Press, 2008. ISBN: 978-0-521-86571-5, available online at [nlp.stanford.edu/IR-book](https://nlp.stanford.edu/IR-book/) 
+[^31]: Michael Busch, Krishna Gade, Brian Larson, Patrick Lok, Samuel Luckenbill, and Jimmy Lin. [Earlybird: Real-Time Search at Twitter](https://cs.uwaterloo.ca/~jimmylin/publications/Busch_etal_ICDE2012.pdf). At *28th IEEE International Conference on Data Engineering* (ICDE), April 2012. [doi:10.1109/ICDE.2012.149](https://doi.org/10.1109/ICDE.2012.149) 
+[^32]: Nadav Har’El. [Indexing in Cassandra 3](https://github.com/scylladb/scylladb/wiki/Indexing-in-Cassandra-3). *github.com*, April 2017. Archived at [perma.cc/3ENV-8T9P](https://perma.cc/3ENV-8T9P) 
+[^33]: Zachary Tong. [Customizing Your Document Routing](https://www.elastic.co/blog/customizing-your-document-routing/). *elastic.co*, June 2013. Archived at [perma.cc/97VM-MREN](https://perma.cc/97VM-MREN) 
 [^34]: Andrew Pavlo. [H-Store Frequently Asked Questions](https://hstore.cs.brown.edu/documentation/faq/). *hstore.cs.brown.edu*, October 2013. Archived at [perma.cc/X3ZA-DW6Z](https://perma.cc/X3ZA-DW6Z) 

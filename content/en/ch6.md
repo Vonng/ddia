@@ -11,7 +11,7 @@ breadcrumbs: false
 > Douglas Adams, *Mostly Harmless* (1992)
 
 *Replication* means keeping a copy of the same data on multiple machines that are connected via a
-network. As discussed in [“Distributed versus Single-Node Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_distributed), there are several reasons
+network. As discussed in [“Distributed versus Single-Node Systems”](/ch01.html#sec_introduction_distributed), there are several reasons
 why you might want to replicate data:
 
 * To keep data geographically close to your users (and thus reduce access latency)
@@ -19,7 +19,7 @@ why you might want to replicate data:
 * To scale out the number of machines that can serve read queries (and thus increase read throughput)
 
 In this chapter we will assume that your dataset is small enough that each machine can hold a copy of
-the entire dataset. In [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding) we will relax that assumption and discuss *sharding*
+the entire dataset. In [Chapter 7](/ch07.html#ch_sharding) we will relax that assumption and discuss *sharding*
 (*partitioning*) of datasets that are too big for a single machine. In later chapters we will discuss
 various kinds of faults that can occur in a replicated data system, and how to deal with them.
 
@@ -36,10 +36,8 @@ in databases, and although the details vary by database, the general principles 
 many different implementations. We will discuss the consequences of such choices in this chapter.
 
 Replication of databases is an old topic—the principles haven’t changed much since they were
-studied in the 1970s
-[^1],
-because the fundamental constraints of networks have remained the same. Despite being so old,
-concepts such as *eventual consistency* still cause confusion. In [“Problems with Replication Lag”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lag) we will
+studied in the 1970s [^1], because the fundamental constraints of networks have remained the same. Despite being so old,
+concepts such as *eventual consistency* still cause confusion. In [“Problems with Replication Lag”](/ch06.html#sec_replication_lag) we will
 get more precise about eventual consistency and discuss things like the *read-your-writes* and
 *monotonic reads* guarantees.
 
@@ -52,7 +50,7 @@ delete some data, replication doesn’t help since the deletion will have also b
 replicas, so you need a backup if you want to restore the deleted data.
 
 In fact, replication and backups are often complementary to each other. Backups are sometimes part
-of the process of setting up replication, as we shall see in [“Setting Up New Followers”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_new_replica).
+of the process of setting up replication, as we shall see in [“Setting Up New Followers”](/ch06.html#sec_replication_new_replica).
 Conversely, archiving replication logs can be part of a backup process.
 
 Some databases internally maintain immutable snapshots of past states, which serve as a kind of
@@ -69,7 +67,7 @@ question inevitably arises: how do we ensure that all the data ends up on all th
 Every write to the database needs to be processed by every replica; otherwise, the replicas would no
 longer contain the same data. The most common solution is called *leader-based replication*,
 *primary-backup*, or *active/passive*. It works as follows (see
-[Figure 6-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_leader_follower)):
+[Figure 6-1](/ch06.html#fig_replication_leader_follower)):
 
 1. One of the replicas is designated the *leader* (also known as *primary* or *source*
    [^2]).
@@ -88,9 +86,9 @@ longer contain the same data. The most common solution is called *leader-based r
 
 ###### Figure 6-1. Single-leader replication directs all writes to a designated leader, which sends a stream of changes to the follower replicas.
 
-If the database is sharded (see [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding)), each shard has one leader. Different shards may
+If the database is sharded (see [Chapter 7](/ch07.html#ch_sharding)), each shard has one leader. Different shards may
 have their leaders on different nodes, but each shard must nevertheless have one leader node. In
-[“Multi-Leader Replication”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_multi_leader) we will discuss an alternative model in which a system may have
+[“Multi-Leader Replication”](/ch06.html#sec_replication_multi_leader) we will discuss an alternative model in which a system may have
 multiple leaders for the same shard at the same time.
 
 Single-leader replication is very widely used. It’s a built-in feature of many relational databases,
@@ -106,7 +104,7 @@ Many consensus algorithms such as Raft, which is used for replication in Cockroa
 TiDB [^7],
 etcd, and RabbitMQ quorum queues (among others), are also based on a single leader, and
 automatically elect a new leader if the old one fails (we will discuss consensus in more detail in
-[Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency)).
+[Chapter 10](/ch10.html#ch_consistency)).
 
 > [!NOTE]
 > In older documents you may see the term *master–slave replication*. It means the same as
@@ -119,17 +117,17 @@ An important detail of a replicated system is whether the replication happens *s
 *asynchronously*. (In relational databases, this is often a configurable option; other systems are
 often hardcoded to be either one or the other.)
 
-Think about what happens in [Figure 6-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_leader_follower), where the user of a website updates
+Think about what happens in [Figure 6-1](/ch06.html#fig_replication_leader_follower), where the user of a website updates
 their profile image. At some point in time, the client sends the update request to the leader;
 shortly afterward, it is received by the leader. At some point, the leader forwards the data change
 to the followers. Eventually, the leader notifies the client that the update was successful.
-[Figure 6-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_sync_replication) shows one possible way how the timings could work out.
+[Figure 6-2](/ch06.html#fig_replication_sync_replication) shows one possible way how the timings could work out.
 
 ![ddia 0602](/fig/ddia_0602.png)
 
 ###### Figure 6-2. Leader-based replication with one synchronous and one asynchronous follower.
 
-In the example of [Figure 6-2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_sync_replication), the replication to follower 1 is
+In the example of [Figure 6-2](/ch06.html#fig_replication_sync_replication), the replication to follower 1 is
 *synchronous*: the leader waits until follower 1 has confirmed that it received the write before
 reporting success to the user, and before making the write visible to other clients. The replication
 to follower 2 is *asynchronous*: the leader sends the message, but doesn’t wait for a response from
@@ -159,9 +157,9 @@ called *semi-synchronous*.
 
 In some systems, a *majority* (e.g., 3 out of 5 replicas, including the leader) of replicas is
 updated synchronously, and the remaining minority is asynchronous. This is an example of a *quorum*,
-which we will discuss further in [“Quorums for reading and writing”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_quorum_condition). Majority quorums are often
+which we will discuss further in [“Quorums for reading and writing”](/ch06.html#sec_replication_quorum_condition). Majority quorums are often
 used in systems that use a consensus protocol for automatic leader election, which we will return to
-in [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency).
+in [Chapter 10](/ch10.html#ch_consistency).
 
 Sometimes, leader-based replication is configured to be completely asynchronous. In this case, if the
 leader fails and is not recoverable, any writes that have not yet been replicated to followers are
@@ -172,7 +170,7 @@ processing writes, even if all of its followers have fallen behind.
 Weakening durability may sound like a bad trade-off, but asynchronous replication is nevertheless
 widely used, especially if there are many followers or if they are geographically distributed
 [^9].
-We will return to this issue in [“Problems with Replication Lag”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lag).
+We will return to this issue in [“Problems with Replication Lag”](/ch06.html#sec_replication_lag).
 
 ## Setting Up New Followers
 
@@ -224,8 +222,8 @@ for live queries. Storing database data in object storage has many benefits:
   durability guarantees. This also allows databases to bypass inter-zone network fees.
 * Databases can use an object store’s *conditional write* feature—essentially, a *compare-and-set*
   (CAS) operation—to implement transactions and leadership election
-  [[10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Morling2024_ch6),
-  [11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Chandramohan2024)]).
+  [[10](/ch06.html#Morling2024_ch6),
+  [11](/ch06.html#Chandramohan2024)]).
 * Storing data from multiple databases in the same object store can simplify data integration,
   particularly when open formats such as Apache Parquet and Apache Iceberg are used.
 
@@ -312,10 +310,10 @@ consists of the following steps:
    [^13].
    The best candidate for leadership is usually the replica with the most up-to-date data changes
    from the old leader (to minimize any data loss). Getting all the nodes to agree on a new leader
-   is a consensus problem, discussed in detail in [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency).
+   is a consensus problem, discussed in detail in [Chapter 10](/ch10.html#ch_consistency).
 3. *Reconfiguring the system to use the new leader.* Clients now need to send
    their write requests to the new leader (we discuss this
-   in [“Request Routing”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#sec_sharding_routing)). If the old leader comes back, it might still believe that it is
+   in [“Request Routing”](/ch07.html#sec_sharding_routing)). If the old leader comes back, it might still believe that it is
    the leader, not realizing that the other replicas have
    forced it to step down. The system needs to ensure that the old leader becomes a follower and
    recognizes the new leader.
@@ -337,10 +335,10 @@ Failover is fraught with things that can go wrong:
   primary keys that were previously assigned by the old leader. These primary keys were also used in
   a Redis store, so the reuse of primary keys resulted in inconsistency between MySQL and Redis,
   which caused some private data to be disclosed to the wrong users.
-* In certain fault scenarios (see [Chapter 9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#ch_distributed)), it could happen that two nodes both believe
+* In certain fault scenarios (see [Chapter 9](/ch09.html#ch_distributed)), it could happen that two nodes both believe
   that they are the leader. This situation is called *split brain*, and it is dangerous: if both
   leaders accept writes, and there is no process for resolving conflicts (see
-  [“Multi-Leader Replication”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_multi_leader)), data is likely to be lost or corrupted. As a safety catch, some
+  [“Multi-Leader Replication”](/ch06.html#sec_replication_multi_leader)), data is likely to be lost or corrupted. As a safety catch, some
   systems have a mechanism to shut down one node if two leaders are detected. However, if this
   mechanism is not carefully designed, you can end up with both nodes being shut down
   [^15].
@@ -356,7 +354,7 @@ Failover is fraught with things that can go wrong:
 > [!NOTE]
 > Guarding against split brain by limiting or shutting down old leaders is known as *fencing* or, more
 > emphatically, *Shoot The Other Node In The Head* (STONITH). We will discuss fencing in more detail
-> in [“Distributed Locks and Leases”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#sec_distributed_lock_fencing).
+> in [“Distributed Locks and Leases”](/ch09.html#sec_distributed_lock_fencing).
 
 There are no easy solutions to these problems. For this reason, some operations teams prefer to
 perform failovers manually, even if the software supports automatic failover.
@@ -370,7 +368,7 @@ behind by several days could be catastrophic.
 
 These issues—node failures; unreliable networks; and trade-offs around replica consistency,
 durability, availability, and latency—are in fact fundamental problems in distributed systems.
-In [Chapter 9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#ch_distributed) and [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency) we will discuss them in greater depth.
+In [Chapter 9](/ch09.html#ch_distributed) and [Chapter 10](/ch10.html#ch_consistency) we will discuss them in greater depth.
 
 ## Implementation of Replication Logs
 
@@ -401,9 +399,9 @@ break down:
 It is possible to work around those issues—for example, the leader can replace any nondeterministic
 function calls with a fixed return value when the statement is logged so that the followers all get
 the same value. The idea of executing deterministic statements in a fixed order is similar to the
-event sourcing model that we previously discussed in [“Event Sourcing and CQRS”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_events). This approach is
+event sourcing model that we previously discussed in [“Event Sourcing and CQRS”](/ch03.html#sec_datamodels_events). This approach is
 also known as *state machine replication*, and we will discuss the theory behind it in
-[“Using shared logs”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#sec_consistency_smr).
+[“Using shared logs”](/ch10.html#sec_consistency_smr).
 
 Statement-based replication was used in MySQL before version 5.1. It is still sometimes used today,
 as it is quite compact, but by default MySQL now switches to row-based replication (discussed shortly) if
@@ -415,7 +413,7 @@ replication methods.
 
 ### Write-ahead log (WAL) shipping
 
-In [Chapter 4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch04.html#ch_storage) we saw that a write-ahead log is needed to make B-tree storage engines robust:
+In [Chapter 4](/ch04.html#ch_storage) we saw that a write-ahead log is needed to make B-tree storage engines robust:
 every modification is first written to the WAL so that the tree can be restored to a consistent
 state after a crash. Since the WAL contains all the information necessary to restore the indexes and
 heap into a consistent state, we can use the exact same log to build a replica on another node:
@@ -423,8 +421,8 @@ besides writing the log to disk, the leader also sends it across the network to 
 the follower processes this log, it builds a copy of the exact same files as found on the leader.
 
 This method of replication is used in PostgreSQL and Oracle, among others
-[[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Suzuki2017_ch6),
-[18](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kapila2012)].
+[[17](/ch06.html#Suzuki2017_ch6),
+[18](/ch06.html#Kapila2012)].
 The main disadvantage is that the log describes the data on a very low level: a WAL contains details
 of which bytes were changed in which disk blocks. This makes replication tightly coupled to the
 storage engine. If the database changes its storage format from one version to another, it is
@@ -476,7 +474,7 @@ This technique is called *change data capture*, and we will return to it in [Lin
 # Problems with Replication Lag
 
 Being able to tolerate node failures is just one reason for wanting replication. As mentioned
-in [“Distributed versus Single-Node Systems”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html#sec_introduction_distributed), other reasons are scalability (processing more
+in [“Distributed versus Single-Node Systems”](/ch01.html#sec_introduction_distributed), other reasons are scalability (processing more
 requests than a single machine can handle) and latency (placing replicas geographically closer to
 users).
 
@@ -528,7 +526,7 @@ be read from a follower. This is especially appropriate if data is frequently vi
 occasionally written.
 
 With asynchronous replication, there is a problem, illustrated in
-[Figure 6-3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_read_your_writes): if the user views the data shortly after making a write, the
+[Figure 6-3](/ch06.html#fig_replication_read_your_writes): if the user views the data shortly after making a write, the
 new data may not yet have reached the replica. To the user, it looks as though the data they
 submitted was lost, so they will be understandably unhappy.
 
@@ -568,7 +566,7 @@ are various possible techniques. To mention a few:
   [^26].
   The timestamp could be a *logical timestamp* (something that indicates ordering of writes, such as
   the log sequence number) or the actual system clock (in which case clock synchronization becomes
-  critical; see [“Unreliable Clocks”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#sec_distributed_clocks)).
+  critical; see [“Unreliable Clocks”](/ch09.html#sec_distributed_clocks)).
 * If your replicas are distributed across regions (for geographical proximity to users or for
   availability), there is additional complexity. Any request that needs to be served by the leader
   must be routed to the region that contains the leader.
@@ -604,7 +602,7 @@ zonal outages where one zone goes offline, but they do not protect against regio
 all zones in a region are unavailable. To survive a regional outage, a distributed system must be
 deployed across multiple regions, which can result in higher latencies, lower throughput, and
 increased cloud networking bills. We will discuss these tradeoffs more in
-[“Multi-leader replication topologies”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_topologies). For now, just know that when we say region, we mean a collection of
+[“Multi-leader replication topologies”](/ch06.html#sec_replication_topologies). For now, just know that when we say region, we mean a collection of
 zones/datacenters in a single geographic location.
 
 ## Monotonic Reads
@@ -613,7 +611,7 @@ Our second example of an anomaly that can occur when reading from asynchronous f
 possible for a user to see things *moving backward in time*.
 
 This can happen if a user makes several reads from different replicas. For example,
-[Figure 6-4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_monotonic_reads) shows user 2345 making the same query twice, first to a follower
+[Figure 6-4](/ch06.html#fig_replication_monotonic_reads) shows user 2345 making the same query twice, first to a follower
 with little lag, then to a follower with greater lag. (This scenario is quite likely if the user
 refreshes a web page, and each request is routed to a random server.) The first query returns a
 comment that was recently added by user 1234, but the second query doesn’t return anything because
@@ -654,7 +652,7 @@ answered it.
 
 Now, imagine a third person is listening to this conversation through followers. The things said by
 Mrs. Cake go through a follower with little lag, but the things said by Mr. Poons have a longer
-replication lag (see [Figure 6-5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_consistent_prefix)). This observer would hear the following:
+replication lag (see [Figure 6-5](/ch06.html#fig_replication_consistent_prefix)). This observer would hear the following:
 
 Mrs. Cake
 :   About ten seconds usually, Mr. Poons.
@@ -676,7 +674,7 @@ writes happens in a certain order, then anyone reading those writes will see the
 order.
 
 This is a particular problem in sharded (partitioned) databases, which we will discuss in
-[Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding). If the database always applies writes in the same order, reads always see a
+[Chapter 7](/ch07.html#ch_sharding). If the database always applies writes in the same order, reads always see a
 consistent prefix, so this anomaly cannot happen. However, in many distributed databases, different
 shards operate independently, so there is no global ordering of writes: when a user reads from the
 database, they may see some parts of the database in an older state and some in a newer state.
@@ -684,7 +682,7 @@ database, they may see some parts of the database in an older state and some in 
 One solution is to make sure that any writes that are causally related to each other are written to
 the same shard—but in some applications that cannot be done efficiently. There are also algorithms
 that explicitly keep track of causal dependencies, a topic that we will return to in
-[“The “happens-before” relation and concurrency”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_happens_before).
+[“The “happens-before” relation and concurrency”](/ch06.html#sec_replication_happens_before).
 
 ## Solutions for Replication Lag
 
@@ -700,15 +698,15 @@ synchronously updated follower. However, dealing with these issues in applicatio
 and easy to get wrong.
 
 The simplest programming model for application developers is to choose a database that provides a
-strong consistency guarantee for replicas such as linearizability (see [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency)), and ACID
-transactions (see [Chapter 8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch08.html#ch_transactions)). This allows you to mostly ignore the challenges that arise
+strong consistency guarantee for replicas such as linearizability (see [Chapter 10](/ch10.html#ch_consistency)), and ACID
+transactions (see [Chapter 8](/ch08.html#ch_transactions)). This allows you to mostly ignore the challenges that arise
 from replication, and treat the database as if it had just a single node. In the early 2010s the
 *NoSQL* movement promoted the view that these features limited scalability, and that large-scale
 systems would have to embrace eventual consistency.
 
 However, since then, a number of databases started providing strong consistency and transactions
 while also offering the fault tolerance, high availability, and scalability advantages of a
-distributed database. As mentioned in [“Relational Model versus Document Model”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_history), this trend is known as *NewSQL* to
+distributed database. As mentioned in [“Relational Model versus Document Model”](/ch03.html#sec_datamodels_history), this trend is known as *NewSQL* to
 contrast with NoSQL (although it’s less about SQL specifically, and more about new approaches to
 scalable transaction management).
 
@@ -758,7 +756,7 @@ single-leader replication, the leader has to be in *one* of the regions, and all
 through that region.
 
 In a multi-leader configuration, you can have a leader in *each* region.
-[Figure 6-6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_multi_dc) shows what this architecture might look like. Within each region,
+[Figure 6-6](/ch06.html#fig_replication_multi_dc) shows what this architecture might look like. Within each region,
 regular leader–follower replication is used (with followers maybe in a different availability zone
 from the leader); between regions, each region’s leader replicates its changes to the leaders in
 other regions.
@@ -798,7 +796,7 @@ Tolerance of network problems
 
 Consistency
 :   A single-leader system can provide strong consistency guarantees, such as serializable
-    transactions, which we will discuss in [Chapter 8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch08.html#ch_transactions). The biggest downside of multi-leader
+    transactions, which we will discuss in [Chapter 8](/ch08.html#ch_transactions). The biggest downside of multi-leader
     systems is that the consistency they can achieve is much weaker. For example, you can’t guarantee
     that a bank account won’t go negative or that a username is unique: it’s always possible for
     different leaders to process writes that are individually fine (paying out some of the money in an
@@ -808,7 +806,7 @@ Consistency
     This is simply a fundamental limitation of distributed systems
     [^28].
     If you need to enforce such constraints, you’re therefore better off with a single-leader system.
-    However, as we will see in [“Dealing with Conflicting Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_write_conflicts), multi-leader systems can still
+    However, as we will see in [“Dealing with Conflicting Writes”](/ch06.html#sec_replication_write_conflicts), multi-leader systems can still
     achieve consistency properties that are useful in a wide range of apps that don’t need such
     constraints.
 
@@ -826,17 +824,17 @@ multi-leader replication is often considered dangerous territory that should be 
 ### Multi-leader replication topologies
 
 A *replication topology* describes the communication paths along which writes are propagated from
-one node to another. If you have two leaders, like in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict), there is
+one node to another. If you have two leaders, like in [Figure 6-9](/ch06.html#fig_replication_write_conflict), there is
 only one plausible topology: leader 1 must send all of its writes to leader 2, and vice versa. With
 more than two leaders, various different topologies are possible. Some examples are illustrated in
-[Figure 6-7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_topologies).
+[Figure 6-7](/ch06.html#fig_replication_topologies).
 
 ![ddia 0607](/fig/ddia_0607.png)
 
 ###### Figure 6-7. Three example topologies in which multi-leader replication can be set up.
 
 The most general topology is *all-to-all*, shown in
-[Figure 6-7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_topologies)(c),
+[Figure 6-7](/ch06.html#fig_replication_topologies)(c),
 in which every leader sends its writes to every other leader. However, more restricted topologies
 are also used: for example a *circular topology* in which each node receives writes from one node
 and forwards those writes (plus any writes of its own) to one other node. Another popular topology
@@ -845,7 +843,7 @@ star topology can be generalized to a tree.
 
 > [!NOTE]
 > Don’t confuse a star-shaped network topology with a *star schema* (see
-> [“Stars and Snowflakes: Schemas for Analytics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch03.html#sec_datamodels_analytics)), which describes the structure of a data model.
+> [“Stars and Snowflakes: Schemas for Analytics”](/ch03.html#sec_datamodels_analytics)), which describes the structure of a data model.
 
 In circular and star topologies, a write may need to pass through several nodes before it reaches
 all replicas. Therefore, nodes need to forward data changes they receive from other nodes. To
@@ -866,28 +864,28 @@ along different paths, avoiding a single point of failure.
 
 On the other hand, all-to-all topologies can have issues too. In particular, some network links may
 be faster than others (e.g., due to network congestion), with the result that some replication
-messages may “overtake” others, as illustrated in [Figure 6-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality).
+messages may “overtake” others, as illustrated in [Figure 6-8](/ch06.html#fig_replication_causality).
 
 ![ddia 0608](/fig/ddia_0608.png)
 
 ###### Figure 6-8. With multi-leader replication, writes may arrive in the wrong order at some replicas.
 
-In [Figure 6-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality), client A inserts a row into a table on leader 1, and client B
+In [Figure 6-8](/ch06.html#fig_replication_causality), client A inserts a row into a table on leader 1, and client B
 updates that row on leader 3. However, leader 2 may receive the writes in a different order: it may
 first receive the update (which, from its point of view, is an update to a row that does not exist
 in the database) and only later receive the corresponding insert (which should have preceded the
 update).
 
-This is a problem of causality, similar to the one we saw in [“Consistent Prefix Reads”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_consistent_prefix):
+This is a problem of causality, similar to the one we saw in [“Consistent Prefix Reads”](/ch06.html#sec_replication_consistent_prefix):
 the update depends on the prior insert, so we need to make sure that all nodes process the insert
 first, and then the update. Simply attaching a timestamp to every write is not sufficient, because
 clocks cannot be trusted to be sufficiently in sync to correctly order these events at leader 2 (see
-[Chapter 9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#ch_distributed)).
+[Chapter 9](/ch09.html#ch_distributed)).
 
 To order these events correctly, a technique called *version vectors* can be used, which we will
-discuss later in this chapter (see [“Detecting Concurrent Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_concurrent)). However, many multi-leader
+discuss later in this chapter (see [“Detecting Concurrent Writes”](/ch06.html#sec_replication_concurrent)). However, many multi-leader
 replication systems don’t use good techniques for ordering updates, leaving them vulnerable to
-issues like the one in [Figure 6-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality). If you are using multi-leader replication, it
+issues like the one in [Figure 6-8](/ch06.html#fig_replication_causality). If you are using multi-leader replication, it
 is worth being aware of these issues, carefully reading the documentation, and thoroughly testing
 your database to ensure that it really does provide the guarantees you believe it to have.
 
@@ -918,9 +916,9 @@ Sheets for text documents and spreadsheets, Figma for graphics, and Linear for p
 What makes these apps so responsive is that user input is immediately reflected in the user
 interface, without waiting for a network round-trip to the server, and edits by one user are shown
 to their collaborators with low latency
-[[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DayRichter2010),
-[33](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Wallace2019),
-[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Artman2023)].
+[[32](/ch06.html#DayRichter2010),
+[33](/ch06.html#Wallace2019),
+[34](/ch06.html#Artman2023)].
 
 This again results in a multi-leader architecture: each web browser tab that has opened the shared
 file is a replica, and any updates that you make to the file are asynchronously replicated to the
@@ -938,9 +936,9 @@ those changes.
 
 A software library that supports this process is called a *sync engine*. Although the idea has
 existed for a long time, the term has recently gained attention
-[[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Saafan2024),
-[36](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hagoel2024),
-[37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Jayakar2024)].
+[[35](/ch06.html#Saafan2024),
+[36](/ch06.html#Hagoel2024),
+[37](/ch06.html#Jayakar2024)].
 An application that allows a user to continue editing a file while offline (which may be implemented
 using a sync engine) is called *offline-first*
 [^38].
@@ -970,7 +968,7 @@ approach has a number of advantages:
   offline is the same as having very large network delay.
 * A sync engine simplifies the programming model for frontend apps, compared to performing explicit
   service calls in application code. Every service call requires error handling, as discussed in
-  [“The problems with remote procedure calls (RPCs)”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch05.html#sec_problems_with_rpc): for example, if a request to update data on a server fails, the user
+  [“The problems with remote procedure calls (RPCs)”](/ch05.html#sec_problems_with_rpc): for example, if a request to update data on a server fails, the user
   interface needs to somehow reflect that error. A sync engine allows the app to perform reads and
   writes on local data, which almost never fails, leading to a more declarative programming style
   [^41].
@@ -1007,7 +1005,7 @@ a local-first sync engine on end user devices—is that concurrent writes on dif
 lead to conflicts that need to be resolved.
 
 For example, consider a wiki page that is simultaneously being edited by two users, as shown in
-[Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict). User 1 changes the title of the page from A to B, and user 2
+[Figure 6-9](/ch06.html#fig_replication_write_conflict). User 1 changes the title of the page from A to B, and user 2
 independently changes the title from A to C. Each user’s change is successfully applied to their
 local leader. However, when the changes are asynchronously replicated, a conflict is detected.
 This problem does not occur in a single-leader database.
@@ -1017,13 +1015,13 @@ This problem does not occur in a single-leader database.
 ###### Figure 6-9. A write conflict caused by two leaders concurrently updating the same record.
 
 > [!NOTE]
-> We say that the two writes in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict) are *concurrent* because neither
+> We say that the two writes in [Figure 6-9](/ch06.html#fig_replication_write_conflict) are *concurrent* because neither
 > was “aware” of the other at the time the write was originally made. It doesn’t matter whether the
 > writes literally happened at the same time; indeed, if the writes were made while offline, they
 > might have actually happened some time apart. What matters is whether one write occurred in a state
 > where the other write has already taken effect.
 
-In [“Detecting Concurrent Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_concurrent) we will tackle the question of how a database can determine
+In [“Detecting Concurrent Writes”](/ch06.html#sec_replication_concurrent) we will tackle the question of how a database can determine
 whether two writes are concurrent. For now we will assume that we can detect conflicts, and we want
 to figure out the best way of resolving them.
 
@@ -1052,13 +1050,13 @@ Another example of conflict avoidance: imagine you want to insert new records an
 IDs for them based on an auto-incrementing counter. If you have two leaders, you could set them up
 so that one leader only generates odd numbers and the other only generates even numbers. That way
 you can be sure that the two leaders won’t concurrently assign the same ID to different records.
-We will discuss other ID assignment schemes in [“ID Generators and Logical Clocks”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#sec_consistency_logical).
+We will discuss other ID assignment schemes in [“ID Generators and Logical Clocks”](/ch10.html#sec_consistency_logical).
 
 ### Last write wins (discarding concurrent writes)
 
 If conflicts can’t be avoided, the simplest way of resolving them is to attach a timestamp to each
 write, and to always use the value with the greatest timestamp. For example, in
-[Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict), let’s say that the timestamp of user 1’s write is greater than
+[Figure 6-9](/ch06.html#fig_replication_write_conflict), let’s say that the timestamp of user 1’s write is greater than
 the timestamp of user 2’s write. In that case, both leaders will determine that the new title of the
 page should be B, and they discard the write that sets it to C. If the writes coincidentally have
 the same timestamp, the winner can be chosen by comparing the values (e.g., in the case of strings,
@@ -1066,7 +1064,7 @@ taking the one that’s earlier in the alphabet).
 
 This approach is called *last write wins* (LWW) because the write with the greatest timestamp can be
 considered the “last” one. The term is misleading though, because when two writes are concurrent
-like in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict), which one is older and which is later is undefined, and
+like in [Figure 6-9](/ch06.html#fig_replication_write_conflict), which one is older and which is later is undefined, and
 so the timestamp order of concurrent writes is essentially random.
 
 Therefore the real meaning of LWW is: when the same record is concurrently written on different
@@ -1084,7 +1082,7 @@ Another problem with LWW is that if a real-time clock (e.g. a Unix timestamp) is
 for the writes, the system becomes very sensitive to clock synchronization. If one node has a clock
 that is ahead of the others, and you try to overwrite a value written by that node, your write may
 be ignored as it may have a lower timestamp, even though it clearly occurred later. This problem can
-be solved by using a *logical clock*, which we will discuss in [“ID Generators and Logical Clocks”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#sec_consistency_logical).
+be solved by using a *logical clock*, which we will discuss in [“ID Generators and Logical Clocks”](/ch10.html#sec_consistency_logical).
 
 ### Manual conflict resolution
 
@@ -1096,7 +1094,7 @@ merge is complete.
 
 In a database, it would be impractical for a conflict to stop the entire replication process until a
 human has resolved it. Instead, databases typically store all the concurrently written values for a
-given record—for example, both B and C in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict). These values are
+given record—for example, both B and C in [Figure 6-9](/ch06.html#fig_replication_write_conflict). These values are
 sometimes called *siblings*. The next time you query that record, the database returns *all* those
 values, rather than just the latest one. You can then resolve those values in whatever way you want,
 either automatically in application code (for example, you could concatenate B and C into “B/C”), or
@@ -1120,7 +1118,7 @@ suffers from a number of problems:
   sibling, but another sibling still contained that old item, the removed item would unexpectedly
   reappear in the customer’s cart
   [^45].
-  [Figure 6-10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
+  [Figure 6-10](/ch06.html#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
   cart and concurrently Device 2 removes DVD, but after merging the conflict both items reappear.
 * If multiple nodes observe the conflict and concurrently resolve it, the conflict resolution
   process can itself introduce a new conflict. Those resolutions could even be inconsistent: for
@@ -1149,7 +1147,7 @@ updates as much as possible, and hence avoiding data loss:
   same position, it can be ordered deterministically so that all nodes get the same merged outcome.
 * If the data is a collection of items (ordered like a to-do list, or unordered like a shopping
   cart), we can merge it similarly to text by tracking insertions and deletions. To avoid the
-  shopping cart issue in [Figure 6-10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_amazon_anomaly), the algorithms track the fact that Book
+  shopping cart issue in [Figure 6-10](/ch06.html#fig_replication_amazon_anomaly), the algorithms track the fact that Book
   and DVD were deleted, so the merged result is Cart = {Soap}.
 * If the data is an integer representing a counter that can be incremented or decremented (e.g., the
   number of likes on a social media post), the merge algorithm can tell how many increments and
@@ -1175,7 +1173,7 @@ Two families of algorithms are commonly used to implement automatic conflict res
 They have different design philosophies and performance characteristics, but both are able to
 perform automatic merges for all the aforementioned types of data.
 
-[Figure 6-11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_ot_crdt) shows an example of how OT and a CRDT merge concurrent updates to a
+[Figure 6-11](/ch06.html#fig_replication_ot_crdt) shows an example of how OT and a CRDT merge concurrent updates to a
 text. Assume you have two replicas that both start off with the text “ice”. One replica prepends the
 letter “n” to make “nice”, while concurrently the other replica appends an exclamation mark to make
 “ice!”.
@@ -1196,7 +1194,7 @@ OT
 
 CRDT
 :   Most CRDTs give each character a unique, immutable ID and use those to determine the positions of
-    insertions/deletions, instead of indexes. For example, in [Figure 6-11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_ot_crdt) we assign
+    insertions/deletions, instead of indexes. For example, in [Figure 6-11](/ch06.html#fig_replication_ot_crdt) we assign
     the ID 1A to “i”, the ID 2A to “c”, etc. When inserting the exclamation mark, we generate an
     operation containing the ID of the new character (4B) and the ID of the existing character after
     which we want to insert (3A). To insert at the beginning of the string we give “nil” as the
@@ -1218,7 +1216,7 @@ Sync engines for JSON data can be implemented both with CRDTs (e.g., Automerge o
 
 ### What is a conflict?
 
-Some kinds of conflict are obvious. In the example in [Figure 6-9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_write_conflict), two writes
+Some kinds of conflict are obvious. In the example in [Figure 6-9](/ch06.html#fig_replication_write_conflict), two writes
 concurrently modified the same field in the same record, setting it to two different values. There
 is little doubt that this is a conflict.
 
@@ -1232,7 +1230,7 @@ are made on two different leaders.
 
 There isn’t a quick ready-made answer, but in the following chapters we will trace a path toward a
 good understanding of this problem. We will see some more examples of conflicts in
-[Chapter 8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch08.html#ch_transactions), and in [Link to Come] we will discuss scalable approaches for detecting and
+[Chapter 8](/ch08.html#ch_transactions), and in [Link to Come] we will discuss scalable approaches for detecting and
 resolving conflicts in a replicated system.
 
 # Leaderless Replication
@@ -1245,8 +1243,8 @@ writes in the same order.
 
 Some data storage systems take a different approach, abandoning the concept of a leader and
 allowing any replica to directly accept writes from clients. Some of the earliest replicated data
-systems were leaderless [[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Lindsay1979_ch6),
-[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gifford1979)], but the
+systems were leaderless [[1](/ch06.html#Lindsay1979_ch6),
+[50](/ch06.html#Gifford1979)], but the
 idea was mostly forgotten during the era of dominance of relational databases. It once again became
 a fashionable architecture for databases after Amazon used it for its in-house *Dynamo* system in
 2007 [^45].
@@ -1270,10 +1268,10 @@ profound consequences for the way the database is used.
 Imagine you have a database with three replicas, and one of the replicas is currently
 unavailable—​perhaps it is being rebooted to install a system update. In a single-leader
 configuration, if you want to continue processing writes, you may need to perform a failover (see
-[“Handling Node Outages”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_failover)).
+[“Handling Node Outages”](/ch06.html#sec_replication_failover)).
 
 On the other hand, in a leaderless configuration, failover does not exist.
-[Figure 6-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_quorum_node_outage) shows what happens: the client (user 1234) sends the write to
+[Figure 6-12](/ch06.html#fig_replication_quorum_node_outage) shows what happens: the client (user 1234) sends the write to
 all three replicas in parallel, and the two available replicas accept the write but the unavailable
 replica misses it. Let’s say that it’s sufficient for two out of three replicas to
 acknowledge the write: after user 1234 has received two *ok* responses, we consider the write to be
@@ -1294,9 +1292,9 @@ stale value from another.
 
 In order to tell which responses are up-to-date and which are outdated, every value that is written
 needs to be tagged with a version number or timestamp, similarly to what we saw in
-[“Last write wins (discarding concurrent writes)”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lww). When a client receives multiple values in response to a read, it uses the
+[“Last write wins (discarding concurrent writes)”](/ch06.html#sec_replication_lww). When a client receives multiple values in response to a read, it uses the
 one with the greatest timestamp (even if that value was only returned by one replica, and several
-other replicas returned older values). See [“Detecting Concurrent Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_concurrent) for more details.
+other replicas returned older values). See [“Detecting Concurrent Writes”](/ch06.html#sec_replication_concurrent) for more details.
 
 ### Catching up on missed writes
 
@@ -1306,7 +1304,7 @@ mechanisms are used in Dynamo-style datastores:
 
 Read repair
 :   When a client makes a read from several nodes in parallel, it can detect any stale responses.
-    For example, in [Figure 6-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_quorum_node_outage), user 2345 gets a version 6 value from
+    For example, in [Figure 6-12](/ch06.html#fig_replication_quorum_node_outage), user 2345 gets a version 6 value from
     replica 3 and a version 7 value from replicas 1 and 2. The client sees that replica 3 has a stale
     value and writes the newer value back to that replica. This approach works well for values that are
     frequently read.
@@ -1326,7 +1324,7 @@ Anti-entropy
 
 ### Quorums for reading and writing
 
-In the example of [Figure 6-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_quorum_node_outage), we considered the write to be successful
+In the example of [Figure 6-12](/ch06.html#fig_replication_quorum_node_outage), we considered the write to be successful
 even though it was only processed on two out of three replicas. What if only one out of three
 replicas accepted the write? How far can we push this?
 
@@ -1354,7 +1352,7 @@ database writes to fail.
 > [!NOTE]
 > There may be more than *n* nodes in the cluster, but any given value is stored only on *n*
 > nodes. This allows the dataset to be sharded, supporting datasets that are larger than you can fit
-> on one node. We will return to sharding in [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding).
+> on one node. We will return to sharding in [Chapter 7](/ch07.html#ch_sharding).
 
 The quorum condition, *w* + *r* > *n*, allows the system to tolerate unavailable nodes
 as follows:
@@ -1362,9 +1360,9 @@ as follows:
 * If *w* < *n*, we can still process writes if a node is unavailable.
 * If *r* < *n*, we can still process reads if a node is unavailable.
 * With *n* = 3, *w* = 2, *r* = 2 we can tolerate one unavailable
-  node, like in [Figure 6-12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_quorum_node_outage).
+  node, like in [Figure 6-12](/ch06.html#fig_replication_quorum_node_outage).
 * With *n* = 5, *w* = 3, *r* = 3 we can tolerate two unavailable nodes.
-  This case is illustrated in [Figure 6-13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_quorum_overlap).
+  This case is illustrated in [Figure 6-13](/ch06.html#fig_replication_quorum_overlap).
 
 Normally, reads and writes are always sent to all *n* replicas in parallel. The parameters *w* and
 *r* determine how many nodes we wait for—i.e., how many of the *n* nodes need to report success
@@ -1386,7 +1384,7 @@ If you have *n* replicas, and you choose *w* and *r* such that *w* + *r* > *n*
 generally expect every read to return the most recent value written for a key. This is the case because the
 set of nodes to which you’ve written and the set of nodes from which you’ve read must overlap. That
 is, among the nodes you read there must be at least one node with the latest value (illustrated in
-[Figure 6-13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_quorum_overlap)).
+[Figure 6-13](/ch06.html#fig_replication_quorum_overlap)).
 
 Often, *r* and *w* are chosen to be a majority (more than *n*/2) of nodes, because that ensures
 *w* + *r* > *n* while still tolerating up to *n*/2 (rounded down) node failures. But quorums are
@@ -1413,12 +1411,12 @@ properties can be confusing. Some scenarios include:
   value, the number of replicas storing the new value may fall below *w*, breaking the quorum
   condition.
 * While a rebalancing is in progress, where some data is moved from one node to another (see
-  [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding)), nodes may have inconsistent views of which nodes should be holding the *n*
+  [Chapter 7](/ch07.html#ch_sharding)), nodes may have inconsistent views of which nodes should be holding the *n*
   replicas for a particular value. This can result in the read and write quorums no longer
   overlapping.
 * If a read is concurrent with a write operation, the read may or may not see the concurrently
   written value. In particular, it’s possible for one read to see the new value, and a subsequent
-  read to see the old value, as we shall see in [“Linearizability and quorums”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#sec_consistency_quorum_linearizable).
+  read to see the old value, as we shall see in [“Linearizability and quorums”](/ch10.html#sec_consistency_quorum_linearizable).
 * If a write succeeded on some replicas but failed on others (for example because the disks on some
   nodes are full), and overall succeeded on fewer than *w* replicas, it is not rolled back on the
   replicas where it succeeded. This means that if a write was reported as failed, subsequent reads
@@ -1426,12 +1424,12 @@ properties can be confusing. Some scenarios include:
   [^52].
 * If the database uses timestamps from a real-time clock to determine which write is newer (as
   Cassandra and ScyllaDB do, for example), writes might be silently dropped if another node with a
-  faster clock has written to the same key—an issue we previously saw in [“Last write wins (discarding concurrent writes)”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lww).
-  We will discuss this in more detail in [“Relying on Synchronized Clocks”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#sec_distributed_clocks_relying).
+  faster clock has written to the same key—an issue we previously saw in [“Last write wins (discarding concurrent writes)”](/ch06.html#sec_replication_lww).
+  We will discuss this in more detail in [“Relying on Synchronized Clocks”](/ch09.html#sec_distributed_clocks_relying).
 * If two writes occur concurrently, one of them might be processed first on one replica, and the
   other might be processed first on another replica. This leads to a conflict, similarly to what we
-  saw for multi-leader replication (see [“Dealing with Conflicting Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_write_conflicts)). We will return to this
-  topic in [“Detecting Concurrent Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_concurrent).
+  saw for multi-leader replication (see [“Dealing with Conflicting Writes”](/ch06.html#sec_replication_write_conflicts)). We will return to this
+  topic in [“Detecting Concurrent Writes”](/ch06.html#sec_replication_concurrent).
 
 Thus, although quorums appear to guarantee that a read returns the latest written value, in practice
 it is not so simple. Dynamo-style databases are generally optimized for use cases that can tolerate
@@ -1463,7 +1461,7 @@ able to quantify “eventual.”
 
 A replication system based on a single leader can provide strong consistency guarantees that are
 difficult or impossible to achieve in a leaderless system. However, as we have seen in
-[“Problems with Replication Lag”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lag), reads in a leader-based replicated system can also return stale values if
+[“Problems with Replication Lag”](/ch06.html#sec_replication_lag), reads in a leader-based replicated system can also return stale values if
 you make them on an asynchronously updated follower.
 
 Reading from the leader ensures up-to-date responses, but it suffers from performance problems:
@@ -1507,7 +1505,7 @@ That said, leaderless systems can have performance problems as well:
   to wait for before a request can complete. Even if you wait only for the fastest *r* or *w*
   replicas to respond, and even if you make the requests in parallel, a bigger *r* or *w* increases
   the chance that you hit a slow replica, increasing the overall response time (see
-  [“Use of Response Time Metrics”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch02.html#sec_introduction_slo_sla)).
+  [“Use of Response Time Metrics”](/ch02.html#sec_introduction_slo_sla)).
 * A large-scale network interruption that disconnects a client from a large number of replicas can
   make it impossible to form a quorum. Some leaderless databases offer a configuration option that
   allows any reachable replica to accept writes, even if it’s not one of the usual replicas for that
@@ -1526,7 +1524,7 @@ fault tolerance while also having a high likelihood of reading up-to-date data.
 ### Multi-region operation
 
 We previously discussed cross-region replication as a use case for multi-leader replication (see
-[“Multi-Leader Replication”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_multi_leader)). Leaderless replication is also suitable for
+[“Multi-Leader Replication”](/ch06.html#sec_replication_multi_leader)). Leaderless replication is also suitable for
 multi-region operation, since it is designed to tolerate conflicting concurrent writes, network
 interruptions, and latency spikes.
 
@@ -1549,7 +1547,7 @@ resulting in conflicts that need to be resolved. Such conflicts may occur as the
 not always: they could also be detected later during read repair, hinted handoff, or anti-entropy.
 
 The problem is that events may arrive in a different order at different nodes, due to variable
-network delays and partial failures. For example, [Figure 6-14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_concurrency) shows two clients,
+network delays and partial failures. For example, [Figure 6-14](/ch06.html#fig_replication_concurrency) shows two clients,
 A and B, simultaneously writing to a key *X* in a three-node datastore:
 
 * Node 1 receives the write from A, but never receives the write from B due to a transient
@@ -1563,13 +1561,13 @@ A and B, simultaneously writing to a key *X* in a three-node datastore:
 
 If each node simply overwrote the value for a key whenever it received a write request from a
 client, the nodes would become permanently inconsistent, as shown by the final *get* request in
-[Figure 6-14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_concurrency): node 2 thinks that the final value of *X* is B, whereas the other
+[Figure 6-14](/ch06.html#fig_replication_concurrency): node 2 thinks that the final value of *X* is B, whereas the other
 nodes think that the value is A.
 
 In order to become eventually consistent, the replicas should converge toward the same value. For
 this, we can use any of the conflict resolution mechanisms we previously discussed in
-[“Dealing with Conflicting Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_write_conflicts), such as last-write-wins (used by Cassandra and ScyllaDB),
-manual resolution, or CRDTs (described in [“CRDTs and Operational Transformation”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_crdts), and used by Riak).
+[“Dealing with Conflicting Writes”](/ch06.html#sec_replication_write_conflicts), such as last-write-wins (used by Cassandra and ScyllaDB),
+manual resolution, or CRDTs (described in [“CRDTs and Operational Transformation”](/ch06.html#sec_replication_crdts), and used by Riak).
 
 Last-write-wins is easy to implement: each write is tagged with a timestamp, and a value with a
 higher timestamp always overwrites a value with a lower timestamp. However, a timestamp doesn’t tell
@@ -1582,11 +1580,11 @@ take more care to detect concurrent writes.
 How do we decide whether two operations are concurrent or not? To develop an intuition, let’s look
 at some examples:
 
-* In [Figure 6-8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality), the two writes are not concurrent: A’s insert *happens before*
+* In [Figure 6-8](/ch06.html#fig_replication_causality), the two writes are not concurrent: A’s insert *happens before*
   B’s increment, because the value incremented by B is the value inserted by A. In other words, B’s
   operation builds upon A’s operation, so B’s operation must have happened later.
   We also say that B is *causally dependent* on A.
-* On the other hand, the two writes in [Figure 6-14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_concurrency) are concurrent: when each
+* On the other hand, the two writes in [Figure 6-14](/ch06.html#fig_replication_concurrency) are concurrent: when each
   client starts the operation, it does not know that another client is also performing an operation
   on the same key. Thus, there is no causal dependency between the operations.
 
@@ -1607,7 +1605,7 @@ conflict that needs to be resolved.
 It may seem that two operations should be called concurrent if they occur “at the same time”—but
 in fact, it is not important whether they literally overlap in time. Because of problems with clocks
 in distributed systems, it is actually quite difficult to tell whether two things happened
-at exactly the same time—an issue we will discuss in more detail in [Chapter 9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#ch_distributed).
+at exactly the same time—an issue we will discuss in more detail in [Chapter 9](/ch09.html#ch_distributed).
 
 For defining concurrency, exact time doesn’t matter: we simply call two operations concurrent if
 they are both unaware of each other, regardless of the physical time at which they occurred. People
@@ -1629,7 +1627,7 @@ happened before another. To keep things simple, let’s start with a database th
 replica. Once we have worked out how to do this on a single replica, we can generalize the approach
 to a leaderless database with multiple replicas.
 
-[Figure 6-15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality_single) shows two clients concurrently adding items to the same
+[Figure 6-15](/ch06.html#fig_replication_causality_single) shows two clients concurrently adding items to the same
 shopping cart. (If that example strikes you as too inane, imagine instead two air traffic
 controllers concurrently adding aircraft to the sector they are tracking.) Initially, the cart is
 empty. Between them, the clients make five writes to the database:
@@ -1664,8 +1662,8 @@ empty. Between them, the clients make five writes to the database:
 
 ###### Figure 6-15. Capturing causal dependencies between two clients concurrently editing a shopping cart.
 
-The dataflow between the operations in [Figure 6-15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality_single) is illustrated
-graphically in [Figure 6-16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causal_dependencies). The arrows indicate which operation
+The dataflow between the operations in [Figure 6-15](/ch06.html#fig_replication_causality_single) is illustrated
+graphically in [Figure 6-16](/ch06.html#fig_replication_causal_dependencies). The arrows indicate which operation
 *happened before* which other operation, in the sense that the later operation *knew about* or
 *depended on* the earlier one. In this example, the clients are never fully up to date with the data
 on the server, since there is always another operation going on concurrently. But old versions of
@@ -1673,7 +1671,7 @@ the value do get overwritten eventually, and no writes are lost.
 
 ![ddia 0616](/fig/ddia_0616.png)
 
-###### Figure 6-16. Graph of causal dependencies in [Figure 6-15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality_single).
+###### Figure 6-16. Graph of causal dependencies in [Figure 6-15](/ch06.html#fig_replication_causality_single).
 
 Note that the server can determine whether two operations are concurrent by looking at the version
 numbers—it does not need to interpret the value itself (so the value could be any data
@@ -1699,10 +1697,10 @@ on subsequent reads.
 
 ### Version vectors
 
-The example in [Figure 6-15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality_single) used only a single replica. How does the
+The example in [Figure 6-15](/ch06.html#fig_replication_causality_single) used only a single replica. How does the
 algorithm change when there are multiple replicas, but no leader?
 
-[Figure 6-15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality_single) uses a single version number to capture dependencies between
+[Figure 6-15](/ch06.html#fig_replication_causality_single) uses a single version number to capture dependencies between
 operations, but that is not sufficient when there are multiple replicas accepting writes
 concurrently. Instead, we need to use a version number *per replica* as well as per key. Each
 replica increments its own version number when processing a write, and also keeps track of the
@@ -1713,14 +1711,14 @@ The collection of version numbers from all the replicas is called a *version vec
 [^58].
 A few variants of this idea are in use, but the most interesting is probably the *dotted version
 vector*
-[[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Preguica2010),
-[60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Manepalli2022)],
+[[59](/ch06.html#Preguica2010),
+[60](/ch06.html#Manepalli2022)],
 which is used in Riak 2.0
-[[61](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Cribbs2014),
-[62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Brown2015)].
+[[61](/ch06.html#Cribbs2014),
+[62](/ch06.html#Brown2015)].
 We won’t go into the details, but the way it works is quite similar to what we saw in our cart example.
 
-Like the version numbers in [Figure 6-15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_causality_single), version vectors are sent from the
+Like the version numbers in [Figure 6-15](/ch06.html#fig_replication_causality_single), version vectors are sent from the
 database replicas to clients when values are read, and need to be sent back to the database when a
 value is subsequently written. (Riak encodes the version vector as a string that it calls *causal
 context*.) The version vector allows the database to distinguish between overwrites and concurrent
@@ -1734,12 +1732,12 @@ siblings are merged correctly.
 
 A *version vector* is sometimes also called a *vector clock*, even though they are not quite the
 same. The difference is subtle—please see the references for details
-[[60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Manepalli2022),
-[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Baquero2011),
-[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Schwarz1994)]. In brief, when
+[[60](/ch06.html#Manepalli2022),
+[63](/ch06.html#Baquero2011),
+[64](/ch06.html#Schwarz1994)]. In brief, when
 comparing the state of replicas, version vectors are the right data structure to use.
 
-# Summary
+## Summary
 
 In this chapter we looked at the issue of replication. Replication can serve several purposes:
 
@@ -1816,10 +1814,10 @@ This chapter has assumed that every replica stores a full copy of the whole data
 unrealistic for large datasets. In the next chapter we will look at *sharding*, which allows each
 machine to store only a subset of the data.
 
-##### Footnotes
 
 
-##### References
+
+### Summary
 
 
 [^1]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)

@@ -31,22 +31,22 @@ and writing that field). However, in a large application, code changes often can
 instantaneously:
 
 * With server-side applications you may want to perform a *rolling upgrade*
-  (also known as a *staged rollout*), deploying the new version to a few nodes at a time, checking
-  whether the new version is running smoothly, and gradually working your way through all the nodes.
-  This allows new versions to be deployed without service downtime, and thus encourages more
-  frequent releases and better evolvability.
+ (also known as a *staged rollout*), deploying the new version to a few nodes at a time, checking
+ whether the new version is running smoothly, and gradually working your way through all the nodes.
+ This allows new versions to be deployed without service downtime, and thus encourages more
+ frequent releases and better evolvability.
 * With client-side applications you’re at the mercy of the user, who may not install the update for
-  some time.
+ some time.
 
 This means that old and new versions of the code, and old and new data formats, may potentially all
 coexist in the system at the same time. In order for the system to continue running smoothly, we
 need to maintain compatibility in both directions:
 
 Backward compatibility
-:   Newer code can read data that was written by older code.
+: Newer code can read data that was written by older code.
 
 Forward compatibility
-:   Older code can read data that was written by newer code.
+: Older code can read data that was written by newer code.
 
 Backward compatibility is normally not hard to achieve: as author of the newer code, you know the
 format of data written by older code, and so you can explicitly handle it (if necessary by simply
@@ -77,12 +77,12 @@ message queues.
 Programs usually work with data in (at least) two different representations:
 
 1. In memory, data is kept in objects, structs, lists, arrays, hash tables, trees, and so on. These
-   data structures are optimized for efficient access and manipulation by the CPU (typically using
-   pointers).
+ data structures are optimized for efficient access and manipulation by the CPU (typically using
+ pointers).
 2. When you want to write data to a file or send it over the network, you have to encode it as some
-   kind of self-contained sequence of bytes (for example, a JSON document). Since a pointer wouldn’t
-   make sense to any other process, this sequence-of-bytes representation often looks quite
-   different from the data structures that are normally used in memory.
+ kind of self-contained sequence of bytes (for example, a JSON document). Since a pointer wouldn’t
+ make sense to any other process, this sequence-of-bytes representation often looks quite
+ different from the data structures that are normally used in memory.
 
 Thus, we need some kind of translation between the two representations. The translation from the
 in-memory representation to a byte sequence is called *encoding* (also known as *serialization* or
@@ -114,22 +114,20 @@ These encoding libraries are very convenient, because they allow in-memory objec
 restored with minimal additional code. However, they also have a number of deep problems:
 
 * The encoding is often tied to a particular programming language, and reading the data in another
-  language is very difficult. If you store or transmit data in such an encoding, you are committing
-  yourself to your current programming language for potentially a very long time, and precluding
-  integrating your systems with those of other organizations (which may use different languages).
+ language is very difficult. If you store or transmit data in such an encoding, you are committing
+ yourself to your current programming language for potentially a very long time, and precluding
+ integrating your systems with those of other organizations (which may use different languages).
 * In order to restore data in the same object types, the decoding process needs to be able to
-  instantiate arbitrary classes. This is frequently a source of security problems
-  [^1]:
-  if an attacker can get your application to decode an arbitrary byte sequence, they can instantiate
-  arbitrary classes, which in turn often allows them to do terrible things such as remotely
-  executing arbitrary code [[2](/en/ch5#Breen2015),
-  [3](/en/ch5#McKenzie2013)].
+ instantiate arbitrary classes. This is frequently a source of security problems [^1]:
+ if an attacker can get your application to decode an arbitrary byte sequence, they can instantiate
+ arbitrary classes, which in turn often allows them to do terrible things such as remotely
+ executing arbitrary code [^2] [^3].
 * Versioning data is often an afterthought in these libraries: as they are intended for quick and
-  easy encoding of data, they often neglect the inconvenient problems of forward and backward
-  compatibility [^4].
+ easy encoding of data, they often neglect the inconvenient problems of forward and backward
+ compatibility [^4].
 * Efficiency (CPU time taken to encode or decode, and the size of the encoded structure) is also
-  often an afterthought. For example, Java’s built-in serialization is notorious for its bad
-  performance and bloated encoding [^5].
+ often an afterthought. For example, Java’s built-in serialization is notorious for its bad
+ performance and bloated encoding [^5].
 
 For these reasons it’s generally a bad idea to use your language’s built-in encoding for anything
 other than very transient purposes.
@@ -138,8 +136,7 @@ other than very transient purposes.
 
 When moving to standardized encodings that can be written and read by many programming languages, JSON
 and XML are the obvious contenders. They are widely known, widely supported, and almost as widely
-disliked. XML is often criticized for being too verbose and unnecessarily complicated
-[^6].
+disliked. XML is often criticized for being too verbose and unnecessarily complicated [^6].
 JSON’s popularity is mainly due to its built-in support in web browsers and simplicity relative to
 XML. CSV is another popular language-independent format, but it only supports tabular data without
 nesting.
@@ -149,33 +146,31 @@ popular topic of debate). Besides the superficial syntactic issues, they also ha
 problems:
 
 * There is a lot of ambiguity around the encoding of numbers. In XML and CSV, you cannot distinguish
-  between a number and a string that happens to consist of digits (except by referring to an external
-  schema). JSON distinguishes strings and numbers, but it doesn’t distinguish integers and
-  floating-point numbers, and it doesn’t specify a precision.
+ between a number and a string that happens to consist of digits (except by referring to an external
+ schema). JSON distinguishes strings and numbers, but it doesn’t distinguish integers and
+ floating-point numbers, and it doesn’t specify a precision.
 
-  This is a problem when dealing with large numbers; for example, integers greater than 253 cannot
-  be exactly represented in an IEEE 754 double-precision floating-point number, so such numbers become
-  inaccurate when parsed in a language that uses floating-point numbers, such as JavaScript
-  [^7].
-  An example of numbers larger than 253 occurs on X (formerly Twitter), which uses a 64-bit number to
-  identify each post. The JSON returned by the API includes post IDs twice, once as a JSON number and
-  once as a decimal string, to work around the fact that the numbers are not correctly parsed by
-  JavaScript applications [^8].
+ This is a problem when dealing with large numbers; for example, integers greater than 253 cannot
+ be exactly represented in an IEEE 754 double-precision floating-point number, so such numbers become
+ inaccurate when parsed in a language that uses floating-point numbers, such as JavaScript [^7].
+ An example of numbers larger than 253 occurs on X (formerly Twitter), which uses a 64-bit number to
+ identify each post. The JSON returned by the API includes post IDs twice, once as a JSON number and
+ once as a decimal string, to work around the fact that the numbers are not correctly parsed by
+ JavaScript applications [^8].
 * JSON and XML have good support for Unicode character strings (i.e., human-readable text), but they
-  don’t support binary strings (sequences of bytes without a character encoding). Binary strings are a
-  useful feature, so people get around this limitation by encoding the binary data as text using
-  Base64. The schema is then used to indicate that the value should be interpreted as Base64-encoded.
-  This works, but it’s somewhat hacky and increases the data size by 33%.
+ don’t support binary strings (sequences of bytes without a character encoding). Binary strings are a
+ useful feature, so people get around this limitation by encoding the binary data as text using
+ Base64. The schema is then used to indicate that the value should be interpreted as Base64-encoded.
+ This works, but it’s somewhat hacky and increases the data size by 33%.
 * XML Schema and JSON Schema are powerful, and thus quite
-  complicated to learn and implement. Since the correct interpretation of data (such as numbers and
-  binary strings) depends on information in the schema, applications that don’t use XML/JSON schemas
-  need to potentially hard-code the appropriate encoding/decoding logic instead.
+ complicated to learn and implement. Since the correct interpretation of data (such as numbers and
+ binary strings) depends on information in the schema, applications that don’t use XML/JSON schemas
+ need to potentially hard-code the appropriate encoding/decoding logic instead.
 * CSV does not have any schema, so it is up to the application to define the meaning of each row and
-  column. If an application change adds a new row or column, you have to handle that change manually.
-  CSV is also a quite vague format (what happens if a value contains a comma or a newline character?).
-  Although its escaping rules have been formally specified
-  [^9],
-  not all parsers implement them correctly.
+ column. If an application change adds a new row or column, you have to handle that change manually.
+ CSV is also a quite vague format (what happens if a value contains a comma or a newline character?).
+ Although its escaping rules have been formally specified [^9],
+ not all parsers implement them correctly.
 
 Despite these flaws, JSON, XML, and CSV are good enough for many purposes. It’s likely that they will
 remain popular, especially as data interchange formats (i.e., for sending data from one organization to
@@ -211,16 +206,16 @@ JSON Schema so that keys may only contain digits, and values can only be strings
 
 ##### Example 5-1. Example JSON Schema with integer keys and string values. Integer keys are represented as strings containing only integers since JSON Schema requires all keys to be strings.
 
-```
+```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "patternProperties": {
-    "^[0-9]+$": {
-      "type": "string"
-    }
-  },
-  "additionalProperties": false
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "type": "object",
+ "patternProperties": {
+ "^[0-9]+$": {
+ "type": "string"
+ }
+ },
+ "additionalProperties": false
 }
 ```
 
@@ -229,8 +224,7 @@ if/else schema logic, named types, references to remote schemas, and much more. 
 for a very powerful schema language. Such features also make for unwieldy definitions. It can be
 challenging to resolve remote schemas, reason about conditional rules, or evolve schemas in a
 forwards or backwards compatible way [^10].
-Similar concerns apply to XML Schema
-[^11].
+Similar concerns apply to XML Schema [^11].
 
 ### Binary encoding
 
@@ -251,9 +245,9 @@ will need to include the strings `userName`, `favoriteNumber`, and `interests` s
 
 ```
 {
-    "userName": "Martin",
-    "favoriteNumber": 1337,
-    "interests": ["daydreaming", "hacking"]
+ "userName": "Martin",
+ "favoriteNumber": 1337,
+ "interests": ["daydreaming", "hacking"]
 }
 ```
 
@@ -262,13 +256,13 @@ shows the byte sequence that you get if you encode the JSON document in [Example
 MessagePack. The first few bytes are as follows:
 
 1. The first byte, `0x83`, indicates that what follows is an object (top four bits = `0x80`) with three
-   fields (bottom four bits = `0x03`). (In case you’re wondering what happens if an object has more
-   than 15 fields, so that the number of fields doesn’t fit in four bits, it then gets a different type
-   indicator, and the number of fields is encoded in two or four bytes.)
+ fields (bottom four bits = `0x03`). (In case you’re wondering what happens if an object has more
+ than 15 fields, so that the number of fields doesn’t fit in four bits, it then gets a different type
+ indicator, and the number of fields is encoded in two or four bytes.)
 2. The second byte, `0xa8`, indicates that what follows is a string (top four bits = `0xa0`) that is eight
-   bytes long (bottom four bits = `0x08`).
+ bytes long (bottom four bits = `0x08`).
 3. The next eight bytes are the field name `userName` in ASCII. Since the length was indicated
-   previously, there’s no need for any marker to tell us where the string ends (or any escaping).
+ previously, there’s no need for any marker to tell us where the string ends (or any escaping).
 4. The next seven bytes encode the six-letter string value `Martin` with a prefix `0xa6`, and so on.
 
 The binary encoding is 66 bytes long, which is only a little less than the 81 bytes taken by the
@@ -286,8 +280,7 @@ In the following sections we will see how we can do much better, and encode the 
 ## Protocol Buffers
 
 Protocol Buffers (protobuf) is a binary encoding library developed at Google.
-It is similar to Apache Thrift, which was originally developed by Facebook
-[^13];
+It is similar to Apache Thrift, which was originally developed by Facebook [^13];
 most of what this section says about Protocol Buffers applies also to Thrift.
 
 Protocol Buffers requires a schema for any data that is encoded. To encode the data
@@ -298,9 +291,9 @@ interface definition language (IDL) like this:
 syntax = "proto3";
 
 message Person {
-    string user_name = 1;
-    int64 favorite_number = 2;
-    repeated string interests = 3;
+ string user_name = 1;
+ int64 favorite_number = 2;
+ repeated string interests = 3;
 }
 ```
 
@@ -381,8 +374,7 @@ value won’t fit in 32 bits, it will be truncated.
 
 Apache Avro is another binary encoding format that is interestingly different from Protocol Buffers.
 It was started in 2009 as a subproject of Hadoop, as a result of Protocol Buffers not being a good
-fit for Hadoop’s use cases
-[^15].
+fit for Hadoop’s use cases [^15].
 
 Avro also uses a schema to specify the structure of the data being encoded. It has two schema
 languages: one (Avro IDL) intended for human editing, and one (based on JSON) that is more easily
@@ -393,9 +385,9 @@ Our example schema, written in Avro IDL, might look like this:
 
 ```
 record Person {
-    string               userName;
-    union { null, long } favoriteNumber = null;
-    array<string>        interests;
+ string userName;
+ union { null, long } favoriteNumber = null;
+ array<string> interests;
 }
 ```
 
@@ -403,13 +395,13 @@ The equivalent JSON representation of that schema is as follows:
 
 ```
 {
-    "type": "record",
-    "name": "Person",
-    "fields": [
-        {"name": "userName",       "type": "string"},
-        {"name": "favoriteNumber", "type": ["null", "long"], "default": null},
-        {"name": "interests",      "type": {"type": "array", "items": "string"}}
-    ]
+ "type": "record",
+ "name": "Person",
+ "fields": [
+ {"name": "userName", "type": "string"},
+ {"name": "favoriteNumber", "type": ["null", "long"], "default": null},
+ {"name": "interests", "type": {"type": "array", "items": "string"}}
+ ]
 }
 ```
 
@@ -455,8 +447,7 @@ application code is expecting, and their types.
 If the reader’s and writer’s schema are the same, decoding is easy. If they are different, Avro
 resolves the differences by looking at the writer’s schema and the reader’s schema side by side and
 translating the data from the writer’s schema into the reader’s schema. The Avro specification
-[[16](/en/ch5#AvroSpec),
-[17](/en/ch5#AvroParsing)]
+[[^16], [^17]]
 defines exactly how this resolution works, and it is illustrated in
 [Figure 5-6](/en/ch5#fig_encoding_avro_resolution).
 
@@ -511,33 +502,32 @@ the space savings from the binary encoding futile.
 The answer depends on the context in which Avro is being used. To give a few examples:
 
 Large file with lots of records
-:   A common use for Avro is for storing a large file containing millions of records, all encoded with
-    the same schema. (We will discuss this kind of situation in [Link to Come].) In this case, the
-    writer of that file can just include the writer’s schema once at the beginning of the file. Avro
-    specifies a file format (object container files) to do this.
+: A common use for Avro is for storing a large file containing millions of records, all encoded with
+ the same schema. (We will discuss this kind of situation in [Link to Come].) In this case, the
+ writer of that file can just include the writer’s schema once at the beginning of the file. Avro
+ specifies a file format (object container files) to do this.
 
 Database with individually written records
-:   In a database, different records may be written at different points in time using different
-    writer’s schemas—you cannot assume that all the records will have the same schema. The simplest
-    solution is to include a version number at the beginning of every encoded record, and to keep a
-    list of schema versions in your database. A reader can fetch a record, extract the version number,
-    and then fetch the writer’s schema for that version number from the database. Using that writer’s
-    schema, it can decode the rest of the record.
+: In a database, different records may be written at different points in time using different
+ writer’s schemas—you cannot assume that all the records will have the same schema. The simplest
+ solution is to include a version number at the beginning of every encoded record, and to keep a
+ list of schema versions in your database. A reader can fetch a record, extract the version number,
+ and then fetch the writer’s schema for that version number from the database. Using that writer’s
+ schema, it can decode the rest of the record.
 
-    Confluent’s schema registry for Apache Kafka
-    [^19]
-    and LinkedIn’s Espresso
-    [^20]
-    work this way, for example.
+ Confluent’s schema registry for Apache Kafka
+ [^19]
+ and LinkedIn’s Espresso
+ [^20]
+ work this way, for example.
 
 Sending records over a network connection
-:   When two processes are communicating over a bidirectional network connection, they can negotiate
-    the schema version on connection setup and then use that schema for the lifetime of the
-    connection. The Avro RPC protocol (see [“Dataflow Through Services: REST and RPC”](/en/ch5#sec_encoding_dataflow_rpc)) works like this.
+: When two processes are communicating over a bidirectional network connection, they can negotiate
+ the schema version on connection setup and then use that schema for the lifetime of the
+ connection. The Avro RPC protocol (see [“Dataflow Through Services: REST and RPC”](/en/ch5#sec_encoding_dataflow_rpc)) works like this.
 
 A database of schema versions is a useful thing to have in any case, since it acts as documentation
-and gives you a chance to check schema compatibility
-[^21].
+and gives you a chance to check schema compatibility [^21].
 As the version number, you could use a simple incrementing integer, or you could use a hash of the
 schema.
 
@@ -581,13 +571,10 @@ languages.
 
 The ideas on which these encodings are based are by no means new. For example, they have a lot in
 common with ASN.1, a schema definition language that was first standardized in 1984
-[[23](/en/ch5#Larmouth1999),
-[24](/en/ch5#Kaliski1993)].
+[[^23], [^24]].
 It was used to define various network protocols, and its binary encoding (DER) is still used to encode
-SSL certificates (X.509), for example
-[^25].
-ASN.1 supports schema evolution using tag numbers, similar to Protocol Buffers
-[^26].
+SSL certificates (X.509), for example [^25].
+ASN.1 supports schema evolution using tag numbers, similar to Protocol Buffers [^26].
 However, it’s also very complex and badly documented, so ASN.1
 is probably not a good choice for new applications.
 
@@ -601,14 +588,14 @@ So, we can see that although textual data formats such as JSON, XML, and CSV are
 encodings based on schemas are also a viable option. They have a number of nice properties:
 
 * They can be much more compact than the various “binary JSON” variants, since they can omit field
-  names from the encoded data.
+ names from the encoded data.
 * The schema is a valuable form of documentation, and because the schema is required for decoding,
-  you can be sure that it is up to date (whereas manually maintained documentation may easily
-  diverge from reality).
+ you can be sure that it is up to date (whereas manually maintained documentation may easily
+ diverge from reality).
 * Keeping a database of schemas allows you to check forward and backward compatibility of schema
-  changes, before anything is deployed.
+ changes, before anything is deployed.
 * For users of statically typed programming languages, the ability to generate code from the schema
-  is useful, since it enables type-checking at compile time.
+ is useful, since it enables type-checking at compile time.
 
 In summary, schema evolution allows the same kind of flexibility as schemaless/schema-on-read JSON
 databases provide (see [“Schema flexibility in the document model”](/en/ch3#sec_datamodels_schema_flexibility)), while also providing better
@@ -681,8 +668,7 @@ versions of the schema.
 More complex schema changes—for example, changing a single-valued attribute to be multi-valued, or
 moving some data into a separate table—still require data to be rewritten, often at the application
 level [^27].
-Maintaining forward and backward compatibility across such migrations is still a research problem
-[^28].
+Maintaining forward and backward compatibility across such migrations is still a research problem [^28].
 
 ### Archival storage
 
@@ -722,8 +708,7 @@ application-specific, and the client and server need to agree on the details of 
 In some ways, services are similar to databases: they typically allow clients to submit and query
 data. However, while databases allow arbitrary queries using the query languages we discussed in
 [Chapter 3](/en/ch3#ch_datamodels), services expose an application-specific API that only allows inputs and outputs
-that are predetermined by the business logic (application code) of the service
-[^29]. This restriction provides a degree of encapsulation: services can impose
+that are predetermined by the business logic (application code) of the service [^29]. This restriction provides a degree of encapsulation: services can impose
 fine-grained restrictions on what clients can and cannot do.
 
 A key design goal of a service-oriented/microservices architecture is to make the application easier
@@ -742,18 +727,17 @@ perhaps a slight misnomer, because web services are not only used on the web, bu
 different contexts. For example:
 
 1. A client application running on a user’s device (e.g., a native app on a mobile device, or a
-   JavaScript web app in a browser) making requests to a service over HTTP. These requests typically
-   go over the public internet.
+ JavaScript web app in a browser) making requests to a service over HTTP. These requests typically
+ go over the public internet.
 2. One service making requests to another service owned by the same organization, often located
-   within the same datacenter, as part of a service-oriented/microservices architecture.
+ within the same datacenter, as part of a service-oriented/microservices architecture.
 3. One service making requests to a service owned by a different organization, usually via the
-   internet. This is used for data exchange between different organizations’ backend systems. This
-   category includes public APIs provided by online services, such as credit card processing
-   systems, or OAuth for shared access to user data.
+ internet. This is used for data exchange between different organizations’ backend systems. This
+ category includes public APIs provided by online services, such as credit card processing
+ systems, or OAuth for shared access to user data.
 
 The most popular service design philosophy is REST, which builds upon the principles of HTTP
-[[30](/en/ch5#Fielding2000),
-[31](/en/ch5#Fielding2008)].
+[[^30], [^31]].
 It emphasizes simple data formats, using URLs for identifying resources and using HTTP features for
 cache control, authentication, and content type negotiation. An API designed according to the
 principles of REST is called *RESTful*.
@@ -763,8 +747,7 @@ format to send and expect in response. Even if a service adopts RESTful design p
 need to somehow find out these details. Service developers often use an interface definition
 language (IDL) to define and document their service’s API endpoints and data models, and to evolve
 them over time. Other developers can then use the service definition to determine how to query the
-service. The two most popular service IDLs are OpenAPI (also known as Swagger
-[^32])
+service. The two most popular service IDLs are OpenAPI (also known as Swagger [^32])
 and gRPC. OpenAPI is used for web services that send and receive JSON data, while gRPC services send
 and receive Protocol Buffers.
 
@@ -778,25 +761,25 @@ definitions.
 ```
 openapi: 3.0.0
 info:
-  title: Ping, Pong
-  version: 1.0.0
+ title: Ping, Pong
+ version: 1.0.0
 servers:
-  - url: http://localhost:8080
+ - url: http://localhost:8080
 paths:
-  /ping:
-    get:
-      summary: Given a ping, returns a pong message
-      responses:
-        '200':
-          description: A pong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Pong!
+ /ping:
+ get:
+ summary: Given a ping, returns a pong message
+ responses:
+ '200':
+ description: A pong
+ content:
+ application/json:
+ schema:
+ type: object
+ properties:
+ message:
+ type: string
+ example: Pong!
 ```
 
 Even if a design philosophy and IDL are adopted, developers must still write the code that
@@ -815,12 +798,12 @@ from pydantic import BaseModel
 app = FastAPI(title="Ping, Pong", version="1.0.0")
 
 class PongResponse(BaseModel):
-    message: str = "Pong!"
+ message: str = "Pong!"
 
 @app.get("/ping", response_model=PongResponse,
-         summary="Given a ping, returns a pong message")
+ summary="Given a ping, returns a pong message")
 async def ping():
-    return PongResponse()
+ return PongResponse()
 ```
 
 Many frameworks couple service definitions and server code together. In some cases, such as with the
@@ -841,50 +824,47 @@ Architecture (CORBA) is excessively complex, and does not provide backward or fo
 compatibility [^33].
 SOAP and the WS-\* web services framework aim to provide interoperability across vendors, but are
 also plagued by complexity and compatibility problems
-[[34](/en/ch5#Lacey2006),
-[35](/en/ch5#Tilkov2006),
-[36](/en/ch5#Bray2004)].
+[[^34], [^35], [^36]].
 
 All of these are based on the idea of a *remote procedure call* (RPC), which has been around since
 the 1970s [^37].
 The RPC model tries to make a request to a remote network service look the same as calling a function or
 method in your programming language, within the same process (this abstraction is called *location
 transparency*). Although RPC seems convenient at first, the approach is fundamentally flawed
-[[38](/en/ch5#Waldo1994),
-[39](/en/ch5#Vinoski2008)].
+[[^38], [^39]].
 A network request is very different from a local function call:
 
 * A local function call is predictable and either succeeds or fails, depending only on parameters
-  that are under your control. A network request is unpredictable: the request or response may be
-  lost due to a network problem, or the remote machine may be slow or unavailable, and such problems
-  are entirely outside of your control. Network problems are common, so you have to anticipate them,
-  for example by retrying a failed request.
+ that are under your control. A network request is unpredictable: the request or response may be
+ lost due to a network problem, or the remote machine may be slow or unavailable, and such problems
+ are entirely outside of your control. Network problems are common, so you have to anticipate them,
+ for example by retrying a failed request.
 * A local function call either returns a result, or throws an exception, or never returns (because
-  it goes into an infinite loop or the process crashes). A network request has another possible
-  outcome: it may return without a result, due to a *timeout*. In that case, you simply don’t know
-  what happened: if you don’t get a response from the remote service, you have no way of knowing
-  whether the request got through or not. (We discuss this issue in more detail in [Chapter 9](/en/ch9#ch_distributed).)
+ it goes into an infinite loop or the process crashes). A network request has another possible
+ outcome: it may return without a result, due to a *timeout*. In that case, you simply don’t know
+ what happened: if you don’t get a response from the remote service, you have no way of knowing
+ whether the request got through or not. (We discuss this issue in more detail in [Chapter 9](/en/ch9#ch_distributed).)
 * If you retry a failed network request, it could happen that the previous request actually got
-  through, and only the response was lost.
-  In that case, retrying will cause the action to
-  be performed multiple times, unless you build a mechanism for deduplication (*idempotence*) into
-  the protocol [^40].
-  Local function calls don’t have this problem. (We discuss idempotence in more detail
-  in [Link to Come].)
+ through, and only the response was lost.
+ In that case, retrying will cause the action to
+ be performed multiple times, unless you build a mechanism for deduplication (*idempotence*) into
+ the protocol [^40].
+ Local function calls don’t have this problem. (We discuss idempotence in more detail
+ in [Link to Come].)
 * Every time you call a local function, it normally takes about the same time to execute. A network
-  request is much slower than a function call, and its latency is also wildly variable: at good
-  times it may complete in less than a millisecond, but when the network is congested or the remote
-  service is overloaded it may take many seconds to do exactly the same thing.
+ request is much slower than a function call, and its latency is also wildly variable: at good
+ times it may complete in less than a millisecond, but when the network is congested or the remote
+ service is overloaded it may take many seconds to do exactly the same thing.
 * When you call a local function, you can efficiently pass it references (pointers) to objects in
-  local memory. When you make a network request, all those parameters need to be encoded into a
-  sequence of bytes that can be sent over the network. That’s okay if the parameters are immutable
-  primitives like numbers or short strings, but it quickly becomes problematic with larger amounts
-  of data and mutable objects.
+ local memory. When you make a network request, all those parameters need to be encoded into a
+ sequence of bytes that can be sent over the network. That’s okay if the parameters are immutable
+ primitives like numbers or short strings, but it quickly becomes problematic with larger amounts
+ of data and mutable objects.
 * The client and the service may be implemented in different programming languages, so the RPC
-  framework must translate datatypes from one language into another. This can end up ugly, since not
-  all languages have the same types—recall JavaScript’s problems with numbers greater than 253,
-  for example (see [“JSON, XML, and Binary Variants”](/en/ch5#sec_encoding_json)). This problem doesn’t exist in a single process written in
-  a single language.
+ framework must translate datatypes from one language into another. This can end up ugly, since not
+ all languages have the same types—recall JavaScript’s problems with numbers greater than 253,
+ for example (see [“JSON, XML, and Binary Variants”](/en/ch5#sec_encoding_json)). This problem doesn’t exist in a single process written in
+ a single language.
 
 All of these factors mean that there’s no point trying to make a remote service look too much like a
 local object in your programming language, because it’s a fundamentally different thing. Part of the
@@ -906,43 +886,43 @@ across these instances is called *load balancing*
 There are many load balancing and service discovery solutions available:
 
 * *Hardware load balancers* are specialized pieces of equipment that are installed in data centers.
-  They allow clients to connect to a single host and port, and incoming connections are routed to
-  one of the servers running the service. Such load balancers detect network failures when
-  connecting to a downstream server and shift the traffic to other servers.
+ They allow clients to connect to a single host and port, and incoming connections are routed to
+ one of the servers running the service. Such load balancers detect network failures when
+ connecting to a downstream server and shift the traffic to other servers.
 * *Software load balancers* behave in much the same way as hardware load balancers. But rather than
-  requiring a special appliance, software load balancers such as Nginx and HAProxy are applications
-  that can be installed on a standard machine.
+ requiring a special appliance, software load balancers such as Nginx and HAProxy are applications
+ that can be installed on a standard machine.
 * The *domain name service (DNS)* is how domain names are resolved on the Internet when you open a
-  webpage. It supports load balancing by allowing multiple IP addresses to be associated with a
-  single domain name. Clients can then be configured to connect to a service using a domain name
-  rather than IP address, and the client’s network layer picks which IP address to use when making a
-  connection. One drawback of this approach is that DNS is designed to propagate changes over longer
-  periods of time, and to cache DNS entries. If servers are started, stopped, or moved frequently,
-  clients might see stale IP addresses that no longer have a server running on them.
+ webpage. It supports load balancing by allowing multiple IP addresses to be associated with a
+ single domain name. Clients can then be configured to connect to a service using a domain name
+ rather than IP address, and the client’s network layer picks which IP address to use when making a
+ connection. One drawback of this approach is that DNS is designed to propagate changes over longer
+ periods of time, and to cache DNS entries. If servers are started, stopped, or moved frequently,
+ clients might see stale IP addresses that no longer have a server running on them.
 * *Service discovery systems* use a centralized registry rather than DNS to track which service
-  endpoints are available. When a new service instance starts up, it registers itself with the
-  service discovery system by declaring the host and port it’s listening on, along with relevant
-  metadata such as shard ownership information (see [Chapter 7](/en/ch7#ch_sharding)), data center location,
-  and more. The service then periodically sends a heartbeat signal to the discovery system to signal
-  that the service is still available.
+ endpoints are available. When a new service instance starts up, it registers itself with the
+ service discovery system by declaring the host and port it’s listening on, along with relevant
+ metadata such as shard ownership information (see [Chapter 7](/en/ch7#ch_sharding)), data center location,
+ and more. The service then periodically sends a heartbeat signal to the discovery system to signal
+ that the service is still available.
 
-  When a client wishes to connect to a service, it first queries the discovery system to get a list of
-  available endpoints, and then connects directly to the endpoint. Compared to DNS, service discovery
-  supports a much more dynamic environment where service instances change frequently. Discovery
-  systems also give clients more metadata about the service they’re connecting to, which enables
-  clients to make smarter load balancing decisions.
+ When a client wishes to connect to a service, it first queries the discovery system to get a list of
+ available endpoints, and then connects directly to the endpoint. Compared to DNS, service discovery
+ supports a much more dynamic environment where service instances change frequently. Discovery
+ systems also give clients more metadata about the service they’re connecting to, which enables
+ clients to make smarter load balancing decisions.
 * *Service meshes* are a sophisticated form of load balancing that combine software load balancers
-  and service discovery. Unlike traditional software load balancers, which run on a separate
-  machine, service mesh load balancers are typically deployed as an in-process client library or as
-  a process or “sidecar” container on both the client and server. Client applications connect
-  to their own local service load balancer, which connects to the server’s load balancer. From
-  there, the connection is routed to the local server process.
+ and service discovery. Unlike traditional software load balancers, which run on a separate
+ machine, service mesh load balancers are typically deployed as an in-process client library or as
+ a process or “sidecar” container on both the client and server. Client applications connect
+ to their own local service load balancer, which connects to the server’s load balancer. From
+ there, the connection is routed to the local server process.
 
-  Though complicated, this topology offers a number of advantages. Because the clients and servers are
-  routed entirely through local connections, connection encryption can be handled entirely at the load
-  balancer level. This shields clients and servers from having to deal with the complexities of SSL
-  certificates and TLS. Mesh systems also provide sophisticated observability. They can track which
-  services are calling each other in realtime, detect failures, track traffic load, and more.
+ Though complicated, this topology offers a number of advantages. Because the clients and servers are
+ routed entirely through local connections, connection encryption can be handled entirely at the load
+ balancer level. This shields clients and servers from having to deal with the complexities of SSL
+ certificates and TLS. Mesh systems also provide sophisticated observability. They can track which
+ services are calling each other in realtime, detect failures, track traffic load, and more.
 
 Which solution is appropriate depends on an organization’s needs. Those running in a very dynamic
 service environment with an orchestrator such as Kubernetes often choose to run a service mesh such
@@ -962,10 +942,10 @@ The backward and forward compatibility properties of an RPC scheme are inherited
 encoding it uses:
 
 * gRPC (Protocol Buffers) and Avro RPC can be evolved according to the compatibility rules of the
-  respective encoding format.
+ respective encoding format.
 * RESTful APIs most commonly use JSON for responses, and JSON or URI-encoded/form-encoded request
-  parameters for requests. Adding optional request parameters and adding new fields to response
-  objects are usually considered changes that maintain compatibility.
+ parameters for requests. Adding optional request parameters and adding new fields to response
+ objects are usually considered changes that maintain compatibility.
 
 Service compatibility is made harder by the fact that RPC is often used for communication across
 organizational boundaries, so the provider of a service often has no control over its clients and
@@ -978,8 +958,7 @@ version of the API it wants to use [^42]).
 For RESTful APIs, common approaches are to use a version
 number in the URL or in the HTTP `Accept` header. For services that use API keys to identify a
 particular client, another option is to store a client’s requested API version on the server and to
-allow this version selection to be updated through a separate administrative interface
-[^43].
+allow this version selection to be updated through a separate administrative interface [^43].
 
 ## Durable Execution and Workflows
 
@@ -994,8 +973,7 @@ the credit card, and call the banking service to deposit debited funds, as shown
 [Figure 5-7](/en/ch5#fig_encoding_workflow). We call this sequence of steps a *workflow*, and each step a *task*.
 Workflows are typically defined as a graph of tasks. Workflow definitions may be written in a
 general-purpose programming language, a domain specific language (DSL), or a markup language such as
-Business Process Execution Language (BPEL)
-[^44].
+Business Process Execution Language (BPEL) [^44].
 
 # Tasks, Activities, and Functions
 
@@ -1038,8 +1016,7 @@ task fails, the framework will re-execute the task, but will skip any RPC calls 
 that the task made successfully before failing. Instead, the framework will pretend to make the
 call, but will instead return the results from the previous call. This is possible because durable
 execution frameworks log all RPCs and state changes to durable storage like a write-ahead log
-[[45](/en/ch5#TemporalService),
-[46](/en/ch5#Ewen2023)].
+[[^45], [^46]].
 [Example 5-5](/en/ch5#fig_temporal_workflow) shows an example of a workflow definition that supports durable execution
 using Temporal.
 
@@ -1048,35 +1025,32 @@ using Temporal.
 ```
 @workflow.defn
 class PaymentWorkflow:
-    @workflow.run
-    async def run(self, payment: PaymentRequest) -> PaymentResult:
-        is_fraud = await workflow.execute_activity(
-            check_fraud,
-            payment,
-            start_to_close_timeout=timedelta(seconds=15),
-        )
-        if is_fraud:
-            return PaymentResultFraudulent
-        credit_card_response = await workflow.execute_activity(
-            debit_credit_card,
-            payment,
-            start_to_close_timeout=timedelta(seconds=15),
-        )
-        # ...
+ @workflow.run
+ async def run(self, payment: PaymentRequest) -> PaymentResult:
+ is_fraud = await workflow.execute_activity(
+ check_fraud,
+ payment,
+ start_to_close_timeout=timedelta(seconds=15),
+ )
+ if is_fraud:
+ return PaymentResultFraudulent
+ credit_card_response = await workflow.execute_activity(
+ debit_credit_card,
+ payment,
+ start_to_close_timeout=timedelta(seconds=15),
+ )
+ # ...
 ```
 
 Frameworks like Temporal are not without their challenges. External services, such as the
 third-party payment gateway in our example, must still provide an idempotent API. Developers must
-remember to use unique IDs for these APIs to prevent duplicate execution
-[^47].
+remember to use unique IDs for these APIs to prevent duplicate execution [^47].
 And because durable execution frameworks log each RPC call in order, it expects a subsequent
 execution to make the same RPC calls in the same order. This makes code changes brittle: you
-might introduce undefined behavior simply by re-ordering function calls
-[^48].
+might introduce undefined behavior simply by re-ordering function calls [^48].
 Instead of modifying the code of an existing workflow, it is safer to deploy a new version of the
 code separately, so that re-executions of existing workflow invocations continue to use the old
-version, and only new invocations use the new code
-[^49].
+version, and only new invocations use the new code [^49].
 
 Similarly, because durable execution frameworks expect to replay all code deterministically (the
 same inputs produce the same outputs), nondeterministic code such as random number generators or
@@ -1097,20 +1071,19 @@ how encoded data can flow from one process to another. A request is called an *e
 unlike RPC, the sender usually does not wait for the recipient to process the event. Moreover,
 events are typically not sent to the recipient via a direct network connection, but go via an
 intermediary called a *message broker* (also called an *event broker*, *message queue*, or
-*message-oriented middleware*), which stores the message temporarily.
-[^50].
+*message-oriented middleware*), which stores the message temporarily. [^50].
 
 Using a message broker has several advantages compared to direct RPC:
 
 * It can act as a buffer if the recipient is unavailable or overloaded, and thus improve system
-  reliability.
+ reliability.
 * It can automatically redeliver messages to a process that has crashed, and thus prevent messages from
-  being lost.
+ being lost.
 * It avoids the need for service discovery, since senders do not need to directly connect to the IP
-  address of the recipient.
+ address of the recipient.
 * It allows the same message to be sent to several recipients.
 * It logically decouples the sender from the recipient (the sender just publishes messages and
-  doesn’t care who consumes them).
+ doesn’t care who consumes them).
 
 The communication via a message broker is *asynchronous*: the sender doesn’t wait for the message to
 be delivered, but simply sends it and then forgets about it. It’s possible to implement a
@@ -1128,15 +1101,15 @@ The detailed delivery semantics vary by implementation and configuration, but in
 message distribution patterns are most often used:
 
 * One process adds a message to a named *queue*, and the broker delivers that message to a
-  *consumer* of that queue. If there are multiple consumers, one of them receives the message.
+ *consumer* of that queue. If there are multiple consumers, one of them receives the message.
 * One process publishes a message to a named *topic*, and the broker delivers that message to all
-  *subscribers* of that topic. If there are multiple subscribers, they all receive the message.
+ *subscribers* of that topic. If there are multiple subscribers, they all receive the message.
 
 Message brokers typically don’t enforce any particular data model—a message is just a sequence of
 bytes with some metadata, so you can use any encoding format. A common approach is to use Protocol
 Buffers, Avro, or JSON, and to deploy a schema registry alongside the message broker to store all
 the valid schema versions and check their compatibility
-[[19](/en/ch5#ConfluentSchemaReg), [21](/en/ch5#Kreps2015)].
+[[^19], [^21]].
 AsyncAPI, a messaging-based equivalent of OpenAPI, can also be used to specify the schema of
 messages.
 
@@ -1160,8 +1133,7 @@ sending and receiving asynchronous messages. Message delivery is not guaranteed:
 scenarios, messages will be lost. Since each actor processes only one message at a time, it doesn’t
 need to worry about threads, and each actor can be scheduled independently by the framework.
 
-In *distributed actor frameworks* such as Akka, Orleans
-[^51],
+In *distributed actor frameworks* such as Akka, Orleans [^51],
 and Erlang/OTP, this programming model is used to scale an application across
 multiple nodes. The same message-passing mechanism is used, no matter whether the sender and recipient
 are on the same node or different nodes. If they are on different nodes, the message is
@@ -1178,7 +1150,7 @@ application, you still have to worry about forward and backward compatibility, a
 sent from a node running the new version to a node running the old version, and vice versa. This can
 be achieved by using one of the encodings discussed in this chapter.
 
-# Summary
+## Summary
 
 In this chapter we looked at several ways of turning data structures into bytes on the network or
 bytes on disk. We saw how the details of these encodings affect not only their efficiency, but more
@@ -1199,83 +1171,84 @@ read old data) and forward compatibility (old code can read new data).
 We discussed several data encoding formats and their compatibility properties:
 
 * Programming language–specific encodings are restricted to a single programming language and often
-  fail to provide forward and backward compatibility.
+ fail to provide forward and backward compatibility.
 * Textual formats like JSON, XML, and CSV are widespread, and their compatibility depends on how you
-  use them. They have optional schema languages, which are sometimes helpful and sometimes a
-  hindrance. These formats are somewhat vague about datatypes, so you have to be careful with things
-  like numbers and binary strings.
+ use them. They have optional schema languages, which are sometimes helpful and sometimes a
+ hindrance. These formats are somewhat vague about datatypes, so you have to be careful with things
+ like numbers and binary strings.
 * Binary schema–driven formats like Protocol Buffers and Avro allow compact, efficient encoding with
-  clearly defined forward and backward compatibility semantics. The schemas can be useful for
-  documentation and code generation in statically typed languages. However, these formats have the
-  downside that data needs to be decoded before it is human-readable.
+ clearly defined forward and backward compatibility semantics. The schemas can be useful for
+ documentation and code generation in statically typed languages. However, these formats have the
+ downside that data needs to be decoded before it is human-readable.
 
 We also discussed several modes of dataflow, illustrating different scenarios in which data
 encodings are important:
 
 * Databases, where the process writing to the database encodes the data and the process reading
-  from the database decodes it
+ from the database decodes it
 * RPC and REST APIs, where the client encodes a request, the server decodes the request and encodes
-  a response, and the client finally decodes the response
+ a response, and the client finally decodes the response
 * Event-driven architectures (using message brokers or actors), where nodes communicate by sending
-  each other messages that are encoded by the sender and decoded by the recipient
+ each other messages that are encoded by the sender and decoded by the recipient
 
 We can conclude that with a bit of care, backward/forward compatibility and rolling upgrades are
 quite achievable. May your application’s evolution be rapid and your deployments be frequent.
 
-##### Footnotes
 
 
-##### References
+
+### Summary
 
 
-[^1]: [CWE-502: Deserialization of Untrusted Data](https://cwe.mitre.org/data/definitions/502.html). Common Weakness Enumeration, *cwe.mitre.org*, July 2006. Archived at [perma.cc/26EU-UK9Y](https://perma.cc/26EU-UK9Y)
-[^2]: Steve Breen. [What Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This Vulnerability](https://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/). *foxglovesecurity.com*, November 2015. Archived at [perma.cc/9U97-UVVD](https://perma.cc/9U97-UVVD)
-[^3]: Patrick McKenzie. [What the Rails Security Issue Means for Your Startup](https://www.kalzumeus.com/2013/01/31/what-the-rails-security-issue-means-for-your-startup/). *kalzumeus.com*, January 2013. Archived at [perma.cc/2MBJ-7PZ6](https://perma.cc/2MBJ-7PZ6)
-[^4]: Brian Goetz. [Towards Better Serialization](https://openjdk.org/projects/amber/design-notes/towards-better-serialization). *openjdk.org*, June 2019. Archived at [perma.cc/UK6U-GQDE](https://perma.cc/UK6U-GQDE)
-[^5]: Eishay Smith. [jvm-serializers wiki](https://github.com/eishay/jvm-serializers/wiki). *github.com*, October 2023. Archived at [perma.cc/PJP7-WCNG](https://perma.cc/PJP7-WCNG)
-[^6]: [XML Is a Poor Copy of S-Expressions](https://wiki.c2.com/?XmlIsaPoorCopyOfEssExpressions). *wiki.c2.com*, May 2013. Archived at [perma.cc/7FAN-YBKL](https://perma.cc/7FAN-YBKL)
-[^7]: Julia Evans. [Examples of floating point problems](https://jvns.ca/blog/2023/01/13/examples-of-floating-point-problems/). *jvns.ca*, January 2023. Archived at [perma.cc/M57L-QKKW](https://perma.cc/M57L-QKKW)
-[^8]: Matt Harris. [Snowflake: An Update and Some Very Important Information](https://groups.google.com/g/twitter-development-talk/c/ahbvo3VTIYI). Email to *Twitter Development Talk* mailing list, October 2010. Archived at [perma.cc/8UBV-MZ3D](https://perma.cc/8UBV-MZ3D)
-[^9]: Yakov Shafranovich. [RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files](https://tools.ietf.org/html/rfc4180). IETF, October 2005.
-[^10]: Andy Coates. [Evolving JSON Schemas - Part I](https://www.creekservice.org/articles/2024/01/08/json-schema-evolution-part-1.html) and [Part II](https://www.creekservice.org/articles/2024/01/09/json-schema-evolution-part-2.html). *creekservice.org*, January 2024. Archived at [perma.cc/MZW3-UA54](https://perma.cc/MZW3-UA54) and [perma.cc/GT5H-WKZ5](https://perma.cc/GT5H-WKZ5)
-[^11]: Pierre Genevès, Nabil Layaïda, and Vincent Quint. [Ensuring Query Compatibility with Evolving XML Schemas](https://arxiv.org/abs/0811.4324). INRIA Technical Report 6711, November 2008.
-[^12]: Tim Bray. [Bits On the Wire](https://www.tbray.org/ongoing/When/201x/2019/11/17/Bits-On-the-Wire). *tbray.org*, November 2019. Archived at [perma.cc/3BT3-BQU3](https://perma.cc/3BT3-BQU3)
-[^13]: Mark Slee, Aditya Agarwal, and Marc Kwiatkowski. [Thrift: Scalable Cross-Language Services Implementation](https://thrift.apache.org/static/files/thrift-20070401.pdf). Facebook technical report, April 2007. Archived at [perma.cc/22BS-TUFB](https://perma.cc/22BS-TUFB)
-[^14]: Martin Kleppmann. [Schema Evolution in Avro, Protocol Buffers and Thrift](https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html). *martin.kleppmann.com*, December 2012. Archived at [perma.cc/E4R2-9RJT](https://perma.cc/E4R2-9RJT)
-[^15]: Doug Cutting, Chad Walters, Jim Kellerman, et al. [[PROPOSAL] New Subproject: Avro](https://lists.apache.org/thread/z571w0r5jmfsjvnl0fq4fgg0vh28d3bk). Email thread on *hadoop-general* mailing list, *lists.apache.org*, April 2009. Archived at [perma.cc/4A79-BMEB](https://perma.cc/4A79-BMEB)
-[^16]: Apache Software Foundation. [Apache Avro 1.12.0 Specification](https://avro.apache.org/docs/1.12.0/specification/). *avro.apache.org*, August 2024. Archived at [perma.cc/C36P-5EBQ](https://perma.cc/C36P-5EBQ)
-[^17]: Apache Software Foundation. [Avro schemas as LL(1) CFG definitions](https://avro.apache.org/docs/1.12.0/api/java/org/apache/avro/io/parsing/doc-files/parsing.html). *avro.apache.org*, August 2024. Archived at [perma.cc/JB44-EM9Q](https://perma.cc/JB44-EM9Q)
-[^18]: Tony Hoare. [Null References: The Billion Dollar Mistake](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare/). Talk at *QCon London*, March 2009.
-[^19]: Confluent, Inc. [Schema Registry Overview](https://docs.confluent.io/platform/current/schema-registry/index.html). *docs.confluent.io*, 2024. Archived at [perma.cc/92C3-A9JA](https://perma.cc/92C3-A9JA)
-[^20]: Aditya Auradkar and Tom Quiggle. [Introducing Espresso—LinkedIn’s Hot New Distributed Document Store](https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store). *engineering.linkedin.com*, January 2015. Archived at [perma.cc/FX4P-VW9T](https://perma.cc/FX4P-VW9T)
-[^21]: Jay Kreps. [Putting Apache Kafka to Use: A Practical Guide to Building a Stream Data Platform (Part 2)](https://www.confluent.io/blog/event-streaming-platform-2/). *confluent.io*, February 2015. Archived at [perma.cc/8UA4-ZS5S](https://perma.cc/8UA4-ZS5S)
-[^22]: Gwen Shapira. [The Problem of Managing Schemas](https://www.oreilly.com/content/the-problem-of-managing-schemas/). *oreilly.com*, November 2014. Archived at [perma.cc/BY8Q-RYV3](https://perma.cc/BY8Q-RYV3)
-[^23]: John Larmouth. [*ASN.1 Complete*](https://www.oss.com/asn1/resources/books-whitepapers-pubs/larmouth-asn1-book.pdf). Morgan Kaufmann, 1999. ISBN: 978-0-122-33435-1. Archived at [perma.cc/GB7Y-XSXQ](https://perma.cc/GB7Y-XSXQ)
-[^24]: Burton S. Kaliski Jr. [A Layman’s Guide to a Subset of ASN.1, BER, and DER](https://luca.ntop.org/Teaching/Appunti/asn1.html). Technical Note, RSA Data Security, Inc., November 1993. Archived at [perma.cc/2LMN-W9U8](https://perma.cc/2LMN-W9U8)
-[^25]: Jacob Hoffman-Andrews. [A Warm Welcome to ASN.1 and DER](https://letsencrypt.org/docs/a-warm-welcome-to-asn1-and-der/). *letsencrypt.org*, April 2020. Archived at [perma.cc/CYT2-GPQ8](https://perma.cc/CYT2-GPQ8)
-[^26]: Lev Walkin. [Question: Extensibility and Dropping Fields](https://lionet.info/asn1c/blog/2010/09/21/question-extensibility-removing-fields/). *lionet.info*, September 2010. Archived at [perma.cc/VX8E-NLH3](https://perma.cc/VX8E-NLH3)
-[^27]: Jacqueline Xu. [Online migrations at scale](https://stripe.com/blog/online-migrations). *stripe.com*, February 2017. Archived at [perma.cc/X59W-DK7Y](https://perma.cc/X59W-DK7Y)
-[^28]: Geoffrey Litt, Peter van Hardenberg, and Orion Henry. [Project Cambria: Translate your data with lenses](https://www.inkandswitch.com/cambria/). Technical Report, *Ink & Switch*, October 2020. Archived at [perma.cc/WA4V-VKDB](https://perma.cc/WA4V-VKDB)
-[^29]: Pat Helland. [Data on the Outside Versus Data on the Inside](https://www.cidrdb.org/cidr2005/papers/P12.pdf). At *2nd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2005.
-[^30]: Roy Thomas Fielding. [Architectural Styles and the Design of Network-Based Software Architectures](https://ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf). PhD Thesis, University of California, Irvine, 2000. Archived at [perma.cc/LWY9-7BPE](https://perma.cc/LWY9-7BPE)
-[^31]: Roy Thomas Fielding. [REST APIs must be hypertext-driven](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven).” *roy.gbiv.com*, October 2008. Archived at [perma.cc/M2ZW-8ATG](https://perma.cc/M2ZW-8ATG)
-[^32]: [OpenAPI Specification Version 3.1.0](https://swagger.io/specification/). *swagger.io*, February 2021. Archived at [perma.cc/3S6S-K5M4](https://perma.cc/3S6S-K5M4)
-[^33]: Michi Henning. [The Rise and Fall of CORBA](https://cacm.acm.org/practice/the-rise-and-fall-of-corba/). *Communications of the ACM*, volume 51, issue 8, pages 52–57, August 2008. [doi:10.1145/1378704.1378718](https://doi.org/10.1145/1378704.1378718)
-[^34]: Pete Lacey. [The S Stands for Simple](https://harmful.cat-v.org/software/xml/soap/simple). *harmful.cat-v.org*, November 2006. Archived at [perma.cc/4PMK-Z9X7](https://perma.cc/4PMK-Z9X7)
-[^35]: Stefan Tilkov. [Interview: Pete Lacey Criticizes Web Services](https://www.infoq.com/articles/pete-lacey-ws-criticism/). *infoq.com*, December 2006. Archived at [perma.cc/JWF4-XY3P](https://perma.cc/JWF4-XY3P)
-[^36]: Tim Bray. [The Loyal WS-Opposition](https://www.tbray.org/ongoing/When/200x/2004/09/18/WS-Oppo). *tbray.org*, September 2004. Archived at [perma.cc/J5Q8-69Q2](https://perma.cc/J5Q8-69Q2)
-[^37]: Andrew D. Birrell and Bruce Jay Nelson. [Implementing Remote Procedure Calls](https://www.cs.princeton.edu/courses/archive/fall03/cs518/papers/rpc.pdf). *ACM Transactions on Computer Systems* (TOCS), volume 2, issue 1, pages 39–59, February 1984. [doi:10.1145/2080.357392](https://doi.org/10.1145/2080.357392)
-[^38]: Jim Waldo, Geoff Wyant, Ann Wollrath, and Sam Kendall. [A Note on Distributed Computing](https://m.mirror.facebook.net/kde/devel/smli_tr-94-29.pdf). Sun Microsystems Laboratories, Inc., Technical Report TR-94-29, November 1994. Archived at [perma.cc/8LRZ-BSZR](https://perma.cc/8LRZ-BSZR)
-[^39]: Steve Vinoski. [Convenience over Correctness](https://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf). *IEEE Internet Computing*, volume 12, issue 4, pages 89–92, July 2008. [doi:10.1109/MIC.2008.75](https://doi.org/10.1109/MIC.2008.75)
-[^40]: Brandur Leach. [Designing robust and predictable APIs with idempotency](https://stripe.com/blog/idempotency). *stripe.com*, February 2017. Archived at [perma.cc/JD22-XZQT](https://perma.cc/JD22-XZQT)
-[^41]: Sam Rose. [Load Balancing](https://samwho.dev/load-balancing/). *samwho.dev*, April 2023. Archived at [perma.cc/Q7BA-9AE2](https://perma.cc/Q7BA-9AE2)
-[^42]: Troy Hunt. [Your API versioning is wrong, which is why I decided to do it 3 different wrong ways](https://www.troyhunt.com/your-api-versioning-is-wrong-which-is/). *troyhunt.com*, February 2014. Archived at [perma.cc/9DSW-DGR5](https://perma.cc/9DSW-DGR5)
-[^43]: Brandur Leach. [APIs as infrastructure: future-proofing Stripe with versioning](https://stripe.com/blog/api-versioning). *stripe.com*, August 2017. Archived at [perma.cc/L63K-USFW](https://perma.cc/L63K-USFW)
-[^44]: Alexandre Alves, Assaf Arkin, Sid Askary, et al. [Web Services Business Process Execution Language Version 2.0](https://docs.oasis-open.org/wsbpel/2.0/wsbpel-v2.0.html). *docs.oasis-open.org*, April 2007.
-[^45]: [What is a Temporal Service?](https://docs.temporal.io/clusters) *docs.temporal.io*, 2024. Archived at [perma.cc/32P3-CJ9V](https://perma.cc/32P3-CJ9V)
-[^46]: Stephan Ewen. [Why we built Restate](https://restate.dev/blog/why-we-built-restate/). *restate.dev*, August 2023. Archived at [perma.cc/BJJ2-X75K](https://perma.cc/BJJ2-X75K)
-[^47]: Keith Tenzer and Joshua Smith. [Idempotency and Durable Execution](https://temporal.io/blog/idempotency-and-durable-execution). *temporal.io*, February 2024. Archived at [perma.cc/9LGW-PCLU](https://perma.cc/9LGW-PCLU)
-[^48]: [What is a Temporal Workflow?](https://docs.temporal.io/workflows) *docs.temporal.io*, 2024. Archived at [perma.cc/B5C5-Y396](https://perma.cc/B5C5-Y396)
-[^49]: Jack Kleeman. [Solving durable execution’s immutability problem](https://restate.dev/blog/solving-durable-executions-immutability-problem/). *restate.dev*, February 2024. Archived at [perma.cc/G55L-EYH5](https://perma.cc/G55L-EYH5)
-[^50]: Srinath Perera. [Exploring Event-Driven Architecture: A Beginner’s Guide for Cloud Native Developers](https://wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/). *wso2.com*, August 2023. Archived at [archive.org](https://web.archive.org/web/20240716204613/https%3A//wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/)
+
+[^1]: [CWE-502: Deserialization of Untrusted Data](https://cwe.mitre.org/data/definitions/502.html). Common Weakness Enumeration, *cwe.mitre.org*, July 2006. Archived at [perma.cc/26EU-UK9Y](https://perma.cc/26EU-UK9Y) 
+[^2]: Steve Breen. [What Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This Vulnerability](https://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/). *foxglovesecurity.com*, November 2015. Archived at [perma.cc/9U97-UVVD](https://perma.cc/9U97-UVVD) 
+[^3]: Patrick McKenzie. [What the Rails Security Issue Means for Your Startup](https://www.kalzumeus.com/2013/01/31/what-the-rails-security-issue-means-for-your-startup/). *kalzumeus.com*, January 2013. Archived at [perma.cc/2MBJ-7PZ6](https://perma.cc/2MBJ-7PZ6) 
+[^4]: Brian Goetz. [Towards Better Serialization](https://openjdk.org/projects/amber/design-notes/towards-better-serialization). *openjdk.org*, June 2019. Archived at [perma.cc/UK6U-GQDE](https://perma.cc/UK6U-GQDE) 
+[^5]: Eishay Smith. [jvm-serializers wiki](https://github.com/eishay/jvm-serializers/wiki). *github.com*, October 2023. Archived at [perma.cc/PJP7-WCNG](https://perma.cc/PJP7-WCNG) 
+[^6]: [XML Is a Poor Copy of S-Expressions](https://wiki.c2.com/?XmlIsaPoorCopyOfEssExpressions). *wiki.c2.com*, May 2013. Archived at [perma.cc/7FAN-YBKL](https://perma.cc/7FAN-YBKL) 
+[^7]: Julia Evans. [Examples of floating point problems](https://jvns.ca/blog/2023/01/13/examples-of-floating-point-problems/). *jvns.ca*, January 2023. Archived at [perma.cc/M57L-QKKW](https://perma.cc/M57L-QKKW) 
+[^8]: Matt Harris. [Snowflake: An Update and Some Very Important Information](https://groups.google.com/g/twitter-development-talk/c/ahbvo3VTIYI). Email to *Twitter Development Talk* mailing list, October 2010. Archived at [perma.cc/8UBV-MZ3D](https://perma.cc/8UBV-MZ3D) 
+[^9]: Yakov Shafranovich. [RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files](https://tools.ietf.org/html/rfc4180). IETF, October 2005. 
+[^10]: Andy Coates. [Evolving JSON Schemas - Part I](https://www.creekservice.org/articles/2024/01/08/json-schema-evolution-part-1.html) and [Part II](https://www.creekservice.org/articles/2024/01/09/json-schema-evolution-part-2.html). *creekservice.org*, January 2024. Archived at [perma.cc/MZW3-UA54](https://perma.cc/MZW3-UA54) and [perma.cc/GT5H-WKZ5](https://perma.cc/GT5H-WKZ5) 
+[^11]: Pierre Genevès, Nabil Layaïda, and Vincent Quint. [Ensuring Query Compatibility with Evolving XML Schemas](https://arxiv.org/abs/0811.4324). INRIA Technical Report 6711, November 2008. 
+[^12]: Tim Bray. [Bits On the Wire](https://www.tbray.org/ongoing/When/201x/2019/11/17/Bits-On-the-Wire). *tbray.org*, November 2019. Archived at [perma.cc/3BT3-BQU3](https://perma.cc/3BT3-BQU3) 
+[^13]: Mark Slee, Aditya Agarwal, and Marc Kwiatkowski. [Thrift: Scalable Cross-Language Services Implementation](https://thrift.apache.org/static/files/thrift-20070401.pdf). Facebook technical report, April 2007. Archived at [perma.cc/22BS-TUFB](https://perma.cc/22BS-TUFB) 
+[^14]: Martin Kleppmann. [Schema Evolution in Avro, Protocol Buffers and Thrift](https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html). *martin.kleppmann.com*, December 2012. Archived at [perma.cc/E4R2-9RJT](https://perma.cc/E4R2-9RJT) 
+[^15]: Doug Cutting, Chad Walters, Jim Kellerman, et al. [[PROPOSAL] New Subproject: Avro](https://lists.apache.org/thread/z571w0r5jmfsjvnl0fq4fgg0vh28d3bk). Email thread on *hadoop-general* mailing list, *lists.apache.org*, April 2009. Archived at [perma.cc/4A79-BMEB](https://perma.cc/4A79-BMEB) 
+[^16]: Apache Software Foundation. [Apache Avro 1.12.0 Specification](https://avro.apache.org/docs/1.12.0/specification/). *avro.apache.org*, August 2024. Archived at [perma.cc/C36P-5EBQ](https://perma.cc/C36P-5EBQ) 
+[^17]: Apache Software Foundation. [Avro schemas as LL(1) CFG definitions](https://avro.apache.org/docs/1.12.0/api/java/org/apache/avro/io/parsing/doc-files/parsing.html). *avro.apache.org*, August 2024. Archived at [perma.cc/JB44-EM9Q](https://perma.cc/JB44-EM9Q) 
+[^18]: Tony Hoare. [Null References: The Billion Dollar Mistake](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare/). Talk at *QCon London*, March 2009. 
+[^19]: Confluent, Inc. [Schema Registry Overview](https://docs.confluent.io/platform/current/schema-registry/index.html). *docs.confluent.io*, 2024. Archived at [perma.cc/92C3-A9JA](https://perma.cc/92C3-A9JA) 
+[^20]: Aditya Auradkar and Tom Quiggle. [Introducing Espresso—LinkedIn’s Hot New Distributed Document Store](https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store). *engineering.linkedin.com*, January 2015. Archived at [perma.cc/FX4P-VW9T](https://perma.cc/FX4P-VW9T) 
+[^21]: Jay Kreps. [Putting Apache Kafka to Use: A Practical Guide to Building a Stream Data Platform (Part 2)](https://www.confluent.io/blog/event-streaming-platform-2/). *confluent.io*, February 2015. Archived at [perma.cc/8UA4-ZS5S](https://perma.cc/8UA4-ZS5S) 
+[^22]: Gwen Shapira. [The Problem of Managing Schemas](https://www.oreilly.com/content/the-problem-of-managing-schemas/). *oreilly.com*, November 2014. Archived at [perma.cc/BY8Q-RYV3](https://perma.cc/BY8Q-RYV3) 
+[^23]: John Larmouth. [*ASN.1 Complete*](https://www.oss.com/asn1/resources/books-whitepapers-pubs/larmouth-asn1-book.pdf). Morgan Kaufmann, 1999. ISBN: 978-0-122-33435-1. Archived at [perma.cc/GB7Y-XSXQ](https://perma.cc/GB7Y-XSXQ) 
+[^24]: Burton S. Kaliski Jr. [A Layman’s Guide to a Subset of ASN.1, BER, and DER](https://luca.ntop.org/Teaching/Appunti/asn1.html). Technical Note, RSA Data Security, Inc., November 1993. Archived at [perma.cc/2LMN-W9U8](https://perma.cc/2LMN-W9U8) 
+[^25]: Jacob Hoffman-Andrews. [A Warm Welcome to ASN.1 and DER](https://letsencrypt.org/docs/a-warm-welcome-to-asn1-and-der/). *letsencrypt.org*, April 2020. Archived at [perma.cc/CYT2-GPQ8](https://perma.cc/CYT2-GPQ8) 
+[^26]: Lev Walkin. [Question: Extensibility and Dropping Fields](https://lionet.info/asn1c/blog/2010/09/21/question-extensibility-removing-fields/). *lionet.info*, September 2010. Archived at [perma.cc/VX8E-NLH3](https://perma.cc/VX8E-NLH3) 
+[^27]: Jacqueline Xu. [Online migrations at scale](https://stripe.com/blog/online-migrations). *stripe.com*, February 2017. Archived at [perma.cc/X59W-DK7Y](https://perma.cc/X59W-DK7Y) 
+[^28]: Geoffrey Litt, Peter van Hardenberg, and Orion Henry. [Project Cambria: Translate your data with lenses](https://www.inkandswitch.com/cambria/). Technical Report, *Ink & Switch*, October 2020. Archived at [perma.cc/WA4V-VKDB](https://perma.cc/WA4V-VKDB) 
+[^29]: Pat Helland. [Data on the Outside Versus Data on the Inside](https://www.cidrdb.org/cidr2005/papers/P12.pdf). At *2nd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2005. 
+[^30]: Roy Thomas Fielding. [Architectural Styles and the Design of Network-Based Software Architectures](https://ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf). PhD Thesis, University of California, Irvine, 2000. Archived at [perma.cc/LWY9-7BPE](https://perma.cc/LWY9-7BPE) 
+[^31]: Roy Thomas Fielding. [REST APIs must be hypertext-driven](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven).” *roy.gbiv.com*, October 2008. Archived at [perma.cc/M2ZW-8ATG](https://perma.cc/M2ZW-8ATG) 
+[^32]: [OpenAPI Specification Version 3.1.0](https://swagger.io/specification/). *swagger.io*, February 2021. Archived at [perma.cc/3S6S-K5M4](https://perma.cc/3S6S-K5M4) 
+[^33]: Michi Henning. [The Rise and Fall of CORBA](https://cacm.acm.org/practice/the-rise-and-fall-of-corba/). *Communications of the ACM*, volume 51, issue 8, pages 52–57, August 2008. [doi:10.1145/1378704.1378718](https://doi.org/10.1145/1378704.1378718) 
+[^34]: Pete Lacey. [The S Stands for Simple](https://harmful.cat-v.org/software/xml/soap/simple). *harmful.cat-v.org*, November 2006. Archived at [perma.cc/4PMK-Z9X7](https://perma.cc/4PMK-Z9X7) 
+[^35]: Stefan Tilkov. [Interview: Pete Lacey Criticizes Web Services](https://www.infoq.com/articles/pete-lacey-ws-criticism/). *infoq.com*, December 2006. Archived at [perma.cc/JWF4-XY3P](https://perma.cc/JWF4-XY3P) 
+[^36]: Tim Bray. [The Loyal WS-Opposition](https://www.tbray.org/ongoing/When/200x/2004/09/18/WS-Oppo). *tbray.org*, September 2004. Archived at [perma.cc/J5Q8-69Q2](https://perma.cc/J5Q8-69Q2) 
+[^37]: Andrew D. Birrell and Bruce Jay Nelson. [Implementing Remote Procedure Calls](https://www.cs.princeton.edu/courses/archive/fall03/cs518/papers/rpc.pdf). *ACM Transactions on Computer Systems* (TOCS), volume 2, issue 1, pages 39–59, February 1984. [doi:10.1145/2080.357392](https://doi.org/10.1145/2080.357392) 
+[^38]: Jim Waldo, Geoff Wyant, Ann Wollrath, and Sam Kendall. [A Note on Distributed Computing](https://m.mirror.facebook.net/kde/devel/smli_tr-94-29.pdf). Sun Microsystems Laboratories, Inc., Technical Report TR-94-29, November 1994. Archived at [perma.cc/8LRZ-BSZR](https://perma.cc/8LRZ-BSZR) 
+[^39]: Steve Vinoski. [Convenience over Correctness](https://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf). *IEEE Internet Computing*, volume 12, issue 4, pages 89–92, July 2008. [doi:10.1109/MIC.2008.75](https://doi.org/10.1109/MIC.2008.75) 
+[^40]: Brandur Leach. [Designing robust and predictable APIs with idempotency](https://stripe.com/blog/idempotency). *stripe.com*, February 2017. Archived at [perma.cc/JD22-XZQT](https://perma.cc/JD22-XZQT) 
+[^41]: Sam Rose. [Load Balancing](https://samwho.dev/load-balancing/). *samwho.dev*, April 2023. Archived at [perma.cc/Q7BA-9AE2](https://perma.cc/Q7BA-9AE2) 
+[^42]: Troy Hunt. [Your API versioning is wrong, which is why I decided to do it 3 different wrong ways](https://www.troyhunt.com/your-api-versioning-is-wrong-which-is/). *troyhunt.com*, February 2014. Archived at [perma.cc/9DSW-DGR5](https://perma.cc/9DSW-DGR5) 
+[^43]: Brandur Leach. [APIs as infrastructure: future-proofing Stripe with versioning](https://stripe.com/blog/api-versioning). *stripe.com*, August 2017. Archived at [perma.cc/L63K-USFW](https://perma.cc/L63K-USFW) 
+[^44]: Alexandre Alves, Assaf Arkin, Sid Askary, et al. [Web Services Business Process Execution Language Version 2.0](https://docs.oasis-open.org/wsbpel/2.0/wsbpel-v2.0.html). *docs.oasis-open.org*, April 2007. 
+[^45]: [What is a Temporal Service?](https://docs.temporal.io/clusters) *docs.temporal.io*, 2024. Archived at [perma.cc/32P3-CJ9V](https://perma.cc/32P3-CJ9V) 
+[^46]: Stephan Ewen. [Why we built Restate](https://restate.dev/blog/why-we-built-restate/). *restate.dev*, August 2023. Archived at [perma.cc/BJJ2-X75K](https://perma.cc/BJJ2-X75K) 
+[^47]: Keith Tenzer and Joshua Smith. [Idempotency and Durable Execution](https://temporal.io/blog/idempotency-and-durable-execution). *temporal.io*, February 2024. Archived at [perma.cc/9LGW-PCLU](https://perma.cc/9LGW-PCLU) 
+[^48]: [What is a Temporal Workflow?](https://docs.temporal.io/workflows) *docs.temporal.io*, 2024. Archived at [perma.cc/B5C5-Y396](https://perma.cc/B5C5-Y396) 
+[^49]: Jack Kleeman. [Solving durable execution’s immutability problem](https://restate.dev/blog/solving-durable-executions-immutability-problem/). *restate.dev*, February 2024. Archived at [perma.cc/G55L-EYH5](https://perma.cc/G55L-EYH5) 
+[^50]: Srinath Perera. [Exploring Event-Driven Architecture: A Beginner’s Guide for Cloud Native Developers](https://wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/). *wso2.com*, August 2023. Archived at [archive.org](https://web.archive.org/web/20240716204613/https%3A//wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/) 
 [^51]: Philip A. Bernstein, Sergey Bykov, Alan Geller, Gabriel Kliot, and Jorgen Thelin. [Orleans: Distributed Virtual Actors for Programmability and Scalability](https://www.microsoft.com/en-us/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/). Microsoft Research Technical Report MSR-TR-2014-41, March 2014. Archived at [perma.cc/PD3U-WDMF](https://perma.cc/PD3U-WDMF) 
