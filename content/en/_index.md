@@ -1,5 +1,5 @@
 ---
-title: "Designing Data-Intensive Applications"
+title: "Designing Data-Intensive Applications 2nd Edition"
 linkTitle: DDIA
 cascade:
   type: docs
@@ -13,6 +13,7 @@ breadcrumbs: false
 
 > The en-us version only includes **intro**, **summary**, **references** of all chapters to protect the intellectual property of author and publisher.
 
+![](/title.jpg)
 
 --------
 
@@ -34,24 +35,24 @@ breadcrumbs: false
 ### [Preface](/en/preface)
 
 ### [Part I: Foundations of Data Systems](/en/part-i)
-  - [1. Reliable, Scalable, and Maintainable Applications](/en/ch1)
-  - [2. Data Models and Query Languages](/en/ch2)
-  - [3. Storage and Retrieval](/en/ch3)
-  - [4. Encoding and Evolution](/en/ch4)
+  - [1. Tradeoffs in Data Systems Architecture](/en/ch1)
+  - [2. Defining NonFunctional Requirements](/en/ch2)
+  - [3. Data Models and Query Languages](/en/ch3)
+  - [4. Storage and Retrieval](/en/ch4)
+  - [5. Encoding and Evolution](/en/ch5)
 
 ### [Part II: Distributed Data](/en/part-ii)
-  - [5. Replication](/en/ch5)
-  - [6. Partitioning](/en/ch6)
-  - [7. Transactions](/en/ch7)
-  - [8. The Trouble with Distributed Systems](/en/ch8)
-  - [9. Consistency and Consensus](/en/ch9)
+  - [6. Replication](/en/ch6)
+  - [7. Partitioning](/en/ch7)
+  - [8. Transactions](/en/ch8)
+  - [9. The Trouble with Distributed Systems](/en/ch9)
+  - [10. Consistency and Consensus](/en/ch10)
 
 ### [Part III: Derived Data](/en/part-iii)
-  - [10. Batch Processing](/en/ch10)
-  - [11. Stream Processing](/en/ch11)
-  - [12. The Future of Data Systems](/en/ch12)
+  - [11. Batch Processing](/en/ch11) (WIP)
+  - [12. Stream Processing](/en/ch12) (WIP)
+  - [13. Doing the Right Thing](/en/ch13) (WIP)
 
 ### [Glossary](/en/glossary)
 
 ### [Colophon](/en/colophon)
-

@@ -4,6 +4,9 @@ weight: 50
 breadcrumbs: false
 ---
 
+> [!IMPORTANT]
+> This page is from the 1st edition
+
 If you have worked in software engineering in recent years, especially in server-side and backend systems, you have probably been bombarded with a plethora of buzz‐ words relating to storage and processing of data. NoSQL! Big Data! Web-scale! Sharding! Eventual consistency! ACID! CAP theorem! Cloud services! MapReduce! Real-time!
 
 In the last decade we have seen many interesting developments in databases, in dis‐ tributed systems, and in the ways we build applications on top of them. There are various driving forces for these developments:
