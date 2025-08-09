@@ -12,8 +12,7 @@ breadcrumbs: false
 
 A distributed database typically distributes data across nodes in two ways:
 
-1. Having a copy of the same data on multiple nodes: this is *replication*, which we discussed in
- [Chapter 6](/en/ch6#ch_replication).
+1. Having a copy of the same data on multiple nodes: this is *replication*, which we discussed in [Chapter 6](/en/ch6#ch_replication).
 2. If we don’t want every node to store all the data, we can split up a large amount of data into
  smaller *shards* or *partitions*, and store different shards on different nodes. We’ll discuss
  sharding in this chapter.
@@ -38,7 +37,9 @@ Everything we discussed in [Chapter 6](/en/ch6#ch_replication) about replicatio
 replication of shards. Since the choice of sharding scheme is mostly independent of the choice of
 replication scheme, we will ignore replication in this chapter for the sake of simplicity.
 
-# Sharding and Partitioning
+--------
+
+> [!TIP] SHARDING AND PARTITIONING
 
 What we call a *shard* in this chapter has many different names depending on which software you’re
 using: it’s called a *partition* in Kafka, a *range* in CockroachDB, a *region* in HBase and TiDB, a
@@ -61,7 +62,9 @@ Available Replicated Data*—reportedly a 1980s database, details of which are l
 By the way, partitioning has nothing to do with *network partitions* (netsplits), a type of fault in
 the network between nodes. We will discuss such faults in [Chapter 9](/en/ch9#ch_distributed).
 
-# Pros and Cons of Sharding
+--------
+
+## Pros and Cons of Sharding
 
 The primary reason for sharding a database is *scalability*: it’s a solution if the volume of data
 or the write throughput has become too great for a single node to handle, as it allows you to spread
@@ -105,7 +108,7 @@ access* (NUMA) architecture in which some banks of memory are closer to one CPU 
 For example, Redis, VoltDB, and FoundationDB use one process per core, and rely on sharding to
 spread load across CPU cores in the same machine [^6].
 
-## Sharding for Multitenancy
+### Sharding for Multitenancy
 
 Software as a Service (SaaS) products and cloud services are often *multitenant*, where each tenant
 is a customer. Multiple users may have logins on the same tenant, but each tenant has a
@@ -166,7 +169,9 @@ The main challenges around using sharding for multitenancy are:
 * If you ever need to support features that connect data across multiple tenants, these become
  harder to implement if you need to join data across multiple shards.
 
-# Sharding of Key-Value Data
+
+
+## Sharding of Key-Value Data
 
 Say you have a large amount of data, and you want to shard it. How do you decide which records to
 store on which nodes?
@@ -181,8 +186,7 @@ If the sharding is unfair, so that some shards have more data or queries than ot
 *skewed*. The presence of skew makes sharding much less effective. In an extreme case, all the load
 could end up on one shard, so 9 out of 10 nodes are idle and your bottleneck is the single busy
 node. A shard with disproportionately high load is called a *hot shard* or *hot spot*. If there’s
-one key with a particularly high load (e.g., a celebrity in a social network), we call it a *hot
-key*.
+one key with a particularly high load (e.g., a celebrity in a social network), we call it a *hot key*.
 
 Therefore we need an algorithm that takes as input the partition key of a record, and tells us which
 shard that record is in. In a key-value store the partition key is usually the key, or the first
@@ -190,7 +194,8 @@ part of the key. In a relational model the partition key might be some column of
 necessarily its primary key). That algorithm needs to be amenable to rebalancing in order to relieve
 hot spots.
 
-## Sharding by Key Range
+
+### Sharding by Key Range
 
 One way of sharding is to assign a contiguous range of partition keys (from some minimum to some
 maximum) to each shard, like the volumes of a paper encyclopedia, as illustrated in
@@ -233,7 +238,7 @@ active at the same time, the write load will end up more evenly spread across th
 downside is that when you want to fetch the values of multiple sensors within a time range, you now
 need to perform a separate range query for each sensor.
 
-### Rebalancing key-range sharded data
+#### Rebalancing key-range sharded data
 
 When you first set up your database, there are no key ranges to split into shards. Some databases,
 such as HBase and MongoDB, allow you to configure an initial set of shards on an empty database,
@@ -251,20 +256,18 @@ With databases that manage shard boundaries automatically, a shard split is typi
 
 * the shard reaching a configured size (for example, on HBase, the default is 10 GB), or
 * in some systems, the write throughput being persistently above some threshold. Thus, a hot shard
- may be split even if it is not storing a lot of data, so that its write load can be distributed
- more uniformly.
+ may be split even if it is not storing a lot of data, so that its write load can be distributed more uniformly.
 
 An advantage of key-range sharding is that the number of shards adapts to the data volume. If there
 is only a small amount of data, a small number of shards is sufficient, so overheads are small; if
-there is a huge amount of data, the size of each individual shard is limited to a configurable
-maximum [^15].
+there is a huge amount of data, the size of each individual shard is limited to a configurable maximum [^15].
 
 A downside of this approach is that splitting a shard is an expensive operation, since it requires
 all of its data to be rewritten into new files, similarly to a compaction in a log-structured
 storage engine. A shard that needs splitting is often also one that is under high load, and the cost
 of splitting can exacerbate that load, risking it becoming overloaded.
 
-## Sharding by Hash of Key
+### Sharding by Hash of Key
 
 Key-range sharding is useful if you want records with nearby (but different) partition keys to be
 grouped into the same shard; for example, this might be the case with timestamps. If you don’t care
@@ -273,9 +276,8 @@ application), a common approach is to first hash the partition key before mappin
 
 A good hash function takes skewed data and makes it uniformly distributed. Say you have a 32-bit
 hash function that takes a string. Whenever you give it a new string, it returns a seemingly random
-number between 0 and 232 − 1. Even if the input strings are very similar, their
-hashes are evenly distributed across that range of numbers (but the same input always produces the
-same output).
+number between 0 and 232 − 1. Even if the input strings are very similar, their hashes are evenly 
+distributed across that range of numbers (but the same input always produces the same output).
 
 For sharding purposes, the hash function need not be cryptographically strong: for example, MongoDB
 uses MD5, whereas Cassandra and ScyllaDB use Murmur3. Many programming languages have simple hash
@@ -283,7 +285,7 @@ functions built in (as they are used for hash tables), but they may not be suita
 for example, in Java’s `Object.hashCode()` and Ruby’s `Object#hash`, the same key may have a
 different hash value in different processes, making them unsuitable for sharding [^16].
 
-### Hash modulo number of nodes
+#### Hash modulo number of nodes
 
 Once you have hashed the key, how do you choose which shard to store it in? Maybe your first thought
 is to take the hash value *modulo* the number of nodes in the system (using the `%` operator in many
@@ -303,7 +305,7 @@ The *mod N* function is easy to compute, but it leads to very inefficient rebala
 is a lot of unnecessary movement of records from one node to another. We need an approach that
 doesn’t move data around more than necessary.
 
-### Fixed number of shards
+#### Fixed number of shards
 
 One simple but widely-used solution is to create many more shards than there are nodes, and to
 assign several shards to each node. For example, a database running on a cluster of 10 nodes may be
@@ -313,8 +315,7 @@ which shard is stored on which node.
 
 Now, if a node is added to the cluster, the system can reassign some of the shards from existing
 nodes to the new node until they are fairly distributed once again. This process is illustrated in
-[Figure 7-4](/en/ch7#fig_sharding_rebalance_fixed). If a node is removed from the cluster, the same happens in
-reverse.
+[Figure 7-4](/en/ch7#fig_sharding_rebalance_fixed). If a node is removed from the cluster, the same happens in reverse.
 
 {{< figure src="/fig/ddia_0704.png" id="fig_sharding_rebalance_fixed" caption="Figure 7-4. Adding a new node to a database cluster with multiple shards per node." class="w-full my-4" >}}
 
@@ -349,7 +350,7 @@ expensive. But if shards are too small, they incur too much overhead. The best p
 achieved when the size of shards is “just right,” neither too big nor too small, which can be hard
 to achieve if the number of shards is fixed but the dataset size varies.
 
-### Sharding by hash range
+#### Sharding by hash range
 
 If the required number of shards can’t be predicted in advance, it’s better to use a scheme in which
 the number of shards can adapt easily to the workload. The aforementioned key-range sharding scheme
@@ -375,7 +376,9 @@ two or more columns, and the partition key is only the first of these columns, y
 efficient range queries over the second and later columns: as long as all records in the range query
 have the same partition key, they will be in the same shard.
 
-# Partitioning and Range Queries in Data Warehouses
+--------
+
+> [!TIPS] PARTITIONING AND RANGE QUERIES IN DATA WAREHOUSES
 
 Data warehouses such as BigQuery, Snowflake, and Delta Lake support a similar indexing approach,
 though the terminology differs. In BigQuery, for example, the partition key determines which
@@ -384,6 +387,8 @@ partition. Snowflake assigns records to “micro-partitions” automatically, bu
 cluster keys for a table. Delta Lake supports both manual and automatic partition assignment, and
 supports cluster keys. Clustering data not only improves range scan performance, but can
 improve compression and filtering performance as well.
+
+--------
 
 Hash-range sharding is used in YugabyteDB and DynamoDB [^17], and is an option in MongoDB.
 Cassandra and ScyllaDB use a variant of this approach that is illustrated in
@@ -402,7 +407,7 @@ transfers parts of two of its ranges to node 3, and node 2 transfers part of one
 node 3. This has the effect of giving the new node an approximately fair share of the dataset,
 without transferring more data than necessary from one node to another.
 
-### Consistent hashing
+#### Consistent hashing
 
 A *consistent hashing* algorithm is a hash function that maps keys to a specified number of shards
 in a way that satisfies two properties:
@@ -422,7 +427,7 @@ sub-ranges; on the other hand, with rendezvous and jump consistent hashes, the n
 individual keys that were previously scattered across all of the other nodes. Which one is
 preferable depends on the application.
 
-## Skewed Workloads and Relieving Hot Spots
+### Skewed Workloads and Relieving Hot Spots
 
 Consistent hashing ensures that keys are uniformly distributed across nodes, but that doesn’t mean
 that the actual load is uniformly distributed. If the workload is highly skewed—that is, the amount
@@ -461,7 +466,7 @@ Some systems (especially cloud services designed for large scale) have automated
 dealing with hot shards; for example, Amazon calls it *heat management* [^28] or *adaptive capacity* [^17].
 The details of how these systems work go beyond the scope of this book.
 
-## Operations: Automatic or Manual Rebalancing
+### Operations: Automatic or Manual Rebalancing
 
 There is one important question with regard to rebalancing that we have glossed over: does the
 splitting of shards and rebalancing happen automatically or manually?
@@ -469,8 +474,7 @@ splitting of shards and rebalancing happen automatically or manually?
 Some systems automatically decide when to split shards and when to move them from one node to
 another, without any human interaction, while others leave sharding to be explicitly configured by
 an administrator. There is also a middle ground: for example, Couchbase and Riak generate a
-suggested shard assignment automatically, but require an administrator to commit it before it takes
-effect.
+suggested shard assignment automatically, but require an administrator to commit it before it takes effect.
 
 Fully automated rebalancing can be convenient, because there is less operational work to do for
 normal maintenance, and such systems can even auto-scale to adapt to changes in workload. Cloud
@@ -488,13 +492,14 @@ Such automation can be dangerous in combination with automatic failure detection
 one node is overloaded and is temporarily slow to respond to requests. The other nodes conclude that
 the overloaded node is dead, and automatically rebalance the cluster to move load away from it. This
 puts additional load on other nodes and the network, making the situation worse. There is a risk of
-causing a cascading failure where other nodes become overloaded and are also falsely suspected of
-being down.
+causing a cascading failure where other nodes become overloaded and are also falsely suspected of being down.
 
 For that reason, it can be a good thing to have a human in the loop for rebalancing. It’s slower
 than a fully automatic process, but it can help prevent operational surprises.
 
-# Request Routing
+
+
+## Request Routing
 
 We have discussed how to shard a dataset across multiple nodes, and how to rebalance those shards as
 nodes are added or removed. Now let’s move on to the question: if you want to read or write a
@@ -508,8 +513,8 @@ balancer can send a request to any of the instances. With sharded databases, a r
 only be handled by a node that is a replica for the shard containing that key.
 
 This means that request routing has to be aware of the assignment from keys to shards, and from
-shards to nodes. On a high level, there are a few different approaches to this problem (illustrated
-in [Figure 7-7](/en/ch7#fig_sharding_routing)):
+shards to nodes. On a high level, there are a few different approaches to this problem 
+(illustrated in [Figure 7-7](/en/ch7#fig_sharding_routing)):
 
 1. Allow clients to contact any node (e.g., via a round-robin load balancer). If that node
  coincidentally owns the shard to which the request applies, it can handle the request directly;
@@ -568,7 +573,7 @@ typically have a very different kind of query execution: rather than executing i
 query typically needs to aggregate and join data from many different shards in parallel. We will
 discuss techniques for such parallel query execution in [Link to Come].
 
-# Sharding and Secondary Indexes
+## Sharding and Secondary Indexes
 
 The sharding schemes we have discussed so far rely on the client knowing the partition key for any
 record it wants to access. This is most easily done in a key-value data model, where the partition
@@ -587,7 +592,7 @@ search engines such as Solr and Elasticsearch. The problem with secondary indexe
 map neatly to shards. There are two main approaches to sharding a database with secondary indexes:
 local and global indexes.
 
-## Local Secondary Indexes
+### Local Secondary Indexes
 
 For example, imagine you are operating a website for selling used cars (illustrated in
 [Figure 7-9](/en/ch7#fig_sharding_local_secondary)). Each listing has a unique ID, and you use that ID as partition
@@ -602,13 +607,15 @@ automatically adds its ID to the list of IDs for the index entry `color:red`. As
 
 {{< figure src="/fig/ddia_0709.png" id="fig_sharding_local_secondary" caption="Figure 7-9. Local secondary indexes: each shard indexes only the records within its own shard." class="w-full my-4" >}}
 
-###### Warning
+> [!WARN] WARNING
 
 If your database only supports a key-value model, you might be tempted to implement a secondary
 index yourself by creating a mapping from values to IDs in application code. If you go down this
 route, you need to take great care to ensure your indexes remain consistent with the underlying
 data. Race conditions and intermittent write failures (where some changes were saved but others
 weren’t) can very easily cause the data to go out of sync—see [“The need for multi-object transactions”](/en/ch8#sec_transactions_need).
+
+--------
 
 In this indexing approach, each shard is completely separate: each shard maintains its own secondary
 indexes, covering only the records in that shard. It doesn’t care what data is stored in other
@@ -635,7 +642,7 @@ process every query anyway.
 Nevertheless, local secondary indexes are widely used [^31]: for example, MongoDB, Riak, Cassandra [^32], Elasticsearch [^33], 
 SolrCloud, and VoltDB [^34] all use local secondary indexes.
 
-## Global Secondary Indexes
+### Global Secondary Indexes
 
 Rather than each shard having its own, local secondary index, we can construct a *global index* that
 covers data in all shards. However, we can’t just store that index on one node, since it would
@@ -645,16 +652,13 @@ but it can be sharded differently from the primary key index.
 [Figure 7-10](/en/ch7#fig_sharding_global_secondary) illustrates what this could look like: the IDs of red cars from
 all shards appear under `color:red` in the index, but the index is sharded so that colors starting
 with the letters *a* to *r* appear in shard 0 and colors starting with *s* to *z* appear in shard 1.
-The index on the make of car is partitioned similarly (with the shard boundary being between *f* and
-*h*).
+The index on the make of car is partitioned similarly (with the shard boundary being between *f* and *h*).
 
 {{< figure src="/fig/ddia_0710.png" id="fig_sharding_global_secondary" caption="Figure 7-10. A global secondary index reflects data from all shards, and is itself sharded by the indexed value." class="w-full my-4" >}}
 
-This kind of index is also called *term-partitioned*
-[^30]:
+This kind of index is also called *term-partitioned* [^30]:
 recall from [“Full-Text Search”](/en/ch4#sec_storage_full_text) that in full-text search, a *term* is a keyword in a text that
-you can search for. Here we generalise it to mean any value that you can search for in the secondary
-index.
+you can search for. Here we generalise it to mean any value that you can search for in the secondary index.
 
 The global index uses the term as partition key, so that when you’re looking for a particular term
 or value, you can figure out which shard you need to query. As before, a shard can contain a
@@ -684,6 +688,7 @@ indexes, so reads from a global index may be stale (similarly to replication lag
 Nevertheless, global indexes are useful if read throughput is higher than write throughput, and if
 the postings lists are not too long.
 
+
 ## Summary
 
 In this chapter we explored different ways of sharding a large dataset into smaller subsets.
@@ -692,8 +697,7 @@ is no longer feasible.
 
 The goal of sharding is to spread the data and query load evenly across multiple machines, avoiding
 hot spots (nodes with disproportionately high load). This requires choosing a sharding scheme that
-is appropriate to your data, and rebalancing the shards when nodes are added to or removed from the
-cluster.
+is appropriate to your data, and rebalancing the shards when nodes are added to or removed from the cluster.
 
 We discussed two main approaches to sharding:
 

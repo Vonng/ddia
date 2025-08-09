@@ -34,7 +34,7 @@ explore how to think about the state of a distributed system and how to reason a
 have happened ([“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth)). Later, in [Chapter 10](/en/ch10#ch_consistency), we will look at some
 examples of how we can achieve fault tolerance in the face of those faults.
 
-# Faults and Partial Failures
+## Faults and Partial Failures
 
 When you are writing a program on a single computer, it normally behaves in a fairly predictable
 way: either it works or it doesn’t. Buggy software may give the appearance that the computer is
@@ -69,7 +69,7 @@ anecdote [^3]:
 > pickup truck into a DC’s HVAC [heating, ventilation, and air conditioning] system. And I’m not even
 > an ops guy.
 >
-> Coda Hale
+> —— Coda Hale
 
 In a distributed system, there may well be some parts of the system that are broken in some
 unpredictable way, even though other parts of the system are working fine. This is known as a
@@ -77,8 +77,7 @@ unpredictable way, even though other parts of the system are working fine. This 
 anything involving multiple nodes and the network, it may sometimes work and sometimes unpredictably
 fail. As we shall see, you may not even *know* whether something succeeded or not!
 
-This nondeterminism and possibility of partial failures is what makes distributed systems hard to
-work with [^4].
+This nondeterminism and possibility of partial failures is what makes distributed systems hard to work with [^4].
 On the other hand, if a distributed system can tolerate partial failures, that opens up powerful
 possibilities: for example, it allows you to perform a rolling upgrade, rebooting one node at a time
 to install software updates while the system as a whole continues working uninterrupted all the
@@ -90,7 +89,7 @@ supposed to tolerate. It is important to consider a wide range of possible fault
 unlikely ones—and to artificially create such situations in your testing environment to see what
 happens. In distributed systems, suspicion, pessimism, and paranoia pay off.
 
-# Unreliable Networks
+## Unreliable Networks
 
 As discussed in [“Shared-Memory, Shared-Disk, and Shared-Nothing Architecture”](/en/ch2#sec_introduction_shared_nothing), the distributed systems we focus on
 in this book are mostly *shared-nothing systems*: i.e., a bunch of machines connected by a network.
@@ -130,17 +129,21 @@ the response is not going to arrive. However, when a timeout occurs, you still d
 the remote node got your request or not (and if the request is still queued somewhere, it may still
 be delivered to the recipient, even if the sender has given up on it).
 
-## The Limitations of TCP
+### The Limitations of TCP
 
 Network packets have a maximum size (generally a few kilobytes), but many applications need to send
 messages (requests, responses) that are too big to fit in one packet. These applications most often
 use TCP, the Transmission Control Protocol, to establish a *connection* that breaks up large data
 streams into individual packets, and puts them back together again on the receiving side.
 
+--------
+
 > [!NOTE]
 > Most of what we say about TCP applies also to its more recent alternative QUIC, as well as the
 > Stream Control Transmission Protocol (SCTP) used in WebRTC, the BitTorrent uTP protocol, and
 > other transport protocols. For a comparison to UDP, see [“TCP Versus UDP”](/en/ch9#sidebar_distributed_tcp_udp).
+
+--------
 
 TCP is often described as providing “reliable” delivery, in the sense that it detects and
 retransmits dropped packets, it detects reordered packets and puts them back in the correct order,
@@ -177,7 +180,7 @@ use it to send multiple requests and responses. This is usually done by first se
 indicates the length of the following message in bytes, followed by the actual message. HTTP and
 many RPC protocols (see [“Dataflow Through Services: REST and RPC”](/en/ch5#sec_encoding_dataflow_rpc)) work like this.
 
-## Network Faults in Practice
+### Network Faults in Practice
 
 We have been building computer networks for decades—one might hope that by now we would have figured
 out how to make them reliable. Unfortunately, we have not yet succeeded. There are some systematic
@@ -197,24 +200,26 @@ even in controlled environments like a datacenter operated by one company [^8]:
 * Across different cloud regions, round-trip times of up to several *minutes* have been observed at
  high percentiles [^18].
  Even within a single datacenter, packet delay of more than a minute can occur during a network
- topology reconfiguration, triggered by a problem during a software upgrade for a switch
- [^19].
+ topology reconfiguration, triggered by a problem during a software upgrade for a switch [^19].
  Thus, we have to assume that messages might be delayed arbitrarily.
 * Sometimes communications are partially interrupted, depending on who you’re talking to: for
  example, A and B can communicate, B and C can communicate, but A and C cannot [^20] [^21].
  Other surprising faults include a network interface that sometimes drops all inbound packets but
  sends outbound packets successfully [^22]:
- just because a network link works in one direction doesn’t guarantee it’s also working in the
- opposite direction.
+ just because a network link works in one direction doesn’t guarantee it’s also working in the opposite direction.
 * Even a brief network interruption can have repercussions that last for much longer than the
  original issue [^8] [^20] [^23].
 
-# Network partitions
+--------
+
+> [!TIP] NETWORK PARTITIONS
 
 When one part of the network is cut off from the rest due to a network fault, that is sometimes
 called a *network partition* or *netsplit*, but it is not fundamentally different from other kinds
 of network interruption. Network partitions are not related to sharding of a storage system, which
 is sometimes also called *partitioning* (see [Chapter 7](/en/ch7#ch_sharding)).
+
+--------
 
 Even if network faults are rare in your environment, the fact that faults *can* occur means that
 your software needs to be able to handle them. Whenever any communication happens over a network, it
@@ -233,7 +238,7 @@ and ensure that the system can recover from them.
 It may make sense to deliberately trigger network problems and test the system’s response (this is
 known as *fault injection*; see [“Fault injection”](/en/ch9#sec_fault_injection)).
 
-## Detecting Faults
+### Detecting Faults
 
 Many systems need to automatically detect faulty nodes. For example:
 
@@ -266,7 +271,7 @@ gone wrong, you may get an error response at some level of the stack, but in gen
 assume that you will get no response at all. You can retry a few times, wait for a timeout to
 elapse, and eventually declare the node dead if you don’t hear back within the timeout.
 
-## Timeouts and Unbounded Delays
+### Timeouts and Unbounded Delays
 
 If a timeout is the only sure way of detecting a fault, then how long should the timeout be? There
 is unfortunately no simple answer.
@@ -304,7 +309,7 @@ cannot guarantee that they can handle requests within some maximum time (see
 be fast most of the time: if your timeout is low, it only takes a transient spike in round-trip
 times to throw the system off-balance.
 
-### Network congestion and queueing
+#### Network congestion and queueing
 
 When driving a car, travel times on road networks often vary most due to traffic congestion.
 Similarly, the variability of packet delays on computer networks is most often due to queueing [^27]:
@@ -327,12 +332,13 @@ Similarly, the variability of packet delays on computer networks is most often d
 
 {{< figure src="/fig/ddia_0902.png" id="fig_distributed_switch_queueing" caption="Figure 9-2. If several machines send network traffic to the same destination, its switch queue can fill up. Here, ports 1, 2, and 4 are all trying to send packets to port 3." class="w-full my-4" >}}
 
-
 Moreover, when TCP detects and automatically retransmits a lost packet, although the application
 does not see the packet loss directly, it does see the resulting delay (waiting for the timeout to
 expire, and then waiting for the retransmitted packet to be acknowledged).
 
-# TCP Versus UDP
+--------
+
+> [!TIP] TCP VERSUS UDP
 
 Some latency-sensitive applications, such as videoconferencing and Voice over IP (VoIP), use UDP
 rather than TCP. It’s a trade-off between reliability and variability of delays: as UDP does not
@@ -345,6 +351,8 @@ played over the loudspeakers. In this case, there’s no point in retransmitting
 application must instead fill the missing packet’s time slot with silence (causing a brief
 interruption in the sound) and move on in the stream. The retry happens at the human layer instead.
 (“Could you repeat that please? The sound just cut out for a moment.”)
+
+--------
 
 All of these factors contribute to the variability of network delays. Queueing delays have an
 especially wide range when a system is close to its maximum capacity: a system with plenty of spare
@@ -369,7 +377,7 @@ observed response time distribution. The Phi Accrual failure detector [^32],
 which is used for example in Akka and Cassandra [^33]
 is one way of doing this. TCP retransmission timeouts also work similarly [^5].
 
-## Synchronous Versus Asynchronous Networks
+### Synchronous Versus Asynchronous Networks
 
 Distributed systems would be a lot simpler if we could rely on the network to deliver packets with
 some fixed maximum delay, and not to drop packets. Why can’t we solve this at the hardware level
@@ -394,7 +402,7 @@ suffer from queueing, because the 16 bits of space for the call have already bee
 next hop of the network. And because there is no queueing, the maximum end-to-end latency of the
 network is fixed. We call this a *bounded delay*.
 
-### Can we not simply make network delays predictable?
+#### Can we not simply make network delays predictable?
 
 Note that a circuit in a telephone network is very different from a TCP connection: a circuit is a
 fixed amount of reserved bandwidth which nobody else can use while the circuit is established,
@@ -433,7 +441,9 @@ Loss, and Scalable Throughput (L4S) attempt to mitigate some of the queuing and 
 problems both at the client and router level. Linux’s traffic controller (TC) also allows
 applications to reprioritize packets for QoS purposes.
 
-# Latency and Resource Utilization
+--------
+
+> [!TIP] LATENCY AND RESOURCE UTILIZATION
 
 More generally, you can think of variable delays as a consequence of dynamic resource partitioning.
 
@@ -460,25 +470,25 @@ platforms run several virtual machines from different customers on the same phys
 Latency guarantees are achievable in certain environments, if resources are statically partitioned
 (e.g., dedicated hardware and exclusive bandwidth allocations). However, it comes at the cost of
 reduced utilization—in other words, it is more expensive. On the other hand, multitenancy with
-dynamic resource partitioning provides better utilization, so it is cheaper, but it has the downside
-of variable delays.
+dynamic resource partitioning provides better utilization, so it is cheaper, but it has the downside of variable delays.
 
-Variable delays in networks are not a law of nature, but simply the result of a cost/benefit
-trade-off.
+Variable delays in networks are not a law of nature, but simply the result of a cost/benefit trade-off.
 
-However, such quality of service is currently not enabled in multitenant datacenters and public
-clouds, or when communicating via the internet.
+--------
+
+However, such quality of service is currently not enabled in multitenant datacenters and public clouds, or when communicating via the internet.
 Currently deployed technology does not allow us to make any guarantees about delays or reliability
 of the network: we have to assume that network congestion, queueing, and unbounded delays will
-happen. Consequently, there’s no “correct” value for timeouts—they need to be determined
-experimentally.
+happen. Consequently, there’s no “correct” value for timeouts—they need to be determined experimentally.
 
 Peering agreements between internet service providers and the establishment of routes through the
 Border Gateway Protocol (BGP), bear closer resemblance to circuit switching than IP itself. At this
 level, it is possible to buy dedicated bandwidth. However, internet routing operates at the level of
 networks, not individual connections between hosts, and at a much longer timescale.
 
-# Unreliable Clocks
+
+
+## Unreliable Clocks
 
 Clocks and time are important. Applications depend on clocks in various ways to answer questions
 like the following:
@@ -509,13 +519,13 @@ synchronize clocks to some degree: the most commonly used mechanism is the Netwo
 allows the computer clock to be adjusted according to the time reported by a group of servers [^39].
 The servers in turn get their time from a more accurate time source, such as a GPS receiver.
 
-## Monotonic Versus Time-of-Day Clocks
+### Monotonic Versus Time-of-Day Clocks
 
 Modern computers have at least two different kinds of clocks: a *time-of-day clock* and a *monotonic
 clock*. Although they both measure time, it is important to distinguish the two, since they serve
 different purposes.
 
-### Time-of-day clocks
+#### Time-of-day clocks
 
 A time-of-day clock does what you intuitively expect of a clock: it returns the current date and
 time according to some calendar (also known as *wall-clock time*). For example,
@@ -539,11 +549,10 @@ Time-of-day clocks have also historically had quite a coarse-grained resolution,
 in steps of 10 ms on older Windows systems [^41].
 On recent systems, this is less of a problem.
 
-### Monotonic clocks
+#### Monotonic clocks
 
 A monotonic clock is suitable for measuring a duration (time interval), such as a timeout or a
-service’s response time: `clock_gettime(CLOCK_MONOTONIC)` or `clock_gettime(CLOCK_BOOTTIME)` on
-Linux [^42]
+service’s response time: `clock_gettime(CLOCK_MONOTONIC)` or `clock_gettime(CLOCK_BOOTTIME)` on Linux [^42]
 and `System.nanoTime()` in Java are monotonic clocks, for example. The name comes from the fact that
 they are guaranteed to always move forward (whereas a time-of-day clock may jump back in time).
 
@@ -571,7 +580,7 @@ In a distributed system, using a monotonic clock for measuring elapsed time (e.g
 usually fine, because it doesn’t assume any synchronization between different nodes’ clocks and is
 not sensitive to slight inaccuracies of measurement.
 
-## Clock Synchronization and Accuracy
+### Clock Synchronization and Accuracy
 
 Monotonic clocks don’t need synchronization, but time-of-day clocks need to be set according to an
 NTP server or other external time source in order to be useful. Unfortunately, our methods for
@@ -631,7 +640,7 @@ Some cloud providers have begun offering high-accuracy clock synchronization for
 However, clock synchronization still requires a lot of care. If your NTP daemon is misconfigured, or
 a firewall is blocking NTP traffic, the clock error due to drift can quickly become large.
 
-## Relying on Synchronized Clocks
+### Relying on Synchronized Clocks
 
 The problem with clocks is that while they seem simple and easy to use, they have a surprising
 number of pitfalls: a day may not have exactly 86,400 seconds, time-of-day clocks may move backward
@@ -655,7 +664,7 @@ monitor the clock offsets between all the machines. Any node whose clock drifts 
 others should be declared dead and removed from the cluster. Such monitoring ensures that you notice
 the broken clocks before they can cause too much damage.
 
-### Timestamps for ordering events
+#### Timestamps for ordering events
 
 Let’s consider one particular situation in which it is tempting, but dangerous, to rely on clocks:
 ordering of events across multiple nodes [^64].
@@ -718,8 +727,7 @@ arrived before it was sent, which is impossible.
 Could NTP synchronization be made accurate enough that such incorrect orderings cannot occur?
 Probably not, because NTP’s synchronization accuracy is itself limited by the network round-trip
 time, in addition to other sources of error such as quartz drift. To guarantee a correct ordering,
-you would need the clock error to be significantly lower than the network delay, which is not
-possible.
+you would need the clock error to be significantly lower than the network delay, which is not possible.
 
 So-called *logical clocks* [^66], which are based on incrementing counters rather than an oscillating quartz crystal, are a safer
 alternative for ordering events (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)). Logical clocks do not measure
@@ -728,7 +736,7 @@ event happened before or after another). In contrast, time-of-day and monotonic 
 measure actual elapsed time, are also known as *physical clocks*. We’ll look at logical clocks in
 more detail in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).
 
-### Clock readings with a confidence interval
+#### Clock readings with a confidence interval
 
 You may be able to read a machine’s time-of-day clock with microsecond or even nanosecond
 resolution. But even if you can get such a fine-grained measurement, that doesn’t mean the value is
@@ -740,10 +748,8 @@ possible accuracy is probably to the tens of milliseconds, and the error may eas
 
 Thus, it doesn’t make sense to think of a clock reading as a point in time—it is more like a
 range of times, within a confidence interval: for example, a system may be 95% confident that the
-time now is between 10.3 and 10.5 seconds past the minute, but it doesn’t know any more precisely
-than that [^67].
-If we only know the time +/– 100 ms, the microsecond digits in the timestamp are
-essentially meaningless.
+time now is between 10.3 and 10.5 seconds past the minute, but it doesn’t know any more precisely than that [^67].
+If we only know the time +/– 100 ms, the microsecond digits in the timestamp are essentially meaningless.
 
 The uncertainty bound can be calculated based on your time source. If you have a GPS receiver or
 atomic clock directly attached to your computer, the expected error range is determined by
@@ -763,7 +769,7 @@ timestamp. Based on its uncertainty calculations, the clock knows that the actua
 somewhere within that interval. The width of the interval depends, among other things, on how long
 it has been since the local quartz clock was last synchronized with a more accurate clock source.
 
-### Synchronized clocks for global snapshots
+#### Synchronized clocks for global snapshots
 
 In [“Snapshot Isolation and Repeatable Read”](/en/ch8#sec_transactions_snapshot_isolation) we discussed *multi-version concurrency control* (MVCC),
 which is a very useful feature in databases that need to support both small, fast read-write
@@ -807,7 +813,7 @@ have a confidence interval, and the accurate clock sources only help keep that i
 systems are beginning to adopt similar approaches: for example, YugabyteDB can leverage ClockBound
 when running on AWS [^70], and several other systems now also rely on clock synchronization to various degrees [^71] [^72].
 
-## Process Pauses
+### Process Pauses
 
 Let’s consider another example of dangerous clock use in a distributed system. Say you have a
 database with a single leader per shard. Only the leader is allowed to accept writes. How does a
@@ -824,16 +830,16 @@ You can imagine the request-handling loop looking something like this:
 
 ```js
 while (true) {
- request = getIncomingRequest();
+    request = getIncomingRequest();
 
- // Ensure that the lease always has at least 10 seconds remaining
- if (lease.expiryTimeMillis - System.currentTimeMillis() < 10000) {
- lease = lease.renew();
- }
+    // Ensure that the lease always has at least 10 seconds remaining
+    if (lease.expiryTimeMillis - System.currentTimeMillis() < 10000) {
+        lease = lease.renew();
+    }
 
- if (lease.isValid()) {
- process(request);
- }
+    if (lease.isValid()) {
+        process(request);
+    }
 }
 ```
 
@@ -917,7 +923,7 @@ keeps moving and may even declare the paused node dead because it’s not respon
 the paused node may continue running, without even noticing that it was asleep until it checks its
 clock sometime later.
 
-### Response time guarantees
+#### Response time guarantees
 
 In many programming languages and operating systems, threads and processes may pause for an
 unbounded amount of time, as discussed. Those reasons for pausing *can* be eliminated if you try
@@ -929,11 +935,15 @@ must respond quickly and predictably to their sensor inputs. In these systems, t
 *deadline* by which the software must respond; if it doesn’t meet the deadline, that may cause a
 failure of the entire system. These are so-called *hard real-time* systems.
 
+--------
+
 > [!NOTE]
 > In embedded systems, *real-time* means that a system is carefully designed and tested to meet
 > specified timing guarantees in all circumstances. This meaning is in contrast to the more vague use of the
 > term *real-time* on the web, where it describes servers pushing data to clients and stream
 > processing without hard response time constraints (see [Link to Come]).
+
+--------
 
 For example, if your car’s onboard sensors detect that you are currently experiencing a crash, you
 wouldn’t want the release of the airbag to be delayed due to an inopportune GC pause in the airbag
@@ -958,7 +968,7 @@ For most server-side data processing systems, real-time guarantees are simply no
 appropriate. Consequently, these systems must suffer the pauses and clock instability that come from
 operating in a non-real-time environment.
 
-### Limiting the impact of garbage collection
+#### Limiting the impact of garbage collection
 
 Garbage collection used to be one of the biggest reasons for process pauses [^79],
 but fortunately GC algorithms have improved a lot: a properly tuned collector will now usually pause
@@ -990,7 +1000,9 @@ planned restart, like in a rolling upgrade (see [Chapter 5](/en/ch5#ch_encoding
 These measures cannot fully prevent garbage collection pauses, but they can usefully reduce their
 impact on the application.
 
-# Knowledge, Truth, and Lies
+
+
+## Knowledge, Truth, and Lies
 
 So far in this chapter we have explored the ways in which distributed systems are different from
 programs running on a single computer: there is no shared memory, only message passing via an
@@ -1005,8 +1017,7 @@ exchanging messages with it. If a remote node doesn’t respond, there is no way
 it is in, because problems in the network cannot reliably be distinguished from problems at a node.
 
 Discussions of these systems border on the philosophical: What do we know to be true or false in our
-system? How sure can we be of that knowledge, if the mechanisms for perception and measurement are
-unreliable [^83]?
+system? How sure can we be of that knowledge, if the mechanisms for perception and measurement are unreliable [^83]?
 Should software systems obey the laws that we expect of the physical world, such as cause and effect?
 
 Fortunately, we don’t need to go as far as figuring out the meaning of life. In a distributed
@@ -1022,7 +1033,7 @@ we can make and the guarantees we may want to provide. In [Chapter 10](/en/ch10
 look at some examples of distributed algorithms that provide particular guarantees under particular
 assumptions.
 
-## The Majority Rules
+### The Majority Rules
 
 Imagine a network with an asymmetric fault: a node is able to receive all messages sent to it, but
 any outgoing messages from that node are dropped or delayed [^22]. Even though that node is working
@@ -1064,7 +1075,7 @@ tolerated). However, it is still safe, because there can only be only one majori
 system—there cannot be two majorities with conflicting decisions at the same time. We will discuss
 the use of quorums in more detail when we get to *consensus algorithms* in [Chapter 10](/en/ch10#ch_consistency).
 
-## Distributed Locks and Leases
+### Distributed Locks and Leases
 
 Locks and leases in distributed application are prone to be misused, and a common source of bugs [^84].
 Let’s look at one particular case of how they can go wrong.
@@ -1087,8 +1098,7 @@ wasted computational resources, which is not a big deal. But in the first two ca
 could be lost or corrupted data, which is much more serious.
 
 For example, [Figure 9-4](/en/ch9#fig_distributed_lease_pause) shows a data corruption bug due to an incorrect
-implementation of locking. (The bug is not theoretical: HBase used to have this problem
-[^85] [^86].)
+implementation of locking. (The bug is not theoretical: HBase used to have this problem [^85] [^86].)
 Say you want to ensure that a file in a storage service can only be
 accessed by one client at a time, because if multiple clients tried to write to it, the file would
 become corrupted. You try to implement this by requiring a client to obtain a lease from a lock
@@ -1115,7 +1125,7 @@ to [Figure 9-4](/en/ch9#fig_distributed_lease_pause).
 {{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" caption="Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease." class="w-full my-4" >}}
 
 
-### Fencing off zombies and delayed requests
+#### Fencing off zombies and delayed requests
 
 The term *zombie* is sometimes used to describe a former leaseholder who has not yet found out that
 it lost the lease, and who is still acting as if it was the current leaseholder. Since we cannot
@@ -1141,11 +1151,15 @@ token*, which is a number that increases every time a lock is granted (e.g., inc
 service). We can then require that every time a client sends a write request to the storage service,
 it must include its current fencing token.
 
+--------
+
 > [!NOTE]
 > There are several alternative names for fencing tokens. In Chubby, Google’s lock service, they are
 > called *sequencers* [^88], and in Kafka they are called *epoch numbers*.
 > In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
 > *term number* (Raft) serves a similar purpose.
+
+--------
 
 In [Figure 9-6](/en/ch9#fig_distributed_fencing), client 1 acquires the lease with a token of 33, but then
 it goes into a long pause and the lease expires. Client 2 acquires the lease with a token of 34 (the
@@ -1168,12 +1182,10 @@ read it, similarly to an atomic compare-and-set (CAS) operation. For example, ob
 services support such a check: Amazon S3 calls it *conditional writes*, Azure Blob Storage calls it
 *conditional headers*, and Google Cloud Storage calls it *request preconditions*.
 
-### Fencing with multiple replicas
+#### Fencing with multiple replicas
 
 If your clients need to write only to one storage service that supports such conditional writes, the
-lock service is somewhat redundant
-[^91] [^92],
-since the lease assignment could have been implemented directly based on that storage service [^93].
+lock service is somewhat redundant [^91] [^92], since the lease assignment could have been implemented directly based on that storage service [^93].
 However, once you have a fencing token you can also use it with multiple services or replicas, and
 ensure that the old leaseholder is fenced off on all of those services.
 
@@ -1202,7 +1214,7 @@ As you can see from these examples, it is not safe to assume that there is only 
 lease at any one time. Fortunately, with a bit of care you can use fencing tokens to prevent zombies
 and delayed requests from doing any damage.
 
-## Byzantine Faults
+### Byzantine Faults
 
 Fencing tokens can detect and block a node that is *inadvertently* acting in error (e.g., because it
 hasn’t yet found out that its lease has expired). However, if the node deliberately wanted to
@@ -1219,7 +1231,7 @@ arbitrary faulty or corrupted responses)—for example, it might cast multiple c
 the same election. Such behavior is known as a *Byzantine fault*, and the problem of reaching
 consensus in this untrusting environment is known as the *Byzantine Generals Problem* [^94].
 
-# The Byzantine Generals Problem
+> [!TIP] THE BYZANTINE GENERALS PROBLEM
 
 The Byzantine Generals Problem is a generalization of the so-called *Two Generals Problem* [^95],
 which imagines a situation in which two army generals need to agree on a battle plan. As they
@@ -1239,6 +1251,8 @@ in the sense of *excessively complicated, bureaucratic, devious*, which was used
 before computers [^96].
 Lamport wanted to choose a nationality that would not offend any readers, and he was advised that
 calling it *The Albanian Generals Problem* was not such a good idea [^97].
+
+--------
 
 A system is *Byzantine fault-tolerant* if it continues to operate correctly even if some of the
 nodes are malfunctioning and not obeying the protocol, or if malicious attackers are interfering
@@ -1285,7 +1299,7 @@ an attacker can compromise one node, they can probably compromise all of them, b
 probably running the same software. Thus, traditional mechanisms (authentication, access control,
 encryption, firewalls, and so on) continue to be the main protection against attackers.
 
-### Weak forms of lying
+#### Weak forms of lying
 
 Although we assume that nodes are generally honest, it can be worth adding mechanisms to software
 that guard against weak forms of “lying”—for example, invalid messages due to hardware issues,
@@ -1308,7 +1322,7 @@ pragmatic steps toward better reliability. For example:
  incorrect time is detected as an outlier and is excluded from synchronization [^39]. The use of multiple servers makes NTP
  more robust than if it only uses a single server.
 
-## System Model and Reality
+### System Model and Reality
 
 Many algorithms have been designed to solve distributed systems problems—for example, we will
 examine solutions for the consensus problem in [Chapter 10](/en/ch10#ch_consistency). In order to be useful, these
@@ -1377,7 +1391,7 @@ For modeling real systems, the partially synchronous model with crash-recovery f
 the most useful model. It allows for unbounded network delay, process pauses, and slow nodes. But
 how do distributed algorithms cope with that model?
 
-### Defining the correctness of an algorithm
+#### Defining the correctness of an algorithm
 
 To define what it means for an algorithm to be *correct*, we can describe its *properties*. For
 example, the output of a sorting algorithm has the property that for any two distinct elements of
@@ -1403,7 +1417,7 @@ that we assume may occur in that system model. However, if all nodes crash, or a
 suddenly become infinitely long, then no algorithm will be able to get anything done. How can we
 still make useful guarantees even in a system model that allows complete failures?
 
-### Safety and liveness
+#### Safety and liveness
 
 To clarify the situation, it is worth distinguishing between two different kinds of properties:
 *safety* and *liveness* properties. In the example just given, *uniqueness* and *monotonic sequence* are
@@ -1438,7 +1452,7 @@ network eventually recovers from an outage. The definition of the partially sync
 requires that eventually the system returns to a synchronous state—that is, any period of network
 interruption lasts only for a finite duration and is then repaired.
 
-### Mapping system models to the real world
+#### Mapping system models to the real world
 
 Safety and liveness properties and system models are very useful for reasoning about the correctness
 of a distributed algorithm. However, when implementing an algorithm in practice, the messy facts of
@@ -1469,7 +1483,7 @@ They are incredibly helpful for distilling down the complexity of real systems t
 of faults that we can reason about, so that we can understand the problem and try to solve it
 systematically.
 
-## Formal Methods and Randomized Testing
+### Formal Methods and Randomized Testing
 
 How do we know that an algorithm satisfies the required properties? Due to concurrency, partial
 failures, and network delays there are a huge number of potential states. We need to guarantee
@@ -1490,7 +1504,7 @@ testing (DST) use randomization to test a system in a wide range of situations. 
 Amazon Web Services have successfully used a combination of these techniques on many of their
 products [^120] [^121].
 
-### Model checking and specification languages
+#### Model checking and specification languages
 
 *Model checkers* are tools that help verify that an algorithm or system behaves as expected. An algorithm
 specification is written in a purpose-built language such as TLA+, Gallina, or FizzBee. These
@@ -1518,7 +1532,7 @@ state space, but it risks that your specification and your implementation go out
 It is possible to check whether the model and the real implementation have equivalent behavior, but
 this requires instrumentation in the real implementation [^127].
 
-### Fault injection
+#### Fault injection
 
 Many bugs are triggered when machine and network failures occur. Fault injection is an effective
 (and sometimes scary) technique that verifies whether a system’s implementation works as expected things
@@ -1546,7 +1560,7 @@ simplify the process. Such frameworks come with integrations for various operati
 pre-built fault injectors [^129].
 Jepsen has been remarkably effective at finding critical bugs in many widely-used systems [^130] [^131].
 
-### Deterministic simulation testing
+#### Deterministic simulation testing
 
 Deterministic simulation testing (DST) has also become a popular complement to model-checking and
 fault injection. It uses a similar state space exploration process as a model checker, but it tests

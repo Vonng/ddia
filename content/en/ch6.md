@@ -41,7 +41,9 @@ concepts such as *eventual consistency* still cause confusion. In [“Problems w
 get more precise about eventual consistency and discuss things like the *read-your-writes* and
 *monotonic reads* guarantees.
 
-# Backups and replication
+--------
+
+> [!TIP] BACKUPS AND REPLICATION
 
 You might be wondering whether you still need backups if you have replication. The answer is yes,
 because they have different purposes: replicas quickly reflect writes from one node on other nodes,
@@ -59,15 +61,16 @@ the current state. If you have a large amount of data, it can be cheaper to keep
 data in an object store that is optimized for infrequently-accessed data, and to store only the
 current state of the database in primary storage.
 
-# Single-Leader Replication
+--------
+
+## Single-Leader Replication
 
 Each node that stores a copy of the database is called a *replica*. With multiple replicas, a
 question inevitably arises: how do we ensure that all the data ends up on all the replicas?
 
 Every write to the database needs to be processed by every replica; otherwise, the replicas would no
 longer contain the same data. The most common solution is called *leader-based replication*,
-*primary-backup*, or *active/passive*. It works as follows (see
-[Figure 6-1](/en/ch6#fig_replication_leader_follower)):
+*primary-backup*, or *active/passive*. It works as follows (see [Figure 6-1](/en/ch6#fig_replication_leader_follower)):
 
 1. One of the replicas is designated the *leader* (also known as *primary* or *source* [^2]).
    When clients want to write to the database, they must send their requests to the leader, which
@@ -96,11 +99,15 @@ Many consensus algorithms such as Raft, which is used for replication in Cockroa
 etcd, and RabbitMQ quorum queues (among others), are also based on a single leader, and automatically 
 elect a new leader if the old one fails (we will discuss consensus in more detail in [Chapter 10](/en/ch10#ch_consistency)).
 
+--------
+
 > [!NOTE]
 > In older documents you may see the term *master–slave replication*. It means the same as
 > leader-based replication, but the term should be avoided as it is widely considered offensive [^8].
 
-## Synchronous Versus Asynchronous Replication
+--------
+
+### Synchronous Versus Asynchronous Replication
 
 An important detail of a replicated system is whether the replication happens *synchronously* or
 *asynchronously*. (In relational databases, this is often a configurable option; other systems are
@@ -158,7 +165,7 @@ Weakening durability may sound like a bad trade-off, but asynchronous replicatio
 widely used, especially if there are many followers or if they are geographically distributed [^9].
 We will return to this issue in [“Problems with Replication Lag”](/en/ch6#sec_replication_lag).
 
-## Setting Up New Followers
+### Setting Up New Followers
 
 From time to time, you need to set up new followers—perhaps to increase the number of replicas,
 or to replace failed nodes. How do you ensure that the new follower has an accurate copy of the
@@ -195,7 +202,9 @@ recovery. You can also perform steps 1 and 2 of setting up a new follower by dow
 from the object store. For example, WAL-G does this for PostgreSQL, MySQL, and SQL Server, and
 Litestream does the equivalent for SQLite.
 
-# Databases backed by object storage
+--------
+
+> [!TIP] DATABASES BACKED BY OBJECT STORAGE
 
 Object storage can be used for more than archiving data. Many databases are beginning to use object
 stores such as Amazon Web Services S3, Google Cloud Storage, and Azure Blob Storage to serve data
@@ -228,9 +237,7 @@ Different systems deal with these trade-offs in various ways. Some introduce a *
 architecture that places less frequently accessed data on object storage while new or frequently
 accessed data is kept on faster storage devices such as SSDs, NVMe, or even in memory. Other systems
 use object storage as their primary storage tier, but use a separate low-latency storage system such
-as Amazon’s EBS or Neon’s Safekeepers
-[^12])
-to store their WAL. Recently, some systems have gone even farther by adopting a
+as Amazon’s EBS or Neon’s Safekeepers [^12]) to store their WAL. Recently, some systems have gone even farther by adopting a
 *zero-disk architecture* (ZDA). ZDA-based systems persist all data to object storage and use disks
 and memory strictly for caching. This allows nodes to have no persistent state, which dramatically
 simplifies operations. WarpStream, Confluent Freight, Buf’s Bufstream, and Redpanda Serverless are
@@ -238,7 +245,9 @@ all Kafka-compatible systems built using a zero-disk architecture. Nearly every 
 warehouse also adopts such an architecture, as does Turbopuffer (a vector search engine), and
 SlateDB (a cloud-native LSM storage engine).
 
-## Handling Node Outages
+--------
+
+### Handling Node Outages
 
 Any node in the system can go down, perhaps unexpectedly due to a fault, but just as likely due to
 planned maintenance (for example, rebooting a machine to install a kernel security patch). Being
@@ -248,7 +257,7 @@ the impact of a node outage as small as possible.
 
 How do you achieve high availability with leader-based replication?
 
-### Follower failure: Catch-up recovery
+#### Follower failure: Catch-up recovery
 
 On its local disk, each follower keeps a log of the data changes it has received from the leader. If
 a follower crashes and is restarted, or if the network between the leader and the follower is
@@ -261,8 +270,7 @@ receiving a stream of data changes as before.
 Although follower recovery is conceptually simple, it can be challenging in terms of performance: if
 the database has a high write throughput or if the follower has been offline for a long time, there
 might be a lot of writes to catch up on. There will be high load on both the recovering follower and
-the leader (which needs to send the backlog of writes to the follower) while this catch-up is
-ongoing.
+the leader (which needs to send the backlog of writes to the follower) while this catch-up is ongoing.
 
 The leader can delete its log of writes once all followers have confirmed that they have processed
 it, but if a follower is unavailable for a long time, the leader faces a choice: either it retains
@@ -271,7 +279,7 @@ leader), or it deletes the log that the unavailable follower has not yet acknowl
 the follower won’t be able to recover from the log, and will have to be restored from a backup when
 it comes back).
 
-### Leader failure: Failover
+#### Leader failure: Failover
 
 Handling a failure of the leader is trickier: one of the followers needs to be promoted to be the
 new leader, clients need to be reconfigured to send their writes to the new leader, and the other
@@ -331,10 +339,14 @@ Failover is fraught with things that can go wrong:
   is already struggling with high load or network problems, an unnecessary failover is likely to
   make the situation worse, not better.
 
+--------
+
 > [!NOTE]
 > Guarding against split brain by limiting or shutting down old leaders is known as *fencing* or, more
 > emphatically, *Shoot The Other Node In The Head* (STONITH). We will discuss fencing in more detail
 > in [“Distributed Locks and Leases”](/en/ch9#sec_distributed_lock_fencing).
+
+--------
 
 There are no easy solutions to these problems. For this reason, some operations teams prefer to
 perform failovers manually, even if the software supports automatic failover.
@@ -350,12 +362,12 @@ These issues—node failures; unreliable networks; and trade-offs around replica
 durability, availability, and latency—are in fact fundamental problems in distributed systems.
 In [Chapter 9](/en/ch9#ch_distributed) and [Chapter 10](/en/ch10#ch_consistency) we will discuss them in greater depth.
 
-## Implementation of Replication Logs
+### Implementation of Replication Logs
 
 How does leader-based replication work under the hood? Several different replication methods are
 used in practice, so let’s look at each one briefly.
 
-### Statement-based replication
+#### Statement-based replication
 
 In the simplest case, the leader logs every write request (*statement*) that it executes and sends
 that statement log to its followers. For a relational database, this means that every `INSERT`,
@@ -389,7 +401,7 @@ there is any nondeterminism in a statement. VoltDB uses statement-based replicat
 safe by requiring transactions to be deterministic [^16]. However, determinism can be hard to guarantee 
 in practice, so many databases prefer other replication methods.
 
-### Write-ahead log (WAL) shipping
+#### Write-ahead log (WAL) shipping
 
 In [Chapter 4](/en/ch4#ch_storage) we saw that a write-ahead log is needed to make B-tree storage engines robust:
 every modification is first written to the WAL so that the tree can be restored to a consistent
@@ -412,7 +424,7 @@ performing a failover to make one of the upgraded nodes the new leader. If the r
 does not allow this version mismatch, as is often the case with WAL shipping, such upgrades require
 downtime.
 
-### Logical (row-based) log replication
+#### Logical (row-based) log replication
 
 An alternative is to use different log formats for replication and for the storage engine, which
 allows the replication log to be decoupled from the storage engine internals. This kind of
@@ -444,12 +456,12 @@ to send the contents of a database to an external system, such as a data warehou
 analysis, or for building custom indexes and caches [^21].
 This technique is called *change data capture*, and we will return to it in [Link to Come].
 
-# Problems with Replication Lag
+
+## Problems with Replication Lag
 
 Being able to tolerate node failures is just one reason for wanting replication. As mentioned
 in [“Distributed versus Single-Node Systems”](/en/ch1#sec_introduction_distributed), other reasons are scalability (processing more
-requests than a single machine can handle) and latency (placing replicas geographically closer to
-users).
+requests than a single machine can handle) and latency (placing replicas geographically closer to users).
 
 Leader-based replication requires all writes to go through a single node, but read-only queries can
 go to any replica. For workloads that consist of mostly reads and only a small percentage of writes
@@ -471,14 +483,14 @@ just a temporary state—if you stop writing to the database and wait a while, t
 eventually catch up and become consistent with the leader. For that reason, this effect is known
 as *eventual consistency* [^22].
 
+--------
+
 > [!NOTE]
-> The term *eventual consistency* was coined by Douglas Terry et al.
-> [^23],
-> popularized by Werner Vogels
-> [^24],
+> The term *eventual consistency* was coined by Douglas Terry et al. [^23], popularized by Werner Vogels [^24],
 > and became the battle cry of many NoSQL projects. However, not only NoSQL databases are eventually
-> consistent: followers in an asynchronously replicated relational database have the same
-> characteristics.
+> consistent: followers in an asynchronously replicated relational database have the same characteristics.
+
+--------
 
 The term “eventually” is deliberately vague: in general, there is no limit to how far a replica can
 fall behind. In normal operation, the delay between a write happening on the leader and being
@@ -490,7 +502,7 @@ When the lag is so large, the inconsistencies it introduces are not just a theor
 real problem for applications. In this section we will highlight three examples of problems that are
 likely to occur when there is replication lag. We’ll also outline some approaches to solving them.
 
-## Reading Your Own Writes
+### Reading Your Own Writes
 
 Many applications let the user submit some data and then view what they have submitted. This might
 be a record in a customer database, or a comment on a discussion thread, or something else of that sort.
@@ -505,8 +517,7 @@ submitted was lost, so they will be understandably unhappy.
 
 {{< figure src="/fig/ddia_0603.png" id="fig_replication_read_your_writes" caption="Figure 6-3. A user makes a write, followed by a read from a stale replica. To prevent this anomaly, we need read-after-write consistency." class="w-full my-4" >}}
 
-In this situation, we need *read-after-write consistency*, also known as *read-your-writes consistency*
-[^23].
+In this situation, we need *read-after-write consistency*, also known as *read-your-writes consistency* [^23].
 This is a guarantee that if the user reloads the page, they will always see any updates they
 submitted themselves. It makes no promises about other users: other users’ updates may not be
 visible until some later time. However, it reassures the user that their own input has been saved
@@ -526,15 +537,13 @@ are various possible techniques. To mention a few:
   effective, as most things would have to be read from the leader (negating the benefit of read
   scaling). In that case, other criteria may be used to decide whether to read from the leader. For
   example, you could track the time of the last update and, for one minute after the last update, make all
-  reads from the leader
-  [^25].
+  reads from the leader [^25].
   You could also monitor the replication lag on followers and prevent queries on any follower that
   is more than one minute behind the leader.
 * The client can remember the timestamp of its most recent write—then the system can ensure that the
   replica serving any reads for that user reflects updates at least until that timestamp. If a
   replica is not sufficiently up to date, either the read can be handled by another replica or the
-  query can wait until the replica has caught up
-  [^26].
+  query can wait until the replica has caught up [^26].
   The timestamp could be a *logical timestamp* (something that indicates ordering of writes, such as
   the log sequence number) or the actual system clock (in which case clock synchronization becomes
   critical; see [“Unreliable Clocks”](/en/ch9#sec_distributed_clocks)).
@@ -558,7 +567,9 @@ In this case, there are some additional issues to consider:
   the devices’ network routes may be completely different.) If your approach requires reading from the
   leader, you may first need to route requests from all of a user’s devices to the same region.
 
-# Regions and Availability Zones
+--------
+
+> ![TIP] Regions and Availability Zones
 
 We use the term *region* to refer to one or more datacenters in a single geographic location. Cloud
 providers locate multiple datacenters in the same geographic region. Each datacenter is referred to
@@ -576,7 +587,9 @@ increased cloud networking bills. We will discuss these tradeoffs more in
 [“Multi-leader replication topologies”](/en/ch6#sec_replication_topologies). For now, just know that when we say region, we mean a collection of
 zones/datacenters in a single geographic location.
 
-## Monotonic Reads
+--------
+
+### Monotonic Reads
 
 Our second example of an anomaly that can occur when reading from asynchronous followers is that it’s
 possible for a user to see things *moving backward in time*.
@@ -605,7 +618,7 @@ the same replica (different users can read from different replicas). For example
 chosen based on a hash of the user ID, rather than randomly. However, if that replica fails, the
 user’s queries will need to be rerouted to another replica.
 
-## Consistent Prefix Reads
+### Consistent Prefix Reads
 
 Our third example of replication lag anomalies concerns violation of causality. Imagine the
 following short dialog between Mr. Poons and Mrs. Cake:
@@ -630,15 +643,13 @@ Mr. Poons
 :   How far into the future can you see, Mrs. Cake?
 
 To the observer it looks as though Mrs. Cake is answering the question before Mr. Poons has even asked
-it. Such psychic powers are impressive, but very confusing
-[^27].
+it. Such psychic powers are impressive, but very confusing [^27].
 
 {{< figure src="/fig/ddia_0605.png" id="fig_replication_consistent_prefix" caption="Figure 6-5. If some shards are replicated slower than others, an observer may see the answer before they see the question." class="w-full my-4" >}}
 
-Preventing this kind of anomaly requires another type of guarantee: *consistent prefix reads*
-[^22]. This guarantee says that if a sequence of
-writes happens in a certain order, then anyone reading those writes will see them appear in the same
-order.
+Preventing this kind of anomaly requires another type of guarantee: *consistent prefix reads* [^22]. 
+This guarantee says that if a sequence of writes happens in a certain order, 
+then anyone reading those writes will see them appear in the same order.
 
 This is a particular problem in sharded (partitioned) databases, which we will discuss in
 [Chapter 7](/en/ch7#ch_sharding). If the database always applies writes in the same order, reads always see a
@@ -651,7 +662,7 @@ the same shard—but in some applications that cannot be done efficiently. There
 that explicitly keep track of causal dependencies, a topic that we will return to in
 [“The “happens-before” relation and concurrency”](/en/ch6#sec_replication_happens_before).
 
-## Solutions for Replication Lag
+### Solutions for Replication Lag
 
 When working with an eventually consistent system, it is worth thinking about how the application
 behaves if the replication lag increases to several minutes or even hours. If the answer is “no
@@ -683,7 +694,9 @@ consistency guarantees: they can offer stronger resilience in the face of networ
 have lower overheads compared to transactional systems. We will explore such approaches in the rest
 of this chapter.
 
-# Multi-Leader Replication
+
+
+## Multi-Leader Replication
 
 So far in this chapter we have only considered replication architectures using a single leader.
 Although that is a common approach, there are interesting alternatives.
@@ -710,7 +723,7 @@ as equivalent to single-leader replication. The rest of this section focusses on
 multi-leader replication, in which any leader can process writes even when its connection to the
 other leaders is interrupted.
 
-## Geographically Distributed Operation
+### Geographically Distributed Operation
 
 It rarely makes sense to use a multi-leader setup within a single region, because the benefits
 rarely outweigh the added complexity. However, there are some situations in which this configuration
@@ -730,8 +743,7 @@ other regions.
 
 {{< figure src="/fig/ddia_0606.png" id="fig_replication_multi_dc" caption="Figure 6-6. Multi-leader replication across multiple regions." class="w-full my-4" >}}
 
-Let’s compare how the single-leader and multi-leader configurations fare in a multi-region
-deployment:
+Let’s compare how the single-leader and multi-leader configurations fare in a multi-region deployment:
 
 Performance
 :   In a single-leader configuration, every write must go over the internet to the region with the
@@ -756,8 +768,7 @@ Tolerance of network problems
     over that link and wait for the response before it can complete.
 
     A multi-leader configuration with asynchronous replication can tolerate network problems better:
-    during a temporary network interruption, each region’s leader can continue independently processing
-    writes.
+    during a temporary network interruption, each region’s leader can continue independently processing writes.
 
 Consistency
 :   A single-leader system can provide strong consistency guarantees, such as serializable
@@ -768,25 +779,21 @@ Consistency
     account, registering a particular username), but which violate the constraint when taken together
     with another write on another leader.
 
-    This is simply a fundamental limitation of distributed systems
-    [^28].
+    This is simply a fundamental limitation of distributed systems [^28].
     If you need to enforce such constraints, you’re therefore better off with a single-leader system.
     However, as we will see in [“Dealing with Conflicting Writes”](/en/ch6#sec_replication_write_conflicts), multi-leader systems can still
-    achieve consistency properties that are useful in a wide range of apps that don’t need such
-    constraints.
+    achieve consistency properties that are useful in a wide range of apps that don’t need such constraints.
 
 Multi-leader replication is less common than single-leader replication, but it is still supported by
 many databases, including MySQL, Oracle, SQL Server, and YugabyteDB. In some cases it is an external
-add-on feature, for example in Redis Enterprise, EDB Postgres Distributed, and pglogical
-[^29].
+add-on feature, for example in Redis Enterprise, EDB Postgres Distributed, and pglogical [^29].
 
 As multi-leader replication is a somewhat retrofitted feature in many databases, there are often
 subtle configuration pitfalls and surprising interactions with other database features. For example,
 autoincrementing keys, triggers, and integrity constraints can be problematic. For this reason,
-multi-leader replication is often considered dangerous territory that should be avoided if possible
-[^30].
+multi-leader replication is often considered dangerous territory that should be avoided if possible [^30].
 
-### Multi-leader replication topologies
+#### Multi-leader replication topologies
 
 A *replication topology* describes the communication paths along which writes are propagated from
 one node to another. If you have two leaders, like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), there is
@@ -796,27 +803,30 @@ more than two leaders, various different topologies are possible. Some examples 
 
 {{< figure src="/fig/ddia_0607.png" id="fig_replication_topologies" caption="Figure 6-7. Three example topologies in which multi-leader replication can be set up." class="w-full my-4" >}}
 
-The most general topology is *all-to-all*, shown in
-[Figure 6-7](/en/ch6#fig_replication_topologies)(c),
+The most general topology is *all-to-all*, shown in [Figure 6-7](/en/ch6#fig_replication_topologies)(c),
 in which every leader sends its writes to every other leader. However, more restricted topologies
 are also used: for example a *circular topology* in which each node receives writes from one node
 and forwards those writes (plus any writes of its own) to one other node. Another popular topology
 has the shape of a *star*: one designated root node forwards writes to all of the other nodes. The
 star topology can be generalized to a tree.
 
+
+--------
+
 > [!NOTE]
 > Don’t confuse a star-shaped network topology with a *star schema* (see
 > [“Stars and Snowflakes: Schemas for Analytics”](/en/ch3#sec_datamodels_analytics)), which describes the structure of a data model.
 
+--------
+
 In circular and star topologies, a write may need to pass through several nodes before it reaches
 all replicas. Therefore, nodes need to forward data changes they receive from other nodes. To
 prevent infinite replication loops, each node is given a unique identifier, and in the replication
-log, each write is tagged with the identifiers of all the nodes it has passed through
-[^31].
+log, each write is tagged with the identifiers of all the nodes it has passed through [^31].
 When a node receives a data change that is tagged with its own identifier, that data change is
 ignored, because the node knows that it has already been processed.
 
-### Problems with different topologies
+#### Problems with different topologies
 
 A problem with circular and star topologies is that if just one node fails, it can interrupt the
 flow of replication messages between other nodes, leaving them unable to communicate until the
@@ -850,7 +860,7 @@ issues like the one in [Figure 6-8](/en/ch6#fig_replication_causality). If you 
 is worth being aware of these issues, carefully reading the documentation, and thoroughly testing
 your database to ensure that it really does provide the guarantees you believe it to have.
 
-## Sync Engines and Local-First Software
+### Sync Engines and Local-First Software
 
 Another situation in which multi-leader replication is appropriate is if you have an application
 that needs to continue to work while it is disconnected from the internet.
@@ -870,7 +880,7 @@ From an architectural point of view, this setup is very similar to multi-leader 
 regions, taken to the extreme: each device is a “region,” and the network connection between them is
 extremely unreliable.
 
-### Real-time collaboration, offline-first, and local-first apps
+#### Real-time collaboration, offline-first, and local-first apps
 
 Moreover, many modern web apps offer *real-time collaboration* features, such as Google Docs and
 Sheets for text documents and spreadsheets, Figma for graphics, and Linear for project management.
@@ -904,7 +914,7 @@ service providers are available [^40].
 For example, Git is a local-first collaboration system (albeit one that doesn’t support real-time
 collaboration) since you can sync via GitHub, GitLab, or any other repository hosting service.
 
-### Pros and cons of sync engines
+#### Pros and cons of sync engines
 
 The dominant way of building web apps today is to keep very little persistent state on the client,
 and to rely on making requests to a server whenever a new piece of data needs to be displayed or
@@ -947,7 +957,8 @@ development jargon the equivalent of a sync engine is called *netcode*. The tech
 netcode are quite specific to the requirements of games [^44], and don’t directly
 carry over to other types of software, so we won’t consider them further in this book.
 
-## Dealing with Conflicting Writes
+
+### Dealing with Conflicting Writes
 
 The biggest problem with multi-leader replication—both in a geo-distributed server-side database and
 a local-first sync engine on end user devices—is that concurrent writes on different leaders can
@@ -972,7 +983,7 @@ In [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent) we wi
 whether two writes are concurrent. For now we will assume that we can detect conflicts, and we want
 to figure out the best way of resolving them.
 
-### Conflict avoidance
+#### Conflict avoidance
 
 One strategy for conflicts is to avoid them occurring in the first place. For example, if the
 application can ensure that all writes for a particular record go through the same leader, then
@@ -999,7 +1010,8 @@ so that one leader only generates odd numbers and the other only generates even 
 you can be sure that the two leaders won’t concurrently assign the same ID to different records.
 We will discuss other ID assignment schemes in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).
 
-### Last write wins (discarding concurrent writes)
+
+#### Last write wins (discarding concurrent writes)
 
 If conflicts can’t be avoided, the simplest way of resolving them is to attach a timestamp to each
 write, and to always use the value with the greatest timestamp. For example, in
@@ -1031,7 +1043,7 @@ that is ahead of the others, and you try to overwrite a value written by that no
 be ignored as it may have a lower timestamp, even though it clearly occurred later. This problem can
 be solved by using a *logical clock*, which we will discuss in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).
 
-### Manual conflict resolution
+#### Manual conflict resolution
 
 If randomly discarding some of your writes is not desirable, the next option is to resolve the
 conflict manually. You may be familiar with manual conflict resolution from Git and other version
@@ -1063,9 +1075,7 @@ suffers from a number of problems:
   keeping all the shopping cart items that appeared in any of the siblings (i.e., taking the set
   union of the carts). This meant that if the customer had removed an item from their cart in one
   sibling, but another sibling still contained that old item, the removed item would unexpectedly
-  reappear in the customer’s cart
-  [^45].
-  [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
+  reappear in the customer’s cart [^45]. [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
   cart and concurrently Device 2 removes DVD, but after merging the conflict both items reappear.
 * If multiple nodes observe the conflict and concurrently resolve it, the conflict resolution
   process can itself introduce a new conflict. Those resolutions could even be inconsistent: for
@@ -1076,7 +1086,7 @@ suffers from a number of problems:
 {{< figure src="/fig/ddia_0610.png" id="fig_replication_amazon_anomaly" caption="Figure 6-10. Example of Amazon's shopping cart anomaly: if conflicts on a shopping cart are merged by taking the union, deleted items may reappear." class="w-full my-4" >}}
 
 
-### Automatic conflict resolution
+#### Automatic conflict resolution
 
 For many applications, the best way of handling conflicts is to use an algorithm that automatically
 merges concurrent writes into a consistent state. Automatic conflict resolution ensures that all
@@ -1110,22 +1120,18 @@ Nevertheless, automatic conflict resolution is sufficient to build many useful a
 start from the requirement of wanting to build a collaborative offline-first or local-first app,
 then conflict resolution is inevitable, and automating it is often the best approach.
 
-## CRDTs and Operational Transformation
+### CRDTs and Operational Transformation
 
 Two families of algorithms are commonly used to implement automatic conflict resolution:
-*Conflict-free replicated datatypes* (CRDTs)
-[^46] and *Operational Transformation* (OT)
-[^47].
+*Conflict-free replicated datatypes* (CRDTs) [^46] and *Operational Transformation* (OT) [^47].
 They have different design philosophies and performance characteristics, but both are able to
 perform automatic merges for all the aforementioned types of data.
 
 [Figure 6-11](/en/ch6#fig_replication_ot_crdt) shows an example of how OT and a CRDT merge concurrent updates to a
 text. Assume you have two replicas that both start off with the text “ice”. One replica prepends the
-letter “n” to make “nice”, while concurrently the other replica appends an exclamation mark to make
-“ice!”.
+letter “n” to make “nice”, while concurrently the other replica appends an exclamation mark to make “ice!”.
 
 {{< figure src="/fig/ddia_0611.png" id="fig_replication_ot_crdt" caption="Figure 6-11. How two concurrent insertions into a string are merged by OT and a CRDT respectively." class="w-full my-4" >}}
-
 
 The merged result “nice!” is achieved differently by both types of algorithms:
 
@@ -1155,7 +1161,7 @@ OT is most often used for real-time collaborative editing of text, e.g. in Googl
 distributed databases such as Redis Enterprise, Riak, and Azure Cosmos DB [^49].
 Sync engines for JSON data can be implemented both with CRDTs (e.g., Automerge or Yjs) and with OT (e.g., ShareDB).
 
-### What is a conflict?
+#### What is a conflict?
 
 Some kinds of conflict are obvious. In the example in [Figure 6-9](/en/ch6#fig_replication_write_conflict), two writes
 concurrently modified the same field in the same record, setting it to two different values. There
@@ -1174,7 +1180,8 @@ good understanding of this problem. We will see some more examples of conflicts 
 [Chapter 8](/en/ch8#ch_transactions), and in [Link to Come] we will discuss scalable approaches for detecting and
 resolving conflicts in a replicated system.
 
-# Leaderless Replication
+
+## Leaderless Replication
 
 The replication approaches we have discussed so far in this chapter—single-leader and
 multi-leader replication—are based on the idea that a client sends a write request to one node
@@ -1189,17 +1196,21 @@ a fashionable architecture for databases after Amazon used it for its in-house *
 2007 [^45]. Riak, Cassandra, and ScyllaDB are open source datastores with leaderless replication models inspired
 by Dynamo, so this kind of database is also known as *Dynamo-style*.
 
+--------
+
 > [!NOTE]
 > The original *Dynamo* system was only described in a paper [^45], but never released outside of Amazon. 
 > The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a completely different architecture: 
 > it uses single-leader replication based on the Multi-Paxos consensus algorithm [^5].
+
+--------
 
 In some leaderless implementations, the client directly sends its writes to several replicas, while
 in others, a coordinator node does this on behalf of the client. However, unlike a leader database,
 that coordinator does not enforce a particular ordering of writes. As we shall see, this difference in design has
 profound consequences for the way the database is used.
 
-## Writing to the Database When a Node Is Down
+### Writing to the Database When a Node Is Down
 
 Imagine you have a database with three replicas, and one of the replicas is currently
 unavailable—​perhaps it is being rebooted to install a system update. In a single-leader
@@ -1231,7 +1242,7 @@ needs to be tagged with a version number or timestamp, similarly to what we saw 
 one with the greatest timestamp (even if that value was only returned by one replica, and several
 other replicas returned older values). See [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent) for more details.
 
-### Catching up on missed writes
+#### Catching up on missed writes
 
 The replication system should ensure that eventually all the data is copied to every replica. After
 an unavailable node comes back online, how does it catch up on the writes that it missed? Several
@@ -1257,7 +1268,7 @@ Anti-entropy
     replication log in leader-based replication, this *anti-entropy process* does not copy writes in
     any particular order, and there may be a significant delay before data is copied.
 
-### Quorums for reading and writing
+#### Quorums for reading and writing
 
 In the example of [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), we considered the write to be successful
 even though it was only processed on two out of three replicas. What if only one out of three
@@ -1270,12 +1281,10 @@ respond, reads can nevertheless continue returning an up-to-date value.
 
 More generally, if there are *n* replicas, every write must be confirmed by *w* nodes to be
 considered successful, and we must query at least *r* nodes for each read. (In our example,
-*n* = 3, *w* = 2, *r* = 2.) As long as *w* + *r* >
-*n*, we expect to get an up-to-date value when reading, because at least one of the *r* nodes we’re
-reading from must be up to date. Reads and writes that obey these *r* and *w* values are called
-*quorum* reads and writes [^50].
-You can think of *r* and *w* as the minimum number of votes required for the read or write to be
-valid.
+*n* = 3, *w* = 2, *r* = 2.) As long as *w* + *r* > *n*, 
+we expect to get an up-to-date value when reading, because at least one of the *r* nodes we’re
+reading from must be up to date. Reads and writes that obey these *r* and *w* values are called *quorum* reads and writes [^50].
+You can think of *r* and *w* as the minimum number of votes required for the read or write to be valid.
 
 In Dynamo-style databases, the parameters *n*, *w*, and *r* are typically configurable. A common
 choice is to make *n* an odd number (typically 3 or 5) and to set *w* = *r* =
@@ -1284,10 +1293,14 @@ For example, a workload with few writes and many reads may benefit from setting 
 *r* = 1. This makes reads faster, but has the disadvantage that just one failed node causes all
 database writes to fail.
 
+--------
+
 > [!NOTE]
 > There may be more than *n* nodes in the cluster, but any given value is stored only on *n*
 > nodes. This allows the dataset to be sharded, supporting datasets that are larger than you can fit
 > on one node. We will return to sharding in [Chapter 7](/en/ch7#ch_sharding).
+
+--------
 
 The quorum condition, *w* + *r* > *n*, allows the system to tolerate unavailable nodes
 as follows:
@@ -1299,8 +1312,8 @@ as follows:
 * With *n* = 5, *w* = 3, *r* = 3 we can tolerate two unavailable nodes.
   This case is illustrated in [Figure 6-13](/en/ch6#fig_replication_quorum_overlap).
 
-Normally, reads and writes are always sent to all *n* replicas in parallel. The parameters *w* and
-*r* determine how many nodes we wait for—i.e., how many of the *n* nodes need to report success
+Normally, reads and writes are always sent to all *n* replicas in parallel. The parameters *w* and *r* 
+determine how many nodes we wait for—i.e., how many of the *n* nodes need to report success
 before we consider the read or write to be successful.
 
 {{< figure src="/fig/ddia_0613.png" id="fig_replication_quorum_overlap" caption="Figure 6-13. If *w* + *r* > *n*, at least one of the *r* replicas you read from must have seen the most recent successful write." class="w-full my-4" >}}
@@ -1312,7 +1325,7 @@ error executing the operation (can’t write because the disk is full), due to a
 between the client and the node, or for any number of other reasons. We only care whether the node
 returned a successful response and don’t need to distinguish between different kinds of fault.
 
-## Limitations of Quorum Consistency
+### Limitations of Quorum Consistency
 
 If you have *n* replicas, and you choose *w* and *r* such that *w* + *r* > *n*, you can
 generally expect every read to return the most recent value written for a key. This is the case because the
@@ -1324,8 +1337,7 @@ Often, *r* and *w* are chosen to be a majority (more than *n*/2) of nodes, becau
 *w* + *r* > *n* while still tolerating up to *n*/2 (rounded down) node failures. But quorums are
 not necessarily majorities—it only matters that the sets of nodes used by the read and write
 operations overlap in at least one node. Other quorum assignments are possible, which allows some
-flexibility in the design of distributed algorithms
-[^51].
+flexibility in the design of distributed algorithms [^51].
 
 You may also set *w* and *r* to smaller numbers, so that *w* + *r* ≤ *n* (i.e.,
 the quorum condition is not satisfied). In this case, reads and writes will still be sent to *n*
@@ -1369,7 +1381,7 @@ it is not so simple. Dynamo-style databases are generally optimized for use case
 eventual consistency. The parameters *w* and *r* allow you to adjust the probability of stale values
 being read [^53], but it’s wise to not take them as absolute guarantees.
 
-### Monitoring staleness
+#### Monitoring staleness
 
 From an operational perspective, it’s important to monitor whether your databases are
 returning up-to-date results. Even if your application can tolerate stale reads, you need to be
@@ -1388,7 +1400,8 @@ handoff can be one measure of system health, but it’s difficult to interpret u
 Eventual consistency is a deliberately vague guarantee, but for operability it’s important to be
 able to quantify “eventual.”
 
-## Single-Leader vs. Leaderless Replication Performance
+
+### Single-Leader vs. Leaderless Replication Performance
 
 A replication system based on a single leader can provide strong consistency guarantees that are
 difficult or impossible to achieve in a leaderless system. However, as we have seen in
@@ -1427,8 +1440,7 @@ That said, leaderless systems can have performance problems as well:
 * Even though the system doesn’t need to perform failover, one replica does need to detect when
   another replica is unavailable so that it can store hints about writes that the unavailable
   replica missed. When the unavailable replica comes back, the handoff process needs to send it
-  those hints. This puts additional load on the replicas at a time when the system is already under
-  strain [^54].
+  those hints. This puts additional load on the replicas at a time when the system is already under strain [^54].
 * The more replicas you have, the bigger the size of your quorums, and the more responses you have
   to wait for before a request can complete. Even if you wait only for the fastest *r* or *w*
   replicas to respond, and even if you make the requests in parallel, a bigger *r* or *w* increases
@@ -1448,7 +1460,7 @@ be co-located with the client. However, since a write on one leader is propagate
 the others, reads can be arbitrarily out-of-date. Quorum reads and writes provide a compromise: good
 fault tolerance while also having a high likelihood of reading up-to-date data.
 
-### Multi-region operation
+#### Multi-region operation
 
 We previously discussed cross-region replication as a use case for multi-leader replication (see
 [“Multi-Leader Replication”](/en/ch6#sec_replication_multi_leader)). Leaderless replication is also suitable for
@@ -1467,7 +1479,8 @@ describes the number of replicas within one region. Cross-region replication bet
 database clusters happens asynchronously in the background, in a style that is similar to
 multi-leader replication.
 
-## Detecting Concurrent Writes
+
+### Detecting Concurrent Writes
 
 Like with multi-leader replication, leaderless databases allow concurrent writes to the same key,
 resulting in conflicts that need to be resolved. Such conflicts may occur as the writes happen, but
@@ -1477,8 +1490,7 @@ The problem is that events may arrive in a different order at different nodes, d
 network delays and partial failures. For example, [Figure 6-14](/en/ch6#fig_replication_concurrency) shows two clients,
 A and B, simultaneously writing to a key *X* in a three-node datastore:
 
-* Node 1 receives the write from A, but never receives the write from B due to a transient
-  outage.
+* Node 1 receives the write from A, but never receives the write from B due to a transient outage.
 * Node 2 first receives the write from A, then the write from B.
 * Node 3 first receives the write from B, then the write from A.
 
@@ -1501,7 +1513,7 @@ you whether two values are actually conflicting (i.e., they were written concurr
 were written one after another). If you want to resolve conflicts explicitly, the system needs to
 take more care to detect concurrent writes.
 
-### The “happens-before” relation and concurrency
+#### The “happens-before” relation and concurrency
 
 How do we decide whether two operations are concurrent or not? To develop an intuition, let’s look
 at some examples:
@@ -1517,8 +1529,7 @@ at some examples:
 An operation A *happens before* another operation B if B knows about A, or depends on A, or builds
 upon A in some way. Whether one operation happens before another operation is the key to defining
 what concurrency means. In fact, we can simply say that two operations are *concurrent* if neither
-happens before the other (i.e., neither knows about the other)
-[^57].
+happens before the other (i.e., neither knows about the other) [^57].
 
 Thus, whenever you have two operations A and B, there are three possibilities: either A happened
 before B, or B happened before A, or A and B are concurrent. What we need is an algorithm to tell us
@@ -1526,7 +1537,9 @@ whether two operations are concurrent or not. If one operation happened before a
 operation should overwrite the earlier operation, but if the operations are concurrent, we have a
 conflict that needs to be resolved.
 
-# Concurrency, Time, and Relativity
+--------
+
+> ![TIP] Concurrency, Time, and Relativity
 
 It may seem that two operations should be called concurrent if they occur “at the same time”—but
 in fact, it is not important whether they literally overlap in time. Because of problems with clocks
@@ -1546,7 +1559,9 @@ principle have allowed one operation to affect the other. For example, if the ne
 interrupted at the time, two operations can occur some time apart and still be concurrent, because
 the network problems prevented one operation from being able to know about the other.
 
-### Capturing the happens-before relationship
+--------
+
+#### Capturing the happens-before relationship
 
 Let’s look at an algorithm that determines whether two operations are concurrent, or whether one
 happened before another. To keep things simple, let’s start with a database that has only one
@@ -1619,7 +1634,7 @@ write is based on. If you make a write without including a version number, it is
 other writes, so it will not overwrite anything—it will just be returned as one of the values
 on subsequent reads.
 
-### Version vectors
+#### Version vectors
 
 The example in [Figure 6-15](/en/ch6#fig_replication_causality_single) used only a single replica. How does the
 algorithm change when there are multiple replicas, but no leader?
@@ -1646,11 +1661,15 @@ The version vector also ensures that it is safe to read from one replica and sub
 to another replica. Doing so may result in siblings being created, but no data is lost as long as
 siblings are merged correctly.
 
-# Version vectors and vector clocks
+--------
+
+> [!TIP] VERSION VECTORS AND VECTOR CLOCKS
 
 A *version vector* is sometimes also called a *vector clock*, even though they are not quite the
 same. The difference is subtle—please see the references for details [^60] [^63] [^64]. In brief, when
 comparing the state of replicas, version vectors are the right data structure to use.
+
+--------
 
 ## Summary
 
