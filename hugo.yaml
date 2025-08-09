@@ -1,6 +1,6 @@
 baseURL: 'https://ddia.vonng.com/'
 languageCode: 'zh-CN'
-title: '设计数据密集型应用'
+title: '设计数据密集型应用第二版'
 
 enableRobotsTXT: true
 # Parse Git commit
@@ -28,7 +28,7 @@ languages:
     languageCode: zh
     contentDir: content/zh
     weight: 1
-    title: 设计数据密集型应用
+    title: 设计数据密集型应用（第二版）
   v2:
     languageName: 第二版
     languageCode: v2
@@ -40,27 +40,29 @@ languages:
     languageCode: tw
     contentDir: content/tw
     weight: 3
-    title: 設計資料密集型應用
+    title: 設計資料密集型應用（第二版）
   en:
     languageName: English
     languageCode: en
     contentDir: content/en
     weight: 4
-    title: Designing Data-Intensive Applications
-
+    title: Designing Data-Intensive Applications 2nd Edition
 
 markup:
-  highlight:
-    noClasses: false
   goldmark:
-    renderer:
-      unsafe: true
     extensions:
-      passthrough:
-        delimiters:
-          block: [['\[', '\]'], ['$$', '$$']]
-          inline: [['\(', '\)']]
-        enable: true
+      footnote: true         # 开启脚注语法：[^id] / [^id]: text
+      linkify: true          # 自动将 URL 文本转为链接
+      table: true            # 启用 Markdown 表格
+      taskList: true         # 启用任务列表 [ ] / [x]
+      typographer: true      # 智能排版（引号、破折号等）
+    parser:
+      attribute: true        # 允许在标题后写 {#id .class key=val}，用于显式锚点
+      autoHeadingID: true    # 为标题自动生成 ID（手写 {#id} 会覆盖自动生成）
+      autoHeadingIDType: github  # 自动 ID 规则：github / blackfriday / none
+  tableOfContents:
+    startLevel: 2            # ToC 从 h2 开始
+    endLevel: 4              # ToC 到 h4 结束
 
 menu:
   main:

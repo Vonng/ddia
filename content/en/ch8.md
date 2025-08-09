@@ -47,7 +47,7 @@ higher availability). Some safety properties can be achieved without transaction
 hand, transactions can prevent a lot of grief: for example, the technical cause behind the Post
 Office Horizon scandal (see [“How Important Is Reliability?”](/en/ch2#sidebar_reliability_importance)) was probably a lack of ACID
 transactions in the underlying accounting system
-[[1](/en/ch8#Murdoch2021)].
+[^1].
 
 How do you figure out whether you need transactions? In order to answer that question, we first need
 to understand exactly what safety guarantees transactions can provide, and what costs are associated
@@ -86,10 +86,10 @@ The hype around NoSQL distributed databases led to a popular belief that transac
 fundamentally unscalable, and that any large-scale system would have to abandon transactions in
 order to maintain good performance and high availability. More recently, that belief has turned out
 to be wrong. So-called “NewSQL” databases such as CockroachDB
-[[5](/en/ch8#Taft2020_ch8)],
-TiDB [[6](/en/ch8#Huang2020)],
-Spanner [[7](/en/ch8#Corbett2012_ch8)],
-FoundationDB [[8](/en/ch8#Zhou2021_ch8)],
+[^5],
+TiDB [^6],
+Spanner [^7],
+FoundationDB [^8],
 and Yugabyte have shown that transactional systems can scale to large data volumes and high
 throughput. These systems combine sharding with consensus protocols ([Chapter 10](/en/ch10#ch_consistency)) to provide
 strong ACID guarantees at scale.
@@ -104,19 +104,19 @@ operation and in various extreme (but realistic) circumstances.
 The safety guarantees provided by transactions are often described by the well-known acronym *ACID*,
 which stands for *Atomicity*, *Consistency*, *Isolation*, and *Durability*. It was coined in 1983 by
 Theo Härder and Andreas Reuter
-[[9](/en/ch8#Harder1983)]
+[^9]
 in an effort to establish precise terminology for fault-tolerance mechanisms in databases.
 
 However, in practice, one database’s implementation of ACID does not equal another’s implementation.
 For example, as we shall see, there is a lot of ambiguity around the meaning of *isolation*
-[[10](/en/ch8#Bailis2013HAT)].
+[^10].
 The high-level idea is sound, but the devil is in the details. Today, when a system claims to be
 “ACID compliant,” it’s unclear what guarantees you can actually expect. ACID has unfortunately
 become mostly a marketing term.
 
 (Systems that do not meet the ACID criteria are sometimes called *BASE*, which stands for
 *Basically Available*, *Soft state*, and *Eventual consistency*
-[[11](/en/ch8#Fox1997)].
+[^11].
 This is even more vague than the definition of ACID. It seems that the only sensible definition of
 BASE is “not ACID”; i.e., it can mean almost anything you want.)
 
@@ -183,7 +183,7 @@ If you want the database to enforce your invariants, you need to declare them as
 part of the schema. For example, foreign key constraints, uniqueness constraints, or check
 constraints (which restrict the values that can appear in an individual row) are often used to
 model specific types of invariants. More complex consistency requirements can sometimes be modeled
-using triggers or materialized views [[12](/en/ch8#Andrews2004)].
+using triggers or materialized views [^12].
 
 However, complex invariants can be difficult or impossible to model using the constraints that
 databases usually provide. In that case, it’s the application’s responsibility to define its
@@ -214,7 +214,7 @@ isolation as *serializability*, which means that each transaction can pretend th
 transaction running on the entire database. The database ensures that when the transactions have
 committed, the result is the same as if they had run *serially* (one after another), even though in
 reality they may have run concurrently
-[[13](/en/ch8#Bernstein1987_ch8)].
+[^13].
 
 However, serializability has a performance cost. In practice, many databases use forms of isolation
 that are weaker than serializability: that is, they allow concurrent transactions to interfere with
@@ -262,12 +262,12 @@ The truth is, nothing is perfect:
   unavailable (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
 * When the power is suddenly cut, SSDs in particular have been shown to sometimes violate the
   guarantees they are supposed to provide: even `fsync` isn’t guaranteed to work correctly
-  [[15](/en/ch8#Zheng2013)].
+  [^15].
   Disk firmware can have bugs, just like any other kind of software
   [[16](/en/ch8#Denness2015),
   [17](/en/ch8#Surak2015)],
   e.g. causing drives to fail after exactly 32,768 hours of operation
-  [[18](/en/ch8#HPE2019_ch8)].
+  [^18].
   And `fsync` is hard to use; even PostgreSQL used it incorrectly for over 20 years
   [[19](/en/ch8#Ringer2018),
   [20](/en/ch8#Rebello2020),
@@ -277,21 +277,21 @@ The truth is, nothing is perfect:
   [[22](/en/ch8#Pillai2014),
   [23](/en/ch8#Siebenmann2016)].
   Filesystem errors on one replica can sometimes spread to other replicas as well
-  [[24](/en/ch8#Ganesan2017)].
+  [^24].
 * Data on disk can gradually become corrupted without this being detected
-  [[25](/en/ch8#Bairavasundaram2008)].
+  [^25].
   If data has been corrupted for some time, replicas and recent backups may also be corrupted. In
   this case, you will need to try to restore the data from a historical backup.
 * One study of SSDs found that between 30% and 80% of drives develop at least one bad block during
   the first four years of operation, and only some of these can be corrected by the firmware
-  [[26](/en/ch8#Schroeder2016_ch8)].
+  [^26].
   Magnetic hard drives have a lower rate of bad sectors, but a higher rate of complete failure than
   SSDs.
 * When a worn-out SSD (that has gone through many write/erase cycles) is disconnected from power,
   it can start losing data within a timescale of weeks to months, depending on the temperature
-  [[27](/en/ch8#Allison2015)].
+  [^27].
   This is less of a problem for drives with lower wear levels
-  [[28](/en/ch8#MahUng2015)].
+  [^28].
 
 In practice, there is no one technique that can provide absolute guarantees. There are only various
 risk-reduction techniques, including writing to disk, replicating to remote machines, and
@@ -491,11 +491,11 @@ without any concurrency).
 
 In practice, isolation is unfortunately not that simple. Serializable isolation has a performance
 cost, and many databases don’t want to pay that price
-[[10](/en/ch8#Bailis2013HAT)]. It’s therefore common for systems to use
+[^10]. It’s therefore common for systems to use
 weaker levels of isolation, which protect against *some* concurrency issues, but not all. Those
 levels of isolation are much harder to understand, and they can lead to subtle bugs, but they are
 nevertheless used in practice
-[[29](/en/ch8#Kleppmann2014)].
+[^29].
 
 Concurrency bugs caused by weak transaction isolation are not just a theoretical problem. They have
 caused substantial loss of money
@@ -503,8 +503,8 @@ caused substantial loss of money
 [31](/en/ch8#DAgosta2014),
 [32](/en/ch8#bitcointhief2014)],
 led to investigation by financial auditors
-[[33](/en/ch8#Jorwekar2007_ch8)],
-and caused customer data to be corrupted [[34](/en/ch8#Melanson2014)].
+[^33],
+and caused customer data to be corrupted [^34].
 A popular comment on revelations of such problems is “Use an ACID database if you’re handling
 financial data!”—but that misses the point. Even many popular relational database systems (which
 are usually considered “ACID”) use weak isolation, so they wouldn’t necessarily have prevented these
@@ -513,14 +513,14 @@ bugs from occurring.
 ###### Note
 
 Incidentally, much of the banking system relies on text files that are exchanged via secure FTP
-[[35](/en/ch8#Kim2014ACH)].
+[^35].
 In this context, having an audit trail and some human-level fraud prevention measures is actually
 more important than ACID properties.
 
 Those examples also highlight an important point: even if concurrency issues are rare in normal
 operation, you have to consider the possibility that an attacker deliberately sends a burst of
 highly concurrent requests to your API in an attempt to deliberately exploit concurrency bugs
-[[30](/en/ch8#Warszawski2017)]. Therefore, in order to build
+[^30]. Therefore, in order to build
 applications that are reliable and secure, you have to ensure that such bugs are systematically
 prevented.
 
@@ -551,7 +551,7 @@ writes, but does not prevent dirty reads. Let’s discuss these two guarantees i
 
 Imagine a transaction has written some data to the database, but the transaction has not yet committed or aborted.
 Can another transaction see that uncommitted data? If yes, that is called a
-*dirty read* [[3](/en/ch8#Gray1976)].
+*dirty read* [^3].
 
 Transactions running at the read committed isolation level must prevent dirty reads. This means that
 any writes by a transaction only become visible to others when that transaction commits (and then
@@ -584,7 +584,7 @@ the earlier write.
 
 However, what happens if the earlier write is part of a transaction that has not yet committed, so
 the later write overwrites an uncommitted value? This is called a *dirty write*
-[[36](/en/ch8#Berenson1995)]. Transactions running at the read
+[^36]. Transactions running at the read
 committed isolation level must prevent dirty writes, usually by delaying the second write until the
 first write’s transaction has committed or aborted.
 
@@ -611,7 +611,7 @@ By preventing dirty writes, this isolation level avoids some kinds of concurrenc
 
 Read committed is a very popular isolation level. It is the default setting in Oracle Database,
 PostgreSQL, SQL Server, and many other databases
-[[10](/en/ch8#Bailis2013HAT)].
+[^10].
 
 Most commonly, databases prevent dirty writes by using row-level locks: when a transaction wants to
 modify a particular row (or document or some other object), it must first acquire a lock on that
@@ -636,7 +636,7 @@ different part of the application, due to waiting for locks.
 
 Nevertheless, locks are used to prevent dirty reads in some databases, such as IBM
 Db2 and Microsoft SQL Server in the `read_committed_snapshot=off` setting
-[[29](/en/ch8#Kleppmann2014)].
+[^29].
 
 A more commonly used approach to preventing dirty reads is the one illustrated in
 [Figure 8-4](/en/ch8#fig_transactions_read_committed): for every
@@ -698,7 +698,7 @@ Analytic queries and integrity checks
     check that everything is in order (monitoring for data corruption). These queries are likely to
     return nonsensical results if they observe parts of the database at different points in time.
 
-*Snapshot isolation* [[36](/en/ch8#Berenson1995)] is the most common
+*Snapshot isolation* [^36] is the most common
 solution to this problem. The idea is that each transaction reads from a *consistent snapshot* of
 the database—that is, the transaction sees all the data that was committed in the database at the
 start of the transaction. Even if the data is subsequently changed by another transaction, each
@@ -758,7 +758,7 @@ garbage collection process in the database removes any rows marked for deletion 
 space.
 
 An update is internally translated into a delete and a insert
-[[44](/en/ch8#Alleti2025)].
+[^44].
 For example, in [Figure 8-7](/en/ch8#fig_transactions_mvcc), transaction 13 deducts $100 from account 2, changing the
 balance from $500 to $400. The `accounts` table now actually contains two rows for account 2: a row
 with a balance of $500 which was marked as deleted by transaction 13, and a row with a balance of
@@ -776,7 +776,7 @@ version or the other way round, so that queries can internally iterate over all 
 When a transaction reads from the database, transaction IDs are used to decide which row versions it
 can see and which are invisible. By carefully defining visibility rules, the database can present a
 consistent snapshot of the database to the application. This works roughly as follows
-[[43](/en/ch8#Suzuki2017_ch8)]:
+[^43]:
 
 1. At the start of each transaction, the database makes a list of all the other transactions that
    are in progress (not yet committed or aborted) at that time. Any writes that those
@@ -820,7 +820,7 @@ are no longer visible to any transaction, the corresponding index entries can al
 Many implementation details affect the performance of multi-version concurrency control
 [[45](/en/ch8#Pavlo2023), [46](/en/ch8#Wu2017)].
 For example, PostgreSQL has optimizations for avoiding index updates if different versions of the
-same row can fit on the same page [[40](/en/ch8#Momjian2014)].
+same row can fit on the same page [^40].
 Some other databases avoid storing full copies of modified rows, and only store differences between
 versions to save space.
 
@@ -829,7 +829,7 @@ Another approach is used in CouchDB, Datomic, and LMDB. Although they also use B
 pages of the tree when they are updated, but instead creates a new copy of each modified page.
 Parent pages, up to the root of the tree, are copied and updated to point to the new versions of
 their child pages. Any pages that are not affected by a write do not need to be copied, and can be
-shared with the new tree [[47](/en/ch8#Prokopov2014)].
+shared with the new tree [^47].
 
 With immutable B-trees, every write transaction (or batch of transactions) creates a new B-tree
 root, and a particular root is a consistent snapshot of the database at the point in time when it
@@ -842,28 +842,28 @@ requires a background process for compaction and garbage collection.
 MVCC is a commonly used implementation technique for databases, and often it is used to implement
 snapshot isolation. However, different databases sometimes use different terms to refer to the same
 thing: for example, snapshot isolation is called “repeatable read” in PostgreSQL, and “serializable”
-in Oracle [[29](/en/ch8#Kleppmann2014)]. Sometimes different systems
+in Oracle [^29]. Sometimes different systems
 use the same term to mean different things: for example, while in PostgreSQL “repeatable read” means
 snapshot isolation, in MySQL it means an implementation of MVCC with weaker consistency than
-snapshot isolation [[41](/en/ch8#Alvaro2023)].
+snapshot isolation [^41].
 
 The reason for this naming confusion is that the SQL standard doesn’t have the concept of snapshot
 isolation, because the standard is based on System R’s 1975 definition of isolation levels
-[[3](/en/ch8#Gray1976)] and snapshot isolation hadn’t yet been
+[^3] and snapshot isolation hadn’t yet been
 invented then. Instead, it defines repeatable read, which looks superficially similar to snapshot
 isolation. PostgreSQL calls its snapshot isolation level “repeatable read” because it meets the
 requirements of the standard, and so they can claim standards compliance.
 
 Unfortunately, the SQL standard’s definition of isolation levels is flawed—it is ambiguous,
 imprecise, and not as implementation-independent as a standard should be
-[[36](/en/ch8#Berenson1995)]. Even though several databases
+[^36]. Even though several databases
 implement repeatable read, there are big differences in the guarantees they actually provide,
 despite being ostensibly standardized
-[[29](/en/ch8#Kleppmann2014)]. There has been a formal definition of
+[^29]. There has been a formal definition of
 repeatable read in the research literature [[37](/en/ch8#Adya1999),
 [38](/en/ch8#Bailis2014virtues_ch8)], but most implementations don’t satisfy that
 formal definition. And to top it off, IBM Db2 uses “repeatable read” to refer to serializability
-[[10](/en/ch8#Bailis2013HAT)].
+[^10].
 
 As a result, nobody really knows what repeatable read means.
 
@@ -892,7 +892,7 @@ pattern occurs in various different scenarios:
   entire page contents to the server, overwriting whatever is currently in the database
 
 Because this is such a common problem, a variety of solutions have been developed
-[[48](/en/ch8#Svetlov2025)].
+[^48].
 
 ### Atomic write operations
 
@@ -1011,7 +1011,7 @@ If the content has changed and no longer matches `'old content'`, this update wi
 so you need to check whether the update took effect and retry if necessary. Instead of comparing the
 full content, you could also use a version number column that you increment on every update, and
 apply the update only if the current version number hasn’t changed. This approach is sometimes
-called *optimistic locking* [[52](/en/ch8#Dogan2020)].
+called *optimistic locking* [^52].
 
 Note that if another transaction has concurrently modified `content`, the new content may not be
 visible under the MVCC visibility rules (see [“Visibility rules for observing a consistent snapshot”](/en/ch8#sec_transactions_mvcc_visibility)). Many
@@ -1082,7 +1082,7 @@ been violated.
 
 ### Characterizing write skew
 
-This anomaly is called *write skew* [[36](/en/ch8#Berenson1995)]. It
+This anomaly is called *write skew* [^36]. It
 is neither a dirty write nor a lost update, because the two transactions are updating two different
 objects (Aaliyah’s and Bryce’s on-call records, respectively). It is less obvious that a conflict occurred
 here, but it’s definitely a race condition: if the two transactions had run one after another, the
@@ -1101,7 +1101,7 @@ options are more restricted:
 * The automatic detection of lost updates that you find in some implementations of snapshot
   isolation unfortunately doesn’t help either: write skew is not automatically detected in
   PostgreSQL’s repeatable read, MySQL/InnoDB’s repeatable read, Oracle’s serializable, or SQL
-  Server’s snapshot isolation level [[29](/en/ch8#Kleppmann2014)].
+  Server’s snapshot isolation level [^29].
   Automatically preventing write skew requires true serializable isolation (see
   [“Serializability”](/en/ch8#sec_transactions_serializability)).
 * Some databases allow you to configure constraints, which are then enforced by the database (e.g.,
@@ -1109,7 +1109,7 @@ options are more restricted:
   specify that at least one doctor must be on call, you would need a constraint that involves
   multiple objects. Most databases do not have built-in support for such constraints, but you may be
   able to implement them with triggers or materialized views, as discussed in
-  [“Consistency”](/en/ch8#sec_transactions_acid_consistency) [[12](/en/ch8#Andrews2004)].
+  [“Consistency”](/en/ch8#sec_transactions_acid_consistency) [^12].
 * If you can’t use a serializable isolation level, the second-best option in this case is probably
   to explicitly lock the rows that the transaction depends on. In the doctors example, you could
   write something like the following:
@@ -1139,7 +1139,7 @@ more situations in which it can occur. Here are some more examples:
 
 Meeting room booking system
 :   Say you want to enforce that there cannot be two bookings for the same meeting room at the same
-    time [[55](/en/ch8#Terry1995_ch8)].
+    time [^55].
     When someone wants to make a booking, you first check for any conflicting bookings (i.e.,
     bookings for the same room with an overlapping time range), and if none are found, you create the
     meeting (see [Example 8-2](/en/ch8#fig_transactions_meeting_rooms)).
@@ -1216,10 +1216,10 @@ returned in step 1, so we could make the transaction safe and avoid write skew b
 in step 1 (`SELECT FOR UPDATE`). However, the other four examples are different: they check for the
 *absence* of rows matching some search condition, and the write *adds* a row matching the same
 condition. If the query in step 1 doesn’t return any rows, `SELECT FOR UPDATE` can’t attach locks to
-anything [[56](/en/ch8#Schoenig2021)].
+anything [^56].
 
 This effect, where a write in one transaction changes the result of a search query in another
-transaction, is called a *phantom* [[4](/en/ch8#Eswaran1976)].
+transaction, is called a *phantom* [^4].
 Snapshot isolation avoids phantoms in read-only queries, but in read-write transactions like the
 examples we discussed, phantoms can lead to particularly tricky cases of write skew. The SQL
 generated by ORMs is also prone to write skew
@@ -1244,7 +1244,7 @@ to prevent bookings on the same room and time range from being modified concurre
 
 This approach is called *materializing conflicts*, because it takes a phantom and turns it into a
 lock conflict on a concrete set of rows that exist in the database
-[[14](/en/ch8#Fekete2005)]. Unfortunately, it can be hard and
+[^14]. Unfortunately, it can be hard and
 error-prone to figure out how to materialize conflicts, and it’s ugly to let a concurrency control
 mechanism leak into the application data model. For those reasons, materializing conflicts should be
 considered a last resort if no alternative is possible. A serializable isolation level is much
@@ -1263,12 +1263,12 @@ a sad situation:
   particular isolation level—especially in a large application, where you might not be aware of
   all the things that may be happening concurrently.
 * There are no good tools to help us detect race conditions. In principle, static analysis may
-  help [[33](/en/ch8#Jorwekar2007_ch8)], but research techniques have not
+  help [^33], but research techniques have not
   yet found their way into practical use. Testing for concurrency issues is hard, because they are
   usually nondeterministic—problems only occur if you get unlucky with the timing.
 
 This is not a new problem—it has been like this since the 1970s, when weak isolation levels were
-first introduced [[3](/en/ch8#Gray1976)]. All along, the answer
+first introduced [^3]. All along, the answer
 from researchers has been simple: use *serializable* isolation!
 
 Serializable isolation is the strongest isolation level. It guarantees that even
@@ -1297,7 +1297,7 @@ isolation is by definition serializable.
 
 Even though this seems like an obvious idea, it was only in the 2000s that database designers
 decided that a single-threaded loop for executing transactions was feasible
-[[57](/en/ch8#Stonebraker2007_ch8)].
+[^57].
 If multi-threaded concurrency was considered essential for getting good performance during the
 previous 30 years, what changed to make single-threaded execution possible?
 
@@ -1353,7 +1353,7 @@ in order to get reasonable performance.
 For this reason, systems with single-threaded serial transaction processing don’t allow interactive
 multi-statement transactions. Instead, the application must either limit itself to transactions
 containing a single statement, or submit the entire transaction code to the database ahead of time,
-as a *stored procedure* [[61](/en/ch8#Hugg2014debunking)].
+as a *stored procedure* [^61].
 
 The differences between interactive transactions and stored procedures is illustrated in
 [Figure 8-9](/en/ch8#fig_transactions_stored_proc). Provided that all data required by a transaction is in memory, the
@@ -1381,7 +1381,7 @@ SQL standard (SQL/PSM) since 1999. They have gained a somewhat bad reputation, f
   badly written code in an application server.
 * In a multitenant system that allows tenants to write their own stored procedures, it’s a security
   risk to execute untrusted code in the same process as the database kernel
-  [[62](/en/ch8#Zhou2025)].
+  [^62].
 
 However, those issues can be overcome. Modern implementations of stored procedures have abandoned
 PL/SQL and use existing general-purpose programming languages instead: VoltDB uses Java or Groovy,
@@ -1418,7 +1418,7 @@ In order to scale to multiple CPU cores, and multiple nodes, you can shard your 
 so that each transaction only needs to read and write data within a single shard, then each shard
 can have its own transaction processing thread running independently from the others. In this case,
 you can give each CPU core its own shard, which allows your transaction throughput to scale linearly
-with the number of CPU cores [[59](/en/ch8#Kallman2008)].
+with the number of CPU cores [^59].
 
 However, for any transaction that needs to access multiple shards, the database must coordinate the
 transaction across all the shards that it touches. The stored procedure needs to be performed in
@@ -1427,9 +1427,9 @@ lock-step across all shards to ensure serializability across the whole system.
 Since cross-shard transactions have additional coordination overhead, they are vastly slower than
 single-shard transactions. VoltDB reports a throughput of about 1,000 cross-shard writes per second,
 which is orders of magnitude below its single-shard throughput and cannot be increased by adding
-more machines [[61](/en/ch8#Hugg2014debunking)]. More recent research
+more machines [^61]. More recent research
 has explored ways of making multi-shard transactions more scalable
-[[63](/en/ch8#Zhou2022)].
+[^63].
 
 Whether transactions can be single-shard depends very much on the structure of the data used by the
 application. Simple key-value data can often be sharded very easily, but data with multiple
@@ -1489,7 +1489,7 @@ it protects against all the race conditions discussed earlier, including lost up
 
 2PL is used by the serializable isolation level in MySQL (InnoDB) and SQL Server, and the
 repeatable read isolation level in Db2
-[[29](/en/ch8#Kleppmann2014)].
+[^29].
 
 The blocking of readers and writers is implemented by having a lock on each object in the
 database. The lock can either be in *shared mode* or in *exclusive mode* (also known as a
@@ -1556,7 +1556,7 @@ time range. (It’s okay to concurrently insert bookings for other rooms, or for
 different time that doesn’t affect the proposed booking.)
 
 How do we implement this? Conceptually, we need a *predicate lock*
-[[4](/en/ch8#Eswaran1976)]. It works similarly to the
+[^4]. It works similarly to the
 shared/exclusive lock described earlier, but rather than belonging to a particular object (e.g., one
 row in a table), it belongs to all objects that match some search condition, such as:
 
@@ -1636,11 +1636,11 @@ comparatively new: it was first described in 2008
 [65](/en/ch8#Cahill2009)].
 
 Today SSI and similar algorithms are used in single-node databases (the serializable isolation level
-in PostgreSQL [[54](/en/ch8#Ports2012)], SQL Server’s In-Memory
-OLTP/Hekaton [[66](/en/ch8#Diaconu2013)], and HyPer
-[[67](/en/ch8#Neumann2015)]),
-distributed databases (CockroachDB [[5](/en/ch8#Taft2020_ch8)] and
-FoundationDB [[8](/en/ch8#Zhou2021_ch8)]), and embedded storage
+in PostgreSQL [^54], SQL Server’s In-Memory
+OLTP/Hekaton [^66], and HyPer
+[^67]),
+distributed databases (CockroachDB [^5] and
+FoundationDB [^8]), and embedded storage
 engines such as BadgerDB.
 
 ### Pessimistic versus optimistic concurrency control
@@ -1663,9 +1663,9 @@ isolation was violated); if so, the transaction is aborted and has to be retried
 that executed serializably are allowed to commit.
 
 Optimistic concurrency control is an old idea
-[[68](/en/ch8#Badal1979)],
+[^68],
 and its advantages and disadvantages have been debated for a long time
-[[69](/en/ch8#Agrawal1987)].
+[^69].
 It performs badly if there is high contention (many transactions trying to access the same objects),
 as this leads to a high proportion of transactions needing to abort. If the system is already close
 to its maximum throughput, the additional transaction load from retried transactions can make
@@ -1802,9 +1802,9 @@ serializable isolation.
 Compared to non-serializable snapshot isolation, the need to check for serializability violations
 introduces some performance overheads. How significant these overheads are is a matter of debate:
 some believe that serializability checking is not worth it
-[[70](/en/ch8#Brooker2024snapshot)],
+[^70],
 while others believe that the performance of serializability is now so good that there is no need to
-use the weaker snapshot isolation any more [[67](/en/ch8#Neumann2015)].
+use the weaker snapshot isolation any more [^67].
 
 The rate of aborts significantly affects the overall performance of SSI. For example, a transaction
 that reads and writes data over a long period of time is likely to run into conflicts and abort, so
@@ -1819,7 +1819,7 @@ algorithms we have seen apply to both single-node and distributed databases: alt
 challenges in making concurrency control algorithms scalable (for example, performing distributed
 serializability checking for SSI), the high-level ideas for distributed concurrency control are
 similar to single-node concurrency control
-[[8](/en/ch8#Zhou2021_ch8)].
+[^8].
 
 Consistency and durability also don’t change much when we move to distributed transactions. However,
 atomicity requires more care.
@@ -1834,7 +1834,7 @@ writes from that transaction are rolled back.
 
 Thus, on a single node, transaction commitment crucially depends on the *order* in which data is
 durably written to disk: first the data, then the commit record
-[[22](/en/ch8#Pillai2014)].
+[^22].
 The key deciding moment for whether the transaction commits or aborts is the moment at which the
 disk finishes writing the commit record: before that moment, it is still possible to abort (due to a
 crash), but after that moment, the transaction is committed (even if the database crashes). Thus, it
@@ -1883,7 +1883,7 @@ is a classic algorithm in distributed databases
 [71](/en/ch8#Lindsay1979_ch8),
 [72](/en/ch8#Mohan1986)]. 2PC is used
 internally in some databases and also made available to applications in the form of *XA transactions*
-[[73](/en/ch8#XASpec1991)]
+[^73]
 (which are supported by the Java Transaction API, for example) or via WS-AtomicTransaction for SOAP
 web services
 [[74](/en/ch8#Neto2008),
@@ -1920,7 +1920,7 @@ asks the bride and groom individually whether each wants to marry the other, and
 the answer “I do” from both. After receiving both acknowledgments, the minister pronounces the
 couple husband and wife: the transaction is committed, and the happy fact is broadcast to all
 attendees. If either bride or groom does not say “yes,” the ceremony is aborted
-[[76](/en/ch8#Gray1981_ch8)].
+[^76].
 
 ### A system of promises
 
@@ -2036,7 +2036,7 @@ more than they can deliver [[78](/en/ch8#Hohpe2005),
 [80](/en/ch8#Oliver2011),
 [81](/en/ch8#Rahien2014)].
 Many cloud services choose not to implement distributed transactions due to the operational
-problems they engender [[82](/en/ch8#Vasters2012)].
+problems they engender [^82].
 
 Some implementations of distributed transactions carry a heavy performance penalty. Much of the
 performance cost inherent in two-phase commit is due to the additional disk forcing (`fsync`) that
@@ -2093,7 +2093,7 @@ atomic commit protocol that allows such heterogeneous distributed transactions.
 ### XA transactions
 
 *X/Open XA* (short for *eXtended Architecture*) is a standard for implementing two-phase commit
-across heterogeneous technologies [[73](/en/ch8#XASpec1991)].
+across heterogeneous technologies [^73].
 It was introduced in 1991 and has been widely
 implemented: XA is supported by many traditional relational databases (including PostgreSQL, MySQL,
 Db2, SQL Server, and Oracle) and message brokers (including ActiveMQ, HornetQ, MSMQ, and IBM MQ).
@@ -2172,7 +2172,7 @@ most likely needs to be done under high stress and time pressure during a seriou
 
 Many XA implementations have an emergency escape hatch called *heuristic decisions*: allowing a
 participant to unilaterally decide to abort or commit an in-doubt transaction without a definitive
-decision from the coordinator [[73](/en/ch8#XASpec1991)]. To be clear,
+decision from the coordinator [^73]. To be clear,
 *heuristic* here is a euphemism for *probably breaking atomicity*, since the heuristic decision
 violates the system of promises in two-phase commit. Thus, heuristic decisions are intended only for
 getting out of catastrophic situations, and not for regular use.
@@ -2214,12 +2214,12 @@ As explained previously, there is a big difference between distributed transacti
 multiple heterogeneous storage technologies, and those that are internal to a system—i.e., where all
 the participating nodes are shards of the same database running the same software. Such internal
 distributed transactions are a defining feature of “NewSQL” databases such as
-CockroachDB [[5](/en/ch8#Taft2020_ch8)],
-TiDB [[6](/en/ch8#Huang2020)],
-Spanner [[7](/en/ch8#Corbett2012_ch8)],
-FoundationDB [[8](/en/ch8#Zhou2021_ch8)], and YugabyteDB, for
+CockroachDB [^5],
+TiDB [^6],
+Spanner [^7],
+FoundationDB [^8], and YugabyteDB, for
 example. Some message brokers such as Kafka also support internal distributed transactions
-[[85](/en/ch8#Wang2021)].
+[^85].
 
 Many of these systems use 2-phase commit to ensure atomicity of transactions that write to multiple
 shards, and yet they don’t suffer the same problems as XA transactions. The reason is that because
@@ -2320,12 +2320,12 @@ discussing various examples of race conditions, summarized in [Table 8-1](/en/c
 
 Table 8-1. Summary of anomalies that can occur at various isolation levels
 
-| Isolation level | Dirty reads | Read skew | Phantom reads | Lost updates | Write skew |
-| --- | --- | --- | --- | --- | --- |
-| Read uncommitted | ✗ Possible | ✗ Possible | ✗ Possible | ✗ Possible | ✗ Possible |
-| Read committed | ✓ Prevented | ✗ Possible | ✗ Possible | ✗ Possible | ✗ Possible |
-| Snapshot isolation | ✓ Prevented | ✓ Prevented | ✓ Prevented | ? Depends | ✗ Possible |
-| Serializable | ✓ Prevented | ✓ Prevented | ✓ Prevented | ✓ Prevented | ✓ Prevented |
+| Isolation level    | Dirty reads | Read skew   | Phantom reads | Lost updates | Write skew  |
+|--------------------|-------------|-------------|---------------|--------------|-------------|
+| Read uncommitted   | ✗ Possible  | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
+| Read committed     | ✓ Prevented | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
+| Snapshot isolation | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ? Depends    | ✗ Possible  |
+| Serializable       | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ✓ Prevented  | ✓ Prevented |
 
 Dirty reads
 :   One client reads another client’s writes before they have been committed. The read committed
@@ -2390,482 +2390,93 @@ is used.
 
 ##### Footnotes
 
+
 ##### References
 
-[[1](/en/ch8#Murdoch2021-marker)] Steven J. Murdoch.
-[What
-went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021.
-Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F)
 
-[[2](/en/ch8#Chamberlin1981-marker)] Donald D. Chamberlin, Morton M. Astrahan,
-Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl,
-Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz,
-Irving L. Traiger, Bradford W. Wade, and Robert A. Yost.
-[A History and Evaluation of System
-R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981.
-[doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784)
 
-[[3](/en/ch8#Gray1976-marker)] Jim N. Gray, Raymond A. Lorie, Gianfranco R. Putzolu, and Irving L. Traiger.
-[Granularity of
-Locks and Degrees of Consistency in a Shared Data Base](https://citeseerx.ist.psu.edu/pdf/e127f0a6a912bb9150ecfe03c0ebf7fbc289a023). in *Modelling in Data Base Management
-Systems: Proceedings of the IFIP Working Conference on Modelling in Data Base Management
-Systems*, edited by G. M. Nijssen, pages 364–394, Elsevier/North Holland Publishing, 1976. Also
-in *Readings in Database Systems*, 4th edition, edited by Joseph M. Hellerstein and Michael
-Stonebraker, MIT Press, 2005. ISBN: 978-0-262-69314-1
-
-[[4](/en/ch8#Eswaran1976-marker)] Kapali P. Eswaran, Jim N. Gray, Raymond A. Lorie, and Irving L. Traiger.
-[The
-Notions of Consistency and Predicate Locks in a Database System](https://jimgray.azurewebsites.net/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf?from=https://research.microsoft.com/en-us/um/people/gray/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf). *Communications of the
-ACM*, volume 19, issue 11, pages 624–633, November 1976.
-[doi:10.1145/360363.360369](https://doi.org/10.1145/360363.360369)
-
-[[5](/en/ch8#Taft2020_ch8-marker)] Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan
-VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul
-Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis.
-[CockroachDB: The Resilient
-Geo-Distributed SQL Database](https://dl.acm.org/doi/pdf/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of
-Data* (SIGMOD), pages 1493–1509, June 2020.
-[doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134)
-
-[[6](/en/ch8#Huang2020-marker)] Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang,
-Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang,
-Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan
-Pei, and Xin Tang.
-[TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf).
-*Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084.
-[doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535)
-
-[[7](/en/ch8#Corbett2012_ch8-marker)] James C. Corbett, Jeffrey Dean,
-Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev,
-Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li,
-Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig,
-Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang.
-[Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/).
-At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI),
-October 2012.
-
-[[8](/en/ch8#Zhou2021_ch8-marker)] Jingyu Zhou, Meng Xu, Alexander
-Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty
-Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser,
-Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav.
-[FoundationDB: A Distributed Unbundled
-Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data*
-(SIGMOD), June 2021.
-[doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559)
-
-[[9](/en/ch8#Harder1983-marker)] Theo Härder and Andreas Reuter.
-[Principles of
-Transaction-Oriented Database Recovery](https://citeseerx.ist.psu.edu/pdf/11ef7c142295aeb1a28a0e714c91fc8d610c3047). *ACM Computing Surveys*, volume 15, issue 4,
-pages 287–317, December 1983. [doi:10.1145/289.291](https://doi.org/10.1145/289.291)
-
-[[10](/en/ch8#Bailis2013HAT-marker)] Peter Bailis, Alan Fekete, Ali Ghodsi, Joseph
-M. Hellerstein, and Ion Stoica.
-[HAT, not CAP:
-Towards Highly Available Transactions](https://www.usenix.org/system/files/conference/hotos13/hotos13-final80.pdf). At *14th USENIX Workshop on Hot Topics in Operating
-Systems* (HotOS), May 2013.
-
-[[11](/en/ch8#Fox1997-marker)] Armando Fox, Steven D. Gribble, Yatin Chawathe, Eric
-A. Brewer, and Paul Gauthier.
-[Cluster-Based Scalable Network
-Services](https://people.eecs.berkeley.edu/~brewer/cs262b/TACC.pdf). At *16th ACM Symposium on Operating Systems Principles* (SOSP), October 1997.
-[doi:10.1145/268998.266662](https://doi.org/10.1145/268998.266662)
-
-[[12](/en/ch8#Andrews2004-marker)] Tony Andrews.
-[Enforcing
-Complex Constraints in Oracle](https://tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html). *tonyandrews.blogspot.co.uk*, October 2004. Archived at
-[archive.org](https://web.archive.org/web/20220201190625/https%3A//tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html)
-
-[[13](/en/ch8#Bernstein1987_ch8-marker)] Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman.
-[*Concurrency Control and
-Recovery in Database Systems*](https://www.microsoft.com/en-us/research/people/philbe/book/). Addison-Wesley, 1987. ISBN: 978-0-201-10715-9, available
-online at [*microsoft.com*](https://www.microsoft.com/en-us/research/people/philbe/book/).
-
-[[14](/en/ch8#Fekete2005-marker)] Alan Fekete, Dimitrios Liarokapis, Elizabeth O’Neil,
-Patrick O’Neil, and Dennis Shasha.
-[Making
-Snapshot Isolation Serializable](https://www.cse.iitb.ac.in/infolab/Data/Courses/CS632/2009/Papers/p492-fekete.pdf). *ACM Transactions on Database Systems*,
-volume 30, issue 2, pages 492–528, June 2005.
-[doi:10.1145/1071610.1071615](https://doi.org/10.1145/1071610.1071615)
-
-[[15](/en/ch8#Zheng2013-marker)] Mai Zheng, Joseph Tucek, Feng Qin, and Mark Lillibridge.
-[Understanding
-the Robustness of SSDs Under Power Fault](https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf). At *11th USENIX Conference on File and Storage
-Technologies* (FAST), February 2013.
-
-[[16](/en/ch8#Denness2015-marker)] Laurie Denness.
-[SSDs: A Gift and a Curse](https://laur.ie/blog/2015/06/ssds-a-gift-and-a-curse/).
-*laur.ie*, June 2015. Archived at [perma.cc/6GLP-BX3T](https://perma.cc/6GLP-BX3T)
-
-[[17](/en/ch8#Surak2015-marker)] Adam Surak.
-[When
-Solid State Drives Are Not That Solid](https://www.algolia.com/blog/engineering/when-solid-state-drives-are-not-that-solid). *blog.algolia.com*, June 2015.
-Archived at [perma.cc/CBR9-QZEE](https://perma.cc/CBR9-QZEE)
-
-[[18](/en/ch8#HPE2019_ch8-marker)] Hewlett Packard Enterprise.
-[Bulletin:
-(Revision) HPE SAS Solid State Drives - Critical Firmware Upgrade Required for Certain HPE SAS
-Solid State Drive Models to Prevent Drive Failure at 32,768 Hours of Operation](https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00092491en_us).
-*support.hpe.com*, November 2019.
-Archived at [perma.cc/CZR4-AQBS](https://perma.cc/CZR4-AQBS)
-
-[[19](/en/ch8#Ringer2018-marker)] Craig Ringer et al.
-[PostgreSQL’s
-handling of fsync() errors is unsafe and risks data loss at least on XFS](https://www.postgresql.org/message-id/flat/CAMsr%2BYHh%2B5Oq4xziwwoEfhoTZgr07vdGG%2Bhu%3D1adXx59aTeaoQ%40mail.gmail.com). Email thread on
-pgsql-hackers mailing list, *postgresql.org*, March 2018.
-Archived at [perma.cc/5RKU-57FL](https://perma.cc/5RKU-57FL)
-
-[[20](/en/ch8#Rebello2020-marker)] Anthony Rebello, Yuvraj Patel, Ramnatthan Alagappan,
-Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau.
-[Can Applications Recover
-from fsync Failures?](https://www.usenix.org/conference/atc20/presentation/rebello) At *USENIX Annual Technical Conference* (ATC), July 2020.
-
-[[21](/en/ch8#Pillai2015-marker)] Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram,
-Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau.
-[Crash Consistency: Rethinking the
-Fundamental Abstractions of the File System](https://dl.acm.org/doi/pdf/10.1145/2800695.2801719). *ACM Queue*, volume 13, issue 7, pages 20–28, July 2015.
-[doi:10.1145/2800695.2801719](https://doi.org/10.1145/2800695.2801719)
-
-[[22](/en/ch8#Pillai2014-marker)] Thanumalayan Sankaranarayana Pillai, Vijay
-Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau.
-[All File
-Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf).
-At *11th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2014.
-
-[[23](/en/ch8#Siebenmann2016-marker)] Chris Siebenmann.
-[Unix’s File Durability
-Problem](https://utcc.utoronto.ca/~cks/space/blog/unix/FileSyncProblem). *utcc.utoronto.ca*, April 2016.
-Archived at [perma.cc/VSS8-5MC4](https://perma.cc/VSS8-5MC4)
-
-[[24](/en/ch8#Ganesan2017-marker)] Aishwarya Ganesan, Ramnatthan Alagappan, Andrea C.
-Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau.
-[Redundancy
-Does Not Imply Fault Tolerance: Analysis of Distributed Storage Reactions to Single Errors and
-Corruptions](https://www.usenix.org/conference/fast17/technical-sessions/presentation/ganesan). At *15th USENIX Conference on File and Storage Technologies* (FAST),
-February 2017.
-
-[[25](/en/ch8#Bairavasundaram2008-marker)] Lakshmi N. Bairavasundaram, Garth R.
-Goodson, Bianca Schroeder, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau.
-[An
-Analysis of Data Corruption in the Storage Stack](https://www.usenix.org/legacy/event/fast08/tech/full_papers/bairavasundaram/bairavasundaram.pdf). At *6th USENIX Conference on File and
-Storage Technologies* (FAST), February 2008.
-
-[[26](/en/ch8#Schroeder2016_ch8-marker)] Bianca Schroeder, Raghav Lagisetty, and Arif Merchant.
-[Flash
-Reliability in Production: The Expected and the Unexpected](https://www.usenix.org/conference/fast16/technical-sessions/presentation/schroeder). At *14th USENIX Conference on
-File and Storage Technologies* (FAST), February 2016.
-
-[[27](/en/ch8#Allison2015-marker)] Don Allison.
-[SSD Storage – Ignorance of Technology Is No
-Excuse](https://blog.korelogic.com/blog/2015/03/24). *blog.korelogic.com*, March 2015.
-Archived at [perma.cc/9QN4-9SNJ](https://perma.cc/9QN4-9SNJ)
-
-[[28](/en/ch8#MahUng2015-marker)] Gordon Mah Ung.
-[Debunked:
-Your SSD won’t lose data if left unplugged after all](https://www.pcworld.com/article/427602/debunked-your-ssd-wont-lose-data-if-left-unplugged-after-all.html). *pcworld.com*, May 2015.
-Archived at [perma.cc/S46H-JUDU](https://perma.cc/S46H-JUDU)
-
-[[29](/en/ch8#Kleppmann2014-marker)] Martin Kleppmann.
-[Hermitage:
-Testing the ‘I’ in ACID](https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html). *martin.kleppmann.com*, November 2014.
-Archived at [perma.cc/KP2Y-AQGK](https://perma.cc/KP2Y-AQGK)
-
-[[30](/en/ch8#Warszawski2017-marker)] Todd Warszawski and Peter Bailis.
-[ACIDRain: Concurrency-Related Attacks
-on Database-Backed Web Applications](http://www.bailis.org/papers/acidrain-sigmod2017.pdf). At *ACM International Conference on Management of
-Data* (SIGMOD), May 2017.
-[doi:10.1145/3035918.3064037](https://doi.org/10.1145/3035918.3064037)
-
-[[31](/en/ch8#DAgosta2014-marker)] Tristan D’Agosta.
-[BTC Stolen from Poloniex](https://bitcointalk.org/index.php?topic=499580).
-*bitcointalk.org*, March 2014.
-Archived at [perma.cc/YHA6-4C5D](https://perma.cc/YHA6-4C5D)
-
-[[32](/en/ch8#bitcointhief2014-marker)] bitcointhief2.
-[How
-I Stole Roughly 100 BTC from an Exchange and How I Could Have Stolen More!](https://www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) *reddit.com*,
-February 2014. Archived at
-[archive.org](https://web.archive.org/web/20250118042610/https%3A//www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/)
-
-[[33](/en/ch8#Jorwekar2007_ch8-marker)] Sudhir Jorwekar, Alan Fekete, Krithi Ramamritham, and S. Sudarshan.
-[Automating the
-Detection of Snapshot Isolation Anomalies](https://www.vldb.org/conf/2007/papers/industrial/p1263-jorwekar.pdf). At *33rd International Conference on Very Large
-Data Bases* (VLDB), September 2007.
-
-[[34](/en/ch8#Melanson2014-marker)] Michael Melanson.
-[Transactions:
-The Limits of Isolation](https://www.michaelmelanson.net/posts/transactions-the-limits-of-isolation/). *michaelmelanson.net*, November 2014.
-Archived at [perma.cc/RG5R-KMYZ](https://perma.cc/RG5R-KMYZ)
-
-[[35](/en/ch8#Kim2014ACH-marker)] Edward Kim.
-[How
-ACH works: A developer perspective — Part 1](https://engineering.gusto.com/how-ach-works-a-developer-perspective-part-1-339d3e7bea1). *engineering.gusto.com*, April 2014.
-Archived at [perma.cc/7B2H-PU94](https://perma.cc/7B2H-PU94)
-
-[[36](/en/ch8#Berenson1995-marker)] Hal Berenson, Philip A. Bernstein, Jim N. Gray,
-Jim Melton, Elizabeth O’Neil, and Patrick O’Neil.
-[A Critique of
-ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf). At *ACM International Conference on Management of Data* (SIGMOD),
-May 1995. [doi:10.1145/568271.223785](https://doi.org/10.1145/568271.223785)
-
-[[37](/en/ch8#Adya1999-marker)] Atul Adya. [Weak
-Consistency: A Generalized Theory and Optimistic Implementations for Distributed Transactions](https://pmg.csail.mit.edu/papers/adya-phd.pdf).
-PhD Thesis, Massachusetts Institute of Technology, March 1999.
-Archived at [perma.cc/E97M-HW5Q](https://perma.cc/E97M-HW5Q)
-
-[[38](/en/ch8#Bailis2014virtues_ch8-marker)] Peter Bailis, Aaron Davidson, Alan Fekete, Ali
-Ghodsi, Joseph M. Hellerstein, and Ion Stoica.
-[Highly Available Transactions: Virtues and
-Limitations](https://www.vldb.org/pvldb/vol7/p181-bailis.pdf). At *40th International Conference on Very Large Data Bases* (VLDB),
-September 2014.
-
-[[39](/en/ch8#Crooks2017-marker)] Natacha Crooks, Youer Pu, Lorenzo Alvisi, and Allen Clement.
-[Seeing is Believing: A
-Client-Centric Specification of Database Isolation](https://www.cs.cornell.edu/lorenzo/papers/Crooks17Seeing.pdf). At *ACM Symposium on Principles of
-Distributed Computing* (PODC), pages 73–82, July 2017.
-[doi:10.1145/3087801.3087802](https://doi.org/10.1145/3087801.3087802)
-
-[[40](/en/ch8#Momjian2014-marker)] Bruce Momjian.
-[MVCC Unmasked](https://momjian.us/main/writings/pgsql/mvcc.pdf). *momjian.us*,
-July 2014. Archived at [perma.cc/KQ47-9GYB](https://perma.cc/KQ47-9GYB)
-
-[[41](/en/ch8#Alvaro2023-marker)] Peter Alvaro and Kyle Kingsbury.
-[MySQL 8.0.34](https://jepsen.io/analyses/mysql-8.0.34). *jepsen.io*, December 2023.
-Archived at [perma.cc/HGE2-Z878](https://perma.cc/HGE2-Z878)
-
-[[42](/en/ch8#Rogov2023-marker)] Egor Rogov.
-[PostgreSQL 14 Internals](https://postgrespro.com/community/books/internals).
-*postgrespro.com*, April 2023.
-Archived at [perma.cc/FRK2-D7WB](https://perma.cc/FRK2-D7WB)
-
-[[43](/en/ch8#Suzuki2017_ch8-marker)] Hironobu Suzuki.
-[The Internals of PostgreSQL](https://www.interdb.jp/pg/).
-*interdb.jp*, 2017.
-
-[[44](/en/ch8#Alleti2025-marker)] Rohan Reddy Alleti.
-[Internals
-of MVCC in Postgres: Hidden costs of Updates vs Inserts](https://medium.com/%40rohanjnr44/internals-of-mvcc-in-postgres-hidden-costs-of-updates-vs-inserts-381eadd35844). *medium.com*, March 2025.
-Archived at [perma.cc/3ACX-DFXT](https://perma.cc/3ACX-DFXT)
-
-[[45](/en/ch8#Pavlo2023-marker)] Andy Pavlo and Bohan Zhang.
-[The
-Part of PostgreSQL We Hate the Most](https://www.cs.cmu.edu/~pavlo/blog/2023/04/the-part-of-postgresql-we-hate-the-most.html). *cs.cmu.edu*, April 2023.
-Archived at [perma.cc/XSP6-3JBN](https://perma.cc/XSP6-3JBN)
-
-[[46](/en/ch8#Wu2017-marker)] Yingjun Wu, Joy Arulraj, Jiexi Lin, Ran Xian, and Andrew Pavlo.
-[An empirical evaluation of in-memory
-multi-version concurrency control](https://vldb.org/pvldb/vol10/p781-Wu.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue
-7, pages 781–792, March 2017.
-[doi:10.14778/3067421.3067427](https://doi.org/10.14778/3067421.3067427)
-
-[[47](/en/ch8#Prokopov2014-marker)] Nikita Prokopov.
-[Unofficial Guide to Datomic
-Internals](https://tonsky.me/blog/unofficial-guide-to-datomic-internals/). *tonsky.me*, May 2014.
-
-[[48](/en/ch8#Svetlov2025-marker)] Daniil Svetlov.
-[A Practical Guide to Taming Postgres Isolation
-Anomalies](https://dansvetlov.me/postgres-anomalies/). *dansvetlov.me*, March 2025.
-Archived at [perma.cc/L7LE-TDLS](https://perma.cc/L7LE-TDLS)
-
-[[49](/en/ch8#Wiger2010-marker)] Nate Wiger.
-[An Atomic Rant](https://nateware.com/2010/02/18/an-atomic-rant/). *nateware.com*,
-February 2010. Archived at [perma.cc/5ZYB-PE44](https://perma.cc/5ZYB-PE44)
-
-[[50](/en/ch8#Coglan2020-marker)] James Coglan.
-[Reading and writing,
-part 3: web applications](https://blog.jcoglan.com/2020/10/12/reading-and-writing-part-3/). *blog.jcoglan.com*, October 2020.
-Archived at [perma.cc/A7EK-PJVS](https://perma.cc/A7EK-PJVS)
-
-[[51](/en/ch8#Bailis2015_ch8-marker)] Peter Bailis, Alan Fekete, Michael J. Franklin,
-Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica.
-[Feral Concurrency Control: An
-Empirical Investigation of Modern Application Integrity](http://www.bailis.org/papers/feral-sigmod2015.pdf). At *ACM International Conference on
-Management of Data* (SIGMOD), June 2015.
-[doi:10.1145/2723372.2737784](https://doi.org/10.1145/2723372.2737784)
-
-[[52](/en/ch8#Dogan2020-marker)] Jaana Dogan.
-[Things
-I Wished More Developers Knew About Databases](https://rakyll.medium.com/things-i-wished-more-developers-knew-about-databases-2d0178464f78). *rakyll.medium.com*, April 2020.
-Archived at [perma.cc/6EFK-P2TD](https://perma.cc/6EFK-P2TD)
-
-[[53](/en/ch8#Cahill2008-marker)] Michael J. Cahill, Uwe Röhm, and Alan Fekete.
-[Serializable
-Isolation for Snapshot Databases](https://www.cs.cornell.edu/~sowell/dbpapers/serializable_isolation.pdf). At *ACM International Conference on Management of Data*
-(SIGMOD), June 2008.
-[doi:10.1145/1376616.1376690](https://doi.org/10.1145/1376616.1376690)
-
-[[54](/en/ch8#Ports2012-marker)] Dan R. K. Ports and Kevin Grittner.
-[Serializable Snapshot Isolation in PostgreSQL](https://drkp.net/papers/ssi-vldb12.pdf).
-At *38th International Conference on Very Large Databases* (VLDB), August 2012.
-
-[[55](/en/ch8#Terry1995_ch8-marker)] Douglas B. Terry, Marvin M. Theimer,
-Karin Petersen, Alan J. Demers, Mike J. Spreitzer and Carl H. Hauser.
-[Managing
-Update Conflicts in Bayou, a Weakly Connected Replicated Storage System](https://pdos.csail.mit.edu/6.824/papers/bayou-conflicts.pdf). At
-*15th ACM Symposium on Operating Systems Principles* (SOSP), December 1995.
-[doi:10.1145/224056.224070](https://doi.org/10.1145/224056.224070)
-
-[[56](/en/ch8#Schoenig2021-marker)] Hans-Jürgen Schönig.
-[Constraints
-over multiple rows in PostgreSQL](https://www.cybertec-postgresql.com/en/postgresql-constraints-over-multiple-rows/). *cybertec-postgresql.com*, June 2021.
-Archived at [perma.cc/2TGH-XUPZ](https://perma.cc/2TGH-XUPZ)
-
-[[57](/en/ch8#Stonebraker2007_ch8-marker)] Michael Stonebraker, Samuel Madden,
-Daniel J. Abadi, Stavros Harizopoulos, Nabil Hachem, and Pat Helland.
-[The End of an
-Architectural Era (It’s Time for a Complete Rewrite)](https://vldb.org/conf/2007/papers/industrial/p1150-stonebraker.pdf). At *33rd International Conference on
-Very Large Data Bases* (VLDB), September 2007.
-
-[[58](/en/ch8#Hugg2014streaming-marker)] John Hugg.
-[H-Store/VoltDB Architecture vs. CEP Systems
-and Newer Streaming Architectures](https://www.youtube.com/watch?v=hD5M4a1UVz8). At *Data @Scale Boston*, November 2014.
-
-[[59](/en/ch8#Kallman2008-marker)] Robert Kallman, Hideaki Kimura, Jonathan Natkins, Andrew
-Pavlo, Alexander Rasin, Stanley Zdonik, Evan P. C. Jones, Samuel Madden, Michael Stonebraker, Yang
-Zhang, John Hugg, and Daniel J. Abadi.
-[H-Store: A High-Performance, Distributed Main
-Memory Transaction Processing System](https://www.vldb.org/pvldb/vol1/1454211.pdf). *Proceedings of the VLDB Endowment*, volume 1,
-issue 2, pages 1496–1499, August 2008.
-
-[[60](/en/ch8#Hickey2012-marker)] Rich Hickey.
-[The Architecture of Datomic](https://www.infoq.com/articles/Architecture-Datomic/).
-*infoq.com*, November 2012.
-Archived at [perma.cc/5YWU-8XJK](https://perma.cc/5YWU-8XJK)
-
-[[61](/en/ch8#Hugg2014debunking-marker)] John Hugg.
-[Debunking Myths
-About the VoltDB In-Memory Database](https://dzone.com/articles/debunking-myths-about-voltdb). *dzone.com*, May 2014.
-Archived at [perma.cc/2Z9N-HPKF](https://perma.cc/2Z9N-HPKF)
-
-[[62](/en/ch8#Zhou2025-marker)] Xinjing Zhou, Viktor Leis, Xiangyao Yu, and Michael Stonebraker.
-[OLTP Through the Looking Glass 16
-Years Later: Communication is the New Bottleneck](https://www.vldb.org/cidrdb/papers/2025/p17-zhou.pdf). At *15th Annual Conference on Innovative
-Data Systems Research* (CIDR), January 2025.
-
-[[63](/en/ch8#Zhou2022-marker)] Xinjing Zhou, Xiangyao Yu, Goetz Graefe, and Michael Stonebraker.
-[Lotus: scalable multi-partition
-transactions on single-threaded partitioned databases](https://www.vldb.org/pvldb/vol15/p2939-zhou.pdf). *Proceedings of the VLDB
-Endowment* (PVLDB), volume 15, issue 11, pages 2939–2952, July 2022.
-[doi:10.14778/3551793.3551843](https://doi.org/10.14778/3551793.3551843)
-
-[[64](/en/ch8#Hellerstein2007_ch8-marker)] Joseph M. Hellerstein, Michael Stonebraker, and James Hamilton.
-[Architecture of a Database System](https://dsf.berkeley.edu/papers/fntdb07-architecture.pdf).
-*Foundations and Trends in Databases*, volume 1, issue 2, pages 141–259, November 2007.
-[doi:10.1561/1900000002](https://doi.org/10.1561/1900000002)
-
-[[65](/en/ch8#Cahill2009-marker)] Michael J. Cahill.
-[Serializable
-Isolation for Snapshot Databases](https://ses.library.usyd.edu.au/bitstream/handle/2123/5353/michael-cahill-2009-thesis.pdf). PhD Thesis, University of Sydney, July 2009.
-Archived at [perma.cc/727J-NTMP](https://perma.cc/727J-NTMP)
-
-[[66](/en/ch8#Diaconu2013-marker)] Cristian Diaconu, Craig Freedman,
-Erik Ismert, Per-Åke Larson, Pravin Mittal, Ryan Stonecipher, Nitin Verma, and Mike Zwilling.
-[Hekaton:
-SQL Server’s Memory-Optimized OLTP Engine](https://www.microsoft.com/en-us/research/wp-content/uploads/2013/06/Hekaton-Sigmod2013-final.pdf). At *ACM SIGMOD International Conference on
-Management of Data* (SIGMOD), pages 1243–1254, June 2013.
-[doi:10.1145/2463676.2463710](https://doi.org/10.1145/2463676.2463710)
-
-[[67](/en/ch8#Neumann2015-marker)] Thomas Neumann, Tobias Mühlbauer, and Alfons Kemper.
-[Fast Serializable Multi-Version Concurrency
-Control for Main-Memory Database Systems](https://db.in.tum.de/~muehlbau/papers/mvcc.pdf). At *ACM SIGMOD International Conference on
-Management of Data* (SIGMOD), pages 677–689, May 2015.
-[doi:10.1145/2723372.2749436](https://doi.org/10.1145/2723372.2749436)
-
-[[68](/en/ch8#Badal1979-marker)] D. Z. Badal.
-[Correctness of Concurrency Control and
-Implications in Distributed Databases](https://ieeexplore.ieee.org/abstract/document/762563). At *3rd International IEEE Computer Software and
-Applications Conference* (COMPSAC), November 1979.
-[doi:10.1109/CMPSAC.1979.762563](https://doi.org/10.1109/CMPSAC.1979.762563)
-
-[[69](/en/ch8#Agrawal1987-marker)] Rakesh Agrawal, Michael J. Carey, and Miron Livny.
-[Concurrency Control
-Performance Modeling: Alternatives and Implications](https://people.eecs.berkeley.edu/~brewer/cs262/ConcControl.pdf). *ACM Transactions on Database
-Systems* (TODS), volume 12, issue 4, pages 609–654, December 1987.
-[doi:10.1145/32204.32220](https://doi.org/10.1145/32204.32220)
-
-[[70](/en/ch8#Brooker2024snapshot-marker)] Marc Brooker.
-[Snapshot Isolation vs
-Serializability](https://brooker.co.za/blog/2024/12/17/occ-and-isolation.html). *brooker.co.za*, December 2024.
-Archived at [perma.cc/5TRC-CR5G](https://perma.cc/5TRC-CR5G)
-
-[[71](/en/ch8#Lindsay1979_ch8-marker)] B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N.
-Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade.
-[Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf).
-IBM Research, Research Report RJ2571(33471), July 1979.
-Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)
-
-[[72](/en/ch8#Mohan1986-marker)] C. Mohan, Bruce G. Lindsay, and Ron Obermarck.
-[Transaction
-Management in the R\* Distributed Database Management System](https://cs.brown.edu/courses/csci2270/archives/2012/papers/dtxn/p378-mohan.pdf).
-*ACM Transactions on Database Systems*, volume 11, issue 4, pages 378–396, December 1986.
-[doi:10.1145/7239.7266](https://doi.org/10.1145/7239.7266)
-
-[[73](/en/ch8#XASpec1991-marker)] X/Open Company Ltd.
-[Distributed Transaction Processing:
-The XA Specification](https://pubs.opengroup.org/onlinepubs/009680699/toc.pdf). Technical Standard XO/CAE/91/300, December 1991. ISBN: 978-1-872-63024-3,
-archived at [perma.cc/Z96H-29JB](https://perma.cc/Z96H-29JB)
-
-[[74](/en/ch8#Neto2008-marker)] Ivan Silva Neto and Francisco Reverbel.
-[Lessons Learned from Implementing
-WS-Coordination and WS-AtomicTransaction](https://www.ime.usp.br/~reverbel/papers/icis2008.pdf). At *7th IEEE/ACIS International Conference on
-Computer and Information Science* (ICIS), May 2008.
-[doi:10.1109/ICIS.2008.75](https://doi.org/10.1109/ICIS.2008.75)
-
-[[75](/en/ch8#Johnson2004-marker)] James E. Johnson, David E. Langworthy, Leslie Lamport,
-and Friedrich H. Vogt.
-[Formal
-Specification of a Web Services Protocol](https://www.microsoft.com/en-us/research/publication/formal-specification-of-a-web-services-protocol/). At *1st International Workshop on Web Services and
-Formal Methods* (WS-FM), February 2004.
-[doi:10.1016/j.entcs.2004.02.022](https://doi.org/10.1016/j.entcs.2004.02.022)
-
-[[76](/en/ch8#Gray1981_ch8-marker)] Jim Gray.
-[The Transaction
-Concept: Virtues and Limitations](https://jimgray.azurewebsites.net/papers/thetransactionconcept.pdf). At *7th International Conference on Very Large Data
-Bases* (VLDB), September 1981.
-
-[[77](/en/ch8#Skeen1981-marker)] Dale Skeen.
-[Nonblocking Commit
-Protocols](https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/Ske81.pdf). At *ACM International Conference on Management of Data* (SIGMOD), April 1981.
-[doi:10.1145/582318.582339](https://doi.org/10.1145/582318.582339)
-
-[[78](/en/ch8#Hohpe2005-marker)] Gregor Hohpe.
-[Your Coffee Shop Doesn’t Use
-Two-Phase Commit](https://www.martinfowler.com/ieeeSoftware/coffeeShop.pdf). *IEEE Software*, volume 22, issue 2, pages 64–66, March 2005.
-[doi:10.1109/MS.2005.52](https://doi.org/10.1109/MS.2005.52)
-
-[[79](/en/ch8#Helland2007_ch8-marker)] Pat Helland.
-[Life Beyond Distributed Transactions:
-An Apostate’s Opinion](https://www.cidrdb.org/cidr2007/papers/cidr07p15.pdf). At *3rd Biennial Conference on Innovative Data Systems Research*
-(CIDR), January 2007.
-
-[[80](/en/ch8#Oliver2011-marker)] Jonathan Oliver.
-[My Beef with
-MSDTC and Two-Phase Commits](https://blog.jonathanoliver.com/my-beef-with-msdtc-and-two-phase-commits/). *blog.jonathanoliver.com*, April 2011.
-Archived at [perma.cc/K8HF-Z4EN](https://perma.cc/K8HF-Z4EN)
-
-[[81](/en/ch8#Rahien2014-marker)] Oren Eini (Ahende Rahien).
-[The Fallacy of
-Distributed Transactions](https://ayende.com/blog/167362/the-fallacy-of-distributed-transactions). *ayende.com*, July 2014.
-Archived at [perma.cc/VB87-2JEF](https://perma.cc/VB87-2JEF)
-
-[[82](/en/ch8#Vasters2012-marker)] Clemens Vasters.
-[Transactions
-in Windows Azure (with Service Bus) – An Email Discussion](https://learn.microsoft.com/en-gb/archive/blogs/clemensv/transactions-in-windows-azure-with-service-bus-an-email-discussion). *learn.microsoft.com*, July 2012.
-Archived at [perma.cc/4EZ9-5SKW](https://perma.cc/4EZ9-5SKW)
-
-[[83](/en/ch8#Dhariwal2008-marker)] Ajmer Dhariwal.
-[Orphaned MSDTC
-Transactions (-2 spids)](https://www.eraofdata.com/posts/2008/orphaned-msdtc-transactions-2-spids/). *eraofdata.com*, December 2008.
-Archived at [perma.cc/YG6F-U34C](https://perma.cc/YG6F-U34C)
-
-[[84](/en/ch8#Randal2013-marker)] Paul Randal.
-[Real
-World Story of DBCC PAGE Saving the Day](https://www.sqlskills.com/blogs/paul/real-world-story-of-dbcc-page-saving-the-day/). *sqlskills.com*, June 2013.
-Archived at [perma.cc/2MJN-A5QH](https://perma.cc/2MJN-A5QH)
-
-[[85](/en/ch8#Wang2021-marker)] Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason
-Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva
-Mehta, Varun Madan, and Jun Rao.
-[Consistency and Completeness:
-Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on
-Management of Data* (SIGMOD), June 2021.
-[doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556)
+[^1]: Steven J. Murdoch. [What went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021. Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F)
+[^2]: Donald D. Chamberlin, Morton M. Astrahan, Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl, Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz, Irving L. Traiger, Bradford W. Wade, and Robert A. Yost. [A History and Evaluation of System R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981. [doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784)
+[^3]: Jim N. Gray, Raymond A. Lorie, Gianfranco R. Putzolu, and Irving L. Traiger. [Granularity of Locks and Degrees of Consistency in a Shared Data Base](https://citeseerx.ist.psu.edu/pdf/e127f0a6a912bb9150ecfe03c0ebf7fbc289a023). in *Modelling in Data Base Management Systems: Proceedings of the IFIP Working Conference on Modelling in Data Base Management Systems*, edited by G. M. Nijssen, pages 364–394, Elsevier/North Holland Publishing, 1976. Also in *Readings in Database Systems*, 4th edition, edited by Joseph M. Hellerstein and Michael Stonebraker, MIT Press, 2005. ISBN: 978-0-262-69314-1
+[^4]: Kapali P. Eswaran, Jim N. Gray, Raymond A. Lorie, and Irving L. Traiger. [The Notions of Consistency and Predicate Locks in a Database System](https://jimgray.azurewebsites.net/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf?from=https://research.microsoft.com/en-us/um/people/gray/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf). *Communications of the ACM*, volume 19, issue 11, pages 624–633, November 1976. [doi:10.1145/360363.360369](https://doi.org/10.1145/360363.360369)
+[^5]: Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis. [CockroachDB: The Resilient Geo-Distributed SQL Database](https://dl.acm.org/doi/pdf/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1493–1509, June 2020. [doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134)
+[^6]: Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang, Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang, Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan Pei, and Xin Tang. [TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084. [doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535)
+[^7]: James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
+[^8]: Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. [FoundationDB: A Distributed Unbundled Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559)
+[^9]: Theo Härder and Andreas Reuter. [Principles of Transaction-Oriented Database Recovery](https://citeseerx.ist.psu.edu/pdf/11ef7c142295aeb1a28a0e714c91fc8d610c3047). *ACM Computing Surveys*, volume 15, issue 4, pages 287–317, December 1983. [doi:10.1145/289.291](https://doi.org/10.1145/289.291)
+[^10]: Peter Bailis, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [HAT, not CAP: Towards Highly Available Transactions](https://www.usenix.org/system/files/conference/hotos13/hotos13-final80.pdf). At *14th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2013.
+[^11]: Armando Fox, Steven D. Gribble, Yatin Chawathe, Eric A. Brewer, and Paul Gauthier. [Cluster-Based Scalable Network Services](https://people.eecs.berkeley.edu/~brewer/cs262b/TACC.pdf). At *16th ACM Symposium on Operating Systems Principles* (SOSP), October 1997. [doi:10.1145/268998.266662](https://doi.org/10.1145/268998.266662)
+[^12]: Tony Andrews. [Enforcing Complex Constraints in Oracle](https://tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html). *tonyandrews.blogspot.co.uk*, October 2004. Archived at [archive.org](https://web.archive.org/web/20220201190625/https%3A//tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html)
+[^13]: Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman. [*Concurrency Control and Recovery in Database Systems*](https://www.microsoft.com/en-us/research/people/philbe/book/). Addison-Wesley, 1987. ISBN: 978-0-201-10715-9, available online at [*microsoft.com*](https://www.microsoft.com/en-us/research/people/philbe/book/).
+[^14]: Alan Fekete, Dimitrios Liarokapis, Elizabeth O’Neil, Patrick O’Neil, and Dennis Shasha. [Making Snapshot Isolation Serializable](https://www.cse.iitb.ac.in/infolab/Data/Courses/CS632/2009/Papers/p492-fekete.pdf). *ACM Transactions on Database Systems*, volume 30, issue 2, pages 492–528, June 2005. [doi:10.1145/1071610.1071615](https://doi.org/10.1145/1071610.1071615)
+[^15]: Mai Zheng, Joseph Tucek, Feng Qin, and Mark Lillibridge. [Understanding the Robustness of SSDs Under Power Fault](https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf). At *11th USENIX Conference on File and Storage Technologies* (FAST), February 2013.
+[^16]: Laurie Denness. [SSDs: A Gift and a Curse](https://laur.ie/blog/2015/06/ssds-a-gift-and-a-curse/). *laur.ie*, June 2015. Archived at [perma.cc/6GLP-BX3T](https://perma.cc/6GLP-BX3T)
+[^17]: Adam Surak. [When Solid State Drives Are Not That Solid](https://www.algolia.com/blog/engineering/when-solid-state-drives-are-not-that-solid). *blog.algolia.com*, June 2015. Archived at [perma.cc/CBR9-QZEE](https://perma.cc/CBR9-QZEE)
+[^18]: Hewlett Packard Enterprise. [Bulletin: (Revision) HPE SAS Solid State Drives - Critical Firmware Upgrade Required for Certain HPE SAS Solid State Drive Models to Prevent Drive Failure at 32,768 Hours of Operation](https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00092491en_us). *support.hpe.com*, November 2019. Archived at [perma.cc/CZR4-AQBS](https://perma.cc/CZR4-AQBS)
+[^19]: Craig Ringer et al. [PostgreSQL’s handling of fsync() errors is unsafe and risks data loss at least on XFS](https://www.postgresql.org/message-id/flat/CAMsr%2BYHh%2B5Oq4xziwwoEfhoTZgr07vdGG%2Bhu%3D1adXx59aTeaoQ%40mail.gmail.com). Email thread on pgsql-hackers mailing list, *postgresql.org*, March 2018. Archived at [perma.cc/5RKU-57FL](https://perma.cc/5RKU-57FL)
+[^20]: Anthony Rebello, Yuvraj Patel, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Can Applications Recover from fsync Failures?](https://www.usenix.org/conference/atc20/presentation/rebello) At *USENIX Annual Technical Conference* (ATC), July 2020.
+[^21]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Crash Consistency: Rethinking the Fundamental Abstractions of the File System](https://dl.acm.org/doi/pdf/10.1145/2800695.2801719). *ACM Queue*, volume 13, issue 7, pages 20–28, July 2015. [doi:10.1145/2800695.2801719](https://doi.org/10.1145/2800695.2801719)
+[^22]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [All File Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf). At *11th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2014.
+[^23]: Chris Siebenmann. [Unix’s File Durability Problem](https://utcc.utoronto.ca/~cks/space/blog/unix/FileSyncProblem). *utcc.utoronto.ca*, April 2016. Archived at [perma.cc/VSS8-5MC4](https://perma.cc/VSS8-5MC4)
+[^24]: Aishwarya Ganesan, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Redundancy Does Not Imply Fault Tolerance: Analysis of Distributed Storage Reactions to Single Errors and Corruptions](https://www.usenix.org/conference/fast17/technical-sessions/presentation/ganesan). At *15th USENIX Conference on File and Storage Technologies* (FAST), February 2017.
+[^25]: Lakshmi N. Bairavasundaram, Garth R. Goodson, Bianca Schroeder, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [An Analysis of Data Corruption in the Storage Stack](https://www.usenix.org/legacy/event/fast08/tech/full_papers/bairavasundaram/bairavasundaram.pdf). At *6th USENIX Conference on File and Storage Technologies* (FAST), February 2008.
+[^26]: Bianca Schroeder, Raghav Lagisetty, and Arif Merchant. [Flash Reliability in Production: The Expected and the Unexpected](https://www.usenix.org/conference/fast16/technical-sessions/presentation/schroeder). At *14th USENIX Conference on File and Storage Technologies* (FAST), February 2016.
+[^27]: Don Allison. [SSD Storage – Ignorance of Technology Is No Excuse](https://blog.korelogic.com/blog/2015/03/24). *blog.korelogic.com*, March 2015. Archived at [perma.cc/9QN4-9SNJ](https://perma.cc/9QN4-9SNJ)
+[^28]: Gordon Mah Ung. [Debunked: Your SSD won’t lose data if left unplugged after all](https://www.pcworld.com/article/427602/debunked-your-ssd-wont-lose-data-if-left-unplugged-after-all.html). *pcworld.com*, May 2015. Archived at [perma.cc/S46H-JUDU](https://perma.cc/S46H-JUDU)
+[^29]: Martin Kleppmann. [Hermitage: Testing the ‘I’ in ACID](https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html). *martin.kleppmann.com*, November 2014. Archived at [perma.cc/KP2Y-AQGK](https://perma.cc/KP2Y-AQGK)
+[^30]: Todd Warszawski and Peter Bailis. [ACIDRain: Concurrency-Related Attacks on Database-Backed Web Applications](http://www.bailis.org/papers/acidrain-sigmod2017.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 2017. [doi:10.1145/3035918.3064037](https://doi.org/10.1145/3035918.3064037)
+[^31]: Tristan D’Agosta. [BTC Stolen from Poloniex](https://bitcointalk.org/index.php?topic=499580). *bitcointalk.org*, March 2014. Archived at [perma.cc/YHA6-4C5D](https://perma.cc/YHA6-4C5D)
+[^32]: bitcointhief2. [How I Stole Roughly 100 BTC from an Exchange and How I Could Have Stolen More!](https://www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) *reddit.com*, February 2014. Archived at [archive.org](https://web.archive.org/web/20250118042610/https%3A//www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/)
+[^33]: Sudhir Jorwekar, Alan Fekete, Krithi Ramamritham, and S. Sudarshan. [Automating the Detection of Snapshot Isolation Anomalies](https://www.vldb.org/conf/2007/papers/industrial/p1263-jorwekar.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007.
+[^34]: Michael Melanson. [Transactions: The Limits of Isolation](https://www.michaelmelanson.net/posts/transactions-the-limits-of-isolation/). *michaelmelanson.net*, November 2014. Archived at [perma.cc/RG5R-KMYZ](https://perma.cc/RG5R-KMYZ)
+[^35]: Edward Kim. [How ACH works: A developer perspective — Part 1](https://engineering.gusto.com/how-ach-works-a-developer-perspective-part-1-339d3e7bea1). *engineering.gusto.com*, April 2014. Archived at [perma.cc/7B2H-PU94](https://perma.cc/7B2H-PU94)
+[^36]: Hal Berenson, Philip A. Bernstein, Jim N. Gray, Jim Melton, Elizabeth O’Neil, and Patrick O’Neil. [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 1995. [doi:10.1145/568271.223785](https://doi.org/10.1145/568271.223785)
+[^37]: Atul Adya. [Weak Consistency: A Generalized Theory and Optimistic Implementations for Distributed Transactions](https://pmg.csail.mit.edu/papers/adya-phd.pdf). PhD Thesis, Massachusetts Institute of Technology, March 1999. Archived at [perma.cc/E97M-HW5Q](https://perma.cc/E97M-HW5Q)
+[^38]: Peter Bailis, Aaron Davidson, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Highly Available Transactions: Virtues and Limitations](https://www.vldb.org/pvldb/vol7/p181-bailis.pdf). At *40th International Conference on Very Large Data Bases* (VLDB), September 2014.
+[^39]: Natacha Crooks, Youer Pu, Lorenzo Alvisi, and Allen Clement. [Seeing is Believing: A Client-Centric Specification of Database Isolation](https://www.cs.cornell.edu/lorenzo/papers/Crooks17Seeing.pdf). At *ACM Symposium on Principles of Distributed Computing* (PODC), pages 73–82, July 2017. [doi:10.1145/3087801.3087802](https://doi.org/10.1145/3087801.3087802)
+[^40]: Bruce Momjian. [MVCC Unmasked](https://momjian.us/main/writings/pgsql/mvcc.pdf). *momjian.us*, July 2014. Archived at [perma.cc/KQ47-9GYB](https://perma.cc/KQ47-9GYB)
+[^41]: Peter Alvaro and Kyle Kingsbury. [MySQL 8.0.34](https://jepsen.io/analyses/mysql-8.0.34). *jepsen.io*, December 2023. Archived at [perma.cc/HGE2-Z878](https://perma.cc/HGE2-Z878)
+[^42]: Egor Rogov. [PostgreSQL 14 Internals](https://postgrespro.com/community/books/internals). *postgrespro.com*, April 2023. Archived at [perma.cc/FRK2-D7WB](https://perma.cc/FRK2-D7WB)
+[^43]: Hironobu Suzuki. [The Internals of PostgreSQL](https://www.interdb.jp/pg/). *interdb.jp*, 2017.
+[^44]: Rohan Reddy Alleti. [Internals of MVCC in Postgres: Hidden costs of Updates vs Inserts](https://medium.com/%40rohanjnr44/internals-of-mvcc-in-postgres-hidden-costs-of-updates-vs-inserts-381eadd35844). *medium.com*, March 2025. Archived at [perma.cc/3ACX-DFXT](https://perma.cc/3ACX-DFXT)
+[^45]: Andy Pavlo and Bohan Zhang. [The Part of PostgreSQL We Hate the Most](https://www.cs.cmu.edu/~pavlo/blog/2023/04/the-part-of-postgresql-we-hate-the-most.html). *cs.cmu.edu*, April 2023. Archived at [perma.cc/XSP6-3JBN](https://perma.cc/XSP6-3JBN)
+[^46]: Yingjun Wu, Joy Arulraj, Jiexi Lin, Ran Xian, and Andrew Pavlo. [An empirical evaluation of in-memory multi-version concurrency control](https://vldb.org/pvldb/vol10/p781-Wu.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue 7, pages 781–792, March 2017. [doi:10.14778/3067421.3067427](https://doi.org/10.14778/3067421.3067427)
+[^47]: Nikita Prokopov. [Unofficial Guide to Datomic Internals](https://tonsky.me/blog/unofficial-guide-to-datomic-internals/). *tonsky.me*, May 2014.
+[^48]: Daniil Svetlov. [A Practical Guide to Taming Postgres Isolation Anomalies](https://dansvetlov.me/postgres-anomalies/). *dansvetlov.me*, March 2025. Archived at [perma.cc/L7LE-TDLS](https://perma.cc/L7LE-TDLS)
+[^49]: Nate Wiger. [An Atomic Rant](https://nateware.com/2010/02/18/an-atomic-rant/). *nateware.com*, February 2010. Archived at [perma.cc/5ZYB-PE44](https://perma.cc/5ZYB-PE44)
+[^50]: James Coglan. [Reading and writing, part 3: web applications](https://blog.jcoglan.com/2020/10/12/reading-and-writing-part-3/). *blog.jcoglan.com*, October 2020. Archived at [perma.cc/A7EK-PJVS](https://perma.cc/A7EK-PJVS)
+[^51]: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Feral Concurrency Control: An Empirical Investigation of Modern Application Integrity](http://www.bailis.org/papers/feral-sigmod2015.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2015. [doi:10.1145/2723372.2737784](https://doi.org/10.1145/2723372.2737784)
+[^52]: Jaana Dogan. [Things I Wished More Developers Knew About Databases](https://rakyll.medium.com/things-i-wished-more-developers-knew-about-databases-2d0178464f78). *rakyll.medium.com*, April 2020. Archived at [perma.cc/6EFK-P2TD](https://perma.cc/6EFK-P2TD)
+[^53]: Michael J. Cahill, Uwe Röhm, and Alan Fekete. [Serializable Isolation for Snapshot Databases](https://www.cs.cornell.edu/~sowell/dbpapers/serializable_isolation.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2008. [doi:10.1145/1376616.1376690](https://doi.org/10.1145/1376616.1376690)
+[^54]: Dan R. K. Ports and Kevin Grittner. [Serializable Snapshot Isolation in PostgreSQL](https://drkp.net/papers/ssi-vldb12.pdf). At *38th International Conference on Very Large Databases* (VLDB), August 2012.
+[^55]: Douglas B. Terry, Marvin M. Theimer, Karin Petersen, Alan J. Demers, Mike J. Spreitzer and Carl H. Hauser. [Managing Update Conflicts in Bayou, a Weakly Connected Replicated Storage System](https://pdos.csail.mit.edu/6.824/papers/bayou-conflicts.pdf). At *15th ACM Symposium on Operating Systems Principles* (SOSP), December 1995. [doi:10.1145/224056.224070](https://doi.org/10.1145/224056.224070)
+[^56]: Hans-Jürgen Schönig. [Constraints over multiple rows in PostgreSQL](https://www.cybertec-postgresql.com/en/postgresql-constraints-over-multiple-rows/). *cybertec-postgresql.com*, June 2021. Archived at [perma.cc/2TGH-XUPZ](https://perma.cc/2TGH-XUPZ)
+[^57]: Michael Stonebraker, Samuel Madden, Daniel J. Abadi, Stavros Harizopoulos, Nabil Hachem, and Pat Helland. [The End of an Architectural Era (It’s Time for a Complete Rewrite)](https://vldb.org/conf/2007/papers/industrial/p1150-stonebraker.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007.
+[^58]: John Hugg. [H-Store/VoltDB Architecture vs. CEP Systems and Newer Streaming Architectures](https://www.youtube.com/watch?v=hD5M4a1UVz8). At *Data @Scale Boston*, November 2014.
+[^59]: Robert Kallman, Hideaki Kimura, Jonathan Natkins, Andrew Pavlo, Alexander Rasin, Stanley Zdonik, Evan P. C. Jones, Samuel Madden, Michael Stonebraker, Yang Zhang, John Hugg, and Daniel J. Abadi. [H-Store: A High-Performance, Distributed Main Memory Transaction Processing System](https://www.vldb.org/pvldb/vol1/1454211.pdf). *Proceedings of the VLDB Endowment*, volume 1, issue 2, pages 1496–1499, August 2008.
+[^60]: Rich Hickey. [The Architecture of Datomic](https://www.infoq.com/articles/Architecture-Datomic/). *infoq.com*, November 2012. Archived at [perma.cc/5YWU-8XJK](https://perma.cc/5YWU-8XJK)
+[^61]: John Hugg. [Debunking Myths About the VoltDB In-Memory Database](https://dzone.com/articles/debunking-myths-about-voltdb). *dzone.com*, May 2014. Archived at [perma.cc/2Z9N-HPKF](https://perma.cc/2Z9N-HPKF)
+[^62]: Xinjing Zhou, Viktor Leis, Xiangyao Yu, and Michael Stonebraker. [OLTP Through the Looking Glass 16 Years Later: Communication is the New Bottleneck](https://www.vldb.org/cidrdb/papers/2025/p17-zhou.pdf). At *15th Annual Conference on Innovative Data Systems Research* (CIDR), January 2025.
+[^63]: Xinjing Zhou, Xiangyao Yu, Goetz Graefe, and Michael Stonebraker. [Lotus: scalable multi-partition transactions on single-threaded partitioned databases](https://www.vldb.org/pvldb/vol15/p2939-zhou.pdf). *Proceedings of the VLDB Endowment* (PVLDB), volume 15, issue 11, pages 2939–2952, July 2022. [doi:10.14778/3551793.3551843](https://doi.org/10.14778/3551793.3551843)
+[^64]: Joseph M. Hellerstein, Michael Stonebraker, and James Hamilton. [Architecture of a Database System](https://dsf.berkeley.edu/papers/fntdb07-architecture.pdf). *Foundations and Trends in Databases*, volume 1, issue 2, pages 141–259, November 2007. [doi:10.1561/1900000002](https://doi.org/10.1561/1900000002)
+[^65]: Michael J. Cahill. [Serializable Isolation for Snapshot Databases](https://ses.library.usyd.edu.au/bitstream/handle/2123/5353/michael-cahill-2009-thesis.pdf). PhD Thesis, University of Sydney, July 2009. Archived at [perma.cc/727J-NTMP](https://perma.cc/727J-NTMP)
+[^66]: Cristian Diaconu, Craig Freedman, Erik Ismert, Per-Åke Larson, Pravin Mittal, Ryan Stonecipher, Nitin Verma, and Mike Zwilling. [Hekaton: SQL Server’s Memory-Optimized OLTP Engine](https://www.microsoft.com/en-us/research/wp-content/uploads/2013/06/Hekaton-Sigmod2013-final.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1243–1254, June 2013. [doi:10.1145/2463676.2463710](https://doi.org/10.1145/2463676.2463710)
+[^67]: Thomas Neumann, Tobias Mühlbauer, and Alfons Kemper. [Fast Serializable Multi-Version Concurrency Control for Main-Memory Database Systems](https://db.in.tum.de/~muehlbau/papers/mvcc.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 677–689, May 2015. [doi:10.1145/2723372.2749436](https://doi.org/10.1145/2723372.2749436)
+[^68]: D. Z. Badal. [Correctness of Concurrency Control and Implications in Distributed Databases](https://ieeexplore.ieee.org/abstract/document/762563). At *3rd International IEEE Computer Software and Applications Conference* (COMPSAC), November 1979. [doi:10.1109/CMPSAC.1979.762563](https://doi.org/10.1109/CMPSAC.1979.762563)
+[^69]: Rakesh Agrawal, Michael J. Carey, and Miron Livny. [Concurrency Control Performance Modeling: Alternatives and Implications](https://people.eecs.berkeley.edu/~brewer/cs262/ConcControl.pdf). *ACM Transactions on Database Systems* (TODS), volume 12, issue 4, pages 609–654, December 1987. [doi:10.1145/32204.32220](https://doi.org/10.1145/32204.32220)
+[^70]: Marc Brooker. [Snapshot Isolation vs Serializability](https://brooker.co.za/blog/2024/12/17/occ-and-isolation.html). *brooker.co.za*, December 2024. Archived at [perma.cc/5TRC-CR5G](https://perma.cc/5TRC-CR5G)
+[^71]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)
+[^72]: C. Mohan, Bruce G. Lindsay, and Ron Obermarck. [Transaction Management in the R\* Distributed Database Management System](https://cs.brown.edu/courses/csci2270/archives/2012/papers/dtxn/p378-mohan.pdf). *ACM Transactions on Database Systems*, volume 11, issue 4, pages 378–396, December 1986. [doi:10.1145/7239.7266](https://doi.org/10.1145/7239.7266)
+[^73]: X/Open Company Ltd. [Distributed Transaction Processing: The XA Specification](https://pubs.opengroup.org/onlinepubs/009680699/toc.pdf). Technical Standard XO/CAE/91/300, December 1991. ISBN: 978-1-872-63024-3, archived at [perma.cc/Z96H-29JB](https://perma.cc/Z96H-29JB)
+[^74]: Ivan Silva Neto and Francisco Reverbel. [Lessons Learned from Implementing WS-Coordination and WS-AtomicTransaction](https://www.ime.usp.br/~reverbel/papers/icis2008.pdf). At *7th IEEE/ACIS International Conference on Computer and Information Science* (ICIS), May 2008. [doi:10.1109/ICIS.2008.75](https://doi.org/10.1109/ICIS.2008.75)
+[^75]: James E. Johnson, David E. Langworthy, Leslie Lamport, and Friedrich H. Vogt. [Formal Specification of a Web Services Protocol](https://www.microsoft.com/en-us/research/publication/formal-specification-of-a-web-services-protocol/). At *1st International Workshop on Web Services and Formal Methods* (WS-FM), February 2004. [doi:10.1016/j.entcs.2004.02.022](https://doi.org/10.1016/j.entcs.2004.02.022)
+[^76]: Jim Gray. [The Transaction Concept: Virtues and Limitations](https://jimgray.azurewebsites.net/papers/thetransactionconcept.pdf). At *7th International Conference on Very Large Data Bases* (VLDB), September 1981.
+[^77]: Dale Skeen. [Nonblocking Commit Protocols](https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/Ske81.pdf). At *ACM International Conference on Management of Data* (SIGMOD), April 1981. [doi:10.1145/582318.582339](https://doi.org/10.1145/582318.582339)
+[^78]: Gregor Hohpe. [Your Coffee Shop Doesn’t Use Two-Phase Commit](https://www.martinfowler.com/ieeeSoftware/coffeeShop.pdf). *IEEE Software*, volume 22, issue 2, pages 64–66, March 2005. [doi:10.1109/MS.2005.52](https://doi.org/10.1109/MS.2005.52)
+[^79]: Pat Helland. [Life Beyond Distributed Transactions: An Apostate’s Opinion](https://www.cidrdb.org/cidr2007/papers/cidr07p15.pdf). At *3rd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2007.
+[^80]: Jonathan Oliver. [My Beef with MSDTC and Two-Phase Commits](https://blog.jonathanoliver.com/my-beef-with-msdtc-and-two-phase-commits/). *blog.jonathanoliver.com*, April 2011. Archived at [perma.cc/K8HF-Z4EN](https://perma.cc/K8HF-Z4EN)
+[^81]: Oren Eini (Ahende Rahien). [The Fallacy of Distributed Transactions](https://ayende.com/blog/167362/the-fallacy-of-distributed-transactions). *ayende.com*, July 2014. Archived at [perma.cc/VB87-2JEF](https://perma.cc/VB87-2JEF)
+[^82]: Clemens Vasters. [Transactions in Windows Azure (with Service Bus) – An Email Discussion](https://learn.microsoft.com/en-gb/archive/blogs/clemensv/transactions-in-windows-azure-with-service-bus-an-email-discussion). *learn.microsoft.com*, July 2012. Archived at [perma.cc/4EZ9-5SKW](https://perma.cc/4EZ9-5SKW)
+[^83]: Ajmer Dhariwal. [Orphaned MSDTC Transactions (-2 spids)](https://www.eraofdata.com/posts/2008/orphaned-msdtc-transactions-2-spids/). *eraofdata.com*, December 2008. Archived at [perma.cc/YG6F-U34C](https://perma.cc/YG6F-U34C)
+[^84]: Paul Randal. [Real World Story of DBCC PAGE Saving the Day](https://www.sqlskills.com/blogs/paul/real-world-story-of-dbcc-page-saving-the-day/). *sqlskills.com*, June 2013. Archived at [perma.cc/2MJN-A5QH](https://perma.cc/2MJN-A5QH)
+[^85]: Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva Mehta, Varun Madan, and Jun Rao. [Consistency and Completeness: Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556) 

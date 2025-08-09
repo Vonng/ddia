@@ -15,10 +15,8 @@ network. As discussed in [“Distributed versus Single-Node Systems”](https://
 why you might want to replicate data:
 
 * To keep data geographically close to your users (and thus reduce access latency)
-* To allow the system to continue working even if some of its parts have failed (and thus
-  increase availability)
-* To scale out the number of machines that can serve read queries (and thus increase read
-  throughput)
+* To allow the system to continue working even if some of its parts have failed (and thus increase availability)
+* To scale out the number of machines that can serve read queries (and thus increase read throughput)
 
 In this chapter we will assume that your dataset is small enough that each machine can hold a copy of
 the entire dataset. In [Chapter 7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch07.html#ch_sharding) we will relax that assumption and discuss *sharding*
@@ -39,7 +37,7 @@ many different implementations. We will discuss the consequences of such choices
 
 Replication of databases is an old topic—the principles haven’t changed much since they were
 studied in the 1970s
-[[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Lindsay1979_ch6)],
+[^1],
 because the fundamental constraints of networks have remained the same. Despite being so old,
 concepts such as *eventual consistency* still cause confusion. In [“Problems with Replication Lag”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lag) we will
 get more precise about eventual consistency and discuss things like the *read-your-writes* and
@@ -74,7 +72,7 @@ longer contain the same data. The most common solution is called *leader-based r
 [Figure 6-1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_leader_follower)):
 
 1. One of the replicas is designated the *leader* (also known as *primary* or *source*
-   [[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gryp2020)]).
+   [^2]).
    When clients want to write to the database, they must send their requests to the leader, which
    first writes the new data to its local storage.
 2. The other replicas are known as *followers* (*read replicas*, *secondaries*, or *hot standbys*).
@@ -97,15 +95,15 @@ multiple leaders for the same shard at the same time.
 
 Single-leader replication is very widely used. It’s a built-in feature of many relational databases,
 such as PostgreSQL, MySQL, Oracle Data Guard
-[[3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Oracle2019)],
+[^3],
 and SQL Server’s Always On Availability Groups
-[[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#AlwaysOn2012)].
+[^4].
 It is also used in some document databases such as MongoDB and DynamoDB
-[[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Elhemali2022_ch6)],
+[^5],
 message brokers such as Kafka, replicated block devices such as DRBD, and some network filesystems.
 Many consensus algorithms such as Raft, which is used for replication in CockroachDB
-[[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Taft2020_ch6)],
-TiDB [[7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Huang2020_ch6)],
+[^6],
+TiDB [^7],
 etcd, and RabbitMQ quorum queues (among others), are also based on a single leader, and
 automatically elect a new leader if the old one fails (we will discuss consensus in more detail in
 [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency)).
@@ -114,7 +112,7 @@ automatically elect a new leader if the old one fails (we will discuss consensus
 
 In older documents you may see the term *master–slave replication*. It means the same as
 leader-based replication, but the term should be avoided as it is widely considered offensive
-[[8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Knodel2023)].
+[^8].
 
 ## Synchronous Versus Asynchronous Replication
 
@@ -174,7 +172,7 @@ processing writes, even if all of its followers have fallen behind.
 
 Weakening durability may sound like a bad trade-off, but asynchronous replication is nevertheless
 widely used, especially if there are many followers or if they are geographically distributed
-[[9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hodges2018)].
+[^9].
 We will return to this issue in [“Problems with Replication Lag”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lag).
 
 ## Setting Up New Followers
@@ -250,7 +248,7 @@ architecture that places less frequently accessed data on object storage while n
 accessed data is kept on faster storage devices such as SSDs, NVMe, or even in memory. Other systems
 use object storage as their primary storage tier, but use a separate low-latency storage system such
 as Amazon’s EBS or Neon’s Safekeepers
-[[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kelvich2022)])
+[^12])
 to store their WAL. Recently, some systems have gone even farther by adopting a
 *zero-disk architecture* (ZDA). ZDA-based systems persist all data to object storage and use disks
 and memory strictly for caching. This allows nodes to have no persistent state, which dramatically
@@ -312,7 +310,7 @@ consists of the following steps:
 2. *Choosing a new leader.* This could be done through an election process (where the leader is chosen by
    a majority of the remaining replicas), or a new leader could be appointed by a previously
    established *controller node*
-   [[13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Fontaine2021)].
+   [^13].
    The best candidate for leadership is usually the replica with the most up-to-date data changes
    from the old leader (to minimize any data loss). Getting all the nodes to agree on a new leader
    is a consensus problem, discussed in detail in [Chapter 10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch10.html#ch_consistency).
@@ -333,7 +331,7 @@ Failover is fraught with things that can go wrong:
 * Discarding writes is especially dangerous if other storage systems outside of the database need to
   be coordinated with the database contents.
   For example, in one incident at GitHub
-  [[14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Newland2012)],
+  [^14],
   an out-of-date MySQL follower
   was promoted to leader. The database used an autoincrementing counter to assign primary keys to
   new rows, but because the new leader’s counter lagged behind the old leader’s, it reused some
@@ -346,7 +344,7 @@ Failover is fraught with things that can go wrong:
   [“Multi-Leader Replication”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_multi_leader)), data is likely to be lost or corrupted. As a safety catch, some
   systems have a mechanism to shut down one node if two leaders are detected. However, if this
   mechanism is not carefully designed, you can end up with both nodes being shut down
-  [[15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Imbriaco2012_ch6)].
+  [^15].
   Moreover, there is a risk that by the time the split brain is detected and the old node is shut
   down, it is already too late and data has already been corrupted.
 * What is the right timeout before the leader is declared dead? A longer timeout means a longer
@@ -413,7 +411,7 @@ Statement-based replication was used in MySQL before version 5.1. It is still so
 as it is quite compact, but by default MySQL now switches to row-based replication (discussed shortly) if
 there is any nondeterminism in a statement. VoltDB uses statement-based replication, and makes it
 safe by requiring transactions to be deterministic
-[[16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hugg2015)].
+[^16].
 However, determinism can be hard to guarantee in practice, so many databases prefer other
 replication methods.
 
@@ -464,17 +462,17 @@ indicating that the transaction was committed. MySQL keeps a separate logical re
 called the *binlog*, in addition to the WAL (when configured to use row-based replication).
 PostgreSQL implements logical replication by decoding the physical WAL into row
 insertion/update/delete events
-[[19](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kapila2023)].
+[^19].
 
 Since a logical log is decoupled from the storage engine internals, it can more easily be kept
 backward compatible, allowing the leader and the follower to run different versions of the database
 software. This in turn enables upgrading to a new version with minimal downtime
-[[20](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Petchimuthu2021)].
+[^20].
 
 A logical log format is also easier for external applications to parse. This aspect is useful if you want
 to send the contents of a database to an external system, such as a data warehouse for offline
 analysis, or for building custom indexes and caches
-[[21](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Sharma2015te_ch6)].
+[^21].
 This technique is called *change data capture*, and we will return to it in [Link to Come].
 
 # Problems with Replication Lag
@@ -502,14 +500,14 @@ database: if you run the same query on the leader and a follower at the same tim
 different results, because not all writes have been reflected in the follower. This inconsistency is
 just a temporary state—if you stop writing to the database and wait a while, the followers will
 eventually catch up and become consistent with the leader. For that reason, this effect is known
-as *eventual consistency* [[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry2011)].
+as *eventual consistency* [^22].
 
 ###### Note
 
 The term *eventual consistency* was coined by Douglas Terry et al.
-[[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry1994)],
+[^23],
 popularized by Werner Vogels
-[[24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Vogels2008)],
+[^24],
 and became the battle cry of many NoSQL projects. However, not only NoSQL databases are eventually
 consistent: followers in an asynchronously replicated relational database have the same
 characteristics.
@@ -542,7 +540,7 @@ submitted was lost, so they will be understandably unhappy.
 ###### Figure 6-3. A user makes a write, followed by a read from a stale replica. To prevent this anomaly, we need read-after-write consistency.
 
 In this situation, we need *read-after-write consistency*, also known as *read-your-writes consistency*
-[[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry1994)].
+[^23].
 This is a guarantee that if the user reloads the page, they will always see any updates they
 submitted themselves. It makes no promises about other users: other users’ updates may not be
 visible until some later time. However, it reassures the user that their own input has been saved
@@ -563,14 +561,14 @@ are various possible techniques. To mention a few:
   scaling). In that case, other criteria may be used to decide whether to read from the leader. For
   example, you could track the time of the last update and, for one minute after the last update, make all
   reads from the leader
-  [[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Willison2022)].
+  [^25].
   You could also monitor the replication lag on followers and prevent queries on any follower that
   is more than one minute behind the leader.
 * The client can remember the timestamp of its most recent write—then the system can ensure that the
   replica serving any reads for that user reflects updates at least until that timestamp. If a
   replica is not sufficiently up to date, either the read can be handled by another replica or the
   query can wait until the replica has caught up
-  [[26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Tharakan2020)].
+  [^26].
   The timestamp could be a *logical timestamp* (something that indicates ordering of writes, such as
   the log sequence number) or the actual system clock (in which case clock synchronization becomes
   critical; see [“Unreliable Clocks”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch09.html#sec_distributed_clocks)).
@@ -632,7 +630,7 @@ and then see it disappear again.
 
 ###### Figure 6-4. A user first reads from a fresh replica, then from a stale replica. Time appears to go backward. To prevent this anomaly, we need monotonic reads.
 
-*Monotonic reads* [[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry2011)] is a guarantee that this
+*Monotonic reads* [^22] is a guarantee that this
 kind of anomaly does not happen. It’s a lesser guarantee than strong consistency, but a stronger
 guarantee than eventual consistency. When you read data, you may see an old value; monotonic reads
 only means that if one user makes several reads in sequence, they will not see time go
@@ -669,14 +667,14 @@ Mr. Poons
 
 To the observer it looks as though Mrs. Cake is answering the question before Mr. Poons has even asked
 it. Such psychic powers are impressive, but very confusing
-[[27](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Pratchett1991)].
+[^27].
 
 ![ddia 0605](/fig/ddia_0605.png)
 
 ###### Figure 6-5. If some shards are replicated slower than others, an observer may see the answer before they see the question.
 
 Preventing this kind of anomaly requires another type of guarantee: *consistent prefix reads*
-[[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry2011)]. This guarantee says that if a sequence of
+[^22]. This guarantee says that if a sequence of
 writes happens in a certain order, then anyone reading those writes will see them appear in the same
 order.
 
@@ -811,7 +809,7 @@ Consistency
     with another write on another leader.
 
     This is simply a fundamental limitation of distributed systems
-    [[28](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Bailis2014coord_ch6)].
+    [^28].
     If you need to enforce such constraints, you’re therefore better off with a single-leader system.
     However, as we will see in [“Dealing with Conflicting Writes”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_write_conflicts), multi-leader systems can still
     achieve consistency properties that are useful in a wide range of apps that don’t need such
@@ -820,13 +818,13 @@ Consistency
 Multi-leader replication is less common than single-leader replication, but it is still supported by
 many databases, including MySQL, Oracle, SQL Server, and YugabyteDB. In some cases it is an external
 add-on feature, for example in Redis Enterprise, EDB Postgres Distributed, and pglogical
-[[29](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Raja2022)].
+[^29].
 
 As multi-leader replication is a somewhat retrofitted feature in many databases, there are often
 subtle configuration pitfalls and surprising interactions with other database features. For example,
 autoincrementing keys, triggers, and integrity constraints can be problematic. For this reason,
 multi-leader replication is often considered dangerous territory that should be avoided if possible
-[[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hodges2012)].
+[^30].
 
 ### Multi-leader replication topologies
 
@@ -857,7 +855,7 @@ In circular and star topologies, a write may need to pass through several nodes 
 all replicas. Therefore, nodes need to forward data changes they receive from other nodes. To
 prevent infinite replication loops, each node is given a unique identifier, and in the replication
 log, each write is tagged with the identifiers of all the nodes it has passed through
-[[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#HBase7709)].
+[^31].
 When a node receives a data change that is tagged with its own identifier, that data change is
 ignored, because the node knows that it has already been processed.
 
@@ -949,13 +947,13 @@ existed for a long time, the term has recently gained attention
 [37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Jayakar2024)].
 An application that allows a user to continue editing a file while offline (which may be implemented
 using a sync engine) is called *offline-first*
-[[38](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Feyerke2013)].
+[^38].
 The term *local-first software* refers to collaborative apps that are not only offline-first, but
 are also designed to continue working even if the developer who made the software shuts down all of
-their online services [[39](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kleppmann2019_ch6)].
+their online services [^39].
 This can be achieved by using a sync engine with an open standard sync protocol for which multiple
 service providers are available
-[[40](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kleppmann2024lofi)].
+[^40].
 For example, Git is a local-first collaboration system (albeit one that doesn’t support real-time
 collaboration) since you can sync via GitHub, GitLab, or any other repository hosting service.
 
@@ -979,11 +977,11 @@ approach has a number of advantages:
   [“The problems with remote procedure calls (RPCs)”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch05.html#sec_problems_with_rpc): for example, if a request to update data on a server fails, the user
   interface needs to somehow reflect that error. A sync engine allows the app to perform reads and
   writes on local data, which almost never fails, leading to a more declarative programming style
-  [[41](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hofmeyr2024)].
+  [^41].
 * In order to display edits from other users in real-time, you need to receive notifications of
   those edits and efficiently update the user interface accordingly. A sync engine combined with a
   *reactive programming* model is a good way of implementing this
-  [[42](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#vanHardenberg2020)].
+  [^42].
 
 Sync engines work best when all the data that the user may need is downloaded in advance and stored
 persistently on the client. This means that the data is available for offline access when needed,
@@ -993,7 +991,7 @@ of data. For example, downloading all the files that the user themselves created
 e-commerce website probably doesn’t make sense.
 
 The sync engine was pioneered by Lotus Notes in the 1980s
-[[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kawell1988)]
+[^43]
 (without using that term), and sync for specific apps such as calendars has also existed for a long
 time. Today there are a number of general-purpose sync engines, some of which use a proprietary
 backend service (e.g., Google Firestore, Realm, or Ditto), and some have an open source backend,
@@ -1003,7 +1001,7 @@ Multiplayer video games have a similar need to respond immediately to the user�
 reconcile them with other players’ actions received asynchronously over the network. In game
 development jargon the equivalent of a sync engine is called *netcode*. The techniques used in
 netcode are quite specific to the requirements of games
-[[44](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Pusch2019)], and don’t directly
+[^44], and don’t directly
 carry over to other types of software, so we won’t consider them further in this book.
 
 ## Dealing with Conflicting Writes
@@ -1040,7 +1038,7 @@ One strategy for conflicts is to avoid them occurring in the first place. For ex
 application can ensure that all writes for a particular record go through the same leader, then
 conflicts cannot occur, even if the database as a whole is multi-leader. This approach is not
 possible in the case of a sync engine client being updated offline, but it is sometimes possible in
-geo-replicated server systems [[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hodges2012)].
+geo-replicated server systems [^30].
 
 For example, in an application where a user can only edit their own data, you can ensure that
 requests from a particular user are always routed to the same region and use the leader in that
@@ -1126,7 +1124,7 @@ suffers from a number of problems:
   union of the carts). This meant that if the customer had removed an item from their cart in one
   sibling, but another sibling still contained that old item, the removed item would unexpectedly
   reappear in the customer’s cart
-  [[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DeCandia2007_ch6)].
+  [^45].
   [Figure 6-10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
   cart and concurrently Device 2 removes DVD, but after merging the conflict both items reappear.
 * If multiple nodes observe the conflict and concurrently resolve it, the conflict resolution
@@ -1177,8 +1175,8 @@ then conflict resolution is inevitable, and automating it is often the best appr
 
 Two families of algorithms are commonly used to implement automatic conflict resolution:
 *Conflict-free replicated datatypes* (CRDTs)
-[[46](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Shapiro2011)] and *Operational Transformation* (OT)
-[[47](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Sun1998)].
+[^46] and *Operational Transformation* (OT)
+[^47].
 They have different design philosophies and performance characteristics, but both are able to
 perform automatic merges for all the aforementioned types of data.
 
@@ -1214,12 +1212,12 @@ There are many algorithms based on variations of these ideas. Lists/arrays can b
 similarly, using list elements instead of characters, and other datatypes such as key-value maps can
 be added quite easily. There are some performance and functionality trade-offs between OT and CRDTs,
 but it’s possible to combine the advantages of CRDTs and OT in one algorithm
-[[48](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gentle2025)].
+[^48].
 
 OT is most often used for real-time collaborative editing of text, e.g. in Google Docs
-[[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DayRichter2010)], whereas CRDTs can be found in
+[^32], whereas CRDTs can be found in
 distributed databases such as Redis Enterprise, Riak, and Azure Cosmos DB
-[[49](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Shukla2018)].
+[^49].
 Sync engines for JSON data can be implemented both with CRDTs (e.g., Automerge or Yjs) and with OT
 (e.g., ShareDB).
 
@@ -1256,17 +1254,17 @@ systems were leaderless [[1](https://learning.oreilly.com/library/view/designing
 [50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gifford1979)], but the
 idea was mostly forgotten during the era of dominance of relational databases. It once again became
 a fashionable architecture for databases after Amazon used it for its in-house *Dynamo* system in
-2007 [[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DeCandia2007_ch6)].
+2007 [^45].
 Riak, Cassandra, and ScyllaDB are open source datastores with leaderless replication models inspired
 by Dynamo, so this kind of database is also known as *Dynamo-style*.
 
 ###### Note
 
 The original *Dynamo* system was only described in a paper
-[[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DeCandia2007_ch6)], but never released outside of
+[^45], but never released outside of
 Amazon. The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a
 completely different architecture: it uses single-leader replication based on the Multi-Paxos
-consensus algorithm [[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Elhemali2022_ch6)].
+consensus algorithm [^5].
 
 In some leaderless implementations, the client directly sends its writes to several replicas, while
 in others, a coordinator node does this on behalf of the client. However, unlike a leader database,
@@ -1348,7 +1346,7 @@ considered successful, and we must query at least *r* nodes for each read. (In o
 *n* = 3, *w* = 2, *r* = 2.) As long as *w* + *r* >
 *n*, we expect to get an up-to-date value when reading, because at least one of the *r* nodes we’re
 reading from must be up to date. Reads and writes that obey these *r* and *w* values are called
-*quorum* reads and writes [[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gifford1979)].
+*quorum* reads and writes [^50].
 You can think of *r* and *w* as the minimum number of votes required for the read or write to be
 valid.
 
@@ -1402,7 +1400,7 @@ Often, *r* and *w* are chosen to be a majority (more than *n*/2) of nodes, becau
 not necessarily majorities—it only matters that the sets of nodes used by the read and write
 operations overlap in at least one node. Other quorum assignments are possible, which allows some
 flexibility in the design of distributed algorithms
-[[51](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Howard2016_ch6)].
+[^51].
 
 You may also set *w* and *r* to smaller numbers, so that *w* + *r* ≤ *n* (i.e.,
 the quorum condition is not satisfied). In this case, reads and writes will still be sent to *n*
@@ -1432,7 +1430,7 @@ properties can be confusing. Some scenarios include:
   nodes are full), and overall succeeded on fewer than *w* replicas, it is not rolled back on the
   replicas where it succeeded. This means that if a write was reported as failed, subsequent reads
   may or may not return the value from that write
-  [[52](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Blomstedt2012ricon)].
+  [^52].
 * If the database uses timestamps from a real-time clock to determine which write is newer (as
   Cassandra and ScyllaDB do, for example), writes might be silently dropped if another node with a
   faster clock has written to the same key—an issue we previously saw in [“Last write wins (discarding concurrent writes)”](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#sec_replication_lww).
@@ -1445,7 +1443,7 @@ properties can be confusing. Some scenarios include:
 Thus, although quorums appear to guarantee that a read returns the latest written value, in practice
 it is not so simple. Dynamo-style databases are generally optimized for use cases that can tolerate
 eventual consistency. The parameters *w* and *r* allow you to adjust the probability of stale values
-being read [[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Bailis2014pbs)],
+being read [^53],
 but it’s wise to not take them as absolute guarantees.
 
 ### Monitoring staleness
@@ -1464,7 +1462,7 @@ current position, you can measure the amount of replication lag.
 However, in systems with leaderless replication, there is no fixed order in which writes are
 applied, which makes monitoring more difficult. The number of hints that a replica stores for
 handoff can be one measure of system health, but it’s difficult to interpret usefully
-[[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Breck2019)].
+[^54].
 Eventual consistency is a deliberately vague guarantee, but for operability it’s important to be
 able to quantify “eventual.”
 
@@ -1493,13 +1491,13 @@ Because there is no failover, and requests go to multiple replicas in parallel a
 becoming slow or unavailable has very little impact on response times: the client simply uses the
 responses from the other replicas that are faster to respond. Using the fastest responses is called
 *request hedging*, and it can significantly reduce tail latency
-[[55](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Dean2013_ch6)]).
+[^55]).
 
 At its core, the resilience of a leaderless system comes from the fact that it doesn’t distinguish
 between the normal case and the failure case. This is especially helpful when handling so-called
 *gray failures*, in which a node isn’t completely down, but running in a degraded state where it is
 unusually slow to handle requests
-[[56](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Huang2017_ch6)],
+[^56],
 or when a node is simply overloaded (for example, if a node has been offline for a while, recovery
 via hinted handoff can cause a lot of additional load). A leader-based system has to decide whether
 the situation is bad enough to warrant a failover (which can itself cause further disruption),
@@ -1511,7 +1509,7 @@ That said, leaderless systems can have performance problems as well:
   another replica is unavailable so that it can store hints about writes that the unavailable
   replica missed. When the unavailable replica comes back, the handoff process needs to send it
   those hints. This puts additional load on the replicas at a time when the system is already under
-  strain [[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Breck2019)].
+  strain [^54].
 * The more replicas you have, the bigger the size of your quorums, and the more responses you have
   to wait for before a request can complete. Even if you wait only for the fastest *r* or *w*
   replicas to respond, and even if you make the requests in parallel, a bigger *r* or *w* increases
@@ -1521,7 +1519,7 @@ That said, leaderless systems can have performance problems as well:
   make it impossible to form a quorum. Some leaderless databases offer a configuration option that
   allows any reachable replica to accept writes, even if it’s not one of the usual replicas for that
   key (Riak and Dynamo call this a *sloppy quorum*
-  [[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DeCandia2007_ch6)];
+  [^45];
   Cassandra and ScyllaDB call it *consistency level ANY*). There is no guarantee that subsequent
   reads will see the written value, but depending on the application it may still be better than
   having the write fail.
@@ -1603,7 +1601,7 @@ An operation A *happens before* another operation B if B knows about A, or depen
 upon A in some way. Whether one operation happens before another operation is the key to defining
 what concurrency means. In fact, we can simply say that two operations are *concurrent* if neither
 happens before the other (i.e., neither knows about the other)
-[[57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Lamport1978_ch6)].
+[^57].
 
 Thus, whenever you have two operations A and B, there are three possibilities: either A happened
 before B, or B happened before A, or A and B are concurrent. What we need is an algorithm to tell us
@@ -1621,7 +1619,7 @@ at exactly the same time—an issue we will discuss in more detail in [Chapter 
 For defining concurrency, exact time doesn’t matter: we simply call two operations concurrent if
 they are both unaware of each other, regardless of the physical time at which they occurred. People
 sometimes make a connection between this principle and the special theory of relativity in physics
-[[57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Lamport1978_ch6)], which introduced the idea that
+[^57], which introduced the idea that
 information cannot travel faster than the speed of light. Consequently, two events that occur some
 distance apart cannot possibly affect each other if the time between the events is shorter than the
 time it takes light to travel the distance between them.
@@ -1719,7 +1717,7 @@ version numbers it has seen from each of the other replicas. This information in
 to overwrite and which values to keep as siblings.
 
 The collection of version numbers from all the replicas is called a *version vector*
-[[58](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#ParkerJr1983)].
+[^58].
 A few variants of this idea are in use, but the most interesting is probably the *dotted version
 vector*
 [[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Preguica2010),
@@ -1827,350 +1825,71 @@ machine to store only a subset of the data.
 
 ##### Footnotes
 
+
 ##### References
 
-[[1](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Lindsay1979_ch6-marker)] B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N.
-Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade.
-[Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf).
-IBM Research, Research Report RJ2571(33471), July 1979.
-Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)
 
-[[2](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gryp2020-marker)] Kenny Gryp.
-[MySQL Terminology
-Updates](https://dev.mysql.com/blog-archive/mysql-terminology-updates/). *dev.mysql.com*, July 2020.
-Archived at [perma.cc/S62G-6RJ2](https://perma.cc/S62G-6RJ2)
-
-[[3](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Oracle2019-marker)] Oracle Corporation.
-[Oracle
-(Active) Data Guard 19c: Real-Time Data Protection and Availability](https://www.oracle.com/technetwork/database/availability/dg-adg-technical-overview-wp-5347548.pdf). White Paper, *oracle.com*, March 2019.
-Archived at [perma.cc/P5ST-RPKE](https://perma.cc/P5ST-RPKE)
-
-[[4](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#AlwaysOn2012-marker)] Microsoft.
-[What
-is an Always On availability group?](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/overview-of-always-on-availability-groups-sql-server) *learn.microsoft.com*, September 2024.
-Archived at [perma.cc/ABH6-3MXF](https://perma.cc/ABH6-3MXF)
-
-[[5](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Elhemali2022_ch6-marker)] Mostafa Elhemali, Niall Gallagher, Nicholas
-Gordon, Joseph Idziorek, Richard Krog, Colin Lazier, Erben Mo, Akhilesh Mritunjai, Somu
-Perianayagam, Tim Rath, Swami Sivasubramanian, James Christopher Sorenson III, Sroaj Sosothikul,
-Doug Terry, and Akshat Vig.
-[Amazon DynamoDB: A Scalable,
-Predictably Performant, and Fully Managed NoSQL Database Service](https://www.usenix.org/conference/atc22/presentation/elhemali). At *USENIX Annual Technical
-Conference* (ATC), July 2022.
-
-[[6](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Taft2020_ch6-marker)] Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan
-VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul
-Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis.
-[CockroachDB: The Resilient
-Geo-Distributed SQL Database](https://dl.acm.org/doi/abs/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of
-Data* (SIGMOD), pages 1493–1509, June 2020.
-[doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134)
-
-[[7](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Huang2020_ch6-marker)] Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang,
-Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang,
-Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan
-Pei, and Xin Tang.
-[TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf).
-*Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084.
-[doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535)
-
-[[8](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Knodel2023-marker)] Mallory Knodel and Niels ten Oever.
-[Terminology, Power, and
-Inclusive Language in Internet-Drafts and RFCs](https://www.ietf.org/archive/id/draft-knodel-terminology-14.html). *IETF Internet-Draft*, August 2023.
-Archived at [perma.cc/5ZY9-725E](https://perma.cc/5ZY9-725E)
-
-[[9](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hodges2018-marker)] Buck Hodges.
-[Postmortem: VSTS 4 September 2018](https://devblogs.microsoft.com/devopsservice/?p=17485).
-*devblogs.microsoft.com*, September 2018.
-Archived at [perma.cc/ZF5R-DYZS](https://perma.cc/ZF5R-DYZS)
-
-[[10](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Morling2024_ch6-marker)] Gunnar Morling.
-[Leader
-Election With S3 Conditional Writes](https://www.morling.dev/blog/leader-election-with-s3-conditional-writes/). *www.morling.dev*, August 2024.
-Archived at [perma.cc/7V2N-J78Y](https://perma.cc/7V2N-J78Y)
-
-[[11](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Chandramohan2024-marker)] Vignesh Chandramohan, Rohan Desai, and Chris Riccomini.
-[SlateDB Manifest
-Design](https://github.com/slatedb/slatedb/blob/main/rfcs/0001-manifest.md). *github.com*, May 2024.
-Archived at [perma.cc/8EUY-P32Z](https://perma.cc/8EUY-P32Z)
-
-[[12](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kelvich2022-marker)] Stas Kelvich.
-[Why does Neon use Paxos instead of Raft, and what’s the
-difference?](https://neon.tech/blog/paxos) *neon.tech*, August 2022.
-Archived at [perma.cc/SEZ4-2GXU](https://perma.cc/SEZ4-2GXU)
-
-[[13](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Fontaine2021-marker)] Dimitri Fontaine.
-[An
-introduction to the pg\_auto\_failover project](https://tapoueh.org/blog/2021/11/an-introduction-to-the-pg_auto_failover-project/). *tapoueh.org*, November 2021.
-Archived at [perma.cc/3WH5-6BAF](https://perma.cc/3WH5-6BAF)
-
-[[14](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Newland2012-marker)] Jesse Newland.
-[GitHub
-availability this week](https://github.blog/news-insights/the-library/github-availability-this-week/). *github.blog*, September 2012.
-Archived at [perma.cc/3YRF-FTFJ](https://perma.cc/3YRF-FTFJ)
-
-[[15](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Imbriaco2012_ch6-marker)] Mark Imbriaco.
-[Downtime last Saturday](https://github.blog/news-insights/the-library/downtime-last-saturday/).
-*github.blog*, December 2012.
-Archived at [perma.cc/M7X5-E8SQ](https://perma.cc/M7X5-E8SQ)
-
-[[16](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hugg2015-marker)] John Hugg.
-[‘All In’ with Determinism for Performance and
-Testing in Distributed Systems](https://www.youtube.com/watch?v=gJRj3vJL4wE). At *Strange Loop*, September 2015.
-
-[[17](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Suzuki2017_ch6-marker)] Hironobu Suzuki.
-[The Internals of PostgreSQL](https://www.interdb.jp/pg/). *interdb.jp*, 2017.
-
-[[18](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kapila2012-marker)] Amit Kapila.
-[WAL
-Internals of PostgreSQL](https://www.pgcon.org/2012/schedule/attachments/258_212_Internals%20Of%20PostgreSQL%20Wal.pdf). At *PostgreSQL Conference* (PGCon), May 2012.
-Archived at [perma.cc/6225-3SUX](https://perma.cc/6225-3SUX)
-
-[[19](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kapila2023-marker)] Amit Kapila.
-[Evolution
-of Logical Replication](https://amitkapila16.blogspot.com/2023/09/evolution-of-logical-replication.html). *amitkapila16.blogspot.com*, September 2023.
-Archived at [perma.cc/F9VX-JLER](https://perma.cc/F9VX-JLER)
-
-[[20](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Petchimuthu2021-marker)] Aru Petchimuthu.
-[Upgrade
-your Amazon RDS for PostgreSQL or Amazon Aurora PostgreSQL database, Part 2: Using the pglogical
-extension](https://aws.amazon.com/blogs/database/part-2-upgrade-your-amazon-rds-for-postgresql-database-using-the-pglogical-extension/). *aws.amazon.com*, August 2021.
-Archived at [perma.cc/RXT8-FS2T](https://perma.cc/RXT8-FS2T)
-
-[[21](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Sharma2015te_ch6-marker)] Yogeshwer Sharma, Philippe Ajoux, Petchean
-Ang, David Callies, Abhishek Choudhary, Laurent Demailly, Thomas Fersch, Liat Atsmon Guz, Andrzej
-Kotulski, Sachin Kulkarni, Sanjeev Kumar, Harry Li, Jun Li, Evgeniy Makeev, Kowshik Prakasam,
-Robbert van Renesse, Sabyasachi Roy, Pratyush Seth, Yee Jiun Song, Benjamin Wester, Kaushik
-Veeraraghavan, and Peter Xie.
-[Wormhole:
-Reliable Pub-Sub to Support Geo-Replicated Internet Services](https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-sharma.pdf). At *12th USENIX
-Symposium on Networked Systems Design and Implementation* (NSDI), May 2015.
-
-[[22](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry2011-marker)] Douglas B. Terry.
-[Replicated
-Data Consistency Explained Through Baseball](https://www.microsoft.com/en-us/research/publication/replicated-data-consistency-explained-through-baseball/). Microsoft Research, Technical Report
-MSR-TR-2011-137, October 2011.
-Archived at [perma.cc/F4KZ-AR38](https://perma.cc/F4KZ-AR38)
-
-[[23](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Terry1994-marker)] Douglas B. Terry, Alan J. Demers, Karin Petersen,
-Mike J. Spreitzer, Marvin M. Theher, and Brent B. Welch.
-[Session Guarantees
-for Weakly Consistent Replicated Data](https://csis.pace.edu/~marchese/CS865/Papers/SessionGuaranteesPDIS.pdf). At *3rd International Conference on Parallel and
-Distributed Information Systems* (PDIS), September 1994.
-[doi:10.1109/PDIS.1994.331722](https://doi.org/10.1109/PDIS.1994.331722)
-
-[[24](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Vogels2008-marker)] Werner Vogels.
-[Eventually Consistent](https://queue.acm.org/detail.cfm?id=1466448).
-*ACM Queue*, volume 6, issue 6, pages 14–19, October 2008.
-[doi:10.1145/1466443.1466448](https://doi.org/10.1145/1466443.1466448)
-
-[[25](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Willison2022-marker)] Simon Willison.
-[Reply to: “My thoughts about Fly.io (so
-far) and other newish technology I’m getting into”](https://news.ycombinator.com/item?id=31434055). *news.ycombinator.com*, May 2022.
-Archived at [perma.cc/ZRV4-WWV8](https://perma.cc/ZRV4-WWV8)
-
-[[26](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Tharakan2020-marker)] Nithin Tharakan.
-[Scaling Bitbucket’s
-Database](https://www.atlassian.com/blog/bitbucket/scaling-bitbuckets-database). *atlassian.com*, October 2020.
-Archived at [perma.cc/JAB7-9FGX](https://perma.cc/JAB7-9FGX)
-
-[[27](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Pratchett1991-marker)] Terry Pratchett. *Reaper Man: A Discworld
-Novel*. Victor Gollancz, 1991. ISBN: 978-0-575-04979-6
-
-[[28](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Bailis2014coord_ch6-marker)] Peter Bailis, Alan Fekete, Michael J.
-Franklin, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica.
-[Coordination Avoidance in Database Systems](https://arxiv.org/abs/1402.2237).
-*Proceedings of the VLDB Endowment*, volume 8, issue 3, pages 185–196, November 2014.
-[doi:10.14778/2735508.2735509](https://doi.org/10.14778/2735508.2735509)
-
-[[29](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Raja2022-marker)] Yaser Raja and Peter Celentano.
-[PostgreSQL
-bi-directional replication using pglogical](https://aws.amazon.com/blogs/database/postgresql-bi-directional-replication-using-pglogical/). *aws.amazon.com*, January 2022.
-Archived at <https://perma.cc/BUQ2-5QWN>
-
-[[30](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hodges2012-marker)] Robert Hodges.
-[If
-You \*Must\* Deploy Multi-Master Replication, Read This First](https://scale-out-blog.blogspot.com/2012/04/if-you-must-deploy-multi-master.html). *scale-out-blog.blogspot.com*,
-April 2012. Archived at [perma.cc/C2JN-F6Y8](https://perma.cc/C2JN-F6Y8)
-
-[[31](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#HBase7709-marker)] Lars Hofhansl.
-[HBASE-7709: Infinite Loop Possible in
-Master/Master Replication](https://issues.apache.org/jira/browse/HBASE-7709). *issues.apache.org*, January 2013.
-Archived at [perma.cc/24G2-8NLC](https://perma.cc/24G2-8NLC)
-
-[[32](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DayRichter2010-marker)] John Day-Richter.
-[What’s
-Different About the New Google Docs: Making Collaboration Fast](https://drive.googleblog.com/2010/09/whats-different-about-new-google-docs.html). *drive.googleblog.com*,
-September 2010. Archived at [perma.cc/5TL8-TSJ2](https://perma.cc/5TL8-TSJ2)
-
-[[33](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Wallace2019-marker)] Evan Wallace.
-[How Figma’s
-multiplayer technology works](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/). *figma.com*, October 2019.
-Archived at [perma.cc/L49H-LY4D](https://perma.cc/L49H-LY4D)
-
-[[34](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Artman2023-marker)] Tuomas Artman.
-[Scaling the Linear Sync Engine](https://linear.app/blog/scaling-the-linear-sync-engine).
-*linear.app*, June 2023.
-
-[[35](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Saafan2024-marker)] Amr Saafan.
-[Why Sync
-Engines Might Be the Future of Web Applications](https://www.nilebits.com/blog/2024/09/sync-engines-future-web-applications/). *nilebits.com*, September 2024.
-Archived at [perma.cc/5N73-5M3V](https://perma.cc/5N73-5M3V)
-
-[[36](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hagoel2024-marker)] Isaac Hagoel.
-[Are Sync
-Engines The Future of Web Applications?](https://dev.to/isaachagoel/are-sync-engines-the-future-of-web-applications-1bbi) *dev.to*, July 2024.
-Archived at [perma.cc/R9HF-BKKL](https://perma.cc/R9HF-BKKL)
-
-[[37](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Jayakar2024-marker)] Sujay Jayakar.
-[A Map of Sync](https://stack.convex.dev/a-map-of-sync). *stack.convex.dev*,
-October 2024. Archived at [perma.cc/82R3-H42A](https://perma.cc/82R3-H42A)
-
-[[38](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Feyerke2013-marker)] Alex Feyerke.
-[Designing Offline-First Web Apps](https://alistapart.com/article/offline-first/).
-*alistapart.com*, December 2013.
-Archived at [perma.cc/WH7R-S2DS](https://perma.cc/WH7R-S2DS)
-
-[[39](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kleppmann2019_ch6-marker)] Martin Kleppmann,
-Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan.
-[Local-first software: You own your data, in
-spite of the cloud](https://www.inkandswitch.com/local-first/). At *ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and
-Reflections on Programming and Software* (Onward!), October 2019, pages 154–178.
-[doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)
-
-[[40](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kleppmann2024lofi-marker)] Martin Kleppmann.
-[The past, present, and
-future of local-first](https://martin.kleppmann.com/2024/05/30/local-first-conference.html). At *Local-First Conference*, May 2024.
-
-[[41](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Hofmeyr2024-marker)] Conrad Hofmeyr.
-[API
-Calling is to Sync Engines as jQuery is to React](https://www.powersync.com/blog/api-calling-is-to-sync-engines-as-jquery-is-to-react). *powersync.com*, November 2024.
-Archived at [perma.cc/2FP9-7WJJ](https://perma.cc/2FP9-7WJJ)
-
-[[42](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#vanHardenberg2020-marker)] Peter van Hardenberg and Martin Kleppmann.
-[PushPin: Towards
-Production-Quality Peer-to-Peer Collaboration](https://martin.kleppmann.com/papers/pushpin-papoc20.pdf). At *7th Workshop on Principles and Practice
-of Consistency for Distributed Data* (PaPoC), April 2020.
-[doi:10.1145/3380787.3393683](https://doi.org/10.1145/3380787.3393683)
-
-[[43](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Kawell1988-marker)] Leonard Kawell, Jr., Steven Beckhardt, Timothy
-Halvorsen, Raymond Ozzie, and Irene Greif.
-[Replicated document management in a group
-communication system](https://dl.acm.org/doi/pdf/10.1145/62266.1024798). At *ACM Conference on Computer-Supported Cooperative Work* (CSCW),
-September 1988.
-[doi:10.1145/62266.1024798](https://doi.org/10.1145/62266.1024798)
-
-[[44](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Pusch2019-marker)] Ricky Pusch.
-[Explaining how fighting games use delay-based and
-rollback netcode](https://words.infil.net/w02-netcode.html). *words.infil.net* and *arstechnica.com*, October 2019.
-Archived at [perma.cc/DE7W-RDJ8](https://perma.cc/DE7W-RDJ8)
-
-[[45](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#DeCandia2007_ch6-marker)] Giuseppe DeCandia, Deniz Hastorun, Madan
-Jampani, Gunavardhan Kakulapati, Avinash Lakshman, Alex Pilchin, Swaminathan Sivasubramanian,
-Peter Vosshall, and Werner Vogels.
-[Dynamo: Amazon’s
-Highly Available Key-Value Store](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf). At *21st ACM Symposium on Operating Systems Principles*
-(SOSP), October 2007.
-[doi:10.1145/1323293.1294281](https://doi.org/10.1145/1323293.1294281)
-
-[[46](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Shapiro2011-marker)] Marc Shapiro, Nuno Preguiça, Carlos Baquero, and
-Marek Zawirski. [A Comprehensive Study
-of Convergent and Commutative Replicated Data Types](https://inria.hal.science/inria-00555588v1/document). INRIA Research Report no. 7506, January
-2011.
-
-[[47](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Sun1998-marker)] Chengzheng Sun and Clarence Ellis.
-[Operational
-Transformation in Real-Time Group Editors: Issues, Algorithms, and Achievements](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=aef660812c5a9c4d3f06775f9455eeb090a4ff0f). At
-*ACM Conference on Computer Supported Cooperative Work* (CSCW), November 1998.
-[doi:10.1145/289444.289469](https://doi.org/10.1145/289444.289469)
-
-[[48](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gentle2025-marker)] Joseph Gentle and Martin Kleppmann.
-[Collaborative Text Editing with Eg-walker: Better,
-Faster, Smaller](https://arxiv.org/abs/2409.14252). At *20th European Conference on Computer Systems* (EuroSys), March 2025.
-[doi:10.1145/3689031.3696076](https://doi.org/10.1145/3689031.3696076)
-
-[[49](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Shukla2018-marker)] Dharma Shukla.
-[Azure
-Cosmos DB: Pushing the frontier of globally distributed databases](https://azure.microsoft.com/en-us/blog/azure-cosmos-db-pushing-the-frontier-of-globally-distributed-databases/). *azure.microsoft.com*, September 2018.
-Archived at [perma.cc/UT3B-HH6R](https://perma.cc/UT3B-HH6R)
-
-[[50](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Gifford1979-marker)] David K. Gifford.
-[Weighted Voting for
-Replicated Data](https://www.cs.cmu.edu/~15-749/READINGS/required/availability/gifford79.pdf). At *7th ACM Symposium on Operating Systems Principles* (SOSP), December 1979.
-[doi:10.1145/800215.806583](https://doi.org/10.1145/800215.806583)
-
-[[51](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Howard2016_ch6-marker)] Heidi Howard, Dahlia Malkhi, and Alexander Spiegelman.
-[Flexible Paxos:
-Quorum Intersection Revisited](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2016.25). At *20th International Conference on Principles of Distributed
-Systems* (OPODIS), December 2016.
-[doi:10.4230/LIPIcs.OPODIS.2016.25](https://doi.org/10.4230/LIPIcs.OPODIS.2016.25)
-
-[[52](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Blomstedt2012ricon-marker)] Joseph Blomstedt.
-[Bringing Consistency to Riak](https://vimeo.com/51973001). At *RICON West*,
-October 2012.
-
-[[53](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Bailis2014pbs-marker)] Peter Bailis, Shivaram Venkataraman,
-Michael J. Franklin, Joseph M. Hellerstein, and Ion Stoica.
-[Quantifying eventual consistency with
-PBS](http://www.bailis.org/papers/pbs-vldbj2014.pdf). *The VLDB Journal*, volume 23, pages 279–302, April 2014.
-[doi:10.1007/s00778-013-0330-1](https://doi.org/10.1007/s00778-013-0330-1)
-
-[[54](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Breck2019-marker)] Colin Breck.
-[Shared-Nothing
-Architectures for Server Replication and Synchronization](https://blog.colinbreck.com/shared-nothing-architectures-for-server-replication-and-synchronization/). *blog.colinbreck.com*, December 2019.
-Archived at [perma.cc/48P3-J6CJ](https://perma.cc/48P3-J6CJ)
-
-[[55](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Dean2013_ch6-marker)] Jeffrey Dean and Luiz André Barroso.
-[The Tail at Scale](https://cacm.acm.org/research/the-tail-at-scale/).
-*Communications of the ACM*, volume 56, issue 2, pages 74–80, February 2013.
-[doi:10.1145/2408776.2408794](https://doi.org/10.1145/2408776.2408794)
-
-[[56](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Huang2017_ch6-marker)] Peng Huang, Chuanxiong Guo, Lidong Zhou, Jacob R.
-Lorch, Yingnong Dang, Murali Chintalapati, and Randolph Yao.
-[Gray
-Failure: The Achilles’ Heel of Cloud-Scale Systems](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/paper-1.pdf). At *16th Workshop on Hot Topics in
-Operating Systems* (HotOS), May 2017.
-[doi:10.1145/3102980.3103005](https://doi.org/10.1145/3102980.3103005)
-
-[[57](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Lamport1978_ch6-marker)] Leslie Lamport.
-[Time,
-Clocks, and the Ordering of Events in a Distributed System](https://www.microsoft.com/en-us/research/publication/time-clocks-ordering-events-distributed-system/). *Communications of the ACM*,
-volume 21, issue 7, pages 558–565, July 1978.
-[doi:10.1145/359545.359563](https://doi.org/10.1145/359545.359563)
-
-[[58](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#ParkerJr1983-marker)] D. Stott Parker Jr., Gerald J. Popek, Gerard
-Rudisin, Allen Stoughton, Bruce J. Walker, Evelyn Walton, Johanna M. Chow, David Edwards, Stephen
-Kiser, and Charles Kline.
-[Detection of
-Mutual Inconsistency in Distributed Systems](https://pages.cs.wisc.edu/~remzi/Classes/739/Papers/parker83detection.pdf). *IEEE Transactions on Software Engineering*,
-volume SE-9, issue 3, pages 240–247, May 1983.
-[doi:10.1109/TSE.1983.236733](https://doi.org/10.1109/TSE.1983.236733)
-
-[[59](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Preguica2010-marker)] Nuno Preguiça, Carlos Baquero, Paulo Sérgio
-Almeida, Victor Fonte, and Ricardo Gonçalves. [Dotted
-Version Vectors: Logical Clocks for Optimistic Replication](https://arxiv.org/abs/1011.5808). arXiv:1011.5808, November 2010.
-
-[[60](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Manepalli2022-marker)] Giridhar Manepalli.
-[Clocks and Causality - Ordering Events
-in Distributed Systems](https://www.exhypothesi.com/clocks-and-causality/). *exhypothesi.com*, November 2022.
-Archived at [perma.cc/8REU-KVLQ](https://perma.cc/8REU-KVLQ)
-
-[[61](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Cribbs2014-marker)] Sean Cribbs.
-[A Brief History of Time in Riak](https://speakerdeck.com/seancribbs/a-brief-history-of-time-in-riak).
-At *RICON*, October 2014. Archived at [perma.cc/7U9P-6JFX](https://perma.cc/7U9P-6JFX)
-
-[[62](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Brown2015-marker)] Russell Brown.
-[Vector
-Clocks Revisited Part 2: Dotted Version Vectors](https://riak.com/posts/technical/vector-clocks-revisited-part-2-dotted-version-vectors/). *riak.com*, November 2015.
-Archived at [perma.cc/96QP-W98R](https://perma.cc/96QP-W98R)
-
-[[63](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Baquero2011-marker)] Carlos Baquero.
-[Version
-Vectors Are Not Vector Clocks](https://haslab.wordpress.com/2011/07/08/version-vectors-are-not-vector-clocks/). *haslab.wordpress.com*, July 2011.
-Archived at [perma.cc/7PNU-4AMG](https://perma.cc/7PNU-4AMG)
-
-[[64](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch06.html#Schwarz1994-marker)] Reinhard Schwarz and Friedemann Mattern.
-[Detecting Causal
-Relationships in Distributed Computations: In Search of the Holy Grail](https://disco.ethz.ch/courses/hs08/seminar/papers/mattern4.pdf). *Distributed
-Computing*, volume 7, issue 3, pages 149–174, March 1994.
-[doi:10.1007/BF02277859](https://doi.org/10.1007/BF02277859)
+[^1]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)
+[^2]: Kenny Gryp. [MySQL Terminology Updates](https://dev.mysql.com/blog-archive/mysql-terminology-updates/). *dev.mysql.com*, July 2020. Archived at [perma.cc/S62G-6RJ2](https://perma.cc/S62G-6RJ2)
+[^3]: Oracle Corporation. [Oracle (Active) Data Guard 19c: Real-Time Data Protection and Availability](https://www.oracle.com/technetwork/database/availability/dg-adg-technical-overview-wp-5347548.pdf). White Paper, *oracle.com*, March 2019. Archived at [perma.cc/P5ST-RPKE](https://perma.cc/P5ST-RPKE)
+[^4]: Microsoft. [What is an Always On availability group?](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/overview-of-always-on-availability-groups-sql-server) *learn.microsoft.com*, September 2024. Archived at [perma.cc/ABH6-3MXF](https://perma.cc/ABH6-3MXF)
+[^5]: Mostafa Elhemali, Niall Gallagher, Nicholas Gordon, Joseph Idziorek, Richard Krog, Colin Lazier, Erben Mo, Akhilesh Mritunjai, Somu Perianayagam, Tim Rath, Swami Sivasubramanian, James Christopher Sorenson III, Sroaj Sosothikul, Doug Terry, and Akshat Vig. [Amazon DynamoDB: A Scalable, Predictably Performant, and Fully Managed NoSQL Database Service](https://www.usenix.org/conference/atc22/presentation/elhemali). At *USENIX Annual Technical Conference* (ATC), July 2022.
+[^6]: Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis. [CockroachDB: The Resilient Geo-Distributed SQL Database](https://dl.acm.org/doi/abs/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1493–1509, June 2020. [doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134)
+[^7]: Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang, Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang, Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan Pei, and Xin Tang. [TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084. [doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535)
+[^8]: Mallory Knodel and Niels ten Oever. [Terminology, Power, and Inclusive Language in Internet-Drafts and RFCs](https://www.ietf.org/archive/id/draft-knodel-terminology-14.html). *IETF Internet-Draft*, August 2023. Archived at [perma.cc/5ZY9-725E](https://perma.cc/5ZY9-725E)
+[^9]: Buck Hodges. [Postmortem: VSTS 4 September 2018](https://devblogs.microsoft.com/devopsservice/?p=17485). *devblogs.microsoft.com*, September 2018. Archived at [perma.cc/ZF5R-DYZS](https://perma.cc/ZF5R-DYZS)
+[^10]: Gunnar Morling. [Leader Election With S3 Conditional Writes](https://www.morling.dev/blog/leader-election-with-s3-conditional-writes/). *www.morling.dev*, August 2024. Archived at [perma.cc/7V2N-J78Y](https://perma.cc/7V2N-J78Y)
+[^11]: Vignesh Chandramohan, Rohan Desai, and Chris Riccomini. [SlateDB Manifest Design](https://github.com/slatedb/slatedb/blob/main/rfcs/0001-manifest.md). *github.com*, May 2024. Archived at [perma.cc/8EUY-P32Z](https://perma.cc/8EUY-P32Z)
+[^12]: Stas Kelvich. [Why does Neon use Paxos instead of Raft, and what’s the difference?](https://neon.tech/blog/paxos) *neon.tech*, August 2022. Archived at [perma.cc/SEZ4-2GXU](https://perma.cc/SEZ4-2GXU)
+[^13]: Dimitri Fontaine. [An introduction to the pg\_auto\_failover project](https://tapoueh.org/blog/2021/11/an-introduction-to-the-pg_auto_failover-project/). *tapoueh.org*, November 2021. Archived at [perma.cc/3WH5-6BAF](https://perma.cc/3WH5-6BAF)
+[^14]: Jesse Newland. [GitHub availability this week](https://github.blog/news-insights/the-library/github-availability-this-week/). *github.blog*, September 2012. Archived at [perma.cc/3YRF-FTFJ](https://perma.cc/3YRF-FTFJ)
+[^15]: Mark Imbriaco. [Downtime last Saturday](https://github.blog/news-insights/the-library/downtime-last-saturday/). *github.blog*, December 2012. Archived at [perma.cc/M7X5-E8SQ](https://perma.cc/M7X5-E8SQ)
+[^16]: John Hugg. [‘All In’ with Determinism for Performance and Testing in Distributed Systems](https://www.youtube.com/watch?v=gJRj3vJL4wE). At *Strange Loop*, September 2015.
+[^17]: Hironobu Suzuki. [The Internals of PostgreSQL](https://www.interdb.jp/pg/). *interdb.jp*, 2017.
+[^18]: Amit Kapila. [WAL Internals of PostgreSQL](https://www.pgcon.org/2012/schedule/attachments/258_212_Internals%20Of%20PostgreSQL%20Wal.pdf). At *PostgreSQL Conference* (PGCon), May 2012. Archived at [perma.cc/6225-3SUX](https://perma.cc/6225-3SUX)
+[^19]: Amit Kapila. [Evolution of Logical Replication](https://amitkapila16.blogspot.com/2023/09/evolution-of-logical-replication.html). *amitkapila16.blogspot.com*, September 2023. Archived at [perma.cc/F9VX-JLER](https://perma.cc/F9VX-JLER)
+[^20]: Aru Petchimuthu. [Upgrade your Amazon RDS for PostgreSQL or Amazon Aurora PostgreSQL database, Part 2: Using the pglogical extension](https://aws.amazon.com/blogs/database/part-2-upgrade-your-amazon-rds-for-postgresql-database-using-the-pglogical-extension/). *aws.amazon.com*, August 2021. Archived at [perma.cc/RXT8-FS2T](https://perma.cc/RXT8-FS2T)
+[^21]: Yogeshwer Sharma, Philippe Ajoux, Petchean Ang, David Callies, Abhishek Choudhary, Laurent Demailly, Thomas Fersch, Liat Atsmon Guz, Andrzej Kotulski, Sachin Kulkarni, Sanjeev Kumar, Harry Li, Jun Li, Evgeniy Makeev, Kowshik Prakasam, Robbert van Renesse, Sabyasachi Roy, Pratyush Seth, Yee Jiun Song, Benjamin Wester, Kaushik Veeraraghavan, and Peter Xie. [Wormhole: Reliable Pub-Sub to Support Geo-Replicated Internet Services](https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-sharma.pdf). At *12th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), May 2015.
+[^22]: Douglas B. Terry. [Replicated Data Consistency Explained Through Baseball](https://www.microsoft.com/en-us/research/publication/replicated-data-consistency-explained-through-baseball/). Microsoft Research, Technical Report MSR-TR-2011-137, October 2011. Archived at [perma.cc/F4KZ-AR38](https://perma.cc/F4KZ-AR38)
+[^23]: Douglas B. Terry, Alan J. Demers, Karin Petersen, Mike J. Spreitzer, Marvin M. Theher, and Brent B. Welch. [Session Guarantees for Weakly Consistent Replicated Data](https://csis.pace.edu/~marchese/CS865/Papers/SessionGuaranteesPDIS.pdf). At *3rd International Conference on Parallel and Distributed Information Systems* (PDIS), September 1994. [doi:10.1109/PDIS.1994.331722](https://doi.org/10.1109/PDIS.1994.331722)
+[^24]: Werner Vogels. [Eventually Consistent](https://queue.acm.org/detail.cfm?id=1466448). *ACM Queue*, volume 6, issue 6, pages 14–19, October 2008. [doi:10.1145/1466443.1466448](https://doi.org/10.1145/1466443.1466448)
+[^25]: Simon Willison. [Reply to: “My thoughts about Fly.io (so far) and other newish technology I’m getting into”](https://news.ycombinator.com/item?id=31434055). *news.ycombinator.com*, May 2022. Archived at [perma.cc/ZRV4-WWV8](https://perma.cc/ZRV4-WWV8)
+[^26]: Nithin Tharakan. [Scaling Bitbucket’s Database](https://www.atlassian.com/blog/bitbucket/scaling-bitbuckets-database). *atlassian.com*, October 2020. Archived at [perma.cc/JAB7-9FGX](https://perma.cc/JAB7-9FGX)
+[^27]: Terry Pratchett. *Reaper Man: A Discworld Novel*. Victor Gollancz, 1991. ISBN: 978-0-575-04979-6
+[^28]: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Coordination Avoidance in Database Systems](https://arxiv.org/abs/1402.2237). *Proceedings of the VLDB Endowment*, volume 8, issue 3, pages 185–196, November 2014. [doi:10.14778/2735508.2735509](https://doi.org/10.14778/2735508.2735509)
+[^29]: Yaser Raja and Peter Celentano. [PostgreSQL bi-directional replication using pglogical](https://aws.amazon.com/blogs/database/postgresql-bi-directional-replication-using-pglogical/). *aws.amazon.com*, January 2022. Archived at <https://perma.cc/BUQ2-5QWN>
+[^30]: Robert Hodges. [If You \*Must\* Deploy Multi-Master Replication, Read This First](https://scale-out-blog.blogspot.com/2012/04/if-you-must-deploy-multi-master.html). *scale-out-blog.blogspot.com*, April 2012. Archived at [perma.cc/C2JN-F6Y8](https://perma.cc/C2JN-F6Y8)
+[^31]: Lars Hofhansl. [HBASE-7709: Infinite Loop Possible in Master/Master Replication](https://issues.apache.org/jira/browse/HBASE-7709). *issues.apache.org*, January 2013. Archived at [perma.cc/24G2-8NLC](https://perma.cc/24G2-8NLC)
+[^32]: John Day-Richter. [What’s Different About the New Google Docs: Making Collaboration Fast](https://drive.googleblog.com/2010/09/whats-different-about-new-google-docs.html). *drive.googleblog.com*, September 2010. Archived at [perma.cc/5TL8-TSJ2](https://perma.cc/5TL8-TSJ2)
+[^33]: Evan Wallace. [How Figma’s multiplayer technology works](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/). *figma.com*, October 2019. Archived at [perma.cc/L49H-LY4D](https://perma.cc/L49H-LY4D)
+[^34]: Tuomas Artman. [Scaling the Linear Sync Engine](https://linear.app/blog/scaling-the-linear-sync-engine). *linear.app*, June 2023.
+[^35]: Amr Saafan. [Why Sync Engines Might Be the Future of Web Applications](https://www.nilebits.com/blog/2024/09/sync-engines-future-web-applications/). *nilebits.com*, September 2024. Archived at [perma.cc/5N73-5M3V](https://perma.cc/5N73-5M3V)
+[^36]: Isaac Hagoel. [Are Sync Engines The Future of Web Applications?](https://dev.to/isaachagoel/are-sync-engines-the-future-of-web-applications-1bbi) *dev.to*, July 2024. Archived at [perma.cc/R9HF-BKKL](https://perma.cc/R9HF-BKKL)
+[^37]: Sujay Jayakar. [A Map of Sync](https://stack.convex.dev/a-map-of-sync). *stack.convex.dev*, October 2024. Archived at [perma.cc/82R3-H42A](https://perma.cc/82R3-H42A)
+[^38]: Alex Feyerke. [Designing Offline-First Web Apps](https://alistapart.com/article/offline-first/). *alistapart.com*, December 2013. Archived at [perma.cc/WH7R-S2DS](https://perma.cc/WH7R-S2DS)
+[^39]: Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan. [Local-first software: You own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/). At *ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software* (Onward!), October 2019, pages 154–178. [doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)
+[^40]: Martin Kleppmann. [The past, present, and future of local-first](https://martin.kleppmann.com/2024/05/30/local-first-conference.html). At *Local-First Conference*, May 2024.
+[^41]: Conrad Hofmeyr. [API Calling is to Sync Engines as jQuery is to React](https://www.powersync.com/blog/api-calling-is-to-sync-engines-as-jquery-is-to-react). *powersync.com*, November 2024. Archived at [perma.cc/2FP9-7WJJ](https://perma.cc/2FP9-7WJJ)
+[^42]: Peter van Hardenberg and Martin Kleppmann. [PushPin: Towards Production-Quality Peer-to-Peer Collaboration](https://martin.kleppmann.com/papers/pushpin-papoc20.pdf). At *7th Workshop on Principles and Practice of Consistency for Distributed Data* (PaPoC), April 2020. [doi:10.1145/3380787.3393683](https://doi.org/10.1145/3380787.3393683)
+[^43]: Leonard Kawell, Jr., Steven Beckhardt, Timothy Halvorsen, Raymond Ozzie, and Irene Greif. [Replicated document management in a group communication system](https://dl.acm.org/doi/pdf/10.1145/62266.1024798). At *ACM Conference on Computer-Supported Cooperative Work* (CSCW), September 1988. [doi:10.1145/62266.1024798](https://doi.org/10.1145/62266.1024798)
+[^44]: Ricky Pusch. [Explaining how fighting games use delay-based and rollback netcode](https://words.infil.net/w02-netcode.html). *words.infil.net* and *arstechnica.com*, October 2019. Archived at [perma.cc/DE7W-RDJ8](https://perma.cc/DE7W-RDJ8)
+[^45]: Giuseppe DeCandia, Deniz Hastorun, Madan Jampani, Gunavardhan Kakulapati, Avinash Lakshman, Alex Pilchin, Swaminathan Sivasubramanian, Peter Vosshall, and Werner Vogels. [Dynamo: Amazon’s Highly Available Key-Value Store](https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf). At *21st ACM Symposium on Operating Systems Principles* (SOSP), October 2007. [doi:10.1145/1323293.1294281](https://doi.org/10.1145/1323293.1294281)
+[^46]: Marc Shapiro, Nuno Preguiça, Carlos Baquero, and Marek Zawirski. [A Comprehensive Study of Convergent and Commutative Replicated Data Types](https://inria.hal.science/inria-00555588v1/document). INRIA Research Report no. 7506, January 2011.
+[^47]: Chengzheng Sun and Clarence Ellis. [Operational Transformation in Real-Time Group Editors: Issues, Algorithms, and Achievements](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=aef660812c5a9c4d3f06775f9455eeb090a4ff0f). At *ACM Conference on Computer Supported Cooperative Work* (CSCW), November 1998. [doi:10.1145/289444.289469](https://doi.org/10.1145/289444.289469)
+[^48]: Joseph Gentle and Martin Kleppmann. [Collaborative Text Editing with Eg-walker: Better, Faster, Smaller](https://arxiv.org/abs/2409.14252). At *20th European Conference on Computer Systems* (EuroSys), March 2025. [doi:10.1145/3689031.3696076](https://doi.org/10.1145/3689031.3696076)
+[^49]: Dharma Shukla. [Azure Cosmos DB: Pushing the frontier of globally distributed databases](https://azure.microsoft.com/en-us/blog/azure-cosmos-db-pushing-the-frontier-of-globally-distributed-databases/). *azure.microsoft.com*, September 2018. Archived at [perma.cc/UT3B-HH6R](https://perma.cc/UT3B-HH6R)
+[^50]: David K. Gifford. [Weighted Voting for Replicated Data](https://www.cs.cmu.edu/~15-749/READINGS/required/availability/gifford79.pdf). At *7th ACM Symposium on Operating Systems Principles* (SOSP), December 1979. [doi:10.1145/800215.806583](https://doi.org/10.1145/800215.806583)
+[^51]: Heidi Howard, Dahlia Malkhi, and Alexander Spiegelman. [Flexible Paxos: Quorum Intersection Revisited](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.OPODIS.2016.25). At *20th International Conference on Principles of Distributed Systems* (OPODIS), December 2016. [doi:10.4230/LIPIcs.OPODIS.2016.25](https://doi.org/10.4230/LIPIcs.OPODIS.2016.25)
+[^52]: Joseph Blomstedt. [Bringing Consistency to Riak](https://vimeo.com/51973001). At *RICON West*, October 2012.
+[^53]: Peter Bailis, Shivaram Venkataraman, Michael J. Franklin, Joseph M. Hellerstein, and Ion Stoica. [Quantifying eventual consistency with PBS](http://www.bailis.org/papers/pbs-vldbj2014.pdf). *The VLDB Journal*, volume 23, pages 279–302, April 2014. [doi:10.1007/s00778-013-0330-1](https://doi.org/10.1007/s00778-013-0330-1)
+[^54]: Colin Breck. [Shared-Nothing Architectures for Server Replication and Synchronization](https://blog.colinbreck.com/shared-nothing-architectures-for-server-replication-and-synchronization/). *blog.colinbreck.com*, December 2019. Archived at [perma.cc/48P3-J6CJ](https://perma.cc/48P3-J6CJ)
+[^55]: Jeffrey Dean and Luiz André Barroso. [The Tail at Scale](https://cacm.acm.org/research/the-tail-at-scale/). *Communications of the ACM*, volume 56, issue 2, pages 74–80, February 2013. [doi:10.1145/2408776.2408794](https://doi.org/10.1145/2408776.2408794)
+[^56]: Peng Huang, Chuanxiong Guo, Lidong Zhou, Jacob R. Lorch, Yingnong Dang, Murali Chintalapati, and Randolph Yao. [Gray Failure: The Achilles’ Heel of Cloud-Scale Systems](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/paper-1.pdf). At *16th Workshop on Hot Topics in Operating Systems* (HotOS), May 2017. [doi:10.1145/3102980.3103005](https://doi.org/10.1145/3102980.3103005)
+[^57]: Leslie Lamport. [Time, Clocks, and the Ordering of Events in a Distributed System](https://www.microsoft.com/en-us/research/publication/time-clocks-ordering-events-distributed-system/). *Communications of the ACM*, volume 21, issue 7, pages 558–565, July 1978. [doi:10.1145/359545.359563](https://doi.org/10.1145/359545.359563)
+[^58]: D. Stott Parker Jr., Gerald J. Popek, Gerard Rudisin, Allen Stoughton, Bruce J. Walker, Evelyn Walton, Johanna M. Chow, David Edwards, Stephen Kiser, and Charles Kline. [Detection of Mutual Inconsistency in Distributed Systems](https://pages.cs.wisc.edu/~remzi/Classes/739/Papers/parker83detection.pdf). *IEEE Transactions on Software Engineering*, volume SE-9, issue 3, pages 240–247, May 1983. [doi:10.1109/TSE.1983.236733](https://doi.org/10.1109/TSE.1983.236733)
+[^59]: Nuno Preguiça, Carlos Baquero, Paulo Sérgio Almeida, Victor Fonte, and Ricardo Gonçalves. [Dotted Version Vectors: Logical Clocks for Optimistic Replication](https://arxiv.org/abs/1011.5808). arXiv:1011.5808, November 2010.
+[^60]: Giridhar Manepalli. [Clocks and Causality - Ordering Events in Distributed Systems](https://www.exhypothesi.com/clocks-and-causality/). *exhypothesi.com*, November 2022. Archived at [perma.cc/8REU-KVLQ](https://perma.cc/8REU-KVLQ)
+[^61]: Sean Cribbs. [A Brief History of Time in Riak](https://speakerdeck.com/seancribbs/a-brief-history-of-time-in-riak). At *RICON*, October 2014. Archived at [perma.cc/7U9P-6JFX](https://perma.cc/7U9P-6JFX)
+[^62]: Russell Brown. [Vector Clocks Revisited Part 2: Dotted Version Vectors](https://riak.com/posts/technical/vector-clocks-revisited-part-2-dotted-version-vectors/). *riak.com*, November 2015. Archived at [perma.cc/96QP-W98R](https://perma.cc/96QP-W98R)
+[^63]: Carlos Baquero. [Version Vectors Are Not Vector Clocks](https://haslab.wordpress.com/2011/07/08/version-vectors-are-not-vector-clocks/). *haslab.wordpress.com*, July 2011. Archived at [perma.cc/7PNU-4AMG](https://perma.cc/7PNU-4AMG)
+[^64]: Reinhard Schwarz and Friedemann Mattern. [Detecting Causal Relationships in Distributed Computations: In Search of the Holy Grail](https://disco.ethz.ch/courses/hs08/seminar/papers/mattern4.pdf). *Distributed Computing*, volume 7, issue 3, pages 149–174, March 1994. [doi:10.1007/BF02277859](https://doi.org/10.1007/BF02277859) 

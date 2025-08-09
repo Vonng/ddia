@@ -23,7 +23,7 @@ more complex, it is no longer sufficient to store everything in one system, but 
 necessary to combine multiple storage or processing systems that provide different capabilities.
 
 We call an application *data-intensive* if data management is one of the primary challenges in
-developing the application [[1](/en/ch1#Kouzes2009)].
+developing the application [^1].
 While in *compute-intensive* systems the challenge is parallelizing some very large computation, in
 data-intensive applications we usually worry more about things like storing and processing large
 data volumes, managing changes to data, ensuring consistency in the face of failures and
@@ -86,7 +86,7 @@ for web applications, the client-side code (which runs in a web browser) is call
 and the server-side code that handles user requests is known as the *backend*. Mobile apps are
 similar to frontends in that they provide user interfaces, which often communicate over the Internet
 with a server-side backend. Frontends sometimes manage data locally on the user’s device
-[[2](/en/ch1#Kleppmann2019_ch1)],
+[^2],
 but the greatest data infrastructure challenges often lie in the backend: a frontend only needs to
 handle one user’s data, whereas the backend manages data on behalf of *all* of the users.
 
@@ -132,10 +132,10 @@ As we shall see in the next section, operational and analytical systems are ofte
 good reasons. As these systems have matured, two new specialized roles have emerged: *data
 engineers* and *analytics engineers*. Data engineers are the people who know how to integrate the
 operational and the analytical systems, and who take responsibility for the organization’s data
-infrastructure more widely [[3](/en/ch1#Reis2022)].
+infrastructure more widely [^3].
 Analytics engineers model and transform data to make it more useful for the business analysts and
 data scientists in an organization
-[[4](/en/ch1#Machado2023)].
+[^4].
 
 Many engineers specialize on either the operational or the analytical side. However, this book
 covers both operational and analytical data systems, since both play an important role in the
@@ -176,7 +176,7 @@ answer analytic queries such as:
 The reports that result from these types of queries are important for business intelligence, helping
 the management decide what to do next. In order to differentiate this pattern of using databases
 from transaction processing, it has been called *online analytic processing* (OLAP)
-[[5](/en/ch1#Codd1993)].
+[^5].
 The difference between OLTP and analytics is not always clear-cut, but some typical characteristics
 are listed in [Table 1-1](/en/ch1#tab_oltp_vs_olap).
 
@@ -211,7 +211,7 @@ There is also a type of systems that is designed for analytical workloads (queri
 over many records) but that are embedded into user-facing products. This category is known as
 *product analytics* or *real-time analytics*, and systems designed for this type of use include
 Pinot, Druid, and ClickHouse
-[[6](/en/ch1#Soman2023)].
+[^6].
 
 ## Data Warehousing
 
@@ -242,7 +242,7 @@ systems, for several reasons:
 
 A *data warehouse*, by contrast, is a separate database that analysts can query to their hearts’
 content, without affecting OLTP operations
-[[7](/en/ch1#Chaudhuri1997)].
+[^7].
 As we shall see in [Chapter 4](/en/ch4#ch_storage), data warehouses often store data in a way that is very different
 from OLTP databases, in order to optimize for the types of queries that are common in analytics.
 
@@ -267,8 +267,7 @@ specialist data connector services such as Fivetran, Singer, or AirByte.
 
 Some database systems offer *hybrid transactional/analytic processing* (HTAP), which aims to enable
 OLTP and analytics in a single system without requiring ETL from one system into another
-[[8](/en/ch1#Ozcan2017),
-[9](/en/ch1#Prout2022_ch1)].
+[^8] [^9].
 However, many HTAP systems internally consist of an OLTP system coupled with a separate analytical
 system, hidden behind a common interface—so the distinction between the two remains important for
 understanding how these systems work.
@@ -283,13 +282,13 @@ data from several operational systems in a single query.
 HTAP therefore does not replace data warehouses. Rather, it is useful in scenarios where the same
 application needs to both perform analytics queries that scan a large number of rows, and also
 read and update individual records with low latency. Fraud detection can involve such workloads, for
-example [[10](/en/ch1#Zhang2024)].
+example [^10].
 
 The separation between operational and analytical systems is part of a wider trend: as workloads
 have become more demanding, systems have become more specialized and optimized for particular
 workloads. General-purpose systems can handle small data volumes comfortably, but the greater the
 scale, the more specialized systems tend to become
-[[11](/en/ch1#Stonebraker2005fitsall)].
+[^11].
 
 ### From data warehouse to data lake
 
@@ -308,14 +307,11 @@ needs of data scientists, who might need to perform tasks such as:
   they mention). Similarly, they might need to extract structured information from photos using
   computer vision techniques.
 
-Although there have been efforts to add machine learning operators to a SQL data model
-[[12](/en/ch1#Cohen2009)]
-and to build efficient machine learning systems on top of a relational foundation
-[[13](/en/ch1#Olteanu2020)],
+Although there have been efforts to add machine learning operators to a SQL data model [^12]
+and to build efficient machine learning systems on top of a relational foundation [^13],
 many data scientists prefer not to work in a relational database such as a data warehouse. Instead,
 many prefer to use Python data analysis libraries such as pandas and scikit-learn, statistical
-analysis languages such as R, and distributed analytics frameworks such as Spark
-[[14](/en/ch1#Bornstein2020)].
+analysis languages such as R, and distributed analytics frameworks such as Spark [^14].
 We discuss these further in [“Dataframes, Matrices, and Arrays”](/en/ch3#sec_datamodels_dataframes).
 
 Consequently, organizations face a need to make data available in a form that is suitable for use by
@@ -325,7 +321,7 @@ difference from a data warehouse is that a data lake simply contains files, with
 particular file format or data model. Files in a data lake might be collections of database records,
 encoded using a file format such as Avro or Parquet (see [Chapter 5](/en/ch5#ch_encoding)), but they can equally well
 contain text, images, videos, sensor readings, sparse matrices, feature vectors, genome sequences,
-or any other kind of data [[15](/en/ch1#Fowler2015)].
+or any other kind of data [^15].
 Besides being more flexible, this is also often cheaper than relational data storage, since the data
 lake can use commoditized file storage such as object stores (see [“Cloud-Native System Architecture”](/en/ch1#sec_introduction_cloud_native)).
 
@@ -334,14 +330,13 @@ an intermediate stop on the path from the operational systems to the data wareho
 contains data in a “raw” form produced by the operational systems, without the transformation into a
 relational data warehouse schema. This approach has the advantage that each consumer of the data can
 transform the raw data into a form that best suits their needs. It has been dubbed the *sushi
-principle*: “raw data is better” [[16](/en/ch1#Johnson2015)].
+principle*: “raw data is better” [^16].
 
 Besides loading data from a data lake into a separate data warehouse, it is also possible to run
 typical data warehousing workloads (SQL queries and business analytics) directly on the files in the
 data lake, alongside data science/machine learning workloads. This architecture is known as a *data
 lakehouse*, and it requires a query execution engine and a metadata (e.g., schema management) layer
-that extend the data lake’s file storage
-[[17](/en/ch1#Armbrust2021)].
+that extend the data lake’s file storage [^17].
 
 Apache Hive, Spark SQL, Presto, and Trino are examples of this approach.
 
@@ -349,7 +344,7 @@ Apache Hive, Spark SQL, Presto, and Trino are examples of this approach.
 
 As analytics practices have matured, organizations have been increasingly paying attention to the
 management and operations of analytics systems and data pipelines, as captured for example in the
-DataOps manifesto [[18](/en/ch1#DataOps)].
+DataOps manifesto [^18].
 Part of this are issues of governance, privacy, and compliance with regulation such as GDPR and
 CCPA, which we discuss in [“Data Systems, Law, and Society”](/en/ch1#sec_introduction_compliance) and [Link to Come].
 
@@ -361,11 +356,9 @@ application and how time-sensitive it is, a stream processing approach can be va
 to identify and block potentially fraudulent or abusive activity.
 
 In some cases the outputs of analytics systems are made available to operational systems (a process
-sometimes known as *reverse ETL* [[19](/en/ch1#Manohar2021)]). For example, a
-machine-learning model that was trained on data in an analytics system may be deployed to
+sometimes known as *reverse ETL* [^19]). For example, a machine-learning model that was trained on data in an analytics system may be deployed to
 production, so that it can generate recommendations for end-users, such as “people who bought X also
-bought Y”. Such deployed outputs of analytics systems are also known as *data products*
-[[20](/en/ch1#ORegan2018)].
+bought Y”. Such deployed outputs of analytics systems are also known as *data products* [^20].
 Machine learning models can be deployed to operational systems using specialized tools such as
 TFX, Kubeflow, or MLflow.
 
@@ -425,7 +418,7 @@ in-house, or should it be outsourced? Should you build or should you buy?
 Ultimately, this is a question about business priorities. The received management wisdom is that
 things that are a core competency or a competitive advantage of your organization should be done
 in-house, whereas things that are non-core, routine, or commonplace should be left to a vendor
-[[21](/en/ch1#Fournier2021)].
+[^21].
 To give an extreme example, most companies do not generate their own electricity (unless they are an
 energy company, and leaving aside emergency backup power), since it is cheaper to buy electricity
 from the grid.
@@ -464,8 +457,7 @@ Whether a cloud service is actually cheaper and easier than self-hosting depends
 skills and the workload on your systems. If you already have experience setting up and operating the
 systems you need, and if your load is quite predictable (i.e., the number of machines you need does
 not fluctuate wildly), then it’s often cheaper to buy your own machines and run the software on them
-yourself [[22](/en/ch1#HeinemeierHansson2022),
-[23](/en/ch1#Badizadegan2022)].
+yourself [^22] [^23].
 
 On the other hand, if you need a system that you don’t already know how to deploy and operate, then
 adopting a cloud service is often easier and quicker than learning to manage the system yourself. If
@@ -508,7 +500,7 @@ The biggest downside of a cloud service is that you have no control over it:
 * Moreover, if the service shuts down or becomes unacceptably expensive, or if the vendor decides to
   change their product in a way you don’t like, you are at their mercy—continuing to run an old
   version of the software is usually not an option, so you will be forced to migrate to an
-  alternative service [[24](/en/ch1#Yegge2020)].
+  alternative service [^24].
   This risk is mitigated if there are alternative services that expose a compatible API, but for
   many cloud services there are no standard APIs, which raises the cost of switching, making vendor
   lock-in a problem.
@@ -535,17 +527,15 @@ and indeed such managed services are now available for many popular data systems
 that have been designed from the ground up to be cloud-native have been shown to have several
 advantages: better performance on the same hardware, faster recovery from failures, being able to
 quickly scale computing resources to match the load, and supporting larger datasets
-[[25](/en/ch1#Verbitski2017),
-[26](/en/ch1#Antonopoulos2019_ch1),
-[27](/en/ch1#Vuppalapati2020)].
+[^25] [^26] [^27].
 [Table 1-2](/en/ch1#tab_cloud_native_dbs) lists some examples of both types of systems.
 
 Table 1-2. Examples of self-hosted and cloud-native database systems
 
-| Category | Self-hosted systems | Cloud-native systems |
-| --- | --- | --- |
-| Operational/OLTP | MySQL, PostgreSQL, MongoDB | AWS Aurora [[25](/en/ch1#Verbitski2017)], Azure SQL DB Hyperscale [[26](/en/ch1#Antonopoulos2019_ch1)], Google Cloud Spanner |
-| Analytical/OLAP | Teradata, ClickHouse, Spark | Snowflake [[27](/en/ch1#Vuppalapati2020)], Google BigQuery, Azure Synapse Analytics |
+| Category         | Self-hosted systems         | Cloud-native systems                                                  |
+|------------------|-----------------------------|-----------------------------------------------------------------------|
+| Operational/OLTP | MySQL, PostgreSQL, MongoDB  | AWS Aurora [^25], Azure SQL DB Hyperscale [^26], Google Cloud Spanner |
+| Analytical/OLAP  | Teradata, ClickHouse, Spark | Snowflake [^27], Google BigQuery, Azure Synapse Analytics             |
 
 ### Layering of cloud services
 
@@ -574,7 +564,7 @@ higher-level services. For example:
   lost.
 * Many other services are in turn built upon object storage and other cloud services: for example,
   Snowflake is a cloud-based analytic database (data warehouse) that relies on S3 for data storage
-  [[27](/en/ch1#Vuppalapati2020)], and some other services in turn
+  [^27], and some other services in turn
   build upon Snowflake.
 
 As always with abstractions in computing, there is no one right answer to what you should use. As a
@@ -605,9 +595,9 @@ cloud service provided by a separate set of machines, which emulates the behavio
 *block device*, where each block is typically 4 KiB in size). This technology makes it
 possible to run traditional disk-based software in the cloud, but the block device emulation
 introduces overheads that can be avoided in systems that are designed from the ground up for the
-cloud [[25](/en/ch1#Verbitski2017)]. It also makes the application
+cloud [^25]. It also makes the application
 very sensitive to network glitches, since every I/O on the virtual block device is actually a
-network call [[28](/en/ch1#NickVanWiggeren2025)].
+network call [^28].
 
 To address this problem, cloud-native services generally avoid using virtual disks, and instead
 build on dedicated storage services that are optimized for particular workloads. Object storage
@@ -615,28 +605,23 @@ services such as S3 are designed for long-term storage of fairly large files, ra
 of kilobytes to several gigabytes in size. The individual rows or values stored in a database are
 typically much smaller than this; cloud databases therefore typically manage smaller values in a
 separate service, and store larger data blocks (containing many individual values) in an object
-store [[26](/en/ch1#Antonopoulos2019_ch1),
-[29](/en/ch1#Breck2024)].
+store [^26] [^29].
 We will see ways of doing this in [Chapter 4](/en/ch4#ch_storage).
 
 In a traditional systems architecture, the same computer is responsible for both storage (disk) and
 computation (CPU and RAM), but in cloud-native systems, these two responsibilities have become
-somewhat separated or *disaggregated* [[9](/en/ch1#Prout2022_ch1),
-[27](/en/ch1#Vuppalapati2020),
-[30](/en/ch1#Shapira2023separation),
-[31](/en/ch1#Murthy2022)]:
+somewhat separated or *disaggregated* [^9] [^27] [^30] [^31]:
 for example, S3 only stores files, and if you want to analyze that data, you will have to run the
 analysis code somewhere outside of S3. This implies transferring the data over the network, which we
 will discuss further in [“Distributed versus Single-Node Systems”](/en/ch1#sec_introduction_distributed).
 
 Moreover, cloud-native systems are often *multitenant*, which means that rather than having a
 separate machine for each customer, data and computation from several different customers are
-handled on the same shared hardware by the same service
-[[32](/en/ch1#Vanlightly2023serverless)].
+handled on the same shared hardware by the same service [^32].
+
 Multitenancy can enable better hardware utilization, easier scalability, and easier management by
 the cloud provider, but it also requires careful engineering to ensure that one customer’s activity
-does not affect the performance or security of the system for other customers
-[[33](/en/ch1#Jonas2019)].
+does not affect the performance or security of the system for other customers [^33].
 
 ## Operations in the Cloud Era
 
@@ -645,7 +630,7 @@ Traditionally, the people managing an organization’s server-side data infrastr
 organizations have tried to integrate the roles of software development and operations into teams
 with a shared responsibility for both backend services and data infrastructure; the *DevOps*
 philosophy has guided this trend. *Site Reliability Engineers* (SREs) are Google’s implementation of
-this idea [[34](/en/ch1#Beyer2016)].
+this idea [^34].
 
 The role of operations is to ensure services are reliably delivered to users (including configuring
 infrastructure and deploying applications), and to ensure a stable production environment (including
@@ -669,31 +654,28 @@ processes and tools have evolved. The DevOps/SRE philosophy places greater empha
 * preferring ephemeral virtual machines and services over long running servers,
 * enabling frequent application updates,
 * learning from incidents, and
-* preserving the organization’s knowledge about the system, even as individual people come and go
-  [[35](/en/ch1#Limoncelli2020)].
+* preserving the organization’s knowledge about the system, even as individual people come and go [^35].
 
 With the rise of cloud services, there has been a bifurcation of roles: operations teams at
 infrastructure companies specialize in the details of providing a reliable service to a large number
 of customers, while the customers of the service spend as little time and effort as possible on
-infrastructure [[36](/en/ch1#Majors2020)].
+infrastructure [^36].
 
 Customers of cloud services still require operations, but they focus on different aspects, such as
 choosing the most appropriate service for a given task, integrating different services with each
 other, and migrating from one service to another. Even though metered billing removes the need for
 capacity planning in the traditional sense, it’s still important to know what resources you are
 using for which purpose, so that you don’t waste money on cloud resources that are not needed:
-capacity planning becomes financial planning, and performance optimization becomes cost optimization
-[[37](/en/ch1#Cherkasky2021)].
+capacity planning becomes financial planning, and performance optimization becomes cost optimization [^37].
+
 Moreover, cloud services do have resource limits or *quotas* (such as the maximum number of
-processes you can run concurrently), which you need to know about and plan for before you run into
-them [[38](/en/ch1#Kushchi2023)].
+processes you can run concurrently), which you need to know about and plan for before you run into them [^38].
 
 Adopting a cloud service can be easier and quicker than running your own infrastructure, although
 even here there is a cost in learning how to use it, and perhaps working around its limitations.
 Integration between different services becomes a particular challenge as a growing number of vendors
-offers an ever broader range of cloud services targeting different use cases
-[[39](/en/ch1#Bernhardsson2021),
-[40](/en/ch1#Stancil2021)].
+offers an ever broader range of cloud services targeting different use cases [^39][^40].
+
 ETL (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) is only part of the story; operational cloud services also need
 to be integrated with each other. At present, there is a lack of standards that would facilitate
 this sort of integration, so it often involves significant manual effort.
@@ -751,8 +733,7 @@ Using specialized hardware
 
 Legal compliance
 :   Some countries have data residency laws that require data about people in their jurisdiction to be
-    stored and processed geographically within that country
-    [[41](/en/ch1#Korolov2022)].
+    stored and processed geographically within that country [^41].
     The scope of these rules varies—for example, in some cases it applies only to medical or financial
     data, while other cases are broader. A service with users in several such jurisdictions will
     therefore have to distribute their data across servers in several locations.
@@ -761,9 +742,7 @@ Sustainability
 :   If you have flexibility on where and when to run your jobs, you might be able to run them in a
     time and place where plenty of renewable electricity is available, and avoid running them when the
     power grid is under strain. This can reduce your carbon emissions and allow you to take advantage
-    of cheap power when it is available
-    [[42](/en/ch1#Borenstein2025),
-    [43](/en/ch1#Acun2023)].
+    of cheap power when it is available [^42][^43].
 
 These reasons apply both to services that you write yourself (application code) and services
 consisting of off-the-shelf software (such as databases).
@@ -777,39 +756,32 @@ case, we don’t know whether the service received the request, and simply retry
 safe. We will discuss these problems in detail in [Chapter 9](/en/ch9#ch_distributed).
 
 Although datacenter networks are fast, making a call to another service is still vastly slower than
-calling a function in the same process
-[[44](/en/ch1#Nath2019)].
+calling a function in the same process [^44].
+
 When operating on large volumes of data, rather than transferring the data from storage to a
 separate machine that processes it, it can be faster to bring the computation to the machine that
-already has the data
-[[45](/en/ch1#Hellerstein2019)].
+already has the data [^45].
+
 More nodes are not always faster: in some cases, a simple single-threaded program on one computer
-can perform significantly better than a cluster with over 100 CPU cores
-[[46](/en/ch1#McSherry2015_ch1)].
+can perform significantly better than a cluster with over 100 CPU cores [^46].
 
 Troubleshooting a distributed system is often difficult: if the system is slow to respond, how do
 you figure out where the problem lies? Techniques for diagnosing problems in distributed systems are
-developed under the heading of *observability* [[47](/en/ch1#Sridharan2018),
-[48](/en/ch1#Majors2019)],
+developed under the heading of *observability* [^47] [^48], 
 which involves collecting data about the execution of a system, and allowing it to be queried in
 ways that allows both high-level metrics and individual events to be analyzed. *Tracing* tools such
 as OpenTelemetry, Zipkin, and Jaeger allow you to track which client called which server for which
-operation, and how long each call took
-[[49](/en/ch1#Sigelman2010)].
+operation, and how long each call took [^49].
 
 Databases provide various mechanisms for ensuring data consistency, as we shall see in
 [Chapter 6](/en/ch6#ch_replication) and [Chapter 8](/en/ch8#ch_transactions). However, when each service has its own database,
 maintaining consistency of data across those different services becomes the application’s problem.
 Distributed transactions, which we explore in [Chapter 8](/en/ch8#ch_transactions), are a possible technique for
 ensuring consistency, but they are rarely used in a microservices context because they run counter
-to the goal of making services independent from each other, and many databases don’t support them
-[[50](/en/ch1#Laigner2021)].
+to the goal of making services independent from each other, and many databases don’t support them [^50].
 
 For all these reasons, if you can do something on a single machine, this is often much simpler and
-cheaper compared to setting up a distributed system
-[[23](/en/ch1#Badizadegan2022),
-[46](/en/ch1#McSherry2015_ch1),
-[51](/en/ch1#Tigani2023)].
+cheaper compared to setting up a distributed system [^23] [^46] [^51].
 CPUs, memory, and disks have grown larger, faster, and more reliable. When combined with single-node
 databases such as DuckDB, SQLite, and KùzuDB, many workloads can now run on a single node. We will
 explore more on this topic in [Chapter 4](/en/ch4#ch_storage).
@@ -823,8 +795,7 @@ server (handling incoming requests) and a client (making outbound requests to ot
 
 This way of building applications has traditionally been called a *service-oriented architecture*
 (SOA); more recently the idea has been refined into a *microservices* architecture
-[[52](/en/ch1#Newman2021_ch1),
-[53](/en/ch1#Richardson2014)].
+[^52] [^53].
 In this architecture, a service has one well-defined purpose (for example, in the case of S3, this
 would be file storage); each service exposes an API that can be called by clients via the network,
 and each service has one team that is responsible for its maintenance. A complex application can
@@ -857,16 +828,14 @@ client and server APIs; we discuss these further in [Chapter 5](/en/ch5#ch_enco
 Microservices are primarily a technical solution to a people problem: allowing different teams to
 make progress independently without having to coordinate with each other. This is valuable in a large
 company, but in a small company where there are not many teams, using microservices is likely to be
-unnecessary overhead, and it is preferable to implement the application in the simplest way possible
-[[52](/en/ch1#Newman2021_ch1)].
+unnecessary overhead, and it is preferable to implement the application in the simplest way possible [^52].
 
 *Serverless*, or *function-as-a-service* (FaaS), is another approach to deploying services, in which
-the management of the infrastructure is outsourced to a cloud vendor
-[[33](/en/ch1#Jonas2019)].
+the management of the infrastructure is outsourced to a cloud vendor [^33].
 When using virtual machines, you have to explicitly choose when to start up or shut down an
 instance; in contrast, with the serverless model, the cloud provider automatically allocates and
 frees hardware resources as needed, based on the incoming requests to your service
-[[54](/en/ch1#Shahrad2020)]. Serverless deployment
+[^54]. Serverless deployment
 shifts more of the operational burden to cloud providers and enables flexible billing by usage
 rather than machine instances. To offer such benefits, many serverless infrastructure providers
 impose a time limit on function execution, limit runtime environments, and might suffer from slow
@@ -896,22 +865,20 @@ enterprise datacenter systems. Some of those differences are:
 * A supercomputer typically runs large batch jobs that checkpoint the state of their computation to
   disk from time to time. If a node fails, a common solution is to simply stop the entire cluster
   workload, repair the faulty node, and then restart the computation from the last checkpoint
-  [[55](/en/ch1#Barroso2018),
-  [56](/en/ch1#Fiala2012)].
+  [^55] [^56].
   With cloud services, it is usually not desirable to stop the entire cluster, since the services
   need to continually serve users with minimal interruptions.
 * Supercomputer nodes typically communicate through shared memory and remote direct memory access
   (RDMA), which support high bandwidth and low latency, but assume a high level of trust among the
-  users of the system [[57](/en/ch1#KornfeldSimpson2020)].
+  users of the system [^57].
   In cloud computing, the network and the machines are often shared by mutually untrusting
   organizations, requiring stronger security mechanisms such as resource isolation (e.g., virtual
   machines), encryption and authentication.
 * Cloud datacenter networks are often based on IP and Ethernet, arranged in Clos topologies to
   provide high bisection bandwidth—a commonly used measure of a network’s overall performance
-  [[55](/en/ch1#Barroso2018),
-  [58](/en/ch1#Singh2015)].
+  [^55] [^58].
   Supercomputers often use specialized network topologies, such as multi-dimensional meshes and toruses
-  [[59](/en/ch1#Lockwood2014)],
+  [^59],
   which yield better performance for HPC workloads with known communication patterns.
 * Cloud computing allows nodes to be distributed across multiple geographic regions, whereas
   supercomputers generally assume that all of their nodes are close together.
@@ -940,16 +907,14 @@ of the effects that computer systems have on people and society. Social media ha
 individuals consume news, which influences their political opinions and hence may affect the outcome
 of elections. Automated systems increasingly make decisions that have profound consequences for
 individuals, such as deciding who should be given a loan or insurance coverage, who should be
-invited to a job interview, or who should be suspected of a crime
-[[60](/en/ch1#ONeil2016_ch1)].
+invited to a job interview, or who should be suspected of a crime [^60].
 
 Everyone who works on such systems shares a responsibility for considering the ethical impact and
 ensuring that they comply with relevant law. It is not necessary for everybody to become an expert
 in law and ethics, but a basic awareness of legal and ethical principles is just as important as,
 say, some foundational knowledge in distributed systems.
 
-Legal considerations are influencing the very foundations of how data systems are being designed
-[[61](/en/ch1#Shastri2020)].
+Legal considerations are influencing the very foundations of how data systems are being designed [^61].
 For example, the GDPR grants individuals the right to have their data erased on request (sometimes
 known as the *right to be forgotten*). However, as we shall see in this book, many data systems rely
 on immutable constructs such as append-only logs as part of their design; how can we ensure deletion
@@ -970,7 +935,7 @@ However, it is worth remembering that the costs of storage are not just the bill
 S3 or another service: the cost-benefit calculation should also take into account the risks of
 liability and reputational damage if the data were to be leaked or compromised by adversaries, and
 the risk of legal costs and fines if the storage and processing of the data is found not to be
-compliant with the law [[51](/en/ch1#Tigani2023)].
+compliant with the law [^51].
 
 Governments or police forces might also compel companies to hand over data. When there is a risk
 that the data may reveal criminalized behaviors (for example, homosexuality in several Middle
@@ -982,12 +947,10 @@ indicate approximate location).
 Once all the risks are taken into account, it might be reasonable to decide that some data is simply
 not worth storing, and that it should therefore be deleted. This principle of *data minimization*
 (sometimes known by the German term *Datensparsamkeit*) runs counter to the “big data” philosophy of
-storing lots of data speculatively in case it turns out to be useful in the future
-[[62](/en/ch1#Datensparsamkeit)].
+storing lots of data speculatively in case it turns out to be useful in the future [^62].
 But it fits with the GDPR, which mandates that personal data may only be collected for a specified,
 explicit purpose, that this data may not later be used for any other purpose, and that the data must
-not be kept for longer than necessary for the purposes for which it was collected
-[[63](/en/ch1#GDPR)].
+not be kept for longer than necessary for the purposes for which it was collected [^63].
 
 Businesses have also taken notice of privacy and safety concerns. Credit card companies require
 payment processing businesses to adhere to strict payment card industry (PCI) standards. Processors
@@ -1033,346 +996,71 @@ data is being processed—an aspect that many engineers are prone to ignoring. H
 requirements into technical implementations is not yet well understood, but it’s important to keep
 this question in mind as we move through the rest of this book.
 
-##### Footnotes
-
-##### References
-
-[[1](/en/ch1#Kouzes2009-marker)] Richard T. Kouzes,
-Gordon A. Anderson, Stephen T. Elbert, Ian Gorton, and Deborah K. Gracio.
-[The
-Changing Paradigm of Data-Intensive Computing](http://www2.ic.uff.br/~boeres/slides_AP/papers/TheChanginParadigmDataIntensiveComputing_2009.pdf). *IEEE Computer*, volume 42, issue 1,
-January 2009. [doi:10.1109/MC.2009.26](https://doi.org/10.1109/MC.2009.26)
-
-[[2](/en/ch1#Kleppmann2019_ch1-marker)] Martin Kleppmann, Adam Wiggins, Peter van
-Hardenberg, and Mark McGranaghan. [Local-first
-software: you own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/). At *2019 ACM SIGPLAN International
-Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software* (Onward!),
-October 2019. [doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)
-
-[[3](/en/ch1#Reis2022-marker)] Joe Reis and Matt Housley.
-[*Fundamentals
-of Data Engineering*](https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/). O’Reilly Media, 2022. ISBN: 9781098108304
-
-[[4](/en/ch1#Machado2023-marker)] Rui Pedro Machado and Helder Russa.
-[*Analytics
-Engineering with SQL and dbt*](https://www.oreilly.com/library/view/analytics-engineering-with/9781098142377/). O’Reilly Media, 2023. ISBN: 9781098142384
-
-[[5](/en/ch1#Codd1993-marker)] Edgar F. Codd, S. B. Codd, and C. T. Salley.
-[Providing
-OLAP to User-Analysts: An IT Mandate](https://www.estgv.ipv.pt/PaginasPessoais/jloureiro/ESI_AID2007_2008/fichas/codd.pdf). E. F. Codd Associates, 1993.
-Archived at [perma.cc/RKX8-2GEE](https://perma.cc/RKX8-2GEE)
-
-[[6](/en/ch1#Soman2023-marker)] Chinmay Soman and Neha Pawar.
-[Comparing Three
-Real-Time OLAP Databases: Apache Pinot, Apache Druid, and ClickHouse](https://startree.ai/blog/a-tale-of-three-real-time-olap-databases). *startree.ai*,
-April 2023. Archived at [perma.cc/8BZP-VWPA](https://perma.cc/8BZP-VWPA)
-
-[[7](/en/ch1#Chaudhuri1997-marker)] Surajit Chaudhuri and Umeshwar Dayal.
-[An Overview of Data
-Warehousing and OLAP Technology](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/sigrecord.pdf). *ACM SIGMOD Record*, volume 26, issue 1, pages 65–74,
-March 1997. [doi:10.1145/248603.248616](https://doi.org/10.1145/248603.248616)
-
-[[8](/en/ch1#Ozcan2017-marker)] Fatma Özcan, Yuanyuan Tian, and Pinar Tözün.
-[Hybrid Transactional/Analytical
-Processing: A Survey](https://humming80.github.io/papers/sigmod-htaptut.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 2017.
-[doi:10.1145/3035918.3054784](https://doi.org/10.1145/3035918.3054784)
-
-[[9](/en/ch1#Prout2022_ch1-marker)] Adam Prout, Szu-Po Wang, Joseph Victor, Zhou Sun, Yongzhu
-Li, Jack Chen, Evan Bergeron, Eric Hanson, Robert Walzer, Rodrigo Gomes, and Nikita Shamgunov.
-[Cloud-Native Transactions and Analytics
-in SingleStore](https://dl.acm.org/doi/abs/10.1145/3514221.3526055). At *International Conference on Management of Data* (SIGMOD), June 2022.
-[doi:10.1145/3514221.3526055](https://doi.org/10.1145/3514221.3526055)
-
-[[10](/en/ch1#Zhang2024-marker)] Chao Zhang, Guoliang Li, Jintao Zhang,
-Xinning Zhang, and Jianhua Feng.
-[HTAP Databases: A Survey](https://arxiv.org/pdf/2404.15670).
-*IEEE Transactions on Knowledge and Data Engineering*, April 2024.
-[doi:10.1109/TKDE.2024.3389693](https://doi.org/10.1109/TKDE.2024.3389693)
-
-[[11](/en/ch1#Stonebraker2005fitsall-marker)] Michael Stonebraker and Uğur Çetintemel.
-[‘One Size Fits All’: An
-Idea Whose Time Has Come and Gone](https://pages.cs.wisc.edu/~shivaram/cs744-readings/fits_all.pdf). At *21st International Conference on Data Engineering*
-(ICDE), April 2005. [doi:10.1109/ICDE.2005.1](https://doi.org/10.1109/ICDE.2005.1)
-
-[[12](/en/ch1#Cohen2009-marker)] Jeffrey Cohen, Brian Dolan, Mark Dunlap, Joseph M.
-Hellerstein, and Caleb Welton. [MAD Skills:
-New Analysis Practices for Big Data](https://www.vldb.org/pvldb/vol2/vldb09-219.pdf). *Proceedings of the VLDB Endowment*, volume 2,
-issue 2, pages 1481–1492, August 2009.
-[doi:10.14778/1687553.1687576](https://doi.org/10.14778/1687553.1687576)
-
-[[13](/en/ch1#Olteanu2020-marker)] Dan Olteanu.
-[The Relational Data Borg is Learning](https://www.vldb.org/pvldb/vol13/p3502-olteanu.pdf).
-*Proceedings of the VLDB Endowment*, volume 13, issue 12, August 2020.
-[doi:10.14778/3415478.3415572](https://doi.org/10.14778/3415478.3415572)
-
-[[14](/en/ch1#Bornstein2020-marker)] Matt Bornstein, Martin Casado, and Jennifer Li.
-[Emerging
-Architectures for Modern Data Infrastructure: 2020](https://future.a16z.com/emerging-architectures-for-modern-data-infrastructure-2020/). *future.a16z.com*, October 2020.
-Archived at [perma.cc/LF8W-KDCC](https://perma.cc/LF8W-KDCC)
-
-[[15](/en/ch1#Fowler2015-marker)] Martin Fowler.
-[DataLake](https://www.martinfowler.com/bliki/DataLake.html).
-*martinfowler.com*, February 2015.
-Archived at [perma.cc/4WKN-CZUK](https://perma.cc/4WKN-CZUK)
-
-[[16](/en/ch1#Johnson2015-marker)] Bobby Johnson and Joseph Adler.
-[The
-Sushi Principle: Raw Data Is Better](https://learning.oreilly.com/videos/strata-hadoop/9781491924143/9781491924143-video210840/). At *Strata+Hadoop World*, February 2015.
-
-[[17](/en/ch1#Armbrust2021-marker)] Michael Armbrust, Ali Ghodsi, Reynold Xin, and Matei Zaharia.
-[Lakehouse: A New Generation of
-Open Platforms that Unify Data Warehousing and Advanced Analytics](https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf). At *11th Annual Conference
-on Innovative Data Systems Research* (CIDR), January 2021.
-
-[[18](/en/ch1#DataOps-marker)] DataKitchen, Inc.
-[The DataOps Manifesto](https://dataopsmanifesto.org/en/). *dataopsmanifesto.org*, 2017.
-Archived at [perma.cc/3F5N-FUQ4](https://perma.cc/3F5N-FUQ4)
-
-[[19](/en/ch1#Manohar2021-marker)] Tejas Manohar.
-[What is Reverse ETL: A Definition & Why It’s
-Taking Off](https://hightouch.io/blog/reverse-etl/). *hightouch.io*, November 2021.
-Archived at [perma.cc/A7TN-GLYJ](https://perma.cc/A7TN-GLYJ)
-
-[[20](/en/ch1#ORegan2018-marker)] Simon O’Regan.
-[Designing Data
-Products](https://towardsdatascience.com/designing-data-products-b6b93edf3d23). *towardsdatascience.com*, August 2018.
-Archived at [perma.cc/HU67-3RV8](https://perma.cc/HU67-3RV8)
-
-[[21](/en/ch1#Fournier2021-marker)] Camille Fournier.
-[Why is it so
-hard to decide to buy?](https://skamille.medium.com/why-is-it-so-hard-to-decide-to-buy-d86fee98e88e) *skamille.medium.com*, July 2021.
-Archived at [perma.cc/6VSG-HQ5X](https://perma.cc/6VSG-HQ5X)
-
-[[22](/en/ch1#HeinemeierHansson2022-marker)] David Heinemeier Hansson.
-[Why we’re leaving the cloud](https://world.hey.com/dhh/why-we-re-leaving-the-cloud-654b47e0).
-*world.hey.com*, October 2022.
-Archived at [perma.cc/82E6-UJ65](https://perma.cc/82E6-UJ65)
-
-[[23](/en/ch1#Badizadegan2022-marker)] Nima Badizadegan.
-[Use One Big Server](https://specbranch.com/posts/one-big-server/).
-*specbranch.com*, August 2022.
-Archived at [perma.cc/M8NB-95UK](https://perma.cc/M8NB-95UK)
-
-[[24](/en/ch1#Yegge2020-marker)] Steve Yegge.
-[Dear
-Google Cloud: Your Deprecation Policy is Killing You](https://steve-yegge.medium.com/dear-google-cloud-your-deprecation-policy-is-killing-you-ee7525dc05dc). *steve-yegge.medium.com*, August 2020.
-Archived at [perma.cc/KQP9-SPGU](https://perma.cc/KQP9-SPGU)
-
-[[25](/en/ch1#Verbitski2017-marker)] Alexandre Verbitski, Anurag Gupta, Debanjan
-Saha, Murali Brahmadesam, Kamal Gupta, Raman Mittal, Sailesh Krishnamurthy, Sandor Maurice, Tengiz
-Kharatishvili, and Xiaofeng Bao.
-[Amazon
-Aurora: Design Considerations for High Throughput Cloud-Native Relational Databases](https://media.amazonwebservices.com/blog/2017/aurora-design-considerations-paper.pdf).
-At *ACM International Conference on Management of Data* (SIGMOD), pages 1041–1052, May 2017.
-[doi:10.1145/3035918.3056101](https://doi.org/10.1145/3035918.3056101)
-
-[[26](/en/ch1#Antonopoulos2019_ch1-marker)] Panagiotis Antonopoulos, Alex Budovski, Cristian
-Diaconu, Alejandro Hernandez Saenz, Jack Hu, Hanuma Kodavalla, Donald Kossmann, Sandeep Lingam, Umar
-Farooq Minhas, Naveen Prakash, Vijendra Purohit, Hugh Qu, Chaitanya Sreenivas Ravella, Krystyna
-Reisteter, Sheetal Shrotri, Dixin Tang, and Vikram Wakade.
-[Socrates: The
-New SQL Server in the Cloud](https://www.microsoft.com/en-us/research/uploads/prod/2019/05/socrates.pdf). At *ACM International Conference on Management of Data*
-(SIGMOD), pages 1743–1756, June 2019.
-[doi:10.1145/3299869.3314047](https://doi.org/10.1145/3299869.3314047)
-
-[[27](/en/ch1#Vuppalapati2020-marker)] Midhul Vuppalapati, Justin Miron, Rachit Agarwal,
-Dan Truong, Ashish Motivala, and Thierry Cruanes.
-[Building An Elastic Query
-Engine on Disaggregated Storage](https://www.usenix.org/system/files/nsdi20-paper-vuppalapati.pdf). At *17th USENIX Symposium on Networked Systems Design and
-Implementation* (NSDI), February 2020.
-
-[[28](/en/ch1#NickVanWiggeren2025-marker)] Nick Van Wiggeren.
-[The Real Failure Rate of EBS](https://planetscale.com/blog/the-real-fail-rate-of-ebs).
-*planetscale.com*, March 2025.
-Archived at [perma.cc/43CR-SAH5](https://perma.cc/43CR-SAH5)
-
-[[29](/en/ch1#Breck2024-marker)] Colin Breck.
-[Predicting the
-Future of Distributed Systems](https://blog.colinbreck.com/predicting-the-future-of-distributed-systems/). *blog.colinbreck.com*, August 2024.
-Archived at [perma.cc/K5FC-4XX2](https://perma.cc/K5FC-4XX2)
-
-[[30](/en/ch1#Shapira2023separation-marker)] Gwen Shapira.
-[Compute-Storage Separation Explained](https://www.thenile.dev/blog/storage-compute).
-*thenile.dev*, January 2023. Archived at
-[perma.cc/QCV3-XJNZ](https://perma.cc/QCV3-XJNZ)
-
-[[31](/en/ch1#Murthy2022-marker)] Ravi Murthy and Gurmeet Goindi.
-[AlloyDB
-for PostgreSQL under the hood: Intelligent, database-aware storage](https://cloud.google.com/blog/products/databases/alloydb-for-postgresql-intelligent-scalable-storage). *cloud.google.com*,
-May 2022. Archived at
-[archive.org](https://web.archive.org/web/20220514021120/https%3A//cloud.google.com/blog/products/databases/alloydb-for-postgresql-intelligent-scalable-storage)
-
-[[32](/en/ch1#Vanlightly2023serverless-marker)] Jack Vanlightly.
-[The
-Architecture of Serverless Data Systems](https://jack-vanlightly.com/blog/2023/11/14/the-architecture-of-serverless-data-systems). *jack-vanlightly.com*, November 2023.
-Archived at [perma.cc/UDV4-TNJ5](https://perma.cc/UDV4-TNJ5)
-
-[[33](/en/ch1#Jonas2019-marker)] Eric Jonas, Johann Schleier-Smith, Vikram
-Sreekanti, Chia-Che Tsai, Anurag Khandelwal, Qifan Pu, Vaishaal Shankar, Joao Carreira, Karl Krauth,
-Neeraja Yadwadkar, Joseph E. Gonzalez, Raluca Ada Popa, Ion Stoica, David A. Patterson.
-[Cloud Programming Simplified: A Berkeley View on
-Serverless Computing](https://arxiv.org/abs/1902.03383). *arxiv.org*, February 2019.
-
-[[34](/en/ch1#Beyer2016-marker)] Betsy Beyer, Jennifer Petoff, Chris
-Jones, and Niall Richard Murphy.
-[*Site
-Reliability Engineering: How Google Runs Production Systems*](https://www.oreilly.com/library/view/site-reliability-engineering/9781491929117/).
-O’Reilly Media, 2016. ISBN: 9781491929124
-
-[[35](/en/ch1#Limoncelli2020-marker)] Thomas Limoncelli.
-[The Time I Stole $10,000 from Bell Labs](https://queue.acm.org/detail.cfm?id=3434773).
-*ACM Queue*, volume 18, issue 5, November 2020.
-[doi:10.1145/3434571.3434773](https://doi.org/10.1145/3434571.3434773)
-
-[[36](/en/ch1#Majors2020-marker)] Charity Majors.
-[The Future of Ops Jobs](https://acloudguru.com/blog/engineering/the-future-of-ops-jobs).
-*acloudguru.com*, August 2020.
-Archived at [perma.cc/GRU2-CZG3](https://perma.cc/GRU2-CZG3)
-
-[[37](/en/ch1#Cherkasky2021-marker)] Boris Cherkasky.
-[(Over)Pay
-As You Go for Your Datastore](https://medium.com/riskified-technology/over-pay-as-you-go-for-your-datastore-11a29ae49a8b). *medium.com*, September 2021.
-Archived at [perma.cc/Q8TV-2AM2](https://perma.cc/Q8TV-2AM2)
-
-[[38](/en/ch1#Kushchi2023-marker)] Shlomi Kushchi.
-[Serverless Doesn’t Mean
-DevOpsLess or NoOps](https://thenewstack.io/serverless-doesnt-mean-devopsless-or-noops/). *thenewstack.io*, February 2023.
-Archived at [perma.cc/3NJR-AYYU](https://perma.cc/3NJR-AYYU)
-
-[[39](/en/ch1#Bernhardsson2021-marker)] Erik Bernhardsson.
-[Storm
-in the stratosphere: how the cloud will be reshuffled](https://erikbern.com/2021/11/30/storm-in-the-stratosphere-how-the-cloud-will-be-reshuffled.html). *erikbern.com*, November 2021.
-Archived at [perma.cc/SYB2-99P3](https://perma.cc/SYB2-99P3)
-
-[[40](/en/ch1#Stancil2021-marker)] Benn Stancil.
-[The data OS](https://benn.substack.com/p/the-data-os). *benn.substack.com*,
-September 2021. Archived at [perma.cc/WQ43-FHS6](https://perma.cc/WQ43-FHS6)
-
-[[41](/en/ch1#Korolov2022-marker)] Maria Korolov.
-[Data
-residency laws pushing companies toward residency as a service](https://www.csoonline.com/article/3647761/data-residency-laws-pushing-companies-toward-residency-as-a-service.html). *csoonline.com*,
-January 2022. Archived at [perma.cc/CHE4-XZZ2](https://perma.cc/CHE4-XZZ2)
-
-[[42](/en/ch1#Borenstein2025-marker)] Severin Borenstein.
-[Can
-Data Centers Flex Their Power Demand?](https://energyathaas.wordpress.com/2025/04/14/can-data-centers-flex-their-power-demand/) *energyathaas.wordpress.com*, April 2025.
-Archived at <https://perma.cc/MUD3-A6FF>
-
-[[43](/en/ch1#Acun2023-marker)] Bilge Acun, Benjamin Lee, Fiodar Kazhamiaka, Aditya
-Sundarrajan, Kiwan Maeng, Manoj Chakkaravarthy, David Brooks, and Carole-Jean Wu.
-[Carbon Dependencies in
-Datacenter Design and Management](https://hotcarbon.org/assets/2022/pdf/hotcarbon22-acun.pdf).
-*ACM SIGENERGY Energy Informatics Review*, volume 3, issue 3, pages 21–26.
-[doi:10.1145/3630614.3630619](https://doi.org/10.1145/3630614.3630619)
-
-[[44](/en/ch1#Nath2019-marker)] Kousik Nath.
-[These are
-the numbers every computer engineer should know](https://www.freecodecamp.org/news/must-know-numbers-for-every-computer-engineer/). *freecodecamp.org*, September 2019.
-Archived at [perma.cc/RW73-36RL](https://perma.cc/RW73-36RL)
-
-[[45](/en/ch1#Hellerstein2019-marker)] Joseph M. Hellerstein, Jose Faleiro, Joseph E.
-Gonzalez, Johann Schleier-Smith, Vikram Sreekanti, Alexey Tumanov, and Chenggang Wu.
-[Serverless Computing: One Step Forward, Two Steps Back](https://arxiv.org/abs/1812.03651).
-At *Conference on Innovative Data Systems Research* (CIDR), January 2019.
-
-[[46](/en/ch1#McSherry2015_ch1-marker)] Frank McSherry, Michael Isard, and Derek G. Murray.
-[Scalability!
-But at What COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf) At *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS),
-May 2015.
-
-[[47](/en/ch1#Sridharan2018-marker)] Cindy Sridharan.
-*[Distributed
-Systems Observability: A Guide to Building Robust Systems](https://unlimited.humio.com/rs/756-LMY-106/images/Distributed-Systems-Observability-eBook.pdf)*. Report, O’Reilly Media, May 2018.
-Archived at [perma.cc/M6JL-XKCM](https://perma.cc/M6JL-XKCM)
-
-[[48](/en/ch1#Majors2019-marker)] Charity Majors.
-[Observability — A 3-Year
-Retrospective](https://thenewstack.io/observability-a-3-year-retrospective/). *thenewstack.io*, August 2019.
-Archived at [perma.cc/CG62-TJWL](https://perma.cc/CG62-TJWL)
-
-[[49](/en/ch1#Sigelman2010-marker)] Benjamin H. Sigelman, Luiz André Barroso, Mike
-Burrows, Pat Stephenson, Manoj Plakal, Donald Beaver, Saul Jaspan, and Chandan Shanbhag.
-[Dapper, a Large-Scale Distributed Systems Tracing
-Infrastructure](https://research.google/pubs/pub36356/). Google Technical Report dapper-2010-1, April 2010.
-Archived at [perma.cc/K7KU-2TMH](https://perma.cc/K7KU-2TMH)
-
-[[50](/en/ch1#Laigner2021-marker)] Rodrigo Laigner, Yongluan Zhou, Marcos Antonio
-Vaz Salles, Yijian Liu, and Marcos Kalinowski.
-[Data management in microservices: State
-of the practice, challenges, and research directions](https://www.vldb.org/pvldb/vol14/p3348-laigner.pdf). *Proceedings of the VLDB Endowment*,
-volume 14, issue 13, pages 3348–3361, September 2021.
-[doi:10.14778/3484224.3484232](https://doi.org/10.14778/3484224.3484232)
-
-[[51](/en/ch1#Tigani2023-marker)] Jordan Tigani.
-[Big Data is Dead](https://motherduck.com/blog/big-data-is-dead/).
-*motherduck.com*, February 2023.
-Archived at [perma.cc/HT4Q-K77U](https://perma.cc/HT4Q-K77U)
-
-[[52](/en/ch1#Newman2021_ch1-marker)] Sam Newman.
-[*Building
-Microservices*, second edition](https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/). O’Reilly Media, 2021. ISBN: 9781492034025
-
-[[53](/en/ch1#Richardson2014-marker)] Chris Richardson.
-[Microservices: Decomposing
-Applications for Deployability and Scalability](https://www.infoq.com/articles/microservices-intro/). *infoq.com*, May 2014.
-Archived at [perma.cc/CKN4-YEQ2](https://perma.cc/CKN4-YEQ2)
-
-[[54](/en/ch1#Shahrad2020-marker)] Mohammad Shahrad, Rodrigo Fonseca, Íñigo Goiri,
-Gohar Chaudhry, Paul Batum, Jason Cooke, Eduardo Laureano, Colby Tresness, Mark Russinovich, Ricardo Bianchini.
-[Serverless in the Wild:
-Characterizing and Optimizing the Serverless Workload at a Large Cloud Provider](https://www.usenix.org/system/files/atc20-shahrad.pdf).
-At *USENIX Annual Technical Conference* (ATC), July 2020.
-
-[[55](/en/ch1#Barroso2018-marker)] Luiz André Barroso, Urs Hölzle, and Parthasarathy Ranganathan.
-[The Datacenter as a
-Computer: Designing Warehouse-Scale Machines](https://www.morganclaypool.com/doi/10.2200/S00874ED3V01Y201809CAC046), third edition.
-Morgan & Claypool Synthesis Lectures on Computer Architecture, October 2018.
-[doi:10.2200/S00874ED3V01Y201809CAC046](https://doi.org/10.2200/S00874ED3V01Y201809CAC046)
-
-[[56](/en/ch1#Fiala2012-marker)] David Fiala, Frank Mueller, Christian Engelmann, Rolf
-Riesen, Kurt Ferreira, and Ron Brightwell.
-[Detection and
-Correction of Silent Data Corruption for Large-Scale High-Performance Computing](https://arcb.csc.ncsu.edu/~mueller/ftp/pub/mueller/papers/sc12.pdf),” at
-*International Conference for High Performance Computing, Networking, Storage and
-Analysis* (SC), November 2012.
-[doi:10.1109/SC.2012.49](https://doi.org/10.1109/SC.2012.49)
-
-[[57](/en/ch1#KornfeldSimpson2020-marker)] Anna Kornfeld
-Simpson, Adriana Szekeres, Jacob Nelson, and Irene Zhang.
-[Securing RDMA
-for High-Performance Datacenter Storage Systems](https://www.usenix.org/conference/hotcloud20/presentation/kornfeld-simpson). At *12th USENIX Workshop on Hot Topics in
-Cloud Computing* (HotCloud), July 2020.
-
-[[58](/en/ch1#Singh2015-marker)] Arjun Singh, Joon Ong, Amit Agarwal, Glen Anderson,
-Ashby Armistead, Roy Bannon, Seb Boving, Gaurav Desai, Bob Felderman, Paulie Germano, Anand Kanagala,
-Jeff Provost, Jason Simmons, Eiichi Tanda, Jim Wanderer, Urs Hölzle, Stephen Stuart, and Amin Vahdat.
-[Jupiter Rising: A
-Decade of Clos Topologies and Centralized Control in Google’s Datacenter Network](https://conferences.sigcomm.org/sigcomm/2015/pdf/papers/p183.pdf). At
-*Annual Conference of the ACM Special Interest Group on Data Communication* (SIGCOMM), August 2015.
-[doi:10.1145/2785956.2787508](https://doi.org/10.1145/2785956.2787508)
-
-[[59](/en/ch1#Lockwood2014-marker)] Glenn K. Lockwood.
-[Hadoop’s
-Uncomfortable Fit in HPC](https://blog.glennklockwood.com/2014/05/hadoops-uncomfortable-fit-in-hpc.html). *glennklockwood.blogspot.co.uk*, May 2014.
-Archived at [perma.cc/S8XX-Y67B](https://perma.cc/S8XX-Y67B)
-
-[[60](/en/ch1#ONeil2016_ch1-marker)] Cathy O’Neil: *Weapons of Math Destruction:
-How Big Data Increases Inequality and Threatens Democracy*. Crown Publishing, 2016.
-ISBN: 9780553418811
-
-[[61](/en/ch1#Shastri2020-marker)] Supreeth Shastri, Vinay Banakar, Melissa
-Wasserman, Arun Kumar, and Vijay Chidambaram.
-[Understanding and Benchmarking the
-Impact of GDPR on Database Systems](https://www.vldb.org/pvldb/vol13/p1064-shastri.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue
-7, pages 1064–1077, March 2020.
-[doi:10.14778/3384345.3384354](https://doi.org/10.14778/3384345.3384354)
-
-[[62](/en/ch1#Datensparsamkeit-marker)] Martin Fowler.
-[Datensparsamkeit](https://www.martinfowler.com/bliki/Datensparsamkeit.html).
-*martinfowler.com*, December 2013.
-Archived at [perma.cc/R9QX-CME6](https://perma.cc/R9QX-CME6)
-
-[[63](/en/ch1#GDPR-marker)] [Regulation
-(EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (General Data
-Protection Regulation)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679&from=EN). *Official Journal of the European Union* L 119/1, May 2016.
+## Footnotes
+
+## References
+
+[^1]: Richard T. Kouzes, Gordon A. Anderson, Stephen T. Elbert, Ian Gorton, and Deborah K. Gracio. [The Changing Paradigm of Data-Intensive Computing](http://www2.ic.uff.br/~boeres/slides_AP/papers/TheChanginParadigmDataIntensiveComputing_2009.pdf). *IEEE Computer*, volume 42, issue 1, January 2009. [doi:10.1109/MC.2009.26](https://doi.org/10.1109/MC.2009.26)
+[^2]: Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan. [Local-first software: you own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/). At *2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software* (Onward!), October 2019. [doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)
+[^3]: Joe Reis and Matt Housley. [*Fundamentals of Data Engineering*](https://www.oreilly.com/library/view/fundamentals-of-data/9781098108298/). O’Reilly Media, 2022. ISBN: 9781098108304
+[^4]: Rui Pedro Machado and Helder Russa. [*Analytics Engineering with SQL and dbt*](https://www.oreilly.com/library/view/analytics-engineering-with/9781098142377/). O’Reilly Media, 2023. ISBN: 9781098142384
+[^5]: Edgar F. Codd, S. B. Codd, and C. T. Salley. [Providing OLAP to User-Analysts: An IT Mandate](https://www.estgv.ipv.pt/PaginasPessoais/jloureiro/ESI_AID2007_2008/fichas/codd.pdf). E. F. Codd Associates, 1993. Archived at [perma.cc/RKX8-2GEE](https://perma.cc/RKX8-2GEE)
+[^6]: Chinmay Soman and Neha Pawar. [Comparing Three Real-Time OLAP Databases: Apache Pinot, Apache Druid, and ClickHouse](https://startree.ai/blog/a-tale-of-three-real-time-olap-databases). *startree.ai*, April 2023. Archived at [perma.cc/8BZP-VWPA](https://perma.cc/8BZP-VWPA)
+[^7]: Surajit Chaudhuri and Umeshwar Dayal. [An Overview of Data Warehousing and OLAP Technology](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/sigrecord.pdf). *ACM SIGMOD Record*, volume 26, issue 1, pages 65–74, March 1997. [doi:10.1145/248603.248616](https://doi.org/10.1145/248603.248616)
+[^8]: Fatma Özcan, Yuanyuan Tian, and Pinar Tözün. [Hybrid Transactional/Analytical Processing: A Survey](https://humming80.github.io/papers/sigmod-htaptut.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 2017. [doi:10.1145/3035918.3054784](https://doi.org/10.1145/3035918.3054784)
+[^9]: Adam Prout, Szu-Po Wang, Joseph Victor, Zhou Sun, Yongzhu Li, Jack Chen, Evan Bergeron, Eric Hanson, Robert Walzer, Rodrigo Gomes, and Nikita Shamgunov. [Cloud-Native Transactions and Analytics in SingleStore](https://dl.acm.org/doi/abs/10.1145/3514221.3526055). At *International Conference on Management of Data* (SIGMOD), June 2022. [doi:10.1145/3514221.3526055](https://doi.org/10.1145/3514221.3526055)
+[^10]: Chao Zhang, Guoliang Li, Jintao Zhang, Xinning Zhang, and Jianhua Feng. [HTAP Databases: A Survey](https://arxiv.org/pdf/2404.15670). *IEEE Transactions on Knowledge and Data Engineering*, April 2024. [doi:10.1109/TKDE.2024.3389693](https://doi.org/10.1109/TKDE.2024.3389693)
+[^11]: Michael Stonebraker and Uğur Çetintemel. [‘One Size Fits All’: An Idea Whose Time Has Come and Gone](https://pages.cs.wisc.edu/~shivaram/cs744-readings/fits_all.pdf). At *21st International Conference on Data Engineering* (ICDE), April 2005. [doi:10.1109/ICDE.2005.1](https://doi.org/10.1109/ICDE.2005.1)
+[^12]: Jeffrey Cohen, Brian Dolan, Mark Dunlap, Joseph M. Hellerstein, and Caleb Welton. [MAD Skills: New Analysis Practices for Big Data](https://www.vldb.org/pvldb/vol2/vldb09-219.pdf). *Proceedings of the VLDB Endowment*, volume 2, issue 2, pages 1481–1492, August 2009. [doi:10.14778/1687553.1687576](https://doi.org/10.14778/1687553.1687576)
+[^13]: Dan Olteanu. [The Relational Data Borg is Learning](https://www.vldb.org/pvldb/vol13/p3502-olteanu.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 12, August 2020. [doi:10.14778/3415478.3415572](https://doi.org/10.14778/3415478.3415572)
+[^14]: Matt Bornstein, Martin Casado, and Jennifer Li. [Emerging Architectures for Modern Data Infrastructure: 2020](https://future.a16z.com/emerging-architectures-for-modern-data-infrastructure-2020/). *future.a16z.com*, October 2020. Archived at [perma.cc/LF8W-KDCC](https://perma.cc/LF8W-KDCC)
+[^15]: Martin Fowler. [DataLake](https://www.martinfowler.com/bliki/DataLake.html). *martinfowler.com*, February 2015. Archived at [perma.cc/4WKN-CZUK](https://perma.cc/4WKN-CZUK)
+[^16]: Bobby Johnson and Joseph Adler. [The Sushi Principle: Raw Data Is Better](https://learning.oreilly.com/videos/strata-hadoop/9781491924143/9781491924143-video210840/). At *Strata+Hadoop World*, February 2015.
+[^17]: Michael Armbrust, Ali Ghodsi, Reynold Xin, and Matei Zaharia. [Lakehouse: A New Generation of Open Platforms that Unify Data Warehousing and Advanced Analytics](https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf). At *11th Annual Conference on Innovative Data Systems Research* (CIDR), January 2021.
+[^18]: DataKitchen, Inc. [The DataOps Manifesto](https://dataopsmanifesto.org/en/). *dataopsmanifesto.org*, 2017. Archived at [perma.cc/3F5N-FUQ4](https://perma.cc/3F5N-FUQ4)
+[^19]: Tejas Manohar. [What is Reverse ETL: A Definition & Why It’s Taking Off](https://hightouch.io/blog/reverse-etl/). *hightouch.io*, November 2021. Archived at [perma.cc/A7TN-GLYJ](https://perma.cc/A7TN-GLYJ)
+[^20]: Simon O’Regan. [Designing Data Products](https://towardsdatascience.com/designing-data-products-b6b93edf3d23). *towardsdatascience.com*, August 2018. Archived at [perma.cc/HU67-3RV8](https://perma.cc/HU67-3RV8)
+[^21]: Camille Fournier. [Why is it so hard to decide to buy?](https://skamille.medium.com/why-is-it-so-hard-to-decide-to-buy-d86fee98e88e) *skamille.medium.com*, July 2021. Archived at [perma.cc/6VSG-HQ5X](https://perma.cc/6VSG-HQ5X)
+[^22]: David Heinemeier Hansson. [Why we’re leaving the cloud](https://world.hey.com/dhh/why-we-re-leaving-the-cloud-654b47e0). *world.hey.com*, October 2022. Archived at [perma.cc/82E6-UJ65](https://perma.cc/82E6-UJ65)
+[^23]: Nima Badizadegan. [Use One Big Server](https://specbranch.com/posts/one-big-server/). *specbranch.com*, August 2022. Archived at [perma.cc/M8NB-95UK](https://perma.cc/M8NB-95UK)
+[^24]: Steve Yegge. [Dear Google Cloud: Your Deprecation Policy is Killing You](https://steve-yegge.medium.com/dear-google-cloud-your-deprecation-policy-is-killing-you-ee7525dc05dc). *steve-yegge.medium.com*, August 2020. Archived at [perma.cc/KQP9-SPGU](https://perma.cc/KQP9-SPGU)
+[^25]: Alexandre Verbitski, Anurag Gupta, Debanjan Saha, Murali Brahmadesam, Kamal Gupta, Raman Mittal, Sailesh Krishnamurthy, Sandor Maurice, Tengiz Kharatishvili, and Xiaofeng Bao. [Amazon Aurora: Design Considerations for High Throughput Cloud-Native Relational Databases](https://media.amazonwebservices.com/blog/2017/aurora-design-considerations-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), pages 1041–1052, May 2017. [doi:10.1145/3035918.3056101](https://doi.org/10.1145/3035918.3056101)
+[^26]: Panagiotis Antonopoulos, Alex Budovski, Cristian Diaconu, Alejandro Hernandez Saenz, Jack Hu, Hanuma Kodavalla, Donald Kossmann, Sandeep Lingam, Umar Farooq Minhas, Naveen Prakash, Vijendra Purohit, Hugh Qu, Chaitanya Sreenivas Ravella, Krystyna Reisteter, Sheetal Shrotri, Dixin Tang, and Vikram Wakade. [Socrates: The New SQL Server in the Cloud](https://www.microsoft.com/en-us/research/uploads/prod/2019/05/socrates.pdf). At *ACM International Conference on Management of Data* (SIGMOD), pages 1743–1756, June 2019. [doi:10.1145/3299869.3314047](https://doi.org/10.1145/3299869.3314047)
+[^27]: Midhul Vuppalapati, Justin Miron, Rachit Agarwal, Dan Truong, Ashish Motivala, and Thierry Cruanes. [Building An Elastic Query Engine on Disaggregated Storage](https://www.usenix.org/system/files/nsdi20-paper-vuppalapati.pdf). At *17th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), February 2020.
+[^28]: Nick Van Wiggeren. [The Real Failure Rate of EBS](https://planetscale.com/blog/the-real-fail-rate-of-ebs). *planetscale.com*, March 2025. Archived at [perma.cc/43CR-SAH5](https://perma.cc/43CR-SAH5)
+[^29]: Colin Breck. [Predicting the Future of Distributed Systems](https://blog.colinbreck.com/predicting-the-future-of-distributed-systems/). *blog.colinbreck.com*, August 2024. Archived at [perma.cc/K5FC-4XX2](https://perma.cc/K5FC-4XX2)
+[^30]: Gwen Shapira. [Compute-Storage Separation Explained](https://www.thenile.dev/blog/storage-compute). *thenile.dev*, January 2023. Archived at [perma.cc/QCV3-XJNZ](https://perma.cc/QCV3-XJNZ)
+[^31]: Ravi Murthy and Gurmeet Goindi. [AlloyDB for PostgreSQL under the hood: Intelligent, database-aware storage](https://cloud.google.com/blog/products/databases/alloydb-for-postgresql-intelligent-scalable-storage). *cloud.google.com*, May 2022. Archived at [archive.org](https://web.archive.org/web/20220514021120/https%3A//cloud.google.com/blog/products/databases/alloydb-for-postgresql-intelligent-scalable-storage)
+[^32]: Jack Vanlightly. [The Architecture of Serverless Data Systems](https://jack-vanlightly.com/blog/2023/11/14/the-architecture-of-serverless-data-systems). *jack-vanlightly.com*, November 2023. Archived at [perma.cc/UDV4-TNJ5](https://perma.cc/UDV4-TNJ5)
+[^33]: Eric Jonas, Johann Schleier-Smith, Vikram Sreekanti, Chia-Che Tsai, Anurag Khandelwal, Qifan Pu, Vaishaal Shankar, Joao Carreira, Karl Krauth, Neeraja Yadwadkar, Joseph E. Gonzalez, Raluca Ada Popa, Ion Stoica, David A. Patterson. [Cloud Programming Simplified: A Berkeley View on Serverless Computing](https://arxiv.org/abs/1902.03383). *arxiv.org*, February 2019.
+[^34]: Betsy Beyer, Jennifer Petoff, Chris Jones, and Niall Richard Murphy. [*Site Reliability Engineering: How Google Runs Production Systems*](https://www.oreilly.com/library/view/site-reliability-engineering/9781491929117/). O’Reilly Media, 2016. ISBN: 9781491929124
+[^35]: Thomas Limoncelli. [The Time I Stole $10,000 from Bell Labs](https://queue.acm.org/detail.cfm?id=3434773). *ACM Queue*, volume 18, issue 5, November 2020. [doi:10.1145/3434571.3434773](https://doi.org/10.1145/3434571.3434773)
+[^36]: Charity Majors. [The Future of Ops Jobs](https://acloudguru.com/blog/engineering/the-future-of-ops-jobs). *acloudguru.com*, August 2020. Archived at [perma.cc/GRU2-CZG3](https://perma.cc/GRU2-CZG3)
+[^37]: Boris Cherkasky. [(Over)Pay As You Go for Your Datastore](https://medium.com/riskified-technology/over-pay-as-you-go-for-your-datastore-11a29ae49a8b). *medium.com*, September 2021. Archived at [perma.cc/Q8TV-2AM2](https://perma.cc/Q8TV-2AM2)
+[^38]: Shlomi Kushchi. [Serverless Doesn’t Mean DevOpsLess or NoOps](https://thenewstack.io/serverless-doesnt-mean-devopsless-or-noops/). *thenewstack.io*, February 2023. Archived at [perma.cc/3NJR-AYYU](https://perma.cc/3NJR-AYYU)
+[^39]: Erik Bernhardsson. [Storm in the stratosphere: how the cloud will be reshuffled](https://erikbern.com/2021/11/30/storm-in-the-stratosphere-how-the-cloud-will-be-reshuffled.html). *erikbern.com*, November 2021. Archived at [perma.cc/SYB2-99P3](https://perma.cc/SYB2-99P3)
+[^40]: Benn Stancil. [The data OS](https://benn.substack.com/p/the-data-os). *benn.substack.com*, September 2021. Archived at [perma.cc/WQ43-FHS6](https://perma.cc/WQ43-FHS6)
+[^41]: Maria Korolov. [Data residency laws pushing companies toward residency as a service](https://www.csoonline.com/article/3647761/data-residency-laws-pushing-companies-toward-residency-as-a-service.html). *csoonline.com*, January 2022. Archived at [perma.cc/CHE4-XZZ2](https://perma.cc/CHE4-XZZ2)
+[^42]: Severin Borenstein. [Can Data Centers Flex Their Power Demand?](https://energyathaas.wordpress.com/2025/04/14/can-data-centers-flex-their-power-demand/) *energyathaas.wordpress.com*, April 2025. Archived at <https://perma.cc/MUD3-A6FF>
+[^43]: Bilge Acun, Benjamin Lee, Fiodar Kazhamiaka, Aditya Sundarrajan, Kiwan Maeng, Manoj Chakkaravarthy, David Brooks, and Carole-Jean Wu. [Carbon Dependencies in Datacenter Design and Management](https://hotcarbon.org/assets/2022/pdf/hotcarbon22-acun.pdf). *ACM SIGENERGY Energy Informatics Review*, volume 3, issue 3, pages 21–26. [doi:10.1145/3630614.3630619](https://doi.org/10.1145/3630614.3630619)
+[^44]: Kousik Nath. [These are the numbers every computer engineer should know](https://www.freecodecamp.org/news/must-know-numbers-for-every-computer-engineer/). *freecodecamp.org*, September 2019. Archived at [perma.cc/RW73-36RL](https://perma.cc/RW73-36RL)
+[^45]: Joseph M. Hellerstein, Jose Faleiro, Joseph E. Gonzalez, Johann Schleier-Smith, Vikram Sreekanti, Alexey Tumanov, and Chenggang Wu. [Serverless Computing: One Step Forward, Two Steps Back](https://arxiv.org/abs/1812.03651). At *Conference on Innovative Data Systems Research* (CIDR), January 2019.
+[^46]: Frank McSherry, Michael Isard, and Derek G. Murray. [Scalability! But at What COST?](https://www.usenix.org/system/files/conference/hotos15/hotos15-paper-mcsherry.pdf) At *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
+[^47]: Cindy Sridharan. *[Distributed Systems Observability: A Guide to Building Robust Systems](https://unlimited.humio.com/rs/756-LMY-106/images/Distributed-Systems-Observability-eBook.pdf)*. Report, O’Reilly Media, May 2018. Archived at [perma.cc/M6JL-XKCM](https://perma.cc/M6JL-XKCM)
+[^48]: Charity Majors. [Observability — A 3-Year Retrospective](https://thenewstack.io/observability-a-3-year-retrospective/). *thenewstack.io*, August 2019. Archived at [perma.cc/CG62-TJWL](https://perma.cc/CG62-TJWL)
+[^49]: Benjamin H. Sigelman, Luiz André Barroso, Mike Burrows, Pat Stephenson, Manoj Plakal, Donald Beaver, Saul Jaspan, and Chandan Shanbhag. [Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](https://research.google/pubs/pub36356/). Google Technical Report dapper-2010-1, April 2010. Archived at [perma.cc/K7KU-2TMH](https://perma.cc/K7KU-2TMH)
+[^50]: Rodrigo Laigner, Yongluan Zhou, Marcos Antonio Vaz Salles, Yijian Liu, and Marcos Kalinowski. [Data management in microservices: State of the practice, challenges, and research directions](https://www.vldb.org/pvldb/vol14/p3348-laigner.pdf). *Proceedings of the VLDB Endowment*, volume 14, issue 13, pages 3348–3361, September 2021. [doi:10.14778/3484224.3484232](https://doi.org/10.14778/3484224.3484232)
+[^51]: Jordan Tigani. [Big Data is Dead](https://motherduck.com/blog/big-data-is-dead/). *motherduck.com*, February 2023. Archived at [perma.cc/HT4Q-K77U](https://perma.cc/HT4Q-K77U)
+[^52]: Sam Newman. [*Building Microservices*, second edition](https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/). O’Reilly Media, 2021. ISBN: 9781492034025
+[^53]: Chris Richardson. [Microservices: Decomposing Applications for Deployability and Scalability](https://www.infoq.com/articles/microservices-intro/). *infoq.com*, May 2014. Archived at [perma.cc/CKN4-YEQ2](https://perma.cc/CKN4-YEQ2)
+[^54]: Mohammad Shahrad, Rodrigo Fonseca, Íñigo Goiri, Gohar Chaudhry, Paul Batum, Jason Cooke, Eduardo Laureano, Colby Tresness, Mark Russinovich, Ricardo Bianchini. [Serverless in the Wild: Characterizing and Optimizing the Serverless Workload at a Large Cloud Provider](https://www.usenix.org/system/files/atc20-shahrad.pdf). At *USENIX Annual Technical Conference* (ATC), July 2020.
+[^55]: Luiz André Barroso, Urs Hölzle, and Parthasarathy Ranganathan. [The Datacenter as a Computer: Designing Warehouse-Scale Machines](https://www.morganclaypool.com/doi/10.2200/S00874ED3V01Y201809CAC046), third edition. Morgan & Claypool Synthesis Lectures on Computer Architecture, October 2018. [doi:10.2200/S00874ED3V01Y201809CAC046](https://doi.org/10.2200/S00874ED3V01Y201809CAC046)
+[^56]: David Fiala, Frank Mueller, Christian Engelmann, Rolf Riesen, Kurt Ferreira, and Ron Brightwell. [Detection and Correction of Silent Data Corruption for Large-Scale High-Performance Computing](https://arcb.csc.ncsu.edu/~mueller/ftp/pub/mueller/papers/sc12.pdf),” at *International Conference for High Performance Computing, Networking, Storage and Analysis* (SC), November 2012. [doi:10.1109/SC.2012.49](https://doi.org/10.1109/SC.2012.49)
+[^57]: Anna Kornfeld Simpson, Adriana Szekeres, Jacob Nelson, and Irene Zhang. [Securing RDMA for High-Performance Datacenter Storage Systems](https://www.usenix.org/conference/hotcloud20/presentation/kornfeld-simpson). At *12th USENIX Workshop on Hot Topics in Cloud Computing* (HotCloud), July 2020.
+[^58]: Arjun Singh, Joon Ong, Amit Agarwal, Glen Anderson, Ashby Armistead, Roy Bannon, Seb Boving, Gaurav Desai, Bob Felderman, Paulie Germano, Anand Kanagala, Jeff Provost, Jason Simmons, Eiichi Tanda, Jim Wanderer, Urs Hölzle, Stephen Stuart, and Amin Vahdat. [Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google’s Datacenter Network](https://conferences.sigcomm.org/sigcomm/2015/pdf/papers/p183.pdf). At *Annual Conference of the ACM Special Interest Group on Data Communication* (SIGCOMM), August 2015. [doi:10.1145/2785956.2787508](https://doi.org/10.1145/2785956.2787508)
+[^59]: Glenn K. Lockwood. [Hadoop’s Uncomfortable Fit in HPC](https://blog.glennklockwood.com/2014/05/hadoops-uncomfortable-fit-in-hpc.html). *glennklockwood.blogspot.co.uk*, May 2014. Archived at [perma.cc/S8XX-Y67B](https://perma.cc/S8XX-Y67B)
+[^60]: Cathy O’Neil: *Weapons of Math Destruction: How Big Data Increases Inequality and Threatens Democracy*. Crown Publishing, 2016. ISBN: 9780553418811
+[^61]: Supreeth Shastri, Vinay Banakar, Melissa Wasserman, Arun Kumar, and Vijay Chidambaram. [Understanding and Benchmarking the Impact of GDPR on Database Systems](https://www.vldb.org/pvldb/vol13/p1064-shastri.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 7, pages 1064–1077, March 2020. [doi:10.14778/3384345.3384354](https://doi.org/10.14778/3384345.3384354)
+[^62]: Martin Fowler. [Datensparsamkeit](https://www.martinfowler.com/bliki/Datensparsamkeit.html). *martinfowler.com*, December 2013. Archived at [perma.cc/R9QX-CME6](https://perma.cc/R9QX-CME6)
+[^63]: [Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (General Data Protection Regulation)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679&from=EN). *Official Journal of the European Union* L 119/1, May 2016.
 

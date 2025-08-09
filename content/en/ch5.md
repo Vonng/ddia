@@ -119,17 +119,17 @@ restored with minimal additional code. However, they also have a number of deep 
   integrating your systems with those of other organizations (which may use different languages).
 * In order to restore data in the same object types, the decoding process needs to be able to
   instantiate arbitrary classes. This is frequently a source of security problems
-  [[1](/en/ch5#CWE502)]:
+  [^1]:
   if an attacker can get your application to decode an arbitrary byte sequence, they can instantiate
   arbitrary classes, which in turn often allows them to do terrible things such as remotely
   executing arbitrary code [[2](/en/ch5#Breen2015),
   [3](/en/ch5#McKenzie2013)].
 * Versioning data is often an afterthought in these libraries: as they are intended for quick and
   easy encoding of data, they often neglect the inconvenient problems of forward and backward
-  compatibility [[4](/en/ch5#Goetz2019)].
+  compatibility [^4].
 * Efficiency (CPU time taken to encode or decode, and the size of the encoded structure) is also
   often an afterthought. For example, Java’s built-in serialization is notorious for its bad
-  performance and bloated encoding [[5](/en/ch5#JvmSerializers)].
+  performance and bloated encoding [^5].
 
 For these reasons it’s generally a bad idea to use your language’s built-in encoding for anything
 other than very transient purposes.
@@ -139,7 +139,7 @@ other than very transient purposes.
 When moving to standardized encodings that can be written and read by many programming languages, JSON
 and XML are the obvious contenders. They are widely known, widely supported, and almost as widely
 disliked. XML is often criticized for being too verbose and unnecessarily complicated
-[[6](/en/ch5#XMLSExp)].
+[^6].
 JSON’s popularity is mainly due to its built-in support in web browsers and simplicity relative to
 XML. CSV is another popular language-independent format, but it only supports tabular data without
 nesting.
@@ -156,11 +156,11 @@ problems:
   This is a problem when dealing with large numbers; for example, integers greater than 253 cannot
   be exactly represented in an IEEE 754 double-precision floating-point number, so such numbers become
   inaccurate when parsed in a language that uses floating-point numbers, such as JavaScript
-  [[7](/en/ch5#Evans2023)].
+  [^7].
   An example of numbers larger than 253 occurs on X (formerly Twitter), which uses a 64-bit number to
   identify each post. The JSON returned by the API includes post IDs twice, once as a JSON number and
   once as a decimal string, to work around the fact that the numbers are not correctly parsed by
-  JavaScript applications [[8](/en/ch5#Harris2010)].
+  JavaScript applications [^8].
 * JSON and XML have good support for Unicode character strings (i.e., human-readable text), but they
   don’t support binary strings (sequences of bytes without a character encoding). Binary strings are a
   useful feature, so people get around this limitation by encoding the binary data as text using
@@ -174,7 +174,7 @@ problems:
   column. If an application change adds a new row or column, you have to handle that change manually.
   CSV is also a quite vague format (what happens if a value contains a comma or a newline character?).
   Although its escaping rules have been formally specified
-  [[9](/en/ch5#Shafranovich2005)],
+  [^9],
   not all parsers implement them correctly.
 
 Despite these flaws, JSON, XML, and CSV are good enough for many purposes. It’s likely that they will
@@ -228,9 +228,9 @@ In addition to open and closed content models and validators, JSON Schema suppor
 if/else schema logic, named types, references to remote schemas, and much more. All of this makes
 for a very powerful schema language. Such features also make for unwieldy definitions. It can be
 challenging to resolve remote schemas, reason about conditional rules, or evolve schemas in a
-forwards or backwards compatible way [[10](/en/ch5#Coates2024)].
+forwards or backwards compatible way [^10].
 Similar concerns apply to XML Schema
-[[11](/en/ch5#Geneves2008)].
+[^11].
 
 ### Binary encoding
 
@@ -239,7 +239,7 @@ observation led to the development of a profusion of binary encodings for JSON (
 BSON, BJSON, UBJSON, BISON, Hessian, and Smile, to name a few) and for XML (WBXML and Fast Infoset,
 for example). These formats have been adopted in various niches, as they are more compact and
 sometimes faster to parse, but none of them are as widely adopted as the textual versions of JSON
-and XML [[12](/en/ch5#Bray2019)].
+and XML [^12].
 
 Some of these formats extend the set of datatypes (e.g., distinguishing integers and floating-point numbers,
 or adding support for binary strings), but otherwise they keep the JSON/XML data model unchanged. In
@@ -287,7 +287,7 @@ In the following sections we will see how we can do much better, and encode the 
 
 Protocol Buffers (protobuf) is a binary encoding library developed at Google.
 It is similar to Apache Thrift, which was originally developed by Facebook
-[[13](/en/ch5#Slee2007)];
+[^13];
 most of what this section says about Protocol Buffers applies also to Thrift.
 
 Protocol Buffers requires a schema for any data that is encoded. To encode the data
@@ -311,7 +311,7 @@ language is very simple compared to JSON Schema: it only defines the fields of r
 types, but it does not support other restrictions on the possible values of fields.
 
 Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in
-[Figure 5-3](/en/ch5#fig_encoding_protobuf) [[14](/en/ch5#Kleppmann2012evolution)].
+[Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
 
 ![ddia 0503](/fig/ddia_0503.png)
 
@@ -382,7 +382,7 @@ value won’t fit in 32 bits, it will be truncated.
 Apache Avro is another binary encoding format that is interestingly different from Protocol Buffers.
 It was started in 2009 as a subproject of Hadoop, as a result of Protocol Buffers not being a good
 fit for Hadoop’s use cases
-[[15](/en/ch5#Cutting2009)].
+[^15].
 
 Avro also uses a schema to specify the structure of the data being encoded. It has two schema
 languages: one (Avro IDL) intended for human editing, and one (based on JSON) that is more easily
@@ -493,7 +493,7 @@ case in Avro: if you want to allow a field to be null, you have to use a *union 
 `union { null, long, string } field;` indicates that `field` can be a number, or a string, or null.
 You can only use `null` as a default value if it is the first branch of the union. This is a little
 more verbose than having everything nullable by default, but it helps prevent bugs by being explicit
-about what can and cannot be null [[18](/en/ch5#Hoare2009)].
+about what can and cannot be null [^18].
 
 Changing the datatype of a field is possible, provided that Avro can convert the type. Changing the
 name of a field is possible but a little tricky: the reader’s schema can contain aliases for field
@@ -525,9 +525,9 @@ Database with individually written records
     schema, it can decode the rest of the record.
 
     Confluent’s schema registry for Apache Kafka
-    [[19](/en/ch5#ConfluentSchemaReg)]
+    [^19]
     and LinkedIn’s Espresso
-    [[20](/en/ch5#Auradkar2015)]
+    [^20]
     work this way, for example.
 
 Sending records over a network connection
@@ -537,7 +537,7 @@ Sending records over a network connection
 
 A database of schema versions is a useful thing to have in any case, since it acts as documentation
 and gives you a chance to check schema compatibility
-[[21](/en/ch5#Kreps2015)].
+[^21].
 As the version number, you could use a simple incrementing integer, or you could use a hash of the
 schema.
 
@@ -552,7 +552,7 @@ you have a relational database whose contents you want to dump to a file, and yo
 binary format to avoid the aforementioned problems with textual formats (JSON, CSV, XML). If you use
 Avro, you can fairly easily generate an Avro schema (in the JSON representation we saw earlier) from the
 relational schema and encode the database contents using that schema, dumping it all to an Avro
-object container file [[22](/en/ch5#Shapira2014)].
+object container file [^22].
 You can generate a record schema for each database table, and each column becomes a field in that
 record. The column name in the database maps to the field name in Avro.
 
@@ -585,9 +585,9 @@ common with ASN.1, a schema definition language that was first standardized in 1
 [24](/en/ch5#Kaliski1993)].
 It was used to define various network protocols, and its binary encoding (DER) is still used to encode
 SSL certificates (X.509), for example
-[[25](/en/ch5#HoffmanAndrews2020)].
+[^25].
 ASN.1 supports schema evolution using tag numbers, similar to Protocol Buffers
-[[26](/en/ch5#Walkin2010)].
+[^26].
 However, it’s also very complex and badly documented, so ASN.1
 is probably not a good choice for new applications.
 
@@ -680,9 +680,9 @@ versions of the schema.
 
 More complex schema changes—for example, changing a single-valued attribute to be multi-valued, or
 moving some data into a separate table—still require data to be rewritten, often at the application
-level [[27](/en/ch5#Xu2017)].
+level [^27].
 Maintaining forward and backward compatibility across such migrations is still a research problem
-[[28](/en/ch5#Litt2020)].
+[^28].
 
 ### Archival storage
 
@@ -723,7 +723,7 @@ In some ways, services are similar to databases: they typically allow clients to
 data. However, while databases allow arbitrary queries using the query languages we discussed in
 [Chapter 3](/en/ch3#ch_datamodels), services expose an application-specific API that only allows inputs and outputs
 that are predetermined by the business logic (application code) of the service
-[[29](/en/ch5#Helland2005_ch5)]. This restriction provides a degree of encapsulation: services can impose
+[^29]. This restriction provides a degree of encapsulation: services can impose
 fine-grained restrictions on what clients can and cannot do.
 
 A key design goal of a service-oriented/microservices architecture is to make the application easier
@@ -764,7 +764,7 @@ need to somehow find out these details. Service developers often use an interfac
 language (IDL) to define and document their service’s API endpoints and data models, and to evolve
 them over time. Other developers can then use the service definition to determine how to query the
 service. The two most popular service IDLs are OpenAPI (also known as Swagger
-[[32](/en/ch5#Swagger2014)])
+[^32])
 and gRPC. OpenAPI is used for web services that send and receive JSON data, while gRPC services send
 and receive Protocol Buffers.
 
@@ -838,7 +838,7 @@ requests over a network, many of which received a lot of hype but have serious p
 JavaBeans (EJB) and Java’s Remote Method Invocation (RMI) are limited to Java. The Distributed
 Component Object Model (DCOM) is limited to Microsoft platforms. The Common Object Request Broker
 Architecture (CORBA) is excessively complex, and does not provide backward or forward
-compatibility [[33](/en/ch5#Henning2006)].
+compatibility [^33].
 SOAP and the WS-\* web services framework aim to provide interoperability across vendors, but are
 also plagued by complexity and compatibility problems
 [[34](/en/ch5#Lacey2006),
@@ -846,7 +846,7 @@ also plagued by complexity and compatibility problems
 [36](/en/ch5#Bray2004)].
 
 All of these are based on the idea of a *remote procedure call* (RPC), which has been around since
-the 1970s [[37](/en/ch5#Birrell1984)].
+the 1970s [^37].
 The RPC model tries to make a request to a remote network service look the same as calling a function or
 method in your programming language, within the same process (this abstraction is called *location
 transparency*). Although RPC seems convenient at first, the approach is fundamentally flawed
@@ -868,7 +868,7 @@ A network request is very different from a local function call:
   through, and only the response was lost.
   In that case, retrying will cause the action to
   be performed multiple times, unless you build a mechanism for deduplication (*idempotence*) into
-  the protocol [[40](/en/ch5#Leach2017idemptence)].
+  the protocol [^40].
   Local function calls don’t have this problem. (We discuss idempotence in more detail
   in [Link to Come].)
 * Every time you call a local function, it normally takes about the same time to execute. A network
@@ -902,7 +902,7 @@ overloaded, the client has to be manually reconfigured.
 To provide higher availability and scalability, there are usually multiple instances of a service
 running on different machines, any of which can handle an incoming request. Spreading requests
 across these instances is called *load balancing*
-[[41](/en/ch5#Rose2023)].
+[^41].
 There are many load balancing and service discovery solutions available:
 
 * *Hardware load balancers* are specialized pieces of equipment that are installed in data centers.
@@ -974,12 +974,12 @@ indefinitely. If a compatibility-breaking change is required, the service provid
 maintaining multiple versions of the service API side by side.
 
 There is no agreement on how API versioning should work (i.e., how a client can indicate which
-version of the API it wants to use [[42](/en/ch5#Hunt2014wn)]).
+version of the API it wants to use [^42]).
 For RESTful APIs, common approaches are to use a version
 number in the URL or in the HTTP `Accept` header. For services that use API keys to identify a
 particular client, another option is to store a client’s requested API version on the server and to
 allow this version selection to be updated through a separate administrative interface
-[[43](/en/ch5#Leach2017versioning)].
+[^43].
 
 ## Durable Execution and Workflows
 
@@ -995,7 +995,7 @@ the credit card, and call the banking service to deposit debited funds, as shown
 Workflows are typically defined as a graph of tasks. Workflow definitions may be written in a
 general-purpose programming language, a domain specific language (DSL), or a markup language such as
 Business Process Execution Language (BPEL)
-[[44](/en/ch5#BPEL2007)].
+[^44].
 
 # Tasks, Activities, and Functions
 
@@ -1068,19 +1068,19 @@ class PaymentWorkflow:
 Frameworks like Temporal are not without their challenges. External services, such as the
 third-party payment gateway in our example, must still provide an idempotent API. Developers must
 remember to use unique IDs for these APIs to prevent duplicate execution
-[[47](/en/ch5#Tenzer2024)].
+[^47].
 And because durable execution frameworks log each RPC call in order, it expects a subsequent
 execution to make the same RPC calls in the same order. This makes code changes brittle: you
 might introduce undefined behavior simply by re-ordering function calls
-[[48](/en/ch5#TemporalWorkflow)].
+[^48].
 Instead of modifying the code of an existing workflow, it is safer to deploy a new version of the
 code separately, so that re-executions of existing workflow invocations continue to use the old
 version, and only new invocations use the new code
-[[49](/en/ch5#Kleeman2024)].
+[^49].
 
 Similarly, because durable execution frameworks expect to replay all code deterministically (the
 same inputs produce the same outputs), nondeterministic code such as random number generators or
-system clocks are problematic [[48](/en/ch5#TemporalWorkflow)].
+system clocks are problematic [^48].
 Frameworks often provide their own, deterministic implementations of such library functions, but
 you have to remember to use them. In some cases, such as with Temporal’s workflowcheck tool,
 frameworks provide static analysis tools to determine if nondeterministic behavior has been
@@ -1099,7 +1099,7 @@ unlike RPC, the sender usually does not wait for the recipient to process the ev
 events are typically not sent to the recipient via a direct network connection, but go via an
 intermediary called a *message broker* (also called an *event broker*, *message queue*, or
 *message-oriented middleware*), which stores the message temporarily.
-[[50](/en/ch5#Perera2023)].
+[^50].
 
 Using a message broker has several advantages compared to direct RPC:
 
@@ -1162,7 +1162,7 @@ scenarios, messages will be lost. Since each actor processes only one message at
 need to worry about threads, and each actor can be scheduled independently by the framework.
 
 In *distributed actor frameworks* such as Akka, Orleans
-[[51](/en/ch5#Bernstein2014)],
+[^51],
 and Erlang/OTP, this programming model is used to scale an application across
 multiple nodes. The same message-passing mechanism is used, no matter whether the sender and recipient
 are on the same node or different nodes. If they are on different nodes, the message is
@@ -1225,257 +1225,58 @@ quite achievable. May your application’s evolution be rapid and your deploymen
 
 ##### Footnotes
 
+
 ##### References
 
-[[1](/en/ch5#CWE502-marker)] [CWE-502:
-Deserialization of Untrusted Data](https://cwe.mitre.org/data/definitions/502.html). Common Weakness Enumeration, *cwe.mitre.org*,
-July 2006. Archived at [perma.cc/26EU-UK9Y](https://perma.cc/26EU-UK9Y)
 
-[[2](/en/ch5#Breen2015-marker)] Steve Breen.
-[What
-Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This
-Vulnerability](https://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/). *foxglovesecurity.com*, November 2015.
-Archived at [perma.cc/9U97-UVVD](https://perma.cc/9U97-UVVD)
-
-[[3](/en/ch5#McKenzie2013-marker)] Patrick McKenzie.
-[What
-the Rails Security Issue Means for Your Startup](https://www.kalzumeus.com/2013/01/31/what-the-rails-security-issue-means-for-your-startup/). *kalzumeus.com*, January 2013.
-Archived at [perma.cc/2MBJ-7PZ6](https://perma.cc/2MBJ-7PZ6)
-
-[[4](/en/ch5#Goetz2019-marker)] Brian Goetz.
-[Towards
-Better Serialization](https://openjdk.org/projects/amber/design-notes/towards-better-serialization). *openjdk.org*, June 2019.
-Archived at [perma.cc/UK6U-GQDE](https://perma.cc/UK6U-GQDE)
-
-[[5](/en/ch5#JvmSerializers-marker)] Eishay Smith.
-[jvm-serializers wiki](https://github.com/eishay/jvm-serializers/wiki).
-*github.com*, October 2023.
-Archived at [perma.cc/PJP7-WCNG](https://perma.cc/PJP7-WCNG)
-
-[[6](/en/ch5#XMLSExp-marker)] [XML
-Is a Poor Copy of S-Expressions](https://wiki.c2.com/?XmlIsaPoorCopyOfEssExpressions). *wiki.c2.com*, May 2013.
-Archived at [perma.cc/7FAN-YBKL](https://perma.cc/7FAN-YBKL)
-
-[[7](/en/ch5#Evans2023-marker)] Julia Evans.
-[Examples of floating
-point problems](https://jvns.ca/blog/2023/01/13/examples-of-floating-point-problems/). *jvns.ca*, January 2023.
-Archived at [perma.cc/M57L-QKKW](https://perma.cc/M57L-QKKW)
-
-[[8](/en/ch5#Harris2010-marker)] Matt Harris.
-[Snowflake:
-An Update and Some Very Important Information](https://groups.google.com/g/twitter-development-talk/c/ahbvo3VTIYI). Email to *Twitter Development
-Talk* mailing list, October 2010.
-Archived at [perma.cc/8UBV-MZ3D](https://perma.cc/8UBV-MZ3D)
-
-[[9](/en/ch5#Shafranovich2005-marker)] Yakov Shafranovich.
-[RFC 4180: Common Format and MIME Type for
-Comma-Separated Values (CSV) Files](https://tools.ietf.org/html/rfc4180). IETF, October 2005.
-
-[[10](/en/ch5#Coates2024-marker)] Andy Coates.
-[Evolving JSON Schemas - Part I](https://www.creekservice.org/articles/2024/01/08/json-schema-evolution-part-1.html) and
-[Part II](https://www.creekservice.org/articles/2024/01/09/json-schema-evolution-part-2.html).
-*creekservice.org*, January 2024. Archived at
-[perma.cc/MZW3-UA54](https://perma.cc/MZW3-UA54) and
-[perma.cc/GT5H-WKZ5](https://perma.cc/GT5H-WKZ5)
-
-[[11](/en/ch5#Geneves2008-marker)] Pierre Genevès, Nabil Layaïda, and Vincent Quint.
-[Ensuring Query Compatibility with Evolving XML Schemas](https://arxiv.org/abs/0811.4324).
-INRIA Technical Report 6711, November 2008.
-
-[[12](/en/ch5#Bray2019-marker)] Tim Bray.
-[Bits On the Wire](https://www.tbray.org/ongoing/When/201x/2019/11/17/Bits-On-the-Wire).
-*tbray.org*, November 2019.
-Archived at [perma.cc/3BT3-BQU3](https://perma.cc/3BT3-BQU3)
-
-[[13](/en/ch5#Slee2007-marker)] Mark Slee, Aditya Agarwal, and Marc Kwiatkowski.
-[Thrift: Scalable
-Cross-Language Services Implementation](https://thrift.apache.org/static/files/thrift-20070401.pdf). Facebook technical report, April 2007.
-Archived at [perma.cc/22BS-TUFB](https://perma.cc/22BS-TUFB)
-
-[[14](/en/ch5#Kleppmann2012evolution-marker)] Martin Kleppmann.
-[Schema
-Evolution in Avro, Protocol Buffers and Thrift](https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html). *martin.kleppmann.com*, December 2012.
-Archived at [perma.cc/E4R2-9RJT](https://perma.cc/E4R2-9RJT)
-
-[[15](/en/ch5#Cutting2009-marker)] Doug Cutting, Chad Walters, Jim Kellerman, et al.
-[[PROPOSAL]
-New Subproject: Avro](https://lists.apache.org/thread/z571w0r5jmfsjvnl0fq4fgg0vh28d3bk). Email thread on *hadoop-general* mailing list,
-*lists.apache.org*, April 2009.
-Archived at [perma.cc/4A79-BMEB](https://perma.cc/4A79-BMEB)
-
-[[16](/en/ch5#AvroSpec-marker)] Apache Software Foundation.
-[Apache Avro 1.12.0 Specification](https://avro.apache.org/docs/1.12.0/specification/).
-*avro.apache.org*, August 2024.
-Archived at [perma.cc/C36P-5EBQ](https://perma.cc/C36P-5EBQ)
-
-[[17](/en/ch5#AvroParsing-marker)] Apache Software Foundation.
-[Avro
-schemas as LL(1) CFG definitions](https://avro.apache.org/docs/1.12.0/api/java/org/apache/avro/io/parsing/doc-files/parsing.html). *avro.apache.org*, August 2024.
-Archived at [perma.cc/JB44-EM9Q](https://perma.cc/JB44-EM9Q)
-
-[[18](/en/ch5#Hoare2009-marker)] Tony Hoare.
-[Null
-References: The Billion Dollar Mistake](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare/). Talk at *QCon London*, March 2009.
-
-[[19](/en/ch5#ConfluentSchemaReg-marker)] Confluent, Inc.
-[Schema Registry
-Overview](https://docs.confluent.io/platform/current/schema-registry/index.html). *docs.confluent.io*, 2024.
-Archived at [perma.cc/92C3-A9JA](https://perma.cc/92C3-A9JA)
-
-[[20](/en/ch5#Auradkar2015-marker)] Aditya Auradkar and Tom Quiggle.
-[Introducing
-Espresso—LinkedIn’s Hot New Distributed Document Store](https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store). *engineering.linkedin.com*, January 2015.
-Archived at [perma.cc/FX4P-VW9T](https://perma.cc/FX4P-VW9T)
-
-[[21](/en/ch5#Kreps2015-marker)] Jay Kreps.
-[Putting Apache Kafka to
-Use: A Practical Guide to Building a Stream Data Platform (Part 2)](https://www.confluent.io/blog/event-streaming-platform-2/). *confluent.io*,
-February 2015. Archived at [perma.cc/8UA4-ZS5S](https://perma.cc/8UA4-ZS5S)
-
-[[22](/en/ch5#Shapira2014-marker)] Gwen Shapira.
-[The Problem of Managing
-Schemas](https://www.oreilly.com/content/the-problem-of-managing-schemas/). *oreilly.com*, November 2014.
-Archived at [perma.cc/BY8Q-RYV3](https://perma.cc/BY8Q-RYV3)
-
-[[23](/en/ch5#Larmouth1999-marker)] John Larmouth.
-[*ASN.1
-Complete*](https://www.oss.com/asn1/resources/books-whitepapers-pubs/larmouth-asn1-book.pdf). Morgan Kaufmann, 1999. ISBN: 978-0-122-33435-1.
-Archived at [perma.cc/GB7Y-XSXQ](https://perma.cc/GB7Y-XSXQ)
-
-[[24](/en/ch5#Kaliski1993-marker)] Burton S. Kaliski Jr.
-[A Layman’s Guide to a Subset of ASN.1,
-BER, and DER](https://luca.ntop.org/Teaching/Appunti/asn1.html). Technical Note, RSA Data Security, Inc., November 1993.
-Archived at [perma.cc/2LMN-W9U8](https://perma.cc/2LMN-W9U8)
-
-[[25](/en/ch5#HoffmanAndrews2020-marker)] Jacob Hoffman-Andrews.
-[A Warm Welcome to ASN.1 and DER](https://letsencrypt.org/docs/a-warm-welcome-to-asn1-and-der/).
-*letsencrypt.org*, April 2020.
-Archived at [perma.cc/CYT2-GPQ8](https://perma.cc/CYT2-GPQ8)
-
-[[26](/en/ch5#Walkin2010-marker)] Lev Walkin.
-[Question:
-Extensibility and Dropping Fields](https://lionet.info/asn1c/blog/2010/09/21/question-extensibility-removing-fields/). *lionet.info*, September 2010.
-Archived at [perma.cc/VX8E-NLH3](https://perma.cc/VX8E-NLH3)
-
-[[27](/en/ch5#Xu2017-marker)] Jacqueline Xu.
-[Online migrations at scale](https://stripe.com/blog/online-migrations).
-*stripe.com*, February 2017.
-Archived at [perma.cc/X59W-DK7Y](https://perma.cc/X59W-DK7Y)
-
-[[28](/en/ch5#Litt2020-marker)] Geoffrey Litt, Peter van Hardenberg, and Orion Henry.
-[Project Cambria: Translate your data with lenses](https://www.inkandswitch.com/cambria/).
-Technical Report, *Ink & Switch*, October 2020.
-Archived at [perma.cc/WA4V-VKDB](https://perma.cc/WA4V-VKDB)
-
-[[29](/en/ch5#Helland2005_ch5-marker)] Pat Helland.
-[Data on the Outside Versus Data on the
-Inside](https://www.cidrdb.org/cidr2005/papers/P12.pdf). At *2nd Biennial Conference on Innovative Data Systems Research* (CIDR),
-January 2005.
-
-[[30](/en/ch5#Fielding2000-marker)] Roy Thomas Fielding.
-[Architectural
-Styles and the Design of Network-Based Software Architectures](https://ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf). PhD Thesis, University of
-California, Irvine, 2000. Archived at [perma.cc/LWY9-7BPE](https://perma.cc/LWY9-7BPE)
-
-[[31](/en/ch5#Fielding2008-marker)] Roy Thomas Fielding.
-[REST APIs must
-be hypertext-driven](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven).” *roy.gbiv.com*, October 2008.
-Archived at [perma.cc/M2ZW-8ATG](https://perma.cc/M2ZW-8ATG)
-
-[[32](/en/ch5#Swagger2014-marker)] [OpenAPI
-Specification Version 3.1.0](https://swagger.io/specification/). *swagger.io*, February 2021.
-Archived at [perma.cc/3S6S-K5M4](https://perma.cc/3S6S-K5M4)
-
-[[33](/en/ch5#Henning2006-marker)] Michi Henning.
-[The Rise and Fall of CORBA](https://cacm.acm.org/practice/the-rise-and-fall-of-corba/).
-*Communications of the ACM*, volume 51, issue 8, pages 52–57, August 2008.
-[doi:10.1145/1378704.1378718](https://doi.org/10.1145/1378704.1378718)
-
-[[34](/en/ch5#Lacey2006-marker)] Pete Lacey.
-[The S Stands for Simple](https://harmful.cat-v.org/software/xml/soap/simple).
-*harmful.cat-v.org*, November 2006.
-Archived at [perma.cc/4PMK-Z9X7](https://perma.cc/4PMK-Z9X7)
-
-[[35](/en/ch5#Tilkov2006-marker)] Stefan Tilkov.
-[Interview: Pete Lacey Criticizes
-Web Services](https://www.infoq.com/articles/pete-lacey-ws-criticism/). *infoq.com*, December 2006.
-Archived at [perma.cc/JWF4-XY3P](https://perma.cc/JWF4-XY3P)
-
-[[36](/en/ch5#Bray2004-marker)] Tim Bray.
-[The Loyal WS-Opposition](https://www.tbray.org/ongoing/When/200x/2004/09/18/WS-Oppo).
-*tbray.org*, September 2004.
-Archived at [perma.cc/J5Q8-69Q2](https://perma.cc/J5Q8-69Q2)
-
-[[37](/en/ch5#Birrell1984-marker)] Andrew D. Birrell and Bruce Jay Nelson.
-[Implementing
-Remote Procedure Calls](https://www.cs.princeton.edu/courses/archive/fall03/cs518/papers/rpc.pdf). *ACM Transactions on Computer Systems* (TOCS),
-volume 2, issue 1, pages 39–59, February 1984.
-[doi:10.1145/2080.357392](https://doi.org/10.1145/2080.357392)
-
-[[38](/en/ch5#Waldo1994-marker)] Jim Waldo, Geoff Wyant, Ann Wollrath, and Sam Kendall.
-[A Note on Distributed Computing](https://m.mirror.facebook.net/kde/devel/smli_tr-94-29.pdf).
-Sun Microsystems Laboratories, Inc., Technical Report TR-94-29, November 1994.
-Archived at [perma.cc/8LRZ-BSZR](https://perma.cc/8LRZ-BSZR)
-
-[[39](/en/ch5#Vinoski2008-marker)] Steve Vinoski.
-[Convenience over
-Correctness](https://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf). *IEEE Internet Computing*, volume 12, issue 4, pages 89–92, July 2008.
-[doi:10.1109/MIC.2008.75](https://doi.org/10.1109/MIC.2008.75)
-
-[[40](/en/ch5#Leach2017idemptence-marker)] Brandur Leach.
-[Designing robust and predictable APIs with
-idempotency](https://stripe.com/blog/idempotency). *stripe.com*, February 2017.
-Archived at [perma.cc/JD22-XZQT](https://perma.cc/JD22-XZQT)
-
-[[41](/en/ch5#Rose2023-marker)] Sam Rose.
-[Load Balancing](https://samwho.dev/load-balancing/). *samwho.dev*, April 2023.
-Archived at [perma.cc/Q7BA-9AE2](https://perma.cc/Q7BA-9AE2)
-
-[[42](/en/ch5#Hunt2014wn-marker)] Troy Hunt.
-[Your API versioning is
-wrong, which is why I decided to do it 3 different wrong ways](https://www.troyhunt.com/your-api-versioning-is-wrong-which-is/). *troyhunt.com*,
-February 2014. Archived at [perma.cc/9DSW-DGR5](https://perma.cc/9DSW-DGR5)
-
-[[43](/en/ch5#Leach2017versioning-marker)] Brandur Leach.
-[APIs as infrastructure: future-proofing Stripe with
-versioning](https://stripe.com/blog/api-versioning). *stripe.com*, August 2017.
-Archived at [perma.cc/L63K-USFW](https://perma.cc/L63K-USFW)
-
-[[44](/en/ch5#BPEL2007-marker)] Alexandre Alves, Assaf Arkin, Sid Askary, et al.
-[Web Services Business Process
-Execution Language Version 2.0](https://docs.oasis-open.org/wsbpel/2.0/wsbpel-v2.0.html). *docs.oasis-open.org*, April 2007.
-
-[[45](/en/ch5#TemporalService-marker)] [What
-is a Temporal Service?](https://docs.temporal.io/clusters) *docs.temporal.io*, 2024.
-Archived at [perma.cc/32P3-CJ9V](https://perma.cc/32P3-CJ9V)
-
-[[46](/en/ch5#Ewen2023-marker)] Stephan Ewen.
-[Why we built Restate](https://restate.dev/blog/why-we-built-restate/). *restate.dev*,
-August 2023. Archived at [perma.cc/BJJ2-X75K](https://perma.cc/BJJ2-X75K)
-
-[[47](/en/ch5#Tenzer2024-marker)] Keith Tenzer and Joshua Smith.
-[Idempotency and Durable
-Execution](https://temporal.io/blog/idempotency-and-durable-execution). *temporal.io*, February 2024.
-Archived at [perma.cc/9LGW-PCLU](https://perma.cc/9LGW-PCLU)
-
-[[48](/en/ch5#TemporalWorkflow-marker)] [What
-is a Temporal Workflow?](https://docs.temporal.io/workflows) *docs.temporal.io*, 2024.
-Archived at [perma.cc/B5C5-Y396](https://perma.cc/B5C5-Y396)
-
-[[49](/en/ch5#Kleeman2024-marker)] Jack Kleeman.
-[Solving durable
-execution’s immutability problem](https://restate.dev/blog/solving-durable-executions-immutability-problem/). *restate.dev*, February 2024.
-Archived at [perma.cc/G55L-EYH5](https://perma.cc/G55L-EYH5)
-
-[[50](/en/ch5#Perera2023-marker)] Srinath Perera.
-[Exploring
-Event-Driven Architecture: A Beginner’s Guide for Cloud Native Developers](https://wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/). *wso2.com*,
-August 2023. Archived at
-[archive.org](https://web.archive.org/web/20240716204613/https%3A//wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/)
-
-[[51](/en/ch5#Bernstein2014-marker)] Philip A. Bernstein, Sergey Bykov, Alan
-Geller, Gabriel Kliot, and Jorgen Thelin.
-[Orleans:
-Distributed Virtual Actors for Programmability and Scalability](https://www.microsoft.com/en-us/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/). Microsoft Research Technical
-Report MSR-TR-2014-41, March 2014.
-Archived at [perma.cc/PD3U-WDMF](https://perma.cc/PD3U-WDMF)
+[^1]: [CWE-502: Deserialization of Untrusted Data](https://cwe.mitre.org/data/definitions/502.html). Common Weakness Enumeration, *cwe.mitre.org*, July 2006. Archived at [perma.cc/26EU-UK9Y](https://perma.cc/26EU-UK9Y)
+[^2]: Steve Breen. [What Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This Vulnerability](https://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/). *foxglovesecurity.com*, November 2015. Archived at [perma.cc/9U97-UVVD](https://perma.cc/9U97-UVVD)
+[^3]: Patrick McKenzie. [What the Rails Security Issue Means for Your Startup](https://www.kalzumeus.com/2013/01/31/what-the-rails-security-issue-means-for-your-startup/). *kalzumeus.com*, January 2013. Archived at [perma.cc/2MBJ-7PZ6](https://perma.cc/2MBJ-7PZ6)
+[^4]: Brian Goetz. [Towards Better Serialization](https://openjdk.org/projects/amber/design-notes/towards-better-serialization). *openjdk.org*, June 2019. Archived at [perma.cc/UK6U-GQDE](https://perma.cc/UK6U-GQDE)
+[^5]: Eishay Smith. [jvm-serializers wiki](https://github.com/eishay/jvm-serializers/wiki). *github.com*, October 2023. Archived at [perma.cc/PJP7-WCNG](https://perma.cc/PJP7-WCNG)
+[^6]: [XML Is a Poor Copy of S-Expressions](https://wiki.c2.com/?XmlIsaPoorCopyOfEssExpressions). *wiki.c2.com*, May 2013. Archived at [perma.cc/7FAN-YBKL](https://perma.cc/7FAN-YBKL)
+[^7]: Julia Evans. [Examples of floating point problems](https://jvns.ca/blog/2023/01/13/examples-of-floating-point-problems/). *jvns.ca*, January 2023. Archived at [perma.cc/M57L-QKKW](https://perma.cc/M57L-QKKW)
+[^8]: Matt Harris. [Snowflake: An Update and Some Very Important Information](https://groups.google.com/g/twitter-development-talk/c/ahbvo3VTIYI). Email to *Twitter Development Talk* mailing list, October 2010. Archived at [perma.cc/8UBV-MZ3D](https://perma.cc/8UBV-MZ3D)
+[^9]: Yakov Shafranovich. [RFC 4180: Common Format and MIME Type for Comma-Separated Values (CSV) Files](https://tools.ietf.org/html/rfc4180). IETF, October 2005.
+[^10]: Andy Coates. [Evolving JSON Schemas - Part I](https://www.creekservice.org/articles/2024/01/08/json-schema-evolution-part-1.html) and [Part II](https://www.creekservice.org/articles/2024/01/09/json-schema-evolution-part-2.html). *creekservice.org*, January 2024. Archived at [perma.cc/MZW3-UA54](https://perma.cc/MZW3-UA54) and [perma.cc/GT5H-WKZ5](https://perma.cc/GT5H-WKZ5)
+[^11]: Pierre Genevès, Nabil Layaïda, and Vincent Quint. [Ensuring Query Compatibility with Evolving XML Schemas](https://arxiv.org/abs/0811.4324). INRIA Technical Report 6711, November 2008.
+[^12]: Tim Bray. [Bits On the Wire](https://www.tbray.org/ongoing/When/201x/2019/11/17/Bits-On-the-Wire). *tbray.org*, November 2019. Archived at [perma.cc/3BT3-BQU3](https://perma.cc/3BT3-BQU3)
+[^13]: Mark Slee, Aditya Agarwal, and Marc Kwiatkowski. [Thrift: Scalable Cross-Language Services Implementation](https://thrift.apache.org/static/files/thrift-20070401.pdf). Facebook technical report, April 2007. Archived at [perma.cc/22BS-TUFB](https://perma.cc/22BS-TUFB)
+[^14]: Martin Kleppmann. [Schema Evolution in Avro, Protocol Buffers and Thrift](https://martin.kleppmann.com/2012/12/05/schema-evolution-in-avro-protocol-buffers-thrift.html). *martin.kleppmann.com*, December 2012. Archived at [perma.cc/E4R2-9RJT](https://perma.cc/E4R2-9RJT)
+[^15]: Doug Cutting, Chad Walters, Jim Kellerman, et al. [[PROPOSAL] New Subproject: Avro](https://lists.apache.org/thread/z571w0r5jmfsjvnl0fq4fgg0vh28d3bk). Email thread on *hadoop-general* mailing list, *lists.apache.org*, April 2009. Archived at [perma.cc/4A79-BMEB](https://perma.cc/4A79-BMEB)
+[^16]: Apache Software Foundation. [Apache Avro 1.12.0 Specification](https://avro.apache.org/docs/1.12.0/specification/). *avro.apache.org*, August 2024. Archived at [perma.cc/C36P-5EBQ](https://perma.cc/C36P-5EBQ)
+[^17]: Apache Software Foundation. [Avro schemas as LL(1) CFG definitions](https://avro.apache.org/docs/1.12.0/api/java/org/apache/avro/io/parsing/doc-files/parsing.html). *avro.apache.org*, August 2024. Archived at [perma.cc/JB44-EM9Q](https://perma.cc/JB44-EM9Q)
+[^18]: Tony Hoare. [Null References: The Billion Dollar Mistake](https://www.infoq.com/presentations/Null-References-The-Billion-Dollar-Mistake-Tony-Hoare/). Talk at *QCon London*, March 2009.
+[^19]: Confluent, Inc. [Schema Registry Overview](https://docs.confluent.io/platform/current/schema-registry/index.html). *docs.confluent.io*, 2024. Archived at [perma.cc/92C3-A9JA](https://perma.cc/92C3-A9JA)
+[^20]: Aditya Auradkar and Tom Quiggle. [Introducing Espresso—LinkedIn’s Hot New Distributed Document Store](https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store). *engineering.linkedin.com*, January 2015. Archived at [perma.cc/FX4P-VW9T](https://perma.cc/FX4P-VW9T)
+[^21]: Jay Kreps. [Putting Apache Kafka to Use: A Practical Guide to Building a Stream Data Platform (Part 2)](https://www.confluent.io/blog/event-streaming-platform-2/). *confluent.io*, February 2015. Archived at [perma.cc/8UA4-ZS5S](https://perma.cc/8UA4-ZS5S)
+[^22]: Gwen Shapira. [The Problem of Managing Schemas](https://www.oreilly.com/content/the-problem-of-managing-schemas/). *oreilly.com*, November 2014. Archived at [perma.cc/BY8Q-RYV3](https://perma.cc/BY8Q-RYV3)
+[^23]: John Larmouth. [*ASN.1 Complete*](https://www.oss.com/asn1/resources/books-whitepapers-pubs/larmouth-asn1-book.pdf). Morgan Kaufmann, 1999. ISBN: 978-0-122-33435-1. Archived at [perma.cc/GB7Y-XSXQ](https://perma.cc/GB7Y-XSXQ)
+[^24]: Burton S. Kaliski Jr. [A Layman’s Guide to a Subset of ASN.1, BER, and DER](https://luca.ntop.org/Teaching/Appunti/asn1.html). Technical Note, RSA Data Security, Inc., November 1993. Archived at [perma.cc/2LMN-W9U8](https://perma.cc/2LMN-W9U8)
+[^25]: Jacob Hoffman-Andrews. [A Warm Welcome to ASN.1 and DER](https://letsencrypt.org/docs/a-warm-welcome-to-asn1-and-der/). *letsencrypt.org*, April 2020. Archived at [perma.cc/CYT2-GPQ8](https://perma.cc/CYT2-GPQ8)
+[^26]: Lev Walkin. [Question: Extensibility and Dropping Fields](https://lionet.info/asn1c/blog/2010/09/21/question-extensibility-removing-fields/). *lionet.info*, September 2010. Archived at [perma.cc/VX8E-NLH3](https://perma.cc/VX8E-NLH3)
+[^27]: Jacqueline Xu. [Online migrations at scale](https://stripe.com/blog/online-migrations). *stripe.com*, February 2017. Archived at [perma.cc/X59W-DK7Y](https://perma.cc/X59W-DK7Y)
+[^28]: Geoffrey Litt, Peter van Hardenberg, and Orion Henry. [Project Cambria: Translate your data with lenses](https://www.inkandswitch.com/cambria/). Technical Report, *Ink & Switch*, October 2020. Archived at [perma.cc/WA4V-VKDB](https://perma.cc/WA4V-VKDB)
+[^29]: Pat Helland. [Data on the Outside Versus Data on the Inside](https://www.cidrdb.org/cidr2005/papers/P12.pdf). At *2nd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2005.
+[^30]: Roy Thomas Fielding. [Architectural Styles and the Design of Network-Based Software Architectures](https://ics.uci.edu/~fielding/pubs/dissertation/fielding_dissertation.pdf). PhD Thesis, University of California, Irvine, 2000. Archived at [perma.cc/LWY9-7BPE](https://perma.cc/LWY9-7BPE)
+[^31]: Roy Thomas Fielding. [REST APIs must be hypertext-driven](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven).” *roy.gbiv.com*, October 2008. Archived at [perma.cc/M2ZW-8ATG](https://perma.cc/M2ZW-8ATG)
+[^32]: [OpenAPI Specification Version 3.1.0](https://swagger.io/specification/). *swagger.io*, February 2021. Archived at [perma.cc/3S6S-K5M4](https://perma.cc/3S6S-K5M4)
+[^33]: Michi Henning. [The Rise and Fall of CORBA](https://cacm.acm.org/practice/the-rise-and-fall-of-corba/). *Communications of the ACM*, volume 51, issue 8, pages 52–57, August 2008. [doi:10.1145/1378704.1378718](https://doi.org/10.1145/1378704.1378718)
+[^34]: Pete Lacey. [The S Stands for Simple](https://harmful.cat-v.org/software/xml/soap/simple). *harmful.cat-v.org*, November 2006. Archived at [perma.cc/4PMK-Z9X7](https://perma.cc/4PMK-Z9X7)
+[^35]: Stefan Tilkov. [Interview: Pete Lacey Criticizes Web Services](https://www.infoq.com/articles/pete-lacey-ws-criticism/). *infoq.com*, December 2006. Archived at [perma.cc/JWF4-XY3P](https://perma.cc/JWF4-XY3P)
+[^36]: Tim Bray. [The Loyal WS-Opposition](https://www.tbray.org/ongoing/When/200x/2004/09/18/WS-Oppo). *tbray.org*, September 2004. Archived at [perma.cc/J5Q8-69Q2](https://perma.cc/J5Q8-69Q2)
+[^37]: Andrew D. Birrell and Bruce Jay Nelson. [Implementing Remote Procedure Calls](https://www.cs.princeton.edu/courses/archive/fall03/cs518/papers/rpc.pdf). *ACM Transactions on Computer Systems* (TOCS), volume 2, issue 1, pages 39–59, February 1984. [doi:10.1145/2080.357392](https://doi.org/10.1145/2080.357392)
+[^38]: Jim Waldo, Geoff Wyant, Ann Wollrath, and Sam Kendall. [A Note on Distributed Computing](https://m.mirror.facebook.net/kde/devel/smli_tr-94-29.pdf). Sun Microsystems Laboratories, Inc., Technical Report TR-94-29, November 1994. Archived at [perma.cc/8LRZ-BSZR](https://perma.cc/8LRZ-BSZR)
+[^39]: Steve Vinoski. [Convenience over Correctness](https://steve.vinoski.net/pdf/IEEE-Convenience_Over_Correctness.pdf). *IEEE Internet Computing*, volume 12, issue 4, pages 89–92, July 2008. [doi:10.1109/MIC.2008.75](https://doi.org/10.1109/MIC.2008.75)
+[^40]: Brandur Leach. [Designing robust and predictable APIs with idempotency](https://stripe.com/blog/idempotency). *stripe.com*, February 2017. Archived at [perma.cc/JD22-XZQT](https://perma.cc/JD22-XZQT)
+[^41]: Sam Rose. [Load Balancing](https://samwho.dev/load-balancing/). *samwho.dev*, April 2023. Archived at [perma.cc/Q7BA-9AE2](https://perma.cc/Q7BA-9AE2)
+[^42]: Troy Hunt. [Your API versioning is wrong, which is why I decided to do it 3 different wrong ways](https://www.troyhunt.com/your-api-versioning-is-wrong-which-is/). *troyhunt.com*, February 2014. Archived at [perma.cc/9DSW-DGR5](https://perma.cc/9DSW-DGR5)
+[^43]: Brandur Leach. [APIs as infrastructure: future-proofing Stripe with versioning](https://stripe.com/blog/api-versioning). *stripe.com*, August 2017. Archived at [perma.cc/L63K-USFW](https://perma.cc/L63K-USFW)
+[^44]: Alexandre Alves, Assaf Arkin, Sid Askary, et al. [Web Services Business Process Execution Language Version 2.0](https://docs.oasis-open.org/wsbpel/2.0/wsbpel-v2.0.html). *docs.oasis-open.org*, April 2007.
+[^45]: [What is a Temporal Service?](https://docs.temporal.io/clusters) *docs.temporal.io*, 2024. Archived at [perma.cc/32P3-CJ9V](https://perma.cc/32P3-CJ9V)
+[^46]: Stephan Ewen. [Why we built Restate](https://restate.dev/blog/why-we-built-restate/). *restate.dev*, August 2023. Archived at [perma.cc/BJJ2-X75K](https://perma.cc/BJJ2-X75K)
+[^47]: Keith Tenzer and Joshua Smith. [Idempotency and Durable Execution](https://temporal.io/blog/idempotency-and-durable-execution). *temporal.io*, February 2024. Archived at [perma.cc/9LGW-PCLU](https://perma.cc/9LGW-PCLU)
+[^48]: [What is a Temporal Workflow?](https://docs.temporal.io/workflows) *docs.temporal.io*, 2024. Archived at [perma.cc/B5C5-Y396](https://perma.cc/B5C5-Y396)
+[^49]: Jack Kleeman. [Solving durable execution’s immutability problem](https://restate.dev/blog/solving-durable-executions-immutability-problem/). *restate.dev*, February 2024. Archived at [perma.cc/G55L-EYH5](https://perma.cc/G55L-EYH5)
+[^50]: Srinath Perera. [Exploring Event-Driven Architecture: A Beginner’s Guide for Cloud Native Developers](https://wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/). *wso2.com*, August 2023. Archived at [archive.org](https://web.archive.org/web/20240716204613/https%3A//wso2.com/blogs/thesource/exploring-event-driven-architecture-a-beginners-guide-for-cloud-native-developers/)
+[^51]: Philip A. Bernstein, Sergey Bykov, Alan Geller, Gabriel Kliot, and Jorgen Thelin. [Orleans: Distributed Virtual Actors for Programmability and Scalability](https://www.microsoft.com/en-us/research/publication/orleans-distributed-virtual-actors-for-programmability-and-scalability/). Microsoft Research Technical Report MSR-TR-2014-41, March 2014. Archived at [perma.cc/PD3U-WDMF](https://perma.cc/PD3U-WDMF) 

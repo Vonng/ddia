@@ -55,17 +55,17 @@ the computer which operations to perform in which order. A declarative query lan
 because it is typically more concise and easier to write than an explicit algorithm. But more
 importantly, it also hides implementation details of the query engine, which makes it possible for
 the database system to introduce performance improvements without requiring any changes to queries.
-[[1](/en/ch3#Brandon2024)].
+[^1].
 
 For example, a database might be able to execute a declarative query in parallel across multiple CPU
 cores and machines, without you having to worry about how to implement that parallelism
-[[2](/en/ch3#Hellerstein2010)].
+[^2].
 In a hand-coded algorithm it would be a lot of work to implement such parallel execution yourself.
 
 # Relational Model versus Document Model
 
 The best-known data model today is probably that of SQL, based on the relational model proposed by
-Edgar Codd in 1970 [[3](/en/ch3#Codd1970)]:
+Edgar Codd in 1970 [^3]:
 data is organized into *relations* (called *tables* in SQL), where each relation is an unordered collection
 of *tuples* (*rows* in SQL).
 
@@ -80,10 +80,10 @@ and early 1980s, the *network model* and the *hierarchical model* were the main 
 the relational model came to dominate them. Object databases came and went again in the late 1980s
 and early 1990s. XML databases appeared in the early 2000s, but have only seen niche adoption. Each
 competitor to the relational model generated a lot of hype in its time, but it never lasted
-[[4](/en/ch3#Stonebraker2005around)].
+[^4].
 Instead, SQL has grown to incorporate other data types besides its relational core—for example,
 adding support for XML, JSON, and graph data
-[[5](/en/ch3#Winand2015)].
+[^5].
 
 In the 2010s, *NoSQL* was the latest buzzword that tried to overthrow the dominance of relational
 databases. NoSQL refers not to a single technology, but a loose set of ideas around new data models,
@@ -122,7 +122,7 @@ reflections and other troubles.
 
 Object-relational mapping (ORM) frameworks like ActiveRecord and Hibernate reduce the amount of
 boilerplate code required for this translation layer, but they are often criticized
-[[6](/en/ch3#Fowler2012)].
+[^6].
 Some commonly cited problems are:
 
 * ORMs are complex and can’t completely hide the differences between the two models, so developers
@@ -137,7 +137,7 @@ Some commonly cited problems are:
   database. Customizing the ORM’s schema and query generation can be complex and negate the benefit
   of using the ORM in the first place.
 * ORMs make it easy to accidentally write inefficient queries, such as the *N+1 query problem*
-  [[7](/en/ch3#Mihalcea2023)].
+  [^7].
   For example, say you want to display a list of user comments on a page, so you perform one query
   that returns *N* comments, each containing the ID of its author. To show the name of the comment
   author you need to look up the ID in the users table. In hand-written SQL you would probably
@@ -213,7 +213,7 @@ The JSON representation has better *locality* than the multi-table schema in
 [Figure 3-1](/en/ch3#fig_obama_relational) (see [“Data locality for reads and writes”](/en/ch3#sec_datamodels_document_locality)). If you want to fetch a profile
 in the relational example, you need to either perform multiple queries (query each table by
 `user_id`) or perform a messy multi-way join between the `users` table and its subordinate tables
-[[8](/en/ch3#Schauder2023)].
+[^8].
 In the JSON representation, all the relevant information is in one place, making the query both
 faster and simpler.
 
@@ -314,7 +314,7 @@ name:
 * In a denormalized representation, we would include the image URL of the logo on every individual
   person’s profile; this makes the JSON document self-contained, but it creates a headache if we
   ever need to change the logo, because we now need to find all of the occurrences of the old URL
-  and update them [[9](/en/ch3#Zola2014)].
+  and update them [^9].
 * In a normalized representation, we would create an entity representing an organization or school,
   and store its name, logo URL, and perhaps other attributes (description, news feed, etc.) once on
   that entity. Every résumé that mentions the organization would then simply reference its ID, and
@@ -350,7 +350,7 @@ denormalized representation consistent.
 However, the implementation of materialized timelines at X (formerly Twitter) does not store the
 actual text of each post: each entry actually only stores the post ID, the ID of the user who posted
 it, and a little bit of extra information to identify reposts and replies
-[[11](/en/ch3#Krikorian2012_ch3)].
+[^11].
 In other words, it is a precomputed result of (approximately) the following query:
 
 ```
@@ -366,7 +366,7 @@ the post ID to fetch the actual post content (as well as statistics such as the 
 and replies), and look up the sender’s profile by ID (to get their username, profile picture, and
 other details). This process of looking up the human-readable information by ID is called
 *hydrating* the IDs, and it is essentially a join performed in application code
-[[11](/en/ch3#Krikorian2012_ch3)].
+[^11].
 
 The reason for storing only IDs in the precomputed timeline is that the data they refer to is
 fast-changing: the number of likes and replies may change multiple times per second on a popular
@@ -453,7 +453,7 @@ support are able to create such indexes on values inside a document.
 Data warehouses (see [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) are usually relational, and there are a few
 widely-used conventions for the structure of tables in a data warehouse: a *star schema*,
 *snowflake schema*, *dimensional modeling*
-[[12](/en/ch3#Kimball2013_ch3)],
+[^12],
 and *one big table* (OBT). These structures are optimized for the needs of business analysts. ETL
 processes translate data from operational systems into this schema.
 
@@ -498,7 +498,7 @@ product categories, and each row in the `dim_product` table could reference the 
 as foreign keys, rather than storing them as strings in the `dim_product` table. Snowflake schemas
 are more normalized than star schemas, but star schemas are often preferred because
 they are simpler for analysts to work with
-[[12](/en/ch3#Kimball2013_ch3)].
+[^12].
 
 In a typical data warehouse, tables are often quite wide: fact tables often have over 100 columns,
 sometimes several hundred. Dimension tables can also be wide, as they include all the metadata that
@@ -519,7 +519,7 @@ Some data warehouse schemas take denormalization even further and leave out the 
 entirely, folding the information in the dimensions into denormalized columns on the fact table
 instead (essentially, precomputing the join between the fact table and the dimension tables). This
 approach is known as *one big table* (OBT), and while it requires more storage space, it sometimes
-enables faster queries [[13](/en/ch3#Kaminsky2022)].
+enables faster queries [^13].
 
 In the context of analytics, such denormalization is unproblematic, since the data typically
 represents a log of historical data that is not going to change (except maybe for occasionally
@@ -564,23 +564,23 @@ reading, clients have no guarantees as to what fields the documents may contain.
 
 Document databases are sometimes called *schemaless*, but that’s misleading, as the code that reads
 the data usually assumes some kind of structure—i.e., there is an implicit schema, but it is not
-enforced by the database [[17](/en/ch3#Schemaless)].
+enforced by the database [^17].
 A more accurate term is *schema-on-read* (the structure of the data is implicit, and only
 interpreted when the data is read), in contrast with *schema-on-write* (the traditional approach of
 relational databases, where the schema is explicit and the database ensures all data conforms to it
-when the data is written) [[18](/en/ch3#Awadallah2009)].
+when the data is written) [^18].
 
 Schema-on-read is similar to dynamic (runtime) type checking in programming languages, whereas
 schema-on-write is similar to static (compile-time) type checking. Just as the advocates of static
 and dynamic type checking have big debates about their relative merits
-[[19](/en/ch3#Odersky2013)],
+[^19],
 enforcement of schemas in database is a contentious topic, and in general there’s no right or wrong
 answer.
 
 The difference between the approaches is particularly noticeable in situations where an application
 wants to change the format of its data. For example, say you are currently storing each user’s full
 name in one field, and you instead want to store the first name and last name separately
-[[20](/en/ch3#Irwin2013)].
+[^20].
 In a document database, you would just start writing new documents with the new fields and have
 code in the application that handles the case when old documents are read. For example:
 
@@ -647,12 +647,12 @@ However, the idea of storing related data together for locality is not limited t
 model. For example, Google’s Spanner database offers the same locality properties in a relational
 data model, by allowing the schema to declare that a table’s rows should be interleaved (nested)
 within a parent table
-[[25](/en/ch3#Corbett2012_ch2)].
+[^25].
 Oracle allows the same, using a feature called *multi-table index cluster tables*
-[[26](/en/ch3#BurlesonCluster)].
+[^26].
 The *wide-column* data model popularized by Google’s Bigtable, and used e.g. in HBase and Accumulo,
 has a concept of *column families*, which have a similar purpose of managing locality
-[[27](/en/ch3#Chang2006_ch3)].
+[^27].
 
 ### Query languages for documents
 
@@ -663,9 +663,9 @@ to query for values inside documents, and some provide rich query languages.
 
 XML databases are often queried using XQuery and XPath, which are designed to allow complex queries,
 including joins across multiple documents, and also format their results as XML
-[[28](/en/ch3#Walmsley2015)]. JSON Pointer
-[[29](/en/ch3#Bryan2013)] and JSONPath
-[[30](/en/ch3#Goessner2024)] provide an equivalent to XPath for JSON.
+[^28]. JSON Pointer
+[^29] and JSONPath
+[^30] provide an equivalent to XPath for JSON.
 
 MongoDB’s aggregation pipeline, whose `$lookup` operator for joins we saw in
 [“Normalization, Denormalization, and Joins”](/en/ch3#sec_datamodels_normalization), is an example of a query language for collections of JSON
@@ -716,7 +716,7 @@ matter of taste.
 
 Document databases and relational databases started out as very different approaches to data
 management, but they have grown more similar over time
-[[31](/en/ch3#Stonebraker2024)].
+[^31].
 Relational databases added support for JSON types and query operators, and the ability to index
 properties inside documents. Some document databases (such as MongoDB, Couchbase, and RethinkDB)
 added support for joins, secondary indexes, and declarative query languages.
@@ -730,7 +730,7 @@ combination.
 ###### Note
 
 Codd’s original description of the relational model
-[[3](/en/ch3#Codd1970)] actually allowed something similar to JSON
+[^3] actually allowed something similar to JSON
 within a relational schema. He called it *nonsimple domains*. The idea was that a value in a row
 doesn’t have to just be a primitive datatype like a number or a string, but it could also be a
 nested relation (table)—so you can have an arbitrarily nested tree structure as a value, much like
@@ -763,7 +763,7 @@ Well-known algorithms can operate on these graphs: for example, map navigation a
 the shortest path between two points in a road network, and
 PageRank can be used on the web graph to determine the
 popularity of a web page and thus its ranking in search results
-[[32](/en/ch3#Page1999)].
+[^32].
 
 Graphs can be represented in several different ways. In the *adjacency list* model, each vertex
 stores the IDs of its neighbor vertices that are one edge away. Alternatively, you can use an
@@ -781,24 +781,24 @@ types of objects in a single database. For example:
   represent people, locations, events, checkins, and comments made by users; edges indicate which
   people are friends with each other, which checkin happened in which location, who commented on
   which post, who attended which event, and so on
-  [[33](/en/ch3#Bronson2013)].
+  [^33].
 * Knowledge graphs are used by search engines to record facts about entities that often occur in
   search queries, such as organizations, people, and places
-  [[34](/en/ch3#Noy2019)].
+  [^34].
   This information is obtained by crawling and analyzing the text on websites; some websites, such
   as Wikidata, also publish graph data in a structured form.
 
 There are several different, but related, ways of structuring and querying data in graphs. In this
 section we will discuss the *property graph* model (implemented by Neo4j, Memgraph, KùzuDB
-[[35](/en/ch3#Feng2023)],
-and others [[36](/en/ch3#Besta2019)])
+[^35],
+and others [^36])
 and the *triple-store* model (implemented by Datomic, AllegroGraph, Blazegraph, and others). These
 models are fairly similar in what they can express, and some graph databases (such as Amazon
 Neptune) support both models.
 
 We will also look at four query languages for graphs (Cypher, SPARQL, Datalog, and GraphQL), as well
 as SQL support for querying graphs. Other graph query languages exist, such as Gremlin
-[[37](/en/ch3#TinkerPop2023)],
+[^37],
 but these will give us a representative overview.
 
 To illustrate these different languages and models, this section uses the graph shown in
@@ -902,12 +902,12 @@ extended to accommodate changes in your application’s data structures.
 
 *Cypher* is a query language for property graphs, originally created for the Neo4j graph database,
 and later developed into an open standard as *openCypher*
-[[38](/en/ch3#Francis2018)].
+[^38].
 Besides Neo4j, Cypher is supported by Memgraph, KùzuDB
-[[35](/en/ch3#Feng2023)],
+[^35],
 Amazon Neptune, Apache AGE (with storage in PostgreSQL), and others. It is named after a character
 in the movie *The Matrix* and is not related to ciphers in cryptography
-[[39](/en/ch3#EifremTweet)].
+[^39].
 
 [Example 3-4](/en/ch3#fig_cypher_create) shows the Cypher query to insert the lefthand portion of
 [Figure 3-6](/en/ch3#fig_datamodels_graph) into a graph database. The rest of the graph can be added similarly. Each
@@ -1069,17 +1069,17 @@ JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
 The fact that a 4-line Cypher query requires 31 lines in SQL shows how much of a difference the
 right choice of data model and query language can make. And this is just the beginning; there are
 more details to consider, e.g., around handling cycles, and choosing between breadth-first or
-depth-first traversal [[40](/en/ch3#Tisiot2021)].
+depth-first traversal [^40].
 
 Oracle has a different SQL extension for recursive queries, which it calls *hierarchical*
-[[41](/en/ch3#Goel2020)].
+[^41].
 
 However, the situation may be improving: at the time of writing, there are plans to add a graph
 query language called GQL to the SQL standard [[42](/en/ch3#Deutsch2022),
 [43](/en/ch3#Green2019)],
 which will provide a syntax inspired by Cypher, GSQL
-[[44](/en/ch3#Deutsch2018)], and PGQL
-[[45](/en/ch3#vanRest2016)].
+[^44], and PGQL
+[^45].
 
 ## Triple-Stores and SPARQL
 
@@ -1107,15 +1107,15 @@ The subject of a triple is equivalent to a vertex in a graph. The object is one 
 
 To be precise, databases that offer a triple-like data model often need to store some additional
 metadata on each tuple. For example, AWS Neptune uses quads (4-tuples) by adding a graph ID to each
-triple [[46](/en/ch3#NeptuneDataModel)];
+triple [^46];
 Datomic uses 5-tuples, extending each triple with a transaction ID and a boolean to indicate
-deletion [[47](/en/ch3#DatomicDataModel)].
+deletion [^47].
 Since these databases retain the basic *subject-predicate-object* structure explained above, this
 book nevertheless calls them triple-stores.
 
 [Example 3-7](/en/ch3#fig_graph_n3_triples) shows the same data as in [Example 3-4](/en/ch3#fig_cypher_create), written as
 triples in a format called *Turtle*, a subset of *Notation3* (*N3*)
-[[48](/en/ch3#Beckett2011)].
+[^48].
 
 ##### Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples
 
@@ -1166,13 +1166,13 @@ Web as originally envisioned did not succeed
 [[49](/en/ch3#Target2018),
 [50](/en/ch3#MendelGleason2022)],
 the legacy of the Semantic Web project lives on in a couple of specific technologies: *linked data*
-standards such as JSON-LD [[51](/en/ch3#Sporny2014)],
+standards such as JSON-LD [^51],
 *ontologies* used in biomedical science
-[[52](/en/ch3#MichiganOntologies)],
+[^52],
 Facebook’s Open Graph protocol
-[[53](/en/ch3#OpenGraph)]
+[^53]
 (which is used for link unfurling
-[[54](/en/ch3#Haughey2015)]),
+[^54]),
 knowledge graphs such as Wikidata, and standardized vocabularies for structured data maintained by
 [`schema.org`](https://schema.org/).
 
@@ -1184,7 +1184,7 @@ for applications.
 
 The Turtle language we used in [Example 3-8](/en/ch3#fig_graph_n3_shorthand) is actually a way of encoding data in the
 *Resource Description Framework* (RDF)
-[[55](/en/ch3#W3CRDF)],
+[^55],
 a data model that was designed for the Semantic Web. RDF data can also be encoded in other ways, for
 example (more verbosely) in XML, as shown in [Example 3-9](/en/ch3#fig_graph_rdf_xml). Tools like Apache Jena can
 automatically convert between different RDF encodings.
@@ -1235,7 +1235,7 @@ just specify this prefix once at the top of the file, and then forget about it.
 ### The SPARQL query language
 
 *SPARQL* is a query language for triple-stores using the RDF data model
-[[56](/en/ch3#Harris2013)].
+[^56].
 (It is an acronym for *SPARQL Protocol and RDF Query Language*, pronounced “sparkle.”)
 It predates Cypher, and since Cypher’s pattern matching is borrowed from SPARQL, they look quite
 similar.
@@ -1275,7 +1275,7 @@ bound to any vertex that has a `name` property whose value is the string `"Unite
 ```
 
 SPARQL is supported by Amazon Neptune, AllegroGraph, Blazegraph, OpenLink Virtuoso, Apache Jena, and
-various other triple stores [[36](/en/ch3#Besta2019)].
+various other triple stores [^36].
 
 ## Datalog: Recursive Relational Queries
 
@@ -1286,7 +1286,7 @@ Datalog is a much older language than SPARQL or Cypher: it arose from academic r
 It is less well known among software engineers and not widely supported in mainstream databases, but
 it ought to be better-known since it is a very expressive language that is particularly powerful for
 complex queries. Several niche databases, including Datomic, LogicBlox, CozoDB, and LinkedIn’s
-LIquid [[60](/en/ch3#Meyer2020)] use Datalog as
+LIquid [^60] use Datalog as
 their query language.
 
 Datalog is actually based on a relational data model, not a graph, but it appears in the graph
@@ -1403,7 +1403,7 @@ APIs.
 GraphQL’s flexibility comes at a cost. Organizations that adopt GraphQL often need tooling to
 convert GraphQL queries into requests to internal services, which often use REST or gRPC (see
 [Chapter 5](/en/ch5#ch_encoding)). Authorization, rate limiting, and performance challenges are additional concerns
-[[61](/en/ch3#Bessey2024)].
+[^61].
 GraphQL’s query language is also limited since GraphQL come from an untrusted source. The language
 does not allow anything that could be expensive to execute, since otherwise users could perform
 denial-of-service attacks on a server by running lots of expensive queries. In particular, GraphQL
@@ -1547,7 +1547,7 @@ known as *event sourcing* [[62](/en/ch3#Betts2012),
 [63](/en/ch3#Young2014)].
 The principle of maintaining separate read-optimized representations and deriving them from the
 write-optimized representation is called *command query responsibility segregation (CQRS)*
-[[64](/en/ch3#Young2010)].
+[^64].
 These terms originated in the domain-driven design (DDD) community, although similar ideas have been
 around for a long time, for example in *state machine replication* (see [“Using shared logs”](/en/ch10#sec_consistency_smr)).
 
@@ -1661,7 +1661,7 @@ users.
 
 Dataframe APIs also offer a wide variety of operations that go far beyond what relational databases
 offer, and the data model is often used in ways that are very different from typical relational data
-modelling [[65](/en/ch3#Petersohn2020)].
+modelling [^65].
 For example, a common use of dataframes is to transform data from a relational-like representation
 into a matrix or multidimensional array representation, which is the form that many machine learning
 algorithms expect of their input.
@@ -1698,14 +1698,14 @@ into a matrix representation, while giving the data scientist control over the r
 is most suitable for achieving the goals of the data analysis or model training process.
 
 There are also databases such as TileDB
-[[66](/en/ch3#Papadopoulos2016)]
+[^66]
 that specialize in storing large multidimensional arrays of numbers; they are called *array
 databases* and are most commonly used for scientific datasets such as geospatial measurements
 (raster data on a regularly spaced grid), medical imaging, or observations from astronomical
-telescopes [[67](/en/ch3#Rusu2022)].
+telescopes [^67].
 Dataframes are also used in the financial industry for representing *time series data*, such as the
 prices of assets and trades over time
-[[68](/en/ch3#Targett2023)].
+[^68].
 
 # Summary
 
@@ -1757,7 +1757,7 @@ a few brief examples:
   means taking one very long string (representing a DNA molecule) and matching it against a large
   database of strings that are similar, but not identical. None of the databases described here can
   handle this kind of usage, which is why researchers have written specialized genome database
-  software like GenBank [[69](/en/ch3#Benson2007)].
+  software like GenBank [^69].
 * Many financial systems use *ledgers* with double-entry accounting as their data model. This type
   of data can be represented in relational databases, but there are also databases such as
   TigerBeetle that specialize in this data model. Cryptocurrencies and blockchains are typically
@@ -1771,361 +1771,78 @@ come into play when *implementing* the data models described in this chapter.
 
 ##### Footnotes
 
+
 ##### References
 
-[[1](/en/ch3#Brandon2024-marker)] Jamie Brandon.
-[Unexplanations:
-query optimization works because sql is declarative](https://www.scattered-thoughts.net/writing/unexplanations-sql-declarative/). *scattered-thoughts.net*, February 2024.
-Archived at [perma.cc/P6W2-WMFZ](https://perma.cc/P6W2-WMFZ)
 
-[[2](/en/ch3#Hellerstein2010-marker)] Joseph M. Hellerstein.
-[The Declarative
-Imperative: Experiences and Conjectures in Distributed Logic](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf). Tech report UCB/EECS-2010-90,
-Electrical Engineering and Computer Sciences, University of California at Berkeley, June 2010.
-Archived at [perma.cc/K56R-VVQM](https://perma.cc/K56R-VVQM)
 
-[[3](/en/ch3#Codd1970-marker)] Edgar F. Codd.
-[A Relational Model of Data for Large
-Shared Data Banks](https://www.seas.upenn.edu/~zives/03f/cis550/codd.pdf). *Communications of the ACM*, volume 13, issue 6, pages 377–387, June 1970.
-[doi:10.1145/362384.362685](https://doi.org/10.1145/362384.362685)
 
-[[4](/en/ch3#Stonebraker2005around-marker)] Michael Stonebraker and Joseph M. Hellerstein.
-[What Goes Around Comes Around](http://mitpress2.mit.edu/books/chapters/0262693143chapm1.pdf).
-In *Readings in Database Systems*, 4th edition, MIT Press, pages 2–41, 2005.
-ISBN: 9780262693141
-
-[[5](/en/ch3#Winand2015-marker)] Markus Winand.
-[Modern SQL: Beyond Relational](https://modern-sql.com/). *modern-sql.com*, 2015.
-Archived at [perma.cc/D63V-WAPN](https://perma.cc/D63V-WAPN)
-
-[[6](/en/ch3#Fowler2012-marker)] Martin Fowler.
-[OrmHate](https://martinfowler.com/bliki/OrmHate.html). *martinfowler.com*, May
-2012. Archived at [perma.cc/VCM8-PKNG](https://perma.cc/VCM8-PKNG)
-
-[[7](/en/ch3#Mihalcea2023-marker)] Vlad Mihalcea.
-[N+1 query problem with JPA and Hibernate](https://vladmihalcea.com/n-plus-1-query-problem/).
-*vladmihalcea.com*, January 2023.
-Archived at [perma.cc/79EV-TZKB](https://perma.cc/79EV-TZKB)
-
-[[8](/en/ch3#Schauder2023-marker)] Jens Schauder.
-[This
-is the Beginning of the End of the N+1 Problem: Introducing Single Query Loading](https://spring.io/blog/2023/08/31/this-is-the-beginning-of-the-end-of-the-n-1-problem-introducing-single-query). *spring.io*, August 2023.
-Archived at [perma.cc/6V96-R333](https://perma.cc/6V96-R333)
-
-[[9](/en/ch3#Zola2014-marker)] William Zola.
-[6 Rules of
-Thumb for MongoDB Schema Design](https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design). *mongodb.com*, June 2014.
-Archived at [perma.cc/T2BZ-PPJB](https://perma.cc/T2BZ-PPJB)
-
-[[10](/en/ch3#Andrews2023-marker)] Sidney Andrews and Christopher McClister.
-[Data modeling in
-Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data). *learn.microsoft.com*, February 2023. Archived at
-[archive.org](https://web.archive.org/web/20230207193233/https%3A//learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data)
-
-[[11](/en/ch3#Krikorian2012_ch3-marker)] Raffi Krikorian.
-[Timelines at Scale](https://www.infoq.com/presentations/Twitter-Timeline-Scalability/).
-At *QCon San Francisco*, November 2012.
-Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK)
-
-[[12](/en/ch3#Kimball2013_ch3-marker)] Ralph Kimball and Margy Ross.
-[*The Data
-Warehouse Toolkit: The Definitive Guide to Dimensional Modeling*](https://learning.oreilly.com/library/view/the-data-warehouse/9781118530801/),
-3rd edition. John Wiley & Sons, July 2013. ISBN: 9781118530801
-
-[[13](/en/ch3#Kaminsky2022-marker)] Michael Kaminsky.
-[Data warehouse modeling: Star schema vs.
-OBT](https://www.fivetran.com/blog/star-schema-vs-obt). *fivetran.com*, August 2022.
-Archived at [perma.cc/2PZK-BFFP](https://perma.cc/2PZK-BFFP)
-
-[[14](/en/ch3#Nelson2018-marker)] Joe Nelson.
-[User-defined Order in
-SQL](https://begriffs.com/posts/2018-03-20-user-defined-order.html). *begriffs.com*, March 2018.
-Archived at [perma.cc/GS3W-F7AD](https://perma.cc/GS3W-F7AD)
-
-[[15](/en/ch3#Wallace2017-marker)] Evan Wallace.
-[Realtime Editing of
-Ordered Sequences](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/). *figma.com*, March 2017.
-Archived at [perma.cc/K6ER-CQZW](https://perma.cc/K6ER-CQZW)
-
-[[16](/en/ch3#Greenspan2020-marker)] David Greenspan.
-[Implementing
-Fractional Indexing](https://observablehq.com/%40dgreensp/implementing-fractional-indexing). *observablehq.com*, October 2020.
-Archived at [perma.cc/5N4R-MREN](https://perma.cc/5N4R-MREN)
-
-[[17](/en/ch3#Schemaless-marker)] Martin Fowler.
-[Schemaless Data Structures](https://martinfowler.com/articles/schemaless/).
-*martinfowler.com*, January 2013.
-
-[[18](/en/ch3#Awadallah2009-marker)] Amr Awadallah.
-[Schema-on-Read vs.
-Schema-on-Write](https://www.slideshare.net/awadallah/schemaonread-vs-schemaonwrite). At *Berkeley EECS RAD Lab Retreat*, Santa Cruz, CA, May 2009.
-Archived at [perma.cc/DTB2-JCFR](https://perma.cc/DTB2-JCFR)
-
-[[19](/en/ch3#Odersky2013-marker)] Martin Odersky.
-[The Trouble with Types](https://www.infoq.com/presentations/data-types-issues/).
-At *Strange Loop*, September 2013.
-Archived at [perma.cc/85QE-PVEP](https://perma.cc/85QE-PVEP)
-
-[[20](/en/ch3#Irwin2013-marker)] Conrad Irwin.
-[MongoDB—Confessions
-of a PostgreSQL Lover](https://speakerdeck.com/conradirwin/mongodb-confessions-of-a-postgresql-lover). At *HTML5DevConf*, October 2013.
-Archived at [perma.cc/C2J6-3AL5](https://perma.cc/C2J6-3AL5)
-
-[[21](/en/ch3#Percona2023-marker)] [Percona
-Toolkit Documentation: pt-online-schema-change](https://docs.percona.com/percona-toolkit/pt-online-schema-change.html). *docs.percona.com*, 2023.
-Archived at [perma.cc/9K8R-E5UH](https://perma.cc/9K8R-E5UH)
-
-[[22](/en/ch3#Noach2016-marker)] Shlomi Noach.
-[gh-ost:
-GitHub’s Online Schema Migration Tool for MySQL](https://github.blog/2016-08-01-gh-ost-github-s-online-migration-tool-for-mysql/). *github.blog*, August 2016.
-Archived at [perma.cc/7XAG-XB72](https://perma.cc/7XAG-XB72)
-
-[[23](/en/ch3#Mukherjee2022-marker)] Shayon Mukherjee.
-[pg-osc:
-Zero downtime schema changes in PostgreSQL](https://www.shayon.dev/post/2022/47/pg-osc-zero-downtime-schema-changes-in-postgresql/). *shayon.dev*, February 2022.
-Archived at [perma.cc/35WN-7WMY](https://perma.cc/35WN-7WMY)
-
-[[24](/en/ch3#PerezAradros2023-marker)] Carlos Pérez-Aradros Herce.
-[Introducing pgroll: zero-downtime,
-reversible, schema migrations for Postgres](https://xata.io/blog/pgroll-schema-migrations-postgres). *xata.io*, October 2023. Archived at
-[archive.org](https://web.archive.org/web/20231008161750/https%3A//xata.io/blog/pgroll-schema-migrations-postgres)
-
-[[25](/en/ch3#Corbett2012_ch2-marker)] James C. Corbett, Jeffrey Dean, Michael
-Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher
-Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd,
-Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford,
-Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang.
-[Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/).
-At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI),
-October 2012.
-
-[[26](/en/ch3#BurlesonCluster-marker)] Donald K. Burleson.
-[Reduce I/O with Oracle
-Cluster Tables](http://www.dba-oracle.com/oracle_tip_hash_index_cluster_table.htm). *dba-oracle.com*.
-Archived at [perma.cc/7LBJ-9X2C](https://perma.cc/7LBJ-9X2C)
-
-[[27](/en/ch3#Chang2006_ch3-marker)] Fay Chang, Jeffrey Dean, Sanjay Ghemawat,
-Wilson C. Hsieh, Deborah A. Wallach, Mike Burrows, Tushar Chandra, Andrew Fikes, and Robert E. Gruber.
-[Bigtable: A Distributed Storage System for
-Structured Data](https://research.google/pubs/pub27898/). At *7th USENIX Symposium on Operating System Design and Implementation*
-(OSDI), November 2006.
-
-[[28](/en/ch3#Walmsley2015-marker)] Priscilla Walmsley.
-[*XQuery,
-2nd Edition*](https://learning.oreilly.com/library/view/xquery-2nd-edition/9781491915080/). O’Reilly Media, December 2015. ISBN: 9781491915080
-
-[[29](/en/ch3#Bryan2013-marker)] Paul C. Bryan, Kris Zyp, and Mark Nottingham.
-[JavaScript Object Notation (JSON) Pointer](https://www.rfc-editor.org/rfc/rfc6901).
-RFC 6901, IETF, April 2013.
-
-[[30](/en/ch3#Goessner2024-marker)] Stefan Gössner, Glyn Normington, and Carsten Bormann.
-[JSONPath: Query Expressions for JSON](https://www.rfc-editor.org/rfc/rfc9535.html).
-RFC 9535, IETF, February 2024.
-
-[[31](/en/ch3#Stonebraker2024-marker)] Michael Stonebraker and Andrew Pavlo.
-[What Goes Around Comes
-Around… And Around…](https://db.cs.cmu.edu/papers/2024/whatgoesaround-sigmodrec2024.pdf). *ACM SIGMOD Record*, volume 53, issue 2, pages 21–37.
-[doi:10.1145/3685980.3685984](https://doi.org/10.1145/3685980.3685984)
-
-[[32](/en/ch3#Page1999-marker)] Lawrence Page, Sergey Brin, Rajeev Motwani, and Terry Winograd.
-[The PageRank Citation Ranking: Bringing Order to the Web](http://ilpubs.stanford.edu:8090/422/).
-Technical Report 1999-66, Stanford University InfoLab, November 1999.
-Archived at [perma.cc/UML9-UZHW](https://perma.cc/UML9-UZHW)
-
-[[33](/en/ch3#Bronson2013-marker)] Nathan Bronson, Zach Amsden, George Cabrera,
-Prasad Chakka, Peter Dimov, Hui Ding, Jack Ferris, Anthony Giardullo, Sachin Kulkarni, Harry Li,
-Mark Marchukov, Dmitri Petrov, Lovro Puzar, Yee Jiun Song, and Venkat Venkataramani.
-[TAO:
-Facebook’s Distributed Data Store for the Social Graph](https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson). At *USENIX Annual Technical
-Conference* (ATC), June 2013.
-
-[[34](/en/ch3#Noy2019-marker)] Natasha Noy, Yuqing Gao, Anshu Jain, Anant Narayanan,
-Alan Patterson, and Jamie Taylor.
-[Industry-Scale
-Knowledge Graphs: Lessons and Challenges](https://cacm.acm.org/magazines/2019/8/238342-industry-scale-knowledge-graphs/fulltext). *Communications of the ACM*, volume 62, issue
-8, pages 36–43, August 2019.
-[doi:10.1145/3331166](https://doi.org/10.1145/3331166)
-
-[[35](/en/ch3#Feng2023-marker)] Xiyang Feng, Guodong Jin, Ziyi Chen, Chang Liu, and Semih Salihoğlu.
-[KÙZU Graph Database Management System](https://www.cidrdb.org/cidr2023/papers/p48-jin.pdf).
-At *3th Annual Conference on Innovative Data Systems Research* (CIDR 2023), January 2023.
-
-[[36](/en/ch3#Besta2019-marker)] Maciej Besta, Emanuel Peter, Robert
-Gerstenberger, Marc Fischer, Michał Podstawski, Claude Barthels, Gustavo Alonso, Torsten Hoefler.
-[Demystifying Graph Databases: Analysis and Taxonomy
-of Data Organization, System Designs, and Graph Queries](https://arxiv.org/pdf/1910.09017.pdf). *arxiv.org*, October 2019.
-
-[[37](/en/ch3#TinkerPop2023-marker)] [Apache
-TinkerPop 3.6.3 Documentation](https://tinkerpop.apache.org/docs/3.6.3/reference/). *tinkerpop.apache.org*, May 2023.
-Archived at [perma.cc/KM7W-7PAT](https://perma.cc/KM7W-7PAT)
-
-[[38](/en/ch3#Francis2018-marker)] Nadime Francis, Alastair Green, Paolo Guagliardo,
-Leonid Libkin, Tobias Lindaaker, Victor Marsault, Stefan Plantikow, Mats Rydberg, Petra Selmer, and
-Andrés Taylor. [Cypher: An Evolving Query
-Language for Property Graphs](https://core.ac.uk/download/pdf/158372754.pdf). At *International Conference on Management of Data*
-(SIGMOD), pages 1433–1445, May 2018.
-[doi:10.1145/3183713.3190657](https://doi.org/10.1145/3183713.3190657)
-
-[[39](/en/ch3#EifremTweet-marker)] Emil Eifrem.
-[Twitter correspondence](https://twitter.com/emileifrem/status/419107961512804352),
-January 2014. Archived at [perma.cc/WM4S-BW64](https://perma.cc/WM4S-BW64)
-
-[[40](/en/ch3#Tisiot2021-marker)] Francesco Tisiot.
-[Explore
-the new SEARCH and CYCLE features in PostgreSQL® 14](https://aiven.io/blog/explore-the-new-search-and-cycle-features-in-postgresql-14). *aiven.io*, December 2021.
-Archived at [perma.cc/J6BT-83UZ](https://perma.cc/J6BT-83UZ)
-
-[[41](/en/ch3#Goel2020-marker)] Gaurav Goel.
-[Understanding
-Hierarchies in Oracle](https://towardsdatascience.com/understanding-hierarchies-in-oracle-43f85561f3d9). *towardsdatascience.com*, May 2020.
-Archived at [perma.cc/5ZLR-Q7EW](https://perma.cc/5ZLR-Q7EW)
-
-[[42](/en/ch3#Deutsch2022-marker)] Alin
-Deutsch, Nadime Francis, Alastair Green, Keith Hare, Bei Li, Leonid Libkin, Tobias Lindaaker, Victor
-Marsault, Wim Martens, Jan Michels, Filip Murlak, Stefan Plantikow, Petra Selmer, Oskar van Rest,
-Hannes Voigt, Domagoj Vrgoč, Mingxi Wu, and Fred Zemke.
-[Graph Pattern Matching in GQL and SQL/PGQ](https://arxiv.org/abs/2112.06217).
-At *International Conference on Management of Data* (SIGMOD), pages 2246–2258, June 2022.
-[doi:10.1145/3514221.3526057](https://doi.org/10.1145/3514221.3526057)
-
-[[43](/en/ch3#Green2019-marker)] Alastair Green.
-[SQL... and now GQL](https://opencypher.org/articles/2019/09/12/SQL-and-now-GQL/).
-*opencypher.org*, September 2019.
-Archived at [perma.cc/AFB2-3SY7](https://perma.cc/AFB2-3SY7)
-
-[[44](/en/ch3#Deutsch2018-marker)] Alin Deutsch, Yu Xu, and Mingxi Wu.
-[Seamless
-Syntactic and Semantic Integration of Query Primitives over Relational and Graph Data in GSQL](https://cdn2.hubspot.net/hubfs/4114546/IntegrationQuery%20PrimitivesGSQL.pdf).
-*tigergraph.com*, November 2018.
-Archived at [perma.cc/JG7J-Y35X](https://perma.cc/JG7J-Y35X)
-
-[[45](/en/ch3#vanRest2016-marker)] Oskar van Rest, Sungpack Hong, Jinha Kim, Xuming
-Meng, and Hassan Chafi. [PGQL: a property
-graph query language](https://event.cwi.nl/grades/2016/07-VanRest.pdf). At *4th International Workshop on Graph Data Management Experiences and
-Systems* (GRADES), June 2016.
-[doi:10.1145/2960414.2960421](https://doi.org/10.1145/2960414.2960421)
-
-[[46](/en/ch3#NeptuneDataModel-marker)] Amazon Web Services.
-[Neptune
-Graph Data Model](https://docs.aws.amazon.com/neptune/latest/userguide/feature-overview-data-model.html). Amazon Neptune User Guide, *docs.aws.amazon.com*.
-Archived at [perma.cc/CX3T-EZU9](https://perma.cc/CX3T-EZU9)
-
-[[47](/en/ch3#DatomicDataModel-marker)] Cognitect.
-[Datomic Data Model](https://docs.datomic.com/cloud/whatis/data-model.html).
-Datomic Cloud Documentation, *docs.datomic.com*.
-Archived at [perma.cc/LGM9-LEUT](https://perma.cc/LGM9-LEUT)
-
-[[48](/en/ch3#Beckett2011-marker)] David Beckett and Tim Berners-Lee.
-[Turtle – Terse RDF Triple Language](https://www.w3.org/TeamSubmission/turtle/).
-W3C Team Submission, March 2011.
-
-[[49](/en/ch3#Target2018-marker)] Sinclair Target.
-[Whatever Happened to the Semantic
-Web?](https://twobithistory.org/2018/05/27/semantic-web.html) *twobithistory.org*, May 2018.
-Archived at [perma.cc/M8GL-9KHS](https://perma.cc/M8GL-9KHS)
-
-[[50](/en/ch3#MendelGleason2022-marker)] Gavin Mendel-Gleason.
-[The Semantic Web is Dead – Long Live
-the Semantic Web!](https://terminusdb.com/blog/the-semantic-web-is-dead/) *terminusdb.com*, August 2022.
-Archived at [perma.cc/G2MZ-DSS3](https://perma.cc/G2MZ-DSS3)
-
-[[51](/en/ch3#Sporny2014-marker)] Manu Sporny.
-[JSON-LD and Why I Hate the Semantic Web](http://manu.sporny.org/2014/json-ld-origins-2/).
-*manu.sporny.org*, January 2014.
-Archived at [perma.cc/7PT4-PJKF](https://perma.cc/7PT4-PJKF)
-
-[[52](/en/ch3#MichiganOntologies-marker)] University of Michigan Library.
-[Biomedical Ontologies and Controlled Vocabularies](https://guides.lib.umich.edu/ontology),
-*guides.lib.umich.edu/ontology*.
-Archived at [perma.cc/Q5GA-F2N8](https://perma.cc/Q5GA-F2N8)
-
-[[53](/en/ch3#OpenGraph-marker)] Facebook.
-[The Open Graph protocol](https://ogp.me/), *ogp.me*.
-Archived at [perma.cc/C49A-GUSY](https://perma.cc/C49A-GUSY)
-
-[[54](/en/ch3#Haughey2015-marker)] Matt Haughey.
-[Everything
-you ever wanted to know about unfurling but were afraid to ask /or/ How to make your site previews
-look amazing in Slack](https://medium.com/slack-developer-blog/everything-you-ever-wanted-to-know-about-unfurling-but-were-afraid-to-ask-or-how-to-make-your-e64b4bb9254). *medium.com*, November 2015.
-Archived at [perma.cc/C7S8-4PZN](https://perma.cc/C7S8-4PZN)
-
-[[55](/en/ch3#W3CRDF-marker)] W3C RDF Working Group.
-[Resource Description Framework (RDF)](https://www.w3.org/RDF/).
-*w3.org*, February 2004.
-
-[[56](/en/ch3#Harris2013-marker)] Steve Harris, Andy Seaborne, and Eric
-Prud’hommeaux. [SPARQL 1.1 Query Language](https://www.w3.org/TR/sparql11-query/).
-W3C Recommendation, March 2013.
-
-[[57](/en/ch3#Green2013-marker)] Todd J. Green, Shan Shan Huang, Boon Thau Loo, and Wenchao Zhou.
-[Datalog and Recursive
-Query Processing](http://blogs.evergreen.edu/sosw/files/2014/04/Green-Vol5-DBS-017.pdf). *Foundations and Trends in Databases*, volume 5, issue 2, pages 105–195,
-November 2013. [doi:10.1561/1900000017](https://doi.org/10.1561/1900000017)
-
-[[58](/en/ch3#Ceri1989-marker)] Stefano Ceri, Georg Gottlob, and Letizia Tanca.
-[What
-You Always Wanted to Know About Datalog (And Never Dared to Ask)](https://www.researchgate.net/profile/Letizia_Tanca/publication/3296132_What_you_always_wanted_to_know_about_Datalog_and_never_dared_to_ask/links/0fcfd50ca2d20473ca000000.pdf). *IEEE Transactions on
-Knowledge and Data Engineering*, volume 1, issue 1, pages 146–166, March 1989.
-[doi:10.1109/69.43410](https://doi.org/10.1109/69.43410)
-
-[[59](/en/ch3#Abiteboul1995-marker)] Serge Abiteboul, Richard Hull, and Victor Vianu.
-[*Foundations of Databases*](http://webdam.inria.fr/Alice/). Addison-Wesley, 1995.
-ISBN: 9780201537710, available online at
-[*webdam.inria.fr/Alice*](http://webdam.inria.fr/Alice/)
-
-[[60](/en/ch3#Meyer2020-marker)] Scott Meyer, Andrew Carter, and Andrew Rodriguez.
-[LIquid:
-The soul of a new graph database, Part 2](https://engineering.linkedin.com/blog/2020/liquid--the-soul-of-a-new-graph-database--part-2). *engineering.linkedin.com*, September 2020.
-Archived at [perma.cc/K9M4-PD6Q](https://perma.cc/K9M4-PD6Q)
-
-[[61](/en/ch3#Bessey2024-marker)] Matt Bessey.
-[Why, after 6 years, I’m over
-GraphQL](https://bessey.dev/blog/2024/05/24/why-im-over-graphql/). *bessey.dev*, May 2024. Archived at
-[perma.cc/2PAU-JYRA](https://perma.cc/2PAU-JYRA)
-
-[[62](/en/ch3#Betts2012-marker)] Dominic Betts, Julián
-Domínguez, Grigori Melnik, Fernando Simonazzi, and Mani Subramanian.
-[*Exploring
-CQRS and Event Sourcing*](https://learn.microsoft.com/en-us/previous-versions/msp-n-p/jj554200%28v%3Dpandp.10%29). Microsoft Patterns & Practices, July 2012.
-ISBN: 1621140164, archived at [perma.cc/7A39-3NM8](https://perma.cc/7A39-3NM8)
-
-[[63](/en/ch3#Young2014-marker)] Greg Young.
-[CQRS and Event Sourcing](https://www.youtube.com/watch?v=JHGkaShoyNs). At *Code on
-the Beach*, August 2014.
-
-[[64](/en/ch3#Young2010-marker)] Greg Young.
-[CQRS Documents](https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf).
-*cqrs.wordpress.com*, November 2010.
-Archived at [perma.cc/X5R6-R47F](https://perma.cc/X5R6-R47F)
-
-[[65](/en/ch3#Petersohn2020-marker)] Devin Petersohn, Stephen Macke, Doris
-Xin, William Ma, Doris Lee, Xiangxi Mo, Joseph E. Gonzalez, Joseph M. Hellerstein, Anthony D.
-Joseph, and Aditya Parameswaran.
-[Towards Scalable Dataframe Systems](https://www.vldb.org/pvldb/vol13/p2033-petersohn.pdf).
-*Proceedings of the VLDB Endowment*, volume 13, issue 11, pages 2033–2046.
-[doi:10.14778/3407790.3407807](https://doi.org/10.14778/3407790.3407807)
-
-[[66](/en/ch3#Papadopoulos2016-marker)] Stavros Papadopoulos, Kushal Datta, Samuel
-Madden, and Timothy Mattson.
-[The TileDB Array Data Storage Manager](https://www.vldb.org/pvldb/vol10/p349-papadopoulos.pdf).
-*Proceedings of the VLDB Endowment*, volume 10, issue 4, pages 349–360, November 2016.
-[doi:10.14778/3025111.3025117](https://doi.org/10.14778/3025111.3025117)
-
-[[67](/en/ch3#Rusu2022-marker)] Florin Rusu.
-[Multidimensional
-Array Data Management](https://faculty.ucmerced.edu/frusu/Papers/Report/2022-09-fntdb-arrays.pdf). *Foundations and Trends in Databases*, volume 12, numbers 2–3,
-pages 69–220, February 2023.
-[doi:10.1561/1900000069](https://doi.org/10.1561/1900000069)
-
-[[68](/en/ch3#Targett2023-marker)] Ed Targett.
-[Bloomberg,
-Man Group team up to develop open source “ArcticDB” database](https://www.thestack.technology/bloomberg-man-group-arcticdb-database-dataframe/). *thestack.technology*,
-March 2023. Archived at [perma.cc/M5YD-QQYV](https://perma.cc/M5YD-QQYV)
-
-[[69](/en/ch3#Benson2007-marker)] Dennis A. Benson, Ilene
-Karsch-Mizrachi, David J. Lipman, James Ostell, and David L. Wheeler.
-[GenBank](https://academic.oup.com/nar/article/36/suppl_1/D25/2507746).
-*Nucleic Acids Research*, volume 36, database issue, pages D25–D30, December 2007.
-[doi:10.1093/nar/gkm929](https://doi.org/10.1093/nar/gkm929)
-
-
+[^1]: Jamie Brandon. [Unexplanations: query optimization works because sql is declarative](https://www.scattered-thoughts.net/writing/unexplanations-sql-declarative/). *scattered-thoughts.net*, February 2024. Archived at [perma.cc/P6W2-WMFZ](https://perma.cc/P6W2-WMFZ)
+[^2]: Joseph M. Hellerstein. [The Declarative Imperative: Experiences and Conjectures in Distributed Logic](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf). Tech report UCB/EECS-2010-90, Electrical Engineering and Computer Sciences, University of California at Berkeley, June 2010. Archived at [perma.cc/K56R-VVQM](https://perma.cc/K56R-VVQM)
+[^3]: Edgar F. Codd. [A Relational Model of Data for Large Shared Data Banks](https://www.seas.upenn.edu/~zives/03f/cis550/codd.pdf). *Communications of the ACM*, volume 13, issue 6, pages 377–387, June 1970. [doi:10.1145/362384.362685](https://doi.org/10.1145/362384.362685)
+[^4]: Michael Stonebraker and Joseph M. Hellerstein. [What Goes Around Comes Around](http://mitpress2.mit.edu/books/chapters/0262693143chapm1.pdf). In *Readings in Database Systems*, 4th edition, MIT Press, pages 2–41, 2005. ISBN: 9780262693141
+[^5]: Markus Winand. [Modern SQL: Beyond Relational](https://modern-sql.com/). *modern-sql.com*, 2015. Archived at [perma.cc/D63V-WAPN](https://perma.cc/D63V-WAPN)
+[^6]: Martin Fowler. [OrmHate](https://martinfowler.com/bliki/OrmHate.html). *martinfowler.com*, May 2012. Archived at [perma.cc/VCM8-PKNG](https://perma.cc/VCM8-PKNG)
+[^7]: Vlad Mihalcea. [N+1 query problem with JPA and Hibernate](https://vladmihalcea.com/n-plus-1-query-problem/). *vladmihalcea.com*, January 2023. Archived at [perma.cc/79EV-TZKB](https://perma.cc/79EV-TZKB)
+[^8]: Jens Schauder. [This is the Beginning of the End of the N+1 Problem: Introducing Single Query Loading](https://spring.io/blog/2023/08/31/this-is-the-beginning-of-the-end-of-the-n-1-problem-introducing-single-query). *spring.io*, August 2023. Archived at [perma.cc/6V96-R333](https://perma.cc/6V96-R333)
+[^9]: William Zola. [6 Rules of Thumb for MongoDB Schema Design](https://www.mongodb.com/blog/post/6-rules-of-thumb-for-mongodb-schema-design). *mongodb.com*, June 2014. Archived at [perma.cc/T2BZ-PPJB](https://perma.cc/T2BZ-PPJB)
+[^10]: Sidney Andrews and Christopher McClister. [Data modeling in Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data). *learn.microsoft.com*, February 2023. Archived at [archive.org](https://web.archive.org/web/20230207193233/https%3A//learn.microsoft.com/en-us/azure/cosmos-db/nosql/modeling-data)
+[^11]: Raffi Krikorian. [Timelines at Scale](https://www.infoq.com/presentations/Twitter-Timeline-Scalability/). At *QCon San Francisco*, November 2012. Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK)
+[^12]: Ralph Kimball and Margy Ross. [*The Data Warehouse Toolkit: The Definitive Guide to Dimensional Modeling*](https://learning.oreilly.com/library/view/the-data-warehouse/9781118530801/), 3rd edition. John Wiley & Sons, July 2013. ISBN: 9781118530801
+[^13]: Michael Kaminsky. [Data warehouse modeling: Star schema vs. OBT](https://www.fivetran.com/blog/star-schema-vs-obt). *fivetran.com*, August 2022. Archived at [perma.cc/2PZK-BFFP](https://perma.cc/2PZK-BFFP)
+[^14]: Joe Nelson. [User-defined Order in SQL](https://begriffs.com/posts/2018-03-20-user-defined-order.html). *begriffs.com*, March 2018. Archived at [perma.cc/GS3W-F7AD](https://perma.cc/GS3W-F7AD)
+[^15]: Evan Wallace. [Realtime Editing of Ordered Sequences](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/). *figma.com*, March 2017. Archived at [perma.cc/K6ER-CQZW](https://perma.cc/K6ER-CQZW)
+[^16]: David Greenspan. [Implementing Fractional Indexing](https://observablehq.com/%40dgreensp/implementing-fractional-indexing). *observablehq.com*, October 2020. Archived at [perma.cc/5N4R-MREN](https://perma.cc/5N4R-MREN)
+[^17]: Martin Fowler. [Schemaless Data Structures](https://martinfowler.com/articles/schemaless/). *martinfowler.com*, January 2013.
+[^18]: Amr Awadallah. [Schema-on-Read vs. Schema-on-Write](https://www.slideshare.net/awadallah/schemaonread-vs-schemaonwrite). At *Berkeley EECS RAD Lab Retreat*, Santa Cruz, CA, May 2009. Archived at [perma.cc/DTB2-JCFR](https://perma.cc/DTB2-JCFR)
+[^19]: Martin Odersky. [The Trouble with Types](https://www.infoq.com/presentations/data-types-issues/). At *Strange Loop*, September 2013. Archived at [perma.cc/85QE-PVEP](https://perma.cc/85QE-PVEP)
+[^20]: Conrad Irwin. [MongoDB—Confessions of a PostgreSQL Lover](https://speakerdeck.com/conradirwin/mongodb-confessions-of-a-postgresql-lover). At *HTML5DevConf*, October 2013. Archived at [perma.cc/C2J6-3AL5](https://perma.cc/C2J6-3AL5)
+[^21]: [Percona Toolkit Documentation: pt-online-schema-change](https://docs.percona.com/percona-toolkit/pt-online-schema-change.html). *docs.percona.com*, 2023. Archived at [perma.cc/9K8R-E5UH](https://perma.cc/9K8R-E5UH)
+[^22]: Shlomi Noach. [gh-ost: GitHub’s Online Schema Migration Tool for MySQL](https://github.blog/2016-08-01-gh-ost-github-s-online-migration-tool-for-mysql/). *github.blog*, August 2016. Archived at [perma.cc/7XAG-XB72](https://perma.cc/7XAG-XB72)
+[^23]: Shayon Mukherjee. [pg-osc: Zero downtime schema changes in PostgreSQL](https://www.shayon.dev/post/2022/47/pg-osc-zero-downtime-schema-changes-in-postgresql/). *shayon.dev*, February 2022. Archived at [perma.cc/35WN-7WMY](https://perma.cc/35WN-7WMY)
+[^24]: Carlos Pérez-Aradros Herce. [Introducing pgroll: zero-downtime, reversible, schema migrations for Postgres](https://xata.io/blog/pgroll-schema-migrations-postgres). *xata.io*, October 2023. Archived at [archive.org](https://web.archive.org/web/20231008161750/https%3A//xata.io/blog/pgroll-schema-migrations-postgres)
+[^25]: James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
+[^26]: Donald K. Burleson. [Reduce I/O with Oracle Cluster Tables](http://www.dba-oracle.com/oracle_tip_hash_index_cluster_table.htm). *dba-oracle.com*. Archived at [perma.cc/7LBJ-9X2C](https://perma.cc/7LBJ-9X2C)
+[^27]: Fay Chang, Jeffrey Dean, Sanjay Ghemawat, Wilson C. Hsieh, Deborah A. Wallach, Mike Burrows, Tushar Chandra, Andrew Fikes, and Robert E. Gruber. [Bigtable: A Distributed Storage System for Structured Data](https://research.google/pubs/pub27898/). At *7th USENIX Symposium on Operating System Design and Implementation* (OSDI), November 2006.
+[^28]: Priscilla Walmsley. [*XQuery, 2nd Edition*](https://learning.oreilly.com/library/view/xquery-2nd-edition/9781491915080/). O’Reilly Media, December 2015. ISBN: 9781491915080
+[^29]: Paul C. Bryan, Kris Zyp, and Mark Nottingham. [JavaScript Object Notation (JSON) Pointer](https://www.rfc-editor.org/rfc/rfc6901). RFC 6901, IETF, April 2013.
+[^30]: Stefan Gössner, Glyn Normington, and Carsten Bormann. [JSONPath: Query Expressions for JSON](https://www.rfc-editor.org/rfc/rfc9535.html). RFC 9535, IETF, February 2024.
+[^31]: Michael Stonebraker and Andrew Pavlo. [What Goes Around Comes Around… And Around…](https://db.cs.cmu.edu/papers/2024/whatgoesaround-sigmodrec2024.pdf). *ACM SIGMOD Record*, volume 53, issue 2, pages 21–37. [doi:10.1145/3685980.3685984](https://doi.org/10.1145/3685980.3685984)
+[^32]: Lawrence Page, Sergey Brin, Rajeev Motwani, and Terry Winograd. [The PageRank Citation Ranking: Bringing Order to the Web](http://ilpubs.stanford.edu:8090/422/). Technical Report 1999-66, Stanford University InfoLab, November 1999. Archived at [perma.cc/UML9-UZHW](https://perma.cc/UML9-UZHW)
+[^33]: Nathan Bronson, Zach Amsden, George Cabrera, Prasad Chakka, Peter Dimov, Hui Ding, Jack Ferris, Anthony Giardullo, Sachin Kulkarni, Harry Li, Mark Marchukov, Dmitri Petrov, Lovro Puzar, Yee Jiun Song, and Venkat Venkataramani. [TAO: Facebook’s Distributed Data Store for the Social Graph](https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson). At *USENIX Annual Technical Conference* (ATC), June 2013.
+[^34]: Natasha Noy, Yuqing Gao, Anshu Jain, Anant Narayanan, Alan Patterson, and Jamie Taylor. [Industry-Scale Knowledge Graphs: Lessons and Challenges](https://cacm.acm.org/magazines/2019/8/238342-industry-scale-knowledge-graphs/fulltext). *Communications of the ACM*, volume 62, issue 8, pages 36–43, August 2019. [doi:10.1145/3331166](https://doi.org/10.1145/3331166)
+[^35]: Xiyang Feng, Guodong Jin, Ziyi Chen, Chang Liu, and Semih Salihoğlu. [KÙZU Graph Database Management System](https://www.cidrdb.org/cidr2023/papers/p48-jin.pdf). At *3th Annual Conference on Innovative Data Systems Research* (CIDR 2023), January 2023.
+[^36]: Maciej Besta, Emanuel Peter, Robert Gerstenberger, Marc Fischer, Michał Podstawski, Claude Barthels, Gustavo Alonso, Torsten Hoefler. [Demystifying Graph Databases: Analysis and Taxonomy of Data Organization, System Designs, and Graph Queries](https://arxiv.org/pdf/1910.09017.pdf). *arxiv.org*, October 2019.
+[^37]: [Apache TinkerPop 3.6.3 Documentation](https://tinkerpop.apache.org/docs/3.6.3/reference/). *tinkerpop.apache.org*, May 2023. Archived at [perma.cc/KM7W-7PAT](https://perma.cc/KM7W-7PAT)
+[^38]: Nadime Francis, Alastair Green, Paolo Guagliardo, Leonid Libkin, Tobias Lindaaker, Victor Marsault, Stefan Plantikow, Mats Rydberg, Petra Selmer, and Andrés Taylor. [Cypher: An Evolving Query Language for Property Graphs](https://core.ac.uk/download/pdf/158372754.pdf). At *International Conference on Management of Data* (SIGMOD), pages 1433–1445, May 2018. [doi:10.1145/3183713.3190657](https://doi.org/10.1145/3183713.3190657)
+[^39]: Emil Eifrem. [Twitter correspondence](https://twitter.com/emileifrem/status/419107961512804352), January 2014. Archived at [perma.cc/WM4S-BW64](https://perma.cc/WM4S-BW64)
+[^40]: Francesco Tisiot. [Explore the new SEARCH and CYCLE features in PostgreSQL® 14](https://aiven.io/blog/explore-the-new-search-and-cycle-features-in-postgresql-14). *aiven.io*, December 2021. Archived at [perma.cc/J6BT-83UZ](https://perma.cc/J6BT-83UZ)
+[^41]: Gaurav Goel. [Understanding Hierarchies in Oracle](https://towardsdatascience.com/understanding-hierarchies-in-oracle-43f85561f3d9). *towardsdatascience.com*, May 2020. Archived at [perma.cc/5ZLR-Q7EW](https://perma.cc/5ZLR-Q7EW)
+[^42]: Alin Deutsch, Nadime Francis, Alastair Green, Keith Hare, Bei Li, Leonid Libkin, Tobias Lindaaker, Victor Marsault, Wim Martens, Jan Michels, Filip Murlak, Stefan Plantikow, Petra Selmer, Oskar van Rest, Hannes Voigt, Domagoj Vrgoč, Mingxi Wu, and Fred Zemke. [Graph Pattern Matching in GQL and SQL/PGQ](https://arxiv.org/abs/2112.06217). At *International Conference on Management of Data* (SIGMOD), pages 2246–2258, June 2022. [doi:10.1145/3514221.3526057](https://doi.org/10.1145/3514221.3526057)
+[^43]: Alastair Green. [SQL... and now GQL](https://opencypher.org/articles/2019/09/12/SQL-and-now-GQL/). *opencypher.org*, September 2019. Archived at [perma.cc/AFB2-3SY7](https://perma.cc/AFB2-3SY7)
+[^44]: Alin Deutsch, Yu Xu, and Mingxi Wu. [Seamless Syntactic and Semantic Integration of Query Primitives over Relational and Graph Data in GSQL](https://cdn2.hubspot.net/hubfs/4114546/IntegrationQuery%20PrimitivesGSQL.pdf). *tigergraph.com*, November 2018. Archived at [perma.cc/JG7J-Y35X](https://perma.cc/JG7J-Y35X)
+[^45]: Oskar van Rest, Sungpack Hong, Jinha Kim, Xuming Meng, and Hassan Chafi. [PGQL: a property graph query language](https://event.cwi.nl/grades/2016/07-VanRest.pdf). At *4th International Workshop on Graph Data Management Experiences and Systems* (GRADES), June 2016. [doi:10.1145/2960414.2960421](https://doi.org/10.1145/2960414.2960421)
+[^46]: Amazon Web Services. [Neptune Graph Data Model](https://docs.aws.amazon.com/neptune/latest/userguide/feature-overview-data-model.html). Amazon Neptune User Guide, *docs.aws.amazon.com*. Archived at [perma.cc/CX3T-EZU9](https://perma.cc/CX3T-EZU9)
+[^47]: Cognitect. [Datomic Data Model](https://docs.datomic.com/cloud/whatis/data-model.html). Datomic Cloud Documentation, *docs.datomic.com*. Archived at [perma.cc/LGM9-LEUT](https://perma.cc/LGM9-LEUT)
+[^48]: David Beckett and Tim Berners-Lee. [Turtle – Terse RDF Triple Language](https://www.w3.org/TeamSubmission/turtle/). W3C Team Submission, March 2011.
+[^49]: Sinclair Target. [Whatever Happened to the Semantic Web?](https://twobithistory.org/2018/05/27/semantic-web.html) *twobithistory.org*, May 2018. Archived at [perma.cc/M8GL-9KHS](https://perma.cc/M8GL-9KHS)
+[^50]: Gavin Mendel-Gleason. [The Semantic Web is Dead – Long Live the Semantic Web!](https://terminusdb.com/blog/the-semantic-web-is-dead/) *terminusdb.com*, August 2022. Archived at [perma.cc/G2MZ-DSS3](https://perma.cc/G2MZ-DSS3)
+[^51]: Manu Sporny. [JSON-LD and Why I Hate the Semantic Web](http://manu.sporny.org/2014/json-ld-origins-2/). *manu.sporny.org*, January 2014. Archived at [perma.cc/7PT4-PJKF](https://perma.cc/7PT4-PJKF)
+[^52]: University of Michigan Library. [Biomedical Ontologies and Controlled Vocabularies](https://guides.lib.umich.edu/ontology), *guides.lib.umich.edu/ontology*. Archived at [perma.cc/Q5GA-F2N8](https://perma.cc/Q5GA-F2N8)
+[^53]: Facebook. [The Open Graph protocol](https://ogp.me/), *ogp.me*. Archived at [perma.cc/C49A-GUSY](https://perma.cc/C49A-GUSY)
+[^54]: Matt Haughey. [Everything you ever wanted to know about unfurling but were afraid to ask /or/ How to make your site previews look amazing in Slack](https://medium.com/slack-developer-blog/everything-you-ever-wanted-to-know-about-unfurling-but-were-afraid-to-ask-or-how-to-make-your-e64b4bb9254). *medium.com*, November 2015. Archived at [perma.cc/C7S8-4PZN](https://perma.cc/C7S8-4PZN)
+[^55]: W3C RDF Working Group. [Resource Description Framework (RDF)](https://www.w3.org/RDF/). *w3.org*, February 2004.
+[^56]: Steve Harris, Andy Seaborne, and Eric Prud’hommeaux. [SPARQL 1.1 Query Language](https://www.w3.org/TR/sparql11-query/). W3C Recommendation, March 2013.
+[^57]: Todd J. Green, Shan Shan Huang, Boon Thau Loo, and Wenchao Zhou. [Datalog and Recursive Query Processing](http://blogs.evergreen.edu/sosw/files/2014/04/Green-Vol5-DBS-017.pdf). *Foundations and Trends in Databases*, volume 5, issue 2, pages 105–195, November 2013. [doi:10.1561/1900000017](https://doi.org/10.1561/1900000017)
+[^58]: Stefano Ceri, Georg Gottlob, and Letizia Tanca. [What You Always Wanted to Know About Datalog (And Never Dared to Ask)](https://www.researchgate.net/profile/Letizia_Tanca/publication/3296132_What_you_always_wanted_to_know_about_Datalog_and_never_dared_to_ask/links/0fcfd50ca2d20473ca000000.pdf). *IEEE Transactions on Knowledge and Data Engineering*, volume 1, issue 1, pages 146–166, March 1989. [doi:10.1109/69.43410](https://doi.org/10.1109/69.43410)
+[^59]: Serge Abiteboul, Richard Hull, and Victor Vianu. [*Foundations of Databases*](http://webdam.inria.fr/Alice/). Addison-Wesley, 1995. ISBN: 9780201537710, available online at [*webdam.inria.fr/Alice*](http://webdam.inria.fr/Alice/)
+[^60]: Scott Meyer, Andrew Carter, and Andrew Rodriguez. [LIquid: The soul of a new graph database, Part 2](https://engineering.linkedin.com/blog/2020/liquid--the-soul-of-a-new-graph-database--part-2). *engineering.linkedin.com*, September 2020. Archived at [perma.cc/K9M4-PD6Q](https://perma.cc/K9M4-PD6Q)
+[^61]: Matt Bessey. [Why, after 6 years, I’m over GraphQL](https://bessey.dev/blog/2024/05/24/why-im-over-graphql/). *bessey.dev*, May 2024. Archived at [perma.cc/2PAU-JYRA](https://perma.cc/2PAU-JYRA)
+[^62]: Dominic Betts, Julián Domínguez, Grigori Melnik, Fernando Simonazzi, and Mani Subramanian. [*Exploring CQRS and Event Sourcing*](https://learn.microsoft.com/en-us/previous-versions/msp-n-p/jj554200%28v%3Dpandp.10%29). Microsoft Patterns & Practices, July 2012. ISBN: 1621140164, archived at [perma.cc/7A39-3NM8](https://perma.cc/7A39-3NM8)
+[^63]: Greg Young. [CQRS and Event Sourcing](https://www.youtube.com/watch?v=JHGkaShoyNs). At *Code on the Beach*, August 2014.
+[^64]: Greg Young. [CQRS Documents](https://cqrs.files.wordpress.com/2010/11/cqrs_documents.pdf). *cqrs.wordpress.com*, November 2010. Archived at [perma.cc/X5R6-R47F](https://perma.cc/X5R6-R47F)
+[^65]: Devin Petersohn, Stephen Macke, Doris Xin, William Ma, Doris Lee, Xiangxi Mo, Joseph E. Gonzalez, Joseph M. Hellerstein, Anthony D. Joseph, and Aditya Parameswaran. [Towards Scalable Dataframe Systems](https://www.vldb.org/pvldb/vol13/p2033-petersohn.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 11, pages 2033–2046. [doi:10.14778/3407790.3407807](https://doi.org/10.14778/3407790.3407807)
+[^66]: Stavros Papadopoulos, Kushal Datta, Samuel Madden, and Timothy Mattson. [The TileDB Array Data Storage Manager](https://www.vldb.org/pvldb/vol10/p349-papadopoulos.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue 4, pages 349–360, November 2016. [doi:10.14778/3025111.3025117](https://doi.org/10.14778/3025111.3025117)
+[^67]: Florin Rusu. [Multidimensional Array Data Management](https://faculty.ucmerced.edu/frusu/Papers/Report/2022-09-fntdb-arrays.pdf). *Foundations and Trends in Databases*, volume 12, numbers 2–3, pages 69–220, February 2023. [doi:10.1561/1900000069](https://doi.org/10.1561/1900000069)
+[^68]: Ed Targett. [Bloomberg, Man Group team up to develop open source “ArcticDB” database](https://www.thestack.technology/bloomberg-man-group-arcticdb-database-dataframe/). *thestack.technology*, March 2023. Archived at [perma.cc/M5YD-QQYV](https://perma.cc/M5YD-QQYV)
+[^69]: Dennis A. Benson, Ilene Karsch-Mizrachi, David J. Lipman, James Ostell, and David L. Wheeler. [GenBank](https://academic.oup.com/nar/article/36/suppl_1/D25/2507746). *Nucleic Acids Research*, volume 36, database issue, pages D25–D30, December 2007. [doi:10.1093/nar/gkm929](https://doi.org/10.1093/nar/gkm929) 

@@ -62,7 +62,7 @@ When you are writing software that runs on several computers, connected by a net
 is fundamentally different. In distributed systems, faults occur much more frequently, and so we can
 no longer ignore them—we have no choice but to confront the messy reality of the physical world. And
 in the physical world, a remarkably wide range of things can go wrong, as illustrated by this
-anecdote [[3](/en/ch9#Hale2010)]:
+anecdote [^3]:
 
 > In my limited experience I’ve dealt with long-lived network partitions in a single data center (DC),
 > PDU [power distribution unit] failures, switch failures, accidental power cycles of whole racks,
@@ -79,7 +79,7 @@ anything involving multiple nodes and the network, it may sometimes work and som
 fail. As we shall see, you may not even *know* whether something succeeded or not!
 
 This nondeterminism and possibility of partial failures is what makes distributed systems hard to
-work with [[4](/en/ch9#Hodges2013)].
+work with [^4].
 On the other hand, if a distributed system can tolerate partial failures, that opens up powerful
 possibilities: for example, it allows you to perform a rolling upgrade, rebooting one node at a time
 to install software updates while the system as a whole continues working uninterrupted all the
@@ -150,7 +150,7 @@ retransmits dropped packets, it detects reordered packets and puts them back in 
 and it detects packet corruption using a simple checksum. It also figures out how fast it can send
 data so that it is transferred as quickly as possible, but without overloading the network or the
 receiving node; this is known as *congestion control*, *flow control*, or *backpressure*
-[[5](/en/ch9#Jacobson1988)].
+[^5].
 
 When you “send” some data by writing it to a socket, it actually doesn’t get sent immediately,
 but it’s only placed in a buffer managed by your operating system. When the congestion control
@@ -159,7 +159,7 @@ that buffer and passes it to the network interface. The packet passes through se
 routers, and eventually the receiving node’s operating system places the packet’s data in a receive
 buffer and sends an acknowledgment packet back to the sender. Only then does the receiving operating
 system notify the application that some more data has arrived
-[[6](/en/ch9#Hubert2009)].
+[^6].
 
 So, if TCP provides “reliability”, does that mean we no longer need to worry about networks being
 unreliable? Unfortunately not. It decides that a packet must have been lost if no acknowledgment
@@ -170,12 +170,12 @@ you. Eventually, after a configurable timeout, TCP gives up and signals an error
 
 If a TCP connection is closed with an error—perhaps because the remote node crashed, or perhaps
 because the network was interrupted—you unfortunately have no way of knowing how much data was
-actually processed by the remote node [[6](/en/ch9#Hubert2009)].
+actually processed by the remote node [^6].
 Even if TCP acknowledged that a packet was delivered, this only means that the operating system
 kernel on the remote node received it, but the application may have crashed before it handled that
 data. If you want to be sure that a request was successful, you need a positive response from the
 application itself
-[[7](/en/ch9#Saltzer1984_ch9)].
+[^7].
 
 Nevertheless, TCP is very useful, because it provides a convenient way of sending and receiving
 messages that are too big to fit in one packet. Once a TCP connection is established, you can also
@@ -189,40 +189,40 @@ We have been building computer networks for decades—one might hope that by now
 out how to make them reliable. Unfortunately, we have not yet succeeded. There are some systematic
 studies, and plenty of anecdotal evidence, showing that network problems can be surprisingly common,
 even in controlled environments like a datacenter operated by one company
-[[8](/en/ch9#Bailis2014reliable)]:
+[^8]:
 
 * One study in a medium-sized datacenter found about 12 network faults per month, of which half
   disconnected a single machine, and half disconnected an entire rack
-  [[9](/en/ch9#Leners2015)].
+  [^9].
 * Another study measured the failure rates of components like top-of-rack switches, aggregation
   switches, and load balancers
-  [[10](/en/ch9#Gill2011)].
+  [^10].
   It found that adding redundant networking gear doesn’t reduce faults as much as you might hope,
   since it doesn’t guard against human error (e.g., misconfigured switches), which is a major cause
   of outages.
 * Interruptions of wide-area fiber links have been blamed on cows
-  [[11](/en/ch9#Hoelzle2020)],
-  beavers [[12](/en/ch9#CBCNews2021)],
-  and sharks [[13](/en/ch9#Oremus2014)]
+  [^11],
+  beavers [^12],
+  and sharks [^13]
   (though shark bites have become rarer due to better shielding of submarine cables
-  [[14](/en/ch9#AuerbachJahajeeah2023)]).
+  [^14]).
   Humans are also at fault, be it due to accidental misconfiguration
-  [[15](/en/ch9#Janardhan2021)],
-  scavenging [[16](/en/ch9#Parfitt2011)],
+  [^15],
+  scavenging [^16],
   or sabotage
-  [[17](/en/ch9#Voce2025)].
+  [^17].
 * Across different cloud regions, round-trip times of up to several *minutes* have been observed at
   high percentiles [[18](/en/ch9#Liu2016), Table 3].
   Even within a single datacenter, packet delay of more than a minute can occur during a network
   topology reconfiguration, triggered by a problem during a software upgrade for a switch
-  [[19](/en/ch9#Imbriaco2012_ch9)].
+  [^19].
   Thus, we have to assume that messages might be delayed arbitrarily.
 * Sometimes communications are partially interrupted, depending on who you’re talking to: for
   example, A and B can communicate, B and C can communicate, but A and C cannot
   [[20](/en/ch9#Lianza2020_ch9),
   [21](/en/ch9#Alfatafta2020)].
   Other surprising faults include a network interface that sometimes drops all inbound packets but
-  sends outbound packets successfully [[22](/en/ch9#Donges2012)]:
+  sends outbound packets successfully [^22]:
   just because a network link works in one direction doesn’t guarantee it’s also working in the
   opposite direction.
 * Even a brief network interruption can have repercussions that last for much longer than the
@@ -243,9 +243,9 @@ may fail—there is no way around it.
 
 If the error handling of network faults is not defined and tested, arbitrarily bad things could
 happen: for example, the cluster could become deadlocked and permanently unable to serve requests,
-even when the network recovers [[24](/en/ch9#Kingsbury2014elastic)],
+even when the network recovers [^24],
 or it could even delete all of your data
-[[25](/en/ch9#Sanfilippo2014)].
+[^25].
 If software is put in an unanticipated situation, it may do arbitrary unexpected things.
 
 Handling network faults doesn’t necessarily mean *tolerating* them: if your network is normally
@@ -273,7 +273,7 @@ that something is not working:
 * If a node process crashed (or was killed by an administrator) but the node’s operating system is
   still running, a script can notify other nodes about the crash so that another node can take over
   quickly without having to wait for a timeout to expire. For example, HBase does this
-  [[26](/en/ch9#Liochon2015)].
+  [^26].
 * If you have access to the management interface of the network switches in your datacenter, you can
   query them to detect link failures at a hardware level (e.g., if the remote machine is powered
   down). This option is ruled out if you’re connecting via the internet, or if you’re in a shared
@@ -333,7 +333,7 @@ times to throw the system off-balance.
 
 When driving a car, travel times on road networks often vary most due to traffic congestion.
 Similarly, the variability of packet delays on computer networks is most often due to queueing
-[[27](/en/ch9#Grosvenor2015)]:
+[^27]:
 
 * If several different nodes simultaneously try to send packets to the same destination, the network
   switch must queue them up and feed them into the destination network link one by one (as illustrated
@@ -344,11 +344,11 @@ Similarly, the variability of packet delays on computer networks is most often d
 * When a packet reaches the destination machine, if all CPU cores are currently busy, the incoming
   request from the network is queued by the operating system until the application is ready to
   handle it. Depending on the load on the machine, this may take an arbitrary length of time
-  [[28](/en/ch9#Julienne2019)].
+  [^28].
 * In virtualized environments, a running operating system is often paused for tens of milliseconds
   while another virtual machine uses a CPU core. During this time, the VM cannot consume any data
   from the network, so the incoming data is queued (buffered) by the virtual machine monitor
-  [[29](/en/ch9#Wang2010)],
+  [^29],
   further increasing the variability of network delays.
 * As mentioned earlier, in order to avoid overloading the network, TCP limits the rate at which it
   sends data. This means additional queueing at the sender before the data even enters the network.
@@ -396,11 +396,11 @@ determine an appropriate trade-off between failure detection delay and risk of p
 Even better, rather than using configured constant timeouts, systems can continually measure
 response times and their variability (*jitter*), and automatically adjust timeouts according to the
 observed response time distribution. The Phi Accrual failure detector
-[[32](/en/ch9#Hayashibara2004)],
+[^32],
 which is used for example in Akka and Cassandra
-[[33](/en/ch9#Wang2013)]
+[^33]
 is one way of doing this. TCP retransmission timeouts also work similarly
-[[5](/en/ch9#Jacobson1988)].
+[^5].
 
 ## Synchronous Versus Asynchronous Networks
 
@@ -417,12 +417,12 @@ similar reliability and predictability in computer networks?
 When you make a call over the telephone network, it establishes a *circuit*: a fixed, guaranteed
 amount of bandwidth is allocated for the call, along the entire route between the two callers. This
 circuit remains in place until the call ends
-[[34](/en/ch9#Keshav1997)].
+[^34].
 For example, an ISDN network runs at a fixed rate of 4,000 frames per second. When a call is
 established, it is allocated 16 bits of space within each frame (in each direction). Thus, for the
 duration of the call, each side is guaranteed to be able to send exactly 16 bits of audio data every
 250 microseconds
-[[35](/en/ch9#Kyas1995)].
+[^35].
 
 This kind of network is *synchronous*: even as data passes through several routers, it does not
 suffer from queueing, because the 16 bits of space for the call have already been reserved in the
@@ -459,10 +459,10 @@ the rate of data transfer to the available network capacity.
 There have been some attempts to build hybrid networks that support both circuit switching and
 packet switching. *Asynchronous Transfer Mode* (ATM) was a competitor to Ethernet in the 1980s, but
 it didn’t gain much adoption outside of telephone network core switches. InfiniBand has some similarities
-[[36](/en/ch9#Mellanox2014)]:
+[^36]:
 it implements end-to-end flow control at the link layer, which reduces the need for queueing in the
 network, although it can still suffer from delays due to link congestion
-[[37](/en/ch9#Santos2003)].
+[^37].
 With careful use of *quality of service* (QoS, prioritization and scheduling of packets) and *admission
 control* (rate-limiting senders), it is possible to emulate circuit switching on packet networks, or
 provide statistically bounded delay [[27](/en/ch9#Grosvenor2015),
@@ -491,7 +491,7 @@ fixed cost, so if you utilize it better, each byte you send over the wire is che
 A similar situation arises with CPUs: if you share each CPU core dynamically between several
 threads, one thread sometimes has to wait in the operating system’s run queue while another thread
 is running, so a thread can be paused for varying lengths of time
-[[38](/en/ch9#Li2014)].
+[^38].
 However, this utilizes the hardware better than if you allocated a static number of CPU cycles to
 each thread (see [“Response time guarantees”](/en/ch9#sec_distributed_clocks_realtime)). Better hardware utilization is also why cloud
 platforms run several virtual machines from different customers on the same physical machine.
@@ -546,7 +546,7 @@ a quartz crystal oscillator. These devices are not perfectly accurate, so each m
 notion of time, which may be slightly faster or slower than on other machines. It is possible to
 synchronize clocks to some degree: the most commonly used mechanism is the Network Time Protocol (NTP), which
 allows the computer clock to be adjusted according to the time reported by a group of servers
-[[39](/en/ch9#Windl2006)].
+[^39].
 The servers in turn get their time from a more accurate time source, such as a GPS receiver.
 
 ## Monotonic Versus Time-of-Day Clocks
@@ -572,20 +572,20 @@ various oddities, as described in the next section. In particular, if the local 
 ahead of the NTP server, it may be forcibly reset and appear to jump back to a previous point in
 time. These jumps, as well as similar jumps caused by leap seconds, make time-of-day clocks
 unsuitable for measuring elapsed time
-[[40](/en/ch9#GrahamCumming2017)].
+[^40].
 
 Time-of-day clocks can experience jumps due to the start and end of Daylight Saving Time (DST);
 these can be avoided by always using UTC as time zone, which does not have DST.
 Time-of-day clocks have also historically had quite a coarse-grained resolution, e.g., moving forward
 in steps of 10 ms on older Windows systems
-[[41](/en/ch9#Holmes2006)].
+[^41].
 On recent systems, this is less of a problem.
 
 ### Monotonic clocks
 
 A monotonic clock is suitable for measuring a duration (time interval), such as a timeout or a
 service’s response time: `clock_gettime(CLOCK_MONOTONIC)` or `clock_gettime(CLOCK_BOOTTIME)` on
-Linux [[42](/en/ch9#Greef2021)]
+Linux [^42]
 and `System.nanoTime()` in Java are monotonic clocks, for example. The name comes from the fact that
 they are guaranteed to always move forward (whereas a time-of-day clock may jump back in time).
 
@@ -598,11 +598,11 @@ clock values from two different computers, because they don’t mean the same th
 
 On a server with multiple CPU sockets, there may be a separate timer per CPU, which is not
 necessarily synchronized with other CPUs
-[[43](/en/ch9#Yang2015)].
+[^43].
 Operating systems compensate for any discrepancy and try
 to present a monotonic view of the clock to application threads, even as they are scheduled across
 different CPUs. However, it is wise to take this guarantee of monotonicity with a pinch of salt
-[[44](/en/ch9#Loughran2015)].
+[^44].
 
 NTP may adjust the frequency at which the monotonic clock moves forward (this is known as *slewing*
 the clock) if it detects that the computer’s local quartz is moving faster or slower than the NTP
@@ -625,12 +625,12 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
 * The quartz clock in a computer is not very accurate: it *drifts* (runs faster or slower than it
   should). Clock drift varies depending on the temperature of the machine. Google assumes a clock
   drift of up to 200 ppm (parts per million) for its servers
-  [[45](/en/ch9#Corbett2012_ch9)],
+  [^45],
   which is equivalent to 6 ms drift for a clock that is resynchronized with a server every 30
   seconds, or 17 seconds drift for a clock that is resynchronized once a day. This drift limits the best
   possible accuracy you can achieve, even if everything is working correctly.
 * If a computer’s clock differs too much from an NTP server, it may refuse to synchronize, or the
-  local clock will be forcibly reset [[39](/en/ch9#Windl2006)]. Any
+  local clock will be forcibly reset [^39]. Any
   applications observing the time before and after this reset may see time go backward or suddenly
   jump forward.
 * If a node is accidentally firewalled off from NTP servers, the misconfiguration may go
@@ -639,7 +639,7 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
 * NTP synchronization can only be as good as the network delay, so there is a limit to its
   accuracy when you’re on a congested network with variable packet delays. One experiment showed
   that a minimum error of 35 ms is achievable when synchronizing over the internet
-  [[46](/en/ch9#Caporaloni2012)],
+  [^46],
   though occasional spikes in network delay lead to errors of around a second. Depending on the
   configuration, large network delays can cause the NTP client to give up entirely.
 * Some NTP servers are wrong or misconfigured, reporting time that is off by hours
@@ -650,7 +650,7 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
   were told by a stranger on the internet.
 * Leap seconds result in a minute that is 59 seconds or 61 seconds long, which messes up timing
   assumptions in systems that are not designed with leap seconds in mind
-  [[49](/en/ch9#Kamp2011)].
+  [^49].
   The fact that leap seconds have crashed many large systems
   [[40](/en/ch9#GrahamCumming2017),
   [50](/en/ch9#Minar2012_ch9)]
@@ -660,21 +660,21 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
   [[51](/en/ch9#Pascoe2011),
   [52](/en/ch9#Zhao2015)],
   although actual NTP server behavior varies in practice
-  [[53](/en/ch9#Veitch2016)].
+  [^53].
   Leap seconds will no longer be used from 2035 onwards, so this problem will fortunately go away.
 * In virtual machines, the hardware clock is virtualized, which raises additional challenges for
   applications that need accurate timekeeping
-  [[54](/en/ch9#VMware2011)].
+  [^54].
   When a CPU core is shared between virtual machines, each VM is paused for tens of milliseconds
   while another VM is running. From an application’s point of view, this pause manifests itself as
-  the clock suddenly jumping forward [[29](/en/ch9#Wang2010)].
+  the clock suddenly jumping forward [^29].
   If a VM pauses for several seconds, the clock may then be several seconds behind the actual time,
   but NTP may continue to report that the clock is almost perfectly in sync
-  [[55](/en/ch9#Yodaiken2017)].
+  [^55].
 * If you run software on devices that you don’t fully control (e.g., mobile or embedded devices), you
   probably cannot trust the device’s hardware clock at all. Some users deliberately set their
   hardware clock to an incorrect date and time, for example to cheat in games
-  [[56](/en/ch9#EmreAcer2017)].
+  [^56].
   As a result, the clock might be set to a time wildly in the past or the future.
 
 It is possible to achieve very good clock accuracy if you care about it sufficiently to invest
@@ -682,7 +682,7 @@ significant resources. For example, the MiFID II European regulation for financi
 institutions requires all high-frequency trading funds to synchronize their clocks to within 100
 microseconds of UTC, in order to help debug market anomalies such as “flash crashes” and to help
 detect market manipulation
-[[57](/en/ch9#MiFID2015)].
+[^57].
 
 Such accuracy can be achieved with some special hardware (GPS receivers and/or atomic clocks), the
 Precision Time Protocol (PTP) and careful deployment and monitoring
@@ -690,10 +690,10 @@ Precision Time Protocol (PTP) and careful deployment and monitoring
 [59](/en/ch9#Obleukhov2022)].
 Relying on GPS alone can be risky because GPS signals can easily be jammed. In some locations this
 happens frequently, e.g. close to military facilities
-[[60](/en/ch9#Wiseman2022)].
+[^60].
 Some cloud providers have begun offering high-accuracy clock synchronization for their virtual
 machines
-[[61](/en/ch9#Levinson2023)].
+[^61].
 However, clock synchronization still requires a lot of care. If your NTP daemon is misconfigured, or
 a firewall is blocking NTP traffic, the clock error due to drift can quickly become large.
 
@@ -727,7 +727,7 @@ the broken clocks before they can cause too much damage.
 
 Let’s consider one particular situation in which it is tempting, but dangerous, to rely on clocks:
 ordering of events across multiple nodes
-[[64](/en/ch9#Brooker2023time)].
+[^64].
 For example, if two clients write to a distributed database, who got there first? Which write is the
 more recent one?
 
@@ -762,7 +762,7 @@ a higher timestamp than the overwritten value, even if that timestamp is ahead o
 clock. However, that incurs the cost of an additional read to find the greatest existing timestamp.
 Some systems, including Cassandra and ScyllaDB, want to write to all replicas in a single round
 trip, and therefore they simply use the client clock’s timestamp along with a last write wins
-policy [[62](/en/ch9#Kingsbury2013cassandra)]. This approach has some
+policy [^62]. This approach has some
 serious problems:
 
 * Database writes can mysteriously disappear: a node with a lagging clock is unable to overwrite
@@ -779,7 +779,7 @@ serious problems:
 * It is possible for two nodes to independently generate writes with the same timestamp, especially
   when the clock only has millisecond resolution. An additional tiebreaker value (which can simply
   be a large random number) is required to resolve such conflicts, but this approach can also lead to
-  violations of causality [[62](/en/ch9#Kingsbury2013cassandra)].
+  violations of causality [^62].
 
 Thus, even though it is tempting to resolve conflicts by keeping the most “recent” value and
 discarding others, it’s important to be aware that the definition of “recent” depends on a local
@@ -795,7 +795,7 @@ you would need the clock error to be significantly lower than the network delay,
 possible.
 
 So-called *logical clocks*
-[[66](/en/ch9#Lamport1978_ch9)],
+[^66],
 which are based on incrementing counters rather than an oscillating quartz crystal, are a safer
 alternative for ordering events (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)). Logical clocks do not measure
 the time of day or the number of seconds elapsed, only the relative ordering of events (whether one
@@ -816,7 +816,7 @@ possible accuracy is probably to the tens of milliseconds, and the error may eas
 Thus, it doesn’t make sense to think of a clock reading as a point in time—it is more like a
 range of times, within a confidence interval: for example, a system may be 95% confident that the
 time now is between 10.3 and 10.5 seconds past the minute, but it doesn’t know any more precisely
-than that [[67](/en/ch9#Sheehy2015)].
+than that [^67].
 If we only know the time +/– 100 ms, the microsecond digits in the timestamp are
 essentially meaningless.
 
@@ -832,7 +832,7 @@ Unfortunately, most systems don’t expose this uncertainty: for example, when y
 don’t know if its confidence interval is five milliseconds or five years.
 
 There are exceptions: the *TrueTime* API in Google’s Spanner
-[[45](/en/ch9#Corbett2012_ch9)] and Amazon’s ClockBound explicitly report the
+[^45] and Amazon’s ClockBound explicitly report the
 confidence interval on the local clock. When you ask it for the current time, you get back two
 values: `[earliest, latest]`, which are the *earliest possible* and the *latest possible*
 timestamp. Based on its uncertainty calculations, the clock knows that the actual current time is
@@ -880,12 +880,12 @@ ensures that any transaction that may read the data is at a sufficiently later t
 confidence intervals do not overlap. In order to keep the wait time as short as possible, Spanner
 needs to keep the clock uncertainty as small as possible; for this purpose, Google deploys a GPS
 receiver or atomic clock in each datacenter, allowing clocks to be synchronized to within about
-7 ms [[45](/en/ch9#Corbett2012_ch9)].
+7 ms [^45].
 
 The atomic clocks and GPS receivers are not strictly necessary in Spanner: the important thing is to
 have a confidence interval, and the accurate clock sources only help keep that interval small. Other
 systems are beginning to adopt similar approaches: for example, YugabyteDB can leverage ClockBound
-when running on AWS [[70](/en/ch9#Pachot2024)],
+when running on AWS [^70],
 and several other systems now also rely on clock synchronization to various degrees
 [[71](/en/ch9#Kimball2022),
 [72](/en/ch9#Demirbas2025)].
@@ -898,7 +898,7 @@ node know that it is still leader (that it hasn’t been declared dead by the ot
 safely accept writes?
 
 One option is for the leader to obtain a *lease* from the other nodes, which is similar to a lock
-with a timeout [[73](/en/ch9#Gray1989)].
+with a timeout [^73].
 Only one node can hold the lease at any one time—thus, when a node obtains a lease, it knows that
 it is the leader for some amount of time, until the lease expires. In order to remain leader, the
 node must periodically renew the lease before it expires. If the node fails, it stops renewing the
@@ -946,11 +946,11 @@ various reasons why this could happen:
 * Contention among threads accessing a shared resource, such as a lock or queue, can cause threads
   to spend a lot of their time waiting. Moving to a machine with more CPU cores can make such
   problems worse, and contention problems can be difficult to diagnose
-  [[74](/en/ch9#Sturman2022)].
+  [^74].
 * Many programming language runtimes (such as the Java Virtual Machine) have a *garbage collector*
   (GC) that occasionally needs to stop all running threads. In the past, such *“stop-the-world” GC
   pauses* would sometimes last for several minutes
-  [[75](/en/ch9#Lipcon2011)]!
+  [^75]!
   With modern GC algorithms this is less of a problem, but GC pauses can still be noticable (see
   [“Limiting the impact of garbage collection”](/en/ch9#sec_distributed_gc_impact)).
 * In virtualized environments, a virtual machine can be *suspended* (pausing the execution of all
@@ -959,7 +959,7 @@ various reasons why this could happen:
   last for an arbitrary length of time. This feature is sometimes used for *live migration* of
   virtual machines from one host to another without a reboot, in which case the length of the pause
   depends on the rate at which processes are writing to memory
-  [[76](/en/ch9#Clark2005)].
+  [^76].
 * On end-user devices such as laptops and phones, execution may also be suspended and resumed
   arbitrarily, e.g., when the user closes the lid of their laptop.
 * When the operating system context-switches to another thread, or when the hypervisor switches to a
@@ -969,14 +969,14 @@ various reasons why this could happen:
   there is a long queue of threads waiting to run—it may take some time before the paused thread
   gets to run again.
 * If the application performs synchronous disk access, a thread may be paused waiting for a slow
-  disk I/O operation to complete [[77](/en/ch9#Shaver2008)]. In many languages, disk access can happen
+  disk I/O operation to complete [^77]. In many languages, disk access can happen
   surprisingly, even if the code doesn’t explicitly mention file access—for example, the Java
   classloader lazily loads class files when they are first used, which could happen at any time in
   the program execution. I/O pauses and GC pauses may even conspire to combine their delays
-  [[78](/en/ch9#Zhuang2016)].
+  [^78].
   If the disk is actually a network filesystem or network block device (such as Amazon’s EBS), the
   I/O latency is further subject to the variability of network delays
-  [[31](/en/ch9#Newman2012)].
+  [^31].
 * If the operating system is configured to allow *swapping to disk* (*paging*), a simple memory
   access may result in a page fault that requires a page from disk to be loaded into memory. The
   thread is paused while this slow I/O operation takes place. If memory pressure is high, this may
@@ -1051,7 +1051,7 @@ operating in a non-real-time environment.
 ### Limiting the impact of garbage collection
 
 Garbage collection used to be one of the biggest reasons for process pauses
-[[79](/en/ch9#Thompson2013)],
+[^79],
 but fortunately GC algorithms have improved a lot: a properly tuned collector will now usually pause
 for no more than a few milliseconds. The Java runtime offers collectors such as concurrent mark
 sweep (CMS), garbage-first (G1), the Z garbage collector (ZGC), Epsilon, and Shenandoah. Each of
@@ -1099,7 +1099,7 @@ it is in, because problems in the network cannot reliably be distinguished from 
 
 Discussions of these systems border on the philosophical: What do we know to be true or false in our
 system? How sure can we be of that knowledge, if the mechanisms for perception and measurement are
-unreliable [[83](/en/ch9#Halpern1990)]?
+unreliable [^83]?
 Should software systems obey the laws that we expect of the physical world, such as cause and effect?
 
 Fortunately, we don’t need to go as far as figuring out the meaning of life. In a distributed
@@ -1119,7 +1119,7 @@ assumptions.
 
 Imagine a network with an asymmetric fault: a node is able to receive all messages sent to it, but
 any outgoing messages from that node are dropped or delayed
-[[22](/en/ch9#Donges2012)]. Even though that node is working
+[^22]. Even though that node is working
 perfectly well, and is receiving requests from other nodes, the other nodes cannot hear its
 responses. After some timeout, the other nodes declare it dead, because they haven’t heard from the
 node. The situation unfolds like a nightmare: the semi-disconnected node is dragged to the
@@ -1161,7 +1161,7 @@ the use of quorums in more detail when we get to *consensus algorithms* in [Chap
 ## Distributed Locks and Leases
 
 Locks and leases in distributed application are prone to be misused, and a common source of bugs
-[[84](/en/ch9#Tang2022)].
+[^84].
 Let’s look at one particular case of how they can go wrong.
 
 In [“Process Pauses”](/en/ch9#sec_distributed_clocks_pauses) we saw that a lease is a kind of lock that times out and can be
@@ -1221,13 +1221,13 @@ rule out zombies entirely, we have to instead ensure that they can’t do any da
 split brain. This is called *fencing off* the zombie.
 
 Some systems attempt to fence off zombies by shutting them down, for example by disconnecting them
-from the network [[9](/en/ch9#Leners2015)], shutting down the VM via
+from the network [^9], shutting down the VM via
 the cloud provider’s management interface, or even physically powering down the machine
-[[87](/en/ch9#SUSE2025)].
+[^87].
 This approach is known as *Shoot The Other Node In The Head* or STONITH. Unfortunately, it suffers
 from some problems: it does not protect against large network delays like in
 [Figure 9-5](/en/ch9#fig_distributed_lease_delay); it can happen that all of the nodes shut each other down
-[[19](/en/ch9#Imbriaco2012_ch9)]; and by the time the zombie has been
+[^19]; and by the time the zombie has been
 detected and shut down, it may already be too late and data may already have been corrupted.
 
 A more robust fencing solution, which protects against both zombies and delayed requests, is
@@ -1245,7 +1245,7 @@ it must include its current fencing token.
 ###### Note
 
 There are several alternative names for fencing tokens. In Chubby, Google’s lock service, they are
-called *sequencers* [[88](/en/ch9#Burrows2006_ch9)], and in Kafka they are called *epoch numbers*.
+called *sequencers* [^88], and in Kafka they are called *epoch numbers*.
 In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
 *term number* (Raft) serves a similar purpose.
 
@@ -1259,11 +1259,11 @@ has just acquired the lease must immediately make a write to the storage service
 write has completed, any zombies are fenced off.
 
 If ZooKeeper is your lock service, you can use the transaction ID `zxid` or the node version
-`cversion` as fencing token [[85](/en/ch9#Junqueira2013_ch9)].
+`cversion` as fencing token [^85].
 With etcd, the revision number along with the lease ID serves a similar purpose
-[[89](/en/ch9#Kingsbury2020etcd)].
+[^89].
 The FencedLock API in Hazelcast explicitly generates a fencing token
-[[90](/en/ch9#BasriKahveci2019)].
+[^90].
 
 This mechanism requires that the storage service has some way of checking whether a write is based
 on an outdated token. Alternatively, it’s sufficient for the service to support a write that
@@ -1279,7 +1279,7 @@ lock service is somewhat redundant
 [[91](/en/ch9#Kleppmann2016),
 [92](/en/ch9#Sanfilippo2016)],
 since the lease assignment could have been implemented directly based on that storage service
-[[93](/en/ch9#Morling2024_ch9)].
+[^93].
 However, once you have a fencing token you can also use it with multiple services or replicas, and
 ensure that the old leaseholder is fenced off on all of those services.
 
@@ -1325,12 +1325,12 @@ Distributed systems problems become much harder if there is a risk that nodes ma
 arbitrary faulty or corrupted responses)—for example, it might cast multiple contradictory votes in
 the same election. Such behavior is known as a *Byzantine fault*, and the problem of reaching
 consensus in this untrusting environment is known as the *Byzantine Generals Problem*
-[[94](/en/ch9#Lamport1982)].
+[^94].
 
 # The Byzantine Generals Problem
 
 The Byzantine Generals Problem is a generalization of the so-called *Two Generals Problem*
-[[95](/en/ch9#Gray1978)],
+[^95],
 which imagines a situation in which two army generals need to agree on a battle plan. As they
 have set up camp on two different sites, they can only communicate by messenger, and the messengers
 sometimes get delayed or lost (like packets in a network). We will discuss this problem of
@@ -1345,10 +1345,10 @@ Byzantium was an ancient Greek city that later became Constantinople, in the pla
 Istanbul in Turkey. There isn’t any historic evidence that the generals of Byzantium were any more
 prone to intrigue and conspiracy than those elsewhere. Rather, the name is derived from *Byzantine*
 in the sense of *excessively complicated, bureaucratic, devious*, which was used in politics long
-before computers [[96](/en/ch9#Palmer2011)].
+before computers [^96].
 Lamport wanted to choose a nationality that would not offend any readers, and he was advised that
 calling it *The Albanian Generals Problem* was not such a good idea
-[[97](/en/ch9#LamportPubs)].
+[^97].
 
 A system is *Byzantine fault-tolerant* if it continues to operate correctly even if some of the
 nodes are malfunctioning and not obeying the protocol, or if malicious attackers are interfering
@@ -1365,19 +1365,19 @@ with the network. This concern is relevant in certain specific circumstances. Fo
   messages, since they may be sent with malicious intent. For example, cryptocurrencies like
   Bitcoin and other blockchains can be considered to be a way of getting mutually untrusting parties
   to agree whether a transaction happened or not, without relying on a central authority
-  [[100](/en/ch9#Bano2019_ch9)].
+  [^100].
 
 However, in the kinds of systems we discuss in this book, we can usually safely assume that there
 are no Byzantine faults. In a datacenter, all the nodes are controlled by your organization (so
 they can hopefully be trusted) and radiation levels are low enough that memory corruption is not a
 major problem (although datacenters in orbit are being considered
-[[101](/en/ch9#Feilden2024)]).
+[^101]).
 Multitenant systems have mutually untrusting tenants, but they are isolated from each
 other using firewalls, virtualization, and access control policies, not using Byzantine fault
 tolerance. Protocols for making systems Byzantine fault-tolerant are quite expensive
-[[102](/en/ch9#Mickens2013)],
+[^102],
 and fault-tolerant embedded systems rely on support from the hardware level
-[[98](/en/ch9#Rushby2001)]. In most server-side data systems, the
+[^98]. In most server-side data systems, the
 cost of deploying Byzantine fault-tolerant solutions makes them impracticable.
 
 Web applications do need to expect arbitrary and malicious behavior of clients that are under
@@ -1422,12 +1422,12 @@ pragmatic steps toward better reliability. For example:
   checking that a value is within a reasonable range and limiting the size of strings to prevent
   denial of service through large memory allocations. An internal service behind a firewall may be
   able to get away with less strict checks on inputs, but basic checks in protocol parsers are still
-  a good idea [[105](/en/ch9#Gilman2015)].
+  a good idea [^105].
 * NTP clients can be configured with multiple server addresses. When synchronizing, the client
   contacts all of them, estimates their errors, and checks that a majority of servers agree on some
   time range. As long as most of the servers are okay, a misconfigured NTP server that is reporting an
   incorrect time is detected as an outlier and is excluded from synchronization
-  [[39](/en/ch9#Windl2006)]. The use of multiple servers makes NTP
+  [^39]. The use of multiple servers makes NTP
   more robust than if it only uses a single server.
 
 ## System Model and Reality
@@ -1448,14 +1448,14 @@ Synchronous model
 :   The synchronous model assumes bounded network delay, bounded process pauses, and bounded clock
     error. This does not imply exactly synchronized clocks or zero network delay; it just means you
     know that network delay, pauses, and clock drift will never exceed some fixed upper bound
-    [[108](/en/ch9#Dwork1988_ch9)].
+    [^108].
     The synchronous model is not a realistic model of most practical
     systems, because (as discussed in this chapter) unbounded delays and pauses do occur.
 
 Partially synchronous model
 :   Partial synchrony means that a system behaves like a synchronous system *most of the time*, but it
     sometimes exceeds the bounds for network delay, process pauses, and clock drift
-    [[108](/en/ch9#Dwork1988_ch9)]. This is a realistic model of many
+    [^108]. This is a realistic model of many
     systems: most of the time, networks and processes are quite well behaved—otherwise we would never
     be able to get anything done—but we have to reckon with the fact that any timing assumptions
     may be shattered occasionally. When this happens, network delay, pauses, and clock error may become
@@ -1472,7 +1472,7 @@ nodes are:
 Crash-stop faults
 :   In the *crash-stop* (or *fail-stop*) model, an algorithm may assume that a node can fail in only
     one way, namely by crashing
-    [[109](/en/ch9#Schlichting1983)].
+    [^109].
     This means that the node may suddenly stop responding at any moment, and thereafter that node is
     gone forever—it never comes back.
 
@@ -1486,18 +1486,18 @@ Degraded performance and partial functionality
 :   In addition to crashing and restarting, nodes may go slow: they may still be able to respond to
     health check requests, while being too slow to get any real work done. For example, a Gigabit
     network interface could suddenly drop to 1 Kb/s throughput due to a driver bug
-    [[110](/en/ch9#Do2013)];
+    [^110];
     a process that is under memory pressure may spend most of its time performing garbage collection
-    [[111](/en/ch9#Snyder2019)];
+    [^111];
     worn-out SSDs can have erratic performance; and hardware can be affected by high temperature,
     loose connectors, mechanical vibration, power supply problems, firmware bugs, and more
-    [[112](/en/ch9#Gunawi2018_ch9)].
+    [^112].
     Such a situation is called a *limping node*, *gray failure*, or *fail-slow*
-    [[113](/en/ch9#Huang2017_ch9)],
+    [^113],
     and it can be even more difficult to deal with than a cleanly failed node. A related problem is
     when a process stops doing some of the things it is supposed to do while other aspects continue
     working, for example because a background thread is crashed or deadlocked
-    [[114](/en/ch9#Lou2020)].
+    [^114].
 
 Byzantine (arbitrary) faults
 :   Nodes may do absolutely anything, including trying to trick and deceive other nodes, as described
@@ -1541,13 +1541,13 @@ safety properties, but *availability* is a liveness property.
 
 What distinguishes the two kinds of properties? A giveaway is that liveness properties often include
 the word “eventually” in their definition. (And yes, you guessed it—*eventual consistency* is a
-liveness property [[115](/en/ch9#Bailis2013_ch9)].)
+liveness property [^115].)
 
 Safety is often informally defined as *nothing bad happens*, and liveness as *something good
 eventually happens*. However, it’s best to not read too much into those informal definitions,
 because “good” and “bad” are value judgements that don’t apply well to algorithms. The actual
 definitions of safety and liveness are more precise
-[[116](/en/ch9#Alpern1985)]:
+[^116]:
 
 * If a safety property is violated, we can point at a particular point in time at which it was
   broken (for example, if the uniqueness property was violated, we can identify the particular
@@ -1560,7 +1560,7 @@ definitions of safety and liveness are more precise
 An advantage of distinguishing between safety and liveness properties is that it helps us deal with
 difficult system models. For distributed algorithms, it is common to require that safety properties
 *always* hold, in all possible situations of a system model
-[[108](/en/ch9#Dwork1988_ch9)]. That is, even if all nodes crash, or
+[^108]. That is, even if all nodes crash, or
 the entire network fails, the algorithm must nevertheless ensure that it does not return a wrong
 result (i.e., that the safety properties remain satisfied).
 
@@ -1580,10 +1580,10 @@ abstraction of reality.
 For example, algorithms in the crash-recovery model generally assume that data in stable storage
 survives crashes. However, what happens if the data on disk is corrupted, or the data is wiped out
 due to hardware error or misconfiguration
-[[117](/en/ch9#Junqueira2015)]?
+[^117]?
 What happens if a server has a firmware bug and fails to recognize
 its hard drives on reboot, even though the drives are correctly attached to the server
-[[118](/en/ch9#Sanders2016)]?
+[^118]?
 
 Quorum algorithms (see [“Quorums for reading and writing”](/en/ch6#sec_replication_quorum_condition)) rely on a node remembering the data
 that it claims to have stored. If a node may suffer from amnesia and forget previously stored data,
@@ -1596,7 +1596,7 @@ to happen—and in non-Byzantine systems, we do have to make some assumptions ab
 and cannot happen. However, a real implementation may still have to include code to handle the
 case where something happens that was assumed to be impossible, even if that handling boils down to
 `printf("Sucks to be you")` and `exit(666)`—i.e., letting a human operator clean up the mess
-[[119](/en/ch9#Kreps2013)].
+[^119].
 (This is one difference between computer science and software engineering.)
 
 That is not to say that theoretical, abstract system models are worthless—quite the opposite.
@@ -1650,15 +1650,15 @@ and fix bugs
 [124](/en/ch9#VanBenschoten2019)]. For example,
 using TLA+, researchers were able to demonstrate the potential for data loss in viewstamped
 replication (VR) caused by ambiguity in the prose description of the algorithm
-[[125](/en/ch9#Vanlightly2022)].
+[^125].
 
 By design, model checkers don’t run your actual code, but rather a simplified model that specifies
 only the core ideas of your protocol. This makes it more tractable to systematically explore the
 state space, but it risks that your specification and your implementation go out of sync with each
-other [[126](/en/ch9#Wayne2024)].
+other [^126].
 It is possible to check whether the model and the real implementation have equivalent behavior, but
 this requires instrumentation in the real implementation
-[[127](/en/ch9#Ouyang2025)].
+[^127].
 
 ### Fault injection
 
@@ -1671,7 +1671,7 @@ processes—anything you can imagine going wrong with a computer.
 Fault injection tests are typically run in an environment that closely resembles the production
 environment where the system will run. Some even inject faults directly into their production
 environment. Netflix popularized this approach with their Chaos Monkey tool
-[[128](/en/ch9#Izrailevsky2011)]. Production fault
+[^128]. Production fault
 injection is often referred to as *chaos engineering*, which we discussed in
 [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability).
 
@@ -1687,7 +1687,7 @@ The myriad of tools required to trigger failures make fault injection tests cumb
 It’s common to adopt a fault injection framework like Jepsen to run fault injection tests to
 simplify the process. Such frameworks come with integrations for various operating systems and many
 pre-built fault injectors
-[[129](/en/ch9#Kingsbury2013jepsen)].
+[^129].
 Jepsen has been remarkably effective at finding critical bugs in many widely-used systems
 [[130](/en/ch9#Kingsbury2024),
 [131](/en/ch9#Majumdar2017)].
@@ -1714,18 +1714,18 @@ Application-level
     example, FoundationDB, one of the pioneers in the DST space, is built using an asynchronous
     communication library called Flow. Flow provides a point for developers to inject a deterministic
     network simulation into the system
-    [[132](/en/ch9#FoundationDB_ch9)].
+    [^132].
     Similarly, TigerBeetle is an online transaction processing (OLTP) database with first-class DST
     support. The system’s state is modeled as a state machine, with all mutations occuring within a
     single event loop. When combined with mock deterministic primitives such as clocks, such an
     architecture is able to run deterministically
-    [[133](/en/ch9#Kladov2023)].
+    [^133].
 
 Runtime-level
 :   Languages with asynchronous runtimes and commonly used libraries provide an insertion point
     to introduce determinism. A single-threaded runtime is used to force all asynchronous code to run
     sequentially. FrostDB, for example, patches Go’s runtime to execute goroutines sequentially
-    [[134](/en/ch9#Marques2024)].
+    [^134].
     Rust’s madsim library works in a similar manner. Madsim provides deterministic implementations of
     Tokio’s asynchronous runtime API, AWS’s S3 library, Kafka’s Rust library, and many others.
     Applications can swap in deterministic libraries and runtimes to get deterministic test executions
@@ -1804,7 +1804,7 @@ slow to do anything useful, is even harder.
 
 Once a fault is detected, making a system tolerate it is not easy either: there is no global
 variable, no shared memory, no common knowledge or any other kind of shared state between the
-machines [[83](/en/ch9#Halpern1990)].
+machines [^83].
 Nodes can’t even agree on what time it is, let alone on anything more profound. The only way
 information can flow from one node to another is by sending it over the unreliable network. Major
 decisions cannot be safely made by a single node, so we require protocols that enlist help from
@@ -1814,7 +1814,7 @@ If you’re used to writing software in the idealized mathematical perfection of
 where the same operation always deterministically returns the same result, then moving to the messy
 physical reality of distributed systems can be a bit of a shock. Conversely, distributed systems
 engineers will often regard a problem as trivial if it can be solved on a single computer
-[[4](/en/ch9#Hodges2013)],
+[^4],
 and indeed a single computer can do a lot nowadays. If you can avoid opening Pandora’s box and
 simply keep things on a single machine, for example by using an embedded storage engine (see
 [“Embedded storage engines”](/en/ch4#sidebar_embedded)), it is generally worth doing so.
@@ -1839,711 +1839,141 @@ problems in distributed systems.
 
 ##### Footnotes
 
+
 ##### References
 
-[[1](/en/ch9#Cavage2013-marker)] Mark Cavage.
-[There’s Just No Getting Around It: You’re
-Building a Distributed System](https://queue.acm.org/detail.cfm?id=2482856). *ACM Queue*, volume 11, issue 4, pages 80-89, April 2013.
-[doi:10.1145/2466486.2482856](https://doi.org/10.1145/2466486.2482856)
 
-[[2](/en/ch9#Kreps2012_ch9-marker)] Jay Kreps.
-[Getting
-Real About Distributed System Reliability](https://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability). *blog.empathybox.com*, March 2012.
-Archived at [perma.cc/9B5Q-AEBW](https://perma.cc/9B5Q-AEBW)
-
-[[3](/en/ch9#Hale2010-marker)] Coda Hale.
-[You Can’t Sacrifice
-Partition Tolerance](https://codahale.com/you-cant-sacrifice-partition-tolerance/). *codahale.com*, October 2010.
-<https://perma.cc/6GJU-X4G5>
-
-[[4](/en/ch9#Hodges2013-marker)] Jeff Hodges.
-[Notes
-on Distributed Systems for Young Bloods](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/). *somethingsimilar.com*, January 2013.
-Archived at [perma.cc/B636-62CE](https://perma.cc/B636-62CE)
-
-[[5](/en/ch9#Jacobson1988-marker)] Van Jacobson.
-[Congestion
-Avoidance and Control](https://www.cs.usask.ca/ftp/pub/discus/seminars2002-2003/p314-jacobson.pdf). At *ACM Symposium on Communications Architectures and
-Protocols* (SIGCOMM), August 1988.
-[doi:10.1145/52324.52356](https://doi.org/10.1145/52324.52356)
-
-[[6](/en/ch9#Hubert2009-marker)] Bert Hubert.
-[The
-Ultimate SO\_LINGER Page, or: Why Is My TCP Not Reliable](https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable). *blog.netherlabs.nl*, January 2009.
-Archived at [perma.cc/6HDX-L2RR](https://perma.cc/6HDX-L2RR)
-
-[[7](/en/ch9#Saltzer1984_ch9-marker)] Jerome H. Saltzer, David P. Reed, and David D. Clark.
-[End-To-End
-Arguments in System Design](https://groups.csail.mit.edu/ana/Publications/PubPDFs/End-to-End%20Arguments%20in%20System%20Design.pdf). *ACM Transactions on Computer Systems*, volume 2, issue 4,
-pages 277–288, November 1984.
-[doi:10.1145/357401.357402](https://doi.org/10.1145/357401.357402)
-
-[[8](/en/ch9#Bailis2014reliable-marker)] Peter Bailis and Kyle Kingsbury.
-[The Network Is Reliable](https://queue.acm.org/detail.cfm?id=2655736).
-*ACM Queue*, volume 12, issue 7, pages 48-55, July 2014.
-[doi:10.1145/2639988.2639988](https://doi.org/10.1145/2639988.2639988)
-
-[[9](/en/ch9#Leners2015-marker)] Joshua B. Leners, Trinabh Gupta, Marcos K.
-Aguilera, and Michael Walfish.
-[Taming Uncertainty in
-Distributed Systems with Help from the Network](https://cs.nyu.edu/~mwalfish/papers/albatross-eurosys15.pdf). At *10th European Conference on Computer
-Systems* (EuroSys), April 2015.
-[doi:10.1145/2741948.2741976](https://doi.org/10.1145/2741948.2741976)
-
-[[10](/en/ch9#Gill2011-marker)] Phillipa Gill, Navendu Jain, and Nachiappan Nagappan.
-[Understanding
-Network Failures in Data Centers: Measurement, Analysis, and Implications](https://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p350.pdf). At
-*ACM SIGCOMM Conference*, August 2011.
-[doi:10.1145/2018436.2018477](https://doi.org/10.1145/2018436.2018477)
-
-[[11](/en/ch9#Hoelzle2020-marker)] Urs Hölzle.
-[But recently a farmer had started
-grazing a herd of cows nearby. And whenever they stepped on the fiber link, they bent it enough
-to cause a blip](https://x.com/uhoelzle/status/1263333283107991558). *x.com*, May 2020.
-Archived at [perma.cc/WX8X-ZZA5](https://perma.cc/WX8X-ZZA5)
-
-[[12](/en/ch9#CBCNews2021-marker)] CBC News.
-[Hundreds
-lose internet service in northern B.C. after beaver chews through cable](https://www.cbc.ca/news/canada/british-columbia/beaver-internet-down-tumbler-ridge-1.6001594). *cbc.ca*,
-April 2021. Archived at [perma.cc/UW8C-H2MY](https://perma.cc/UW8C-H2MY)
-
-[[13](/en/ch9#Oremus2014-marker)] Will Oremus.
-[The
-Global Internet Is Being Attacked by Sharks, Google Confirms](https://slate.com/technology/2014/08/shark-attacks-threaten-google-s-undersea-internet-cables-video.html). *slate.com*, August 2014.
-Archived at [perma.cc/P6F3-C6YG](https://perma.cc/P6F3-C6YG)
-
-[[14](/en/ch9#AuerbachJahajeeah2023-marker)] Jess Auerbach Jahajeeah.
-[Down to the wire: The
-ship fixing our internet](https://continent.substack.com/p/down-to-the-wire-the-ship-fixing). *continent.substack.com*, November 2023.
-Archived at [perma.cc/DP7B-EQ7S](https://perma.cc/DP7B-EQ7S)
-
-[[15](/en/ch9#Janardhan2021-marker)] Santosh Janardhan.
-[More details
-about the October 4 outage](https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/). *engineering.fb.com*, October 2021.
-Archived at [perma.cc/WW89-VSXH](https://perma.cc/WW89-VSXH)
-
-[[16](/en/ch9#Parfitt2011-marker)] Tom Parfitt.
-[Georgian
-woman cuts off web access to whole of Armenia](https://www.theguardian.com/world/2011/apr/06/georgian-woman-cuts-web-access). *theguardian.com*, April 2011.
-Archived at [perma.cc/KMC3-N3NZ](https://perma.cc/KMC3-N3NZ)
-
-[[17](/en/ch9#Voce2025-marker)] Antonio Voce, Tural Ahmedzade and Ashley Kirk.
-[‘Shadow
-fleets’ and subaquatic sabotage: are Europe’s undersea internet cables under attack?](https://www.theguardian.com/world/ng-interactive/2025/mar/05/shadow-fleets-subaquatic-sabotage-europe-undersea-internet-cables-under-attack)
-*theguardian.com*, March 2025.
-Archived at [perma.cc/HA7S-ZDBV](https://perma.cc/HA7S-ZDBV)
-
-[[18](/en/ch9#Liu2016-marker)] Shengyun Liu, Paolo Viotti,
-Christian Cachin, Vivien Quéma, and Marko Vukolić.
-[XFT: Practical
-Fault Tolerance beyond Crashes](https://www.usenix.org/system/files/conference/osdi16/osdi16-liu.pdf). At *12th USENIX Symposium on Operating Systems Design and
-Implementation* (OSDI), November 2016.
-
-[[19](/en/ch9#Imbriaco2012_ch9-marker)] Mark Imbriaco.
-[Downtime last Saturday](https://github.blog/news-insights/the-library/downtime-last-saturday/).
-*github.blog*, December 2012.
-Archived at [perma.cc/M7X5-E8SQ](https://perma.cc/M7X5-E8SQ)
-
-[[20](/en/ch9#Lianza2020_ch9-marker)] Tom Lianza and Chris Snook.
-[A Byzantine failure
-in the real world](https://blog.cloudflare.com/a-byzantine-failure-in-the-real-world/). *blog.cloudflare.com*, November 2020.
-Archived at [perma.cc/83EZ-ALCY](https://perma.cc/83EZ-ALCY)
-
-[[21](/en/ch9#Alfatafta2020-marker)] Mohammed Alfatafta, Basil Alkhatib, Ahmed Alquraan,
-and Samer Al-Kiswany.
-[Toward a Generic Fault
-Tolerance Technique for Partial Network Partitioning](https://www.usenix.org/conference/osdi20/presentation/alfatafta). At *14th USENIX Symposium on
-Operating Systems Design and Implementation* (OSDI), November 2020.
-
-[[22](/en/ch9#Donges2012-marker)] Marc A. Donges.
-[Re: bnx2 cards Intermittantly Going
-Offline](https://www.spinics.net/lists/netdev/msg210485.html). Message to Linux *netdev* mailing list, *spinics.net*, September 2012.
-Archived at [perma.cc/TXP6-H8R3](https://perma.cc/TXP6-H8R3)
-
-[[23](/en/ch9#Toman2020-marker)] Troy Toman.
-[Inside a CODE RED:
-Network Edition](https://signalvnoise.com/svn3/inside-a-code-red-network-edition/). *signalvnoise.com*, September 2020.
-Archived at [perma.cc/BET6-FY25](https://perma.cc/BET6-FY25)
-
-[[24](/en/ch9#Kingsbury2014elastic-marker)] Kyle Kingsbury.
-[Call Me Maybe:
-Elasticsearch](https://aphyr.com/posts/317-call-me-maybe-elasticsearch). *aphyr.com*, June 2014.
-[perma.cc/JK47-S89J](https://perma.cc/JK47-S89J)
-
-[[25](/en/ch9#Sanfilippo2014-marker)] Salvatore Sanfilippo.
-[A Few Arguments About Redis Sentinel Properties and Fail
-Scenarios](https://antirez.com/news/80). *antirez.com*, October 2014.
-[perma.cc/8XEU-CLM8](https://perma.cc/8XEU-CLM8)
-
-[[26](/en/ch9#Liochon2015-marker)] Nicolas Liochon.
-[CAP:
-If All You Have Is a Timeout, Everything Looks Like a Partition](http://blog.thislongrun.com/2015/05/CAP-theorem-partition-timeout-zookeeper.html). *blog.thislongrun.com*,
-May 2015. Archived at [perma.cc/FS57-V2PZ](https://perma.cc/FS57-V2PZ)
-
-[[27](/en/ch9#Grosvenor2015-marker)] Matthew P. Grosvenor, Malte Schwarzkopf, Ionel
-Gog, Robert N. M. Watson, Andrew W. Moore, Steven Hand, and Jon Crowcroft.
-[Queues
-Don’t Matter When You Can JUMP Them!](https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-grosvenor_update.pdf) At *12th USENIX Symposium on Networked
-Systems Design and Implementation* (NSDI), May 2015.
-
-[[28](/en/ch9#Julienne2019-marker)] Theo Julienne.
-[Debugging
-network stalls on Kubernetes](https://github.blog/engineering/debugging-network-stalls-on-kubernetes/). *github.blog*, November 2019.
-Archived at [perma.cc/K9M8-XVGL](https://perma.cc/K9M8-XVGL)
-
-[[29](/en/ch9#Wang2010-marker)] Guohui Wang and T. S. Eugene Ng.
-[The Impact of
-Virtualization on Network Performance of Amazon EC2 Data Center](https://www.cs.rice.edu/~eugeneng/papers/INFOCOM10-ec2.pdf). At *29th IEEE
-International Conference on Computer Communications* (INFOCOM), March 2010.
-[doi:10.1109/INFCOM.2010.5461931](https://doi.org/10.1109/INFCOM.2010.5461931)
-
-[[30](/en/ch9#Philips2014-marker)] Brandon Philips.
-[etcd: Distributed Locking and Service
-Discovery](https://www.youtube.com/watch?v=HJIjTTHWYnE). At *Strange Loop*, September 2014.
-
-[[31](/en/ch9#Newman2012-marker)] Steve Newman.
-[A Systematic Look at EC2 I/O](https://www.sentinelone.com/blog/a-systematic-look-at-ec2-i-o/).
-*blog.scalyr.com*, October 2012.
-Archived at [perma.cc/FL4R-H2VE](https://perma.cc/FL4R-H2VE)
-
-[[32](/en/ch9#Hayashibara2004-marker)] Naohiro Hayashibara, Xavier Défago, Rami Yared, and
-Takuya Katayama. [The ϕ Accrual Failure
-Detector](https://hdl.handle.net/10119/4784). Japan Advanced Institute of Science and Technology, School of Information
-Science, Technical Report IS-RR-2004-010, May 2004.
-Archived at [perma.cc/NSM2-TRYA](https://perma.cc/NSM2-TRYA)
-
-[[33](/en/ch9#Wang2013-marker)] Jeffrey Wang.
-[Phi
-Accrual Failure Detector](https://ternarysearch.blogspot.com/2013/08/phi-accrual-failure-detector.html). *ternarysearch.blogspot.co.uk*, August 2013.
-[perma.cc/L452-AMLV](https://perma.cc/L452-AMLV)
-
-[[34](/en/ch9#Keshav1997-marker)] Srinivasan Keshav. *An Engineering Approach
-to Computer Networking: ATM Networks, the Internet, and the Telephone Network*.
-Addison-Wesley Professional, May 1997. ISBN: 978-0-201-63442-6
-
-[[35](/en/ch9#Kyas1995-marker)] Othmar Kyas. *ATM Networks*.
-International Thomson Publishing, 1995. ISBN: 978-1-850-32128-6
-
-[[36](/en/ch9#Mellanox2014-marker)] Mellanox Technologies.
-[InfiniBand
-FAQ, Rev 1.3](https://network.nvidia.com/related-docs/whitepapers/InfiniBandFAQ_FQ_100.pdf). *network.nvidia.com*, December 2014.
-Archived at [perma.cc/LQJ4-QZVK](https://perma.cc/LQJ4-QZVK)
-
-[[37](/en/ch9#Santos2003-marker)] Jose Renato Santos, Yoshio Turner, and G. (John) Janakiraman.
-[End-to-End Congestion Control
-for InfiniBand](https://infocom2003.ieee-infocom.org/papers/28_01.PDF). At *22nd Annual Joint Conference of the IEEE Computer and
-Communications Societies* (INFOCOM), April 2003. Also published by HP Laboratories Palo
-Alto, Tech Report HPL-2002-359.
-[doi:10.1109/INFCOM.2003.1208949](https://doi.org/10.1109/INFCOM.2003.1208949)
-
-[[38](/en/ch9#Li2014-marker)] Jialin Li, Naveen Kr. Sharma, Dan R. K. Ports, and
-Steven D. Gribble.
-[Tales of the Tail: Hardware,
-OS, and Application-level Sources of Tail Latency](https://syslab.cs.washington.edu/papers/latency-socc14.pdf). At *ACM Symposium on Cloud Computing*
-(SOCC), November 2014.
-[doi:10.1145/2670979.2670988](https://doi.org/10.1145/2670979.2670988)
-
-[[39](/en/ch9#Windl2006-marker)] Ulrich Windl, David Dalton, Marc Martinec, and Dale R. Worley.
-[The NTP FAQ and HOWTO](https://www.ntp.org/ntpfaq/). *ntp.org*, November 2006.
-
-[[40](/en/ch9#GrahamCumming2017-marker)] John Graham-Cumming.
-[How and
-why the leap second affected Cloudflare DNS](https://blog.cloudflare.com/how-and-why-the-leap-second-affected-cloudflare-dns/). *blog.cloudflare.com*, January 2017.
-Archived at [archive.org](https://web.archive.org/web/20250202041444/https%3A//blog.cloudflare.com/how-and-why-the-leap-second-affected-cloudflare-dns/)
-
-[[41](/en/ch9#Holmes2006-marker)] David Holmes.
-[Inside
-the Hotspot VM: Clocks, Timers and Scheduling Events – Part I – Windows](https://web.archive.org/web/20160308031939/https%3A//blogs.oracle.com/dholmes/entry/inside_the_hotspot_vm_clocks). *blogs.oracle.com*,
-October 2006. Archived at [archive.org](https://web.archive.org/web/20160308031939/https%3A//blogs.oracle.com/dholmes/entry/inside_the_hotspot_vm_clocks)
-
-[[42](/en/ch9#Greef2021-marker)] Joran Dirk Greef.
-[Three Clocks are
-Better than One](https://tigerbeetle.com/blog/2021-08-30-three-clocks-are-better-than-one/). *tigerbeetle.com*, August 2021.
-Archived at [perma.cc/5RXG-EU6B](https://perma.cc/5RXG-EU6B)
-
-[[43](/en/ch9#Yang2015-marker)] Oliver Yang.
-[Pitfalls of TSC usage](https://oliveryang.net/2015/09/pitfalls-of-TSC-usage/).
-*oliveryang.net*, September 2015.
-Archived at [perma.cc/Z2QY-5FRA](https://perma.cc/Z2QY-5FRA)
-
-[[44](/en/ch9#Loughran2015-marker)] Steve Loughran.
-[Time
-on Multi-Core, Multi-Socket Servers](https://steveloughran.blogspot.com/2015/09/time-on-multi-core-multi-socket-servers.html). *steveloughran.blogspot.co.uk*, September 2015.
-Archived at [perma.cc/7M4S-D4U6](https://perma.cc/7M4S-D4U6)
-
-[[45](/en/ch9#Corbett2012_ch9-marker)] James C. Corbett, Jeffrey Dean, Michael
-Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher
-Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd,
-Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford,
-Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang.
-[Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/).
-At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI),
-October 2012.
-
-[[46](/en/ch9#Caporaloni2012-marker)] M. Caporaloni and R. Ambrosini.
-[How Closely Can a Personal Computer
-Clock Track the UTC Timescale Via the Internet?](https://iopscience.iop.org/0143-0807/23/4/103/) *European Journal of Physics*,
-volume 23, issue 4, pages L17–L21, June 2012.
-[doi:10.1088/0143-0807/23/4/103](https://doi.org/10.1088/0143-0807/23/4/103)
-
-[[47](/en/ch9#Minar1999-marker)] Nelson Minar.
-[A Survey of the NTP Network](https://alumni.media.mit.edu/~nelson/research/ntp-survey99/).
-*alumni.media.mit.edu*, December 1999.
-Archived at [perma.cc/EV76-7ZV3](https://perma.cc/EV76-7ZV3)
-
-[[48](/en/ch9#Holub2014-marker)] Viliam Holub.
-[Synchronizing
-Clocks in a Cassandra Cluster Pt. 1 – The Problem](https://blog.rapid7.com/2014/03/14/synchronizing-clocks-in-a-cassandra-cluster-pt-1-the-problem/). *blog.rapid7.com*, March 2014.
-Archived at [perma.cc/N3RV-5LNL](https://perma.cc/N3RV-5LNL)
-
-[[49](/en/ch9#Kamp2011-marker)] Poul-Henning Kamp.
-[The One-Second War (What Time Will You Die?)](https://queue.acm.org/detail.cfm?id=1967009)
-*ACM Queue*, volume 9, issue 4, pages 44–48, April 2011.
-[doi:10.1145/1966989.1967009](https://doi.org/10.1145/1966989.1967009)
-
-[[50](/en/ch9#Minar2012_ch9-marker)] Nelson Minar.
-[Leap Second Crashes Half
-the Internet](https://www.somebits.com/weblog/tech/bad/leap-second-2012.html). *somebits.com*, July 2012.
-Archived at [perma.cc/2WB8-D6EU](https://perma.cc/2WB8-D6EU)
-
-[[51](/en/ch9#Pascoe2011-marker)] Christopher Pascoe.
-[Time,
-Technology and Leaping Seconds](https://googleblog.blogspot.com/2011/09/time-technology-and-leaping-seconds.html). *googleblog.blogspot.co.uk*, September 2011.
-Archived at [perma.cc/U2JL-7E74](https://perma.cc/U2JL-7E74)
-
-[[52](/en/ch9#Zhao2015-marker)] Mingxue Zhao and Jeff Barr.
-[Look
-Before You Leap – The Coming Leap Second and AWS](https://aws.amazon.com/blogs/aws/look-before-you-leap-the-coming-leap-second-and-aws/). *aws.amazon.com*, May 2015.
-Archived at [perma.cc/KPE9-XMFM](https://perma.cc/KPE9-XMFM)
-
-[[53](/en/ch9#Veitch2016-marker)] Darryl Veitch and Kanthaiah Vijayalayan.
-[Network Timing
-and the 2015 Leap Second](https://opus.lib.uts.edu.au/bitstream/10453/43923/1/LeapSecond_camera.pdf). At *17th International Conference on Passive and Active
-Measurement* (PAM), April 2016.
-[doi:10.1007/978-3-319-30505-9\_29](https://doi.org/10.1007/978-3-319-30505-9_29)
-
-[[54](/en/ch9#VMware2011-marker)] VMware, Inc.
-[Timekeeping in VMware Virtual
-Machines](https://www.vmware.com/docs/vmware_timekeeping). *vmware.com*, October 2008.
-Archived at [perma.cc/HM5R-T5NF](https://perma.cc/HM5R-T5NF)
-
-[[55](/en/ch9#Yodaiken2017-marker)] Victor Yodaiken.
-[Clock
-Synchronization in Finance and Beyond](https://www.yodaiken.com/wp-content/uploads/2018/05/financeandbeyond.pdf). *yodaiken.com*, November 2017.
-Archived at [perma.cc/9XZD-8ZZN](https://perma.cc/9XZD-8ZZN)
-
-[[56](/en/ch9#EmreAcer2017-marker)] Mustafa Emre Acer, Emily Stark, Adrienne Porter
-Felt, Sascha Fahl, Radhika Bhargava, Bhanu Dev, Matt Braithwaite, Ryan Sleevi, and Parisa Tabriz.
-[Where the Wild Warnings Are: Root Causes
-of Chrome HTTPS Certificate Errors](https://acmccs.github.io/papers/p1407-acerA.pdf). At *ACM SIGSAC Conference on Computer and
-Communications Security* (CCS), pages 1407–1420, October 2017.
-[doi:10.1145/3133956.3134007](https://doi.org/10.1145/3133956.3134007)
-
-[[57](/en/ch9#MiFID2015-marker)] European Securities and Markets Authority.
-[MiFID
-II / MiFIR: Regulatory Technical and Implementing Standards – Annex I](https://www.esma.europa.eu/sites/default/files/library/2015/11/2015-esma-1464_annex_i_-_draft_rts_and_its_on_mifid_ii_and_mifir.pdf).
-*esma.europa.eu*, Report ESMA/2015/1464, September 2015.
-Archived at [perma.cc/ZLX9-FGQ3](https://perma.cc/ZLX9-FGQ3)
-
-[[58](/en/ch9#Bigum2015-marker)] Luke Bigum.
-[Solving
-MiFID II Clock Synchronisation With Minimum Spend (Part 1)](https://catach.blogspot.com/2015/11/solving-mifid-ii-clock-synchronisation.html). *catach.blogspot.com*,
-November 2015. Archived at [perma.cc/4J5W-FNM4](https://perma.cc/4J5W-FNM4)
-
-[[59](/en/ch9#Obleukhov2022-marker)] Oleg Obleukhov and Ahmad Byagowi.
-[How
-Precision Time Protocol is being deployed at Meta](https://engineering.fb.com/2022/11/21/production-engineering/precision-time-protocol-at-meta/). *engineering.fb.com*, November 2022.
-Archived at [perma.cc/29G6-UJNW](https://perma.cc/29G6-UJNW)
-
-[[60](/en/ch9#Wiseman2022-marker)] John Wiseman.
-[gpsjam.org](https://gpsjam.org/), July 2022.
-
-[[61](/en/ch9#Levinson2023-marker)] Josh Levinson, Julien Ridoux, and Chris Munns.
-[It’s
-About Time: Microsecond-Accurate Clocks on Amazon EC2 Instances](https://aws.amazon.com/blogs/compute/its-about-time-microsecond-accurate-clocks-on-amazon-ec2-instances/). *aws.amazon.com*, November 2023.
-Archived at [perma.cc/56M6-5VMZ](https://perma.cc/56M6-5VMZ)
-
-[[62](/en/ch9#Kingsbury2013cassandra-marker)] Kyle Kingsbury.
-[Call Me Maybe: Cassandra](https://aphyr.com/posts/294-call-me-maybe-cassandra/).
-*aphyr.com*, September 2013.
-Archived at [perma.cc/4MBR-J96V](https://perma.cc/4MBR-J96V)
-
-[[63](/en/ch9#Daily2013_ch9-marker)] John Daily.
-[Clocks Are Bad, or,
-Welcome to the Wonderful World of Distributed Systems](https://riak.com/clocks-are-bad-or-welcome-to-distributed-systems/). *riak.com*, November 2013.
-Archived at [perma.cc/4XB5-UCXY](https://perma.cc/4XB5-UCXY)
-
-[[64](/en/ch9#Brooker2023time-marker)] Marc Brooker.
-[It’s About Time!](https://brooker.co.za/blog/2023/11/27/about-time.html)
-*brooker.co.za*, November 2023.
-Archived at [perma.cc/N6YK-DRPA](https://perma.cc/N6YK-DRPA)
-
-[[65](/en/ch9#Kingsbury2013timestamps-marker)] Kyle Kingsbury.
-[The Trouble with Timestamps](https://aphyr.com/posts/299-the-trouble-with-timestamps).
-*aphyr.com*, October 2013.
-Archived at [perma.cc/W3AM-5VAV](https://perma.cc/W3AM-5VAV)
-
-[[66](/en/ch9#Lamport1978_ch9-marker)] Leslie Lamport.
-[Time,
-Clocks, and the Ordering of Events in a Distributed System](https://www.microsoft.com/en-us/research/publication/time-clocks-ordering-events-distributed-system/). *Communications of the ACM*,
-volume 21, issue 7, pages 558–565, July 1978.
-[doi:10.1145/359545.359563](https://doi.org/10.1145/359545.359563)
-
-[[67](/en/ch9#Sheehy2015-marker)] Justin Sheehy.
-[There Is No Now: Problems With Simultaneity
-in Distributed Systems](https://queue.acm.org/detail.cfm?id=2745385). *ACM Queue*, volume 13, issue 3, pages 36–41, March 2015.
-[doi:10.1145/2733108](https://doi.org/10.1145/2733108)
-
-[[68](/en/ch9#Demirbas2013-marker)] Murat Demirbas.
-[Spanner:
-Google’s Globally-Distributed Database](https://muratbuffalo.blogspot.com/2013/07/spanner-googles-globally-distributed_4.html). *muratbuffalo.blogspot.co.uk*, July 2013.
-Archived at [perma.cc/6VWR-C9WB](https://perma.cc/6VWR-C9WB)
-
-[[69](/en/ch9#Malkhi2013-marker)] Dahlia Malkhi and Jean-Philippe Martin.
-[Spanner’s Concurrency
-Control](https://www.cs.cornell.edu/~ie53/publications/DC-col51-Sep13.pdf). *ACM SIGACT News*, volume 44, issue 3, pages 73–77, September 2013.
-[doi:10.1145/2527748.2527767](https://doi.org/10.1145/2527748.2527767)
-
-[[70](/en/ch9#Pachot2024-marker)] Franck Pachot.
-[Achieving Precise Clock
-Synchronization on AWS](https://www.yugabyte.com/blog/aws-clock-synchronization/). *yugabyte.com*, December 2024.
-Archived at [perma.cc/UYM6-RNBS](https://perma.cc/UYM6-RNBS)
-
-[[71](/en/ch9#Kimball2022-marker)] Spencer Kimball.
-[Living Without Atomic
-Clocks: Where CockroachDB and Spanner diverge](https://www.cockroachlabs.com/blog/living-without-atomic-clocks/). *cockroachlabs.com*, January 2022.
-Archived at [perma.cc/AWZ7-RXFT](https://perma.cc/AWZ7-RXFT)
-
-[[72](/en/ch9#Demirbas2025-marker)] Murat Demirbas.
-[Use of
-Time in Distributed Databases (part 4): Synchronized clocks in production databases](https://muratbuffalo.blogspot.com/2025/01/use-of-time-in-distributed-databases.html).
-*muratbuffalo.blogspot.com*, January 2025.
-Archived at [perma.cc/9WNX-Q9U3](https://perma.cc/9WNX-Q9U3)
-
-[[73](/en/ch9#Gray1989-marker)] Cary G. Gray and David R. Cheriton.
-[Leases: An Efficient
-Fault-Tolerant Mechanism for Distributed File Cache Consistency](https://courses.cs.duke.edu/spring11/cps210/papers/p202-gray.pdf). At
-*12th ACM Symposium on Operating Systems Principles* (SOSP), December 1989.
-[doi:10.1145/74850.74870](https://doi.org/10.1145/74850.74870)
-
-[[74](/en/ch9#Sturman2022-marker)] Daniel Sturman, Scott Delap, Max Ross, et al.
-[Roblox
-Return to Service](https://corp.roblox.com/newsroom/2022/01/roblox-return-to-service-10-28-10-31-2021). *corp.roblox.com*, January 2022.
-Archived at [perma.cc/8ALT-WAS4](https://perma.cc/8ALT-WAS4)
-
-[[75](/en/ch9#Lipcon2011-marker)] Todd Lipcon.
-[Avoiding Full GCs
-with MemStore-Local Allocation Buffers](https://www.slideshare.net/slideshow/hbase-hug-presentation/7038178). *slideshare.net*, February 2011.
-Archived at <https://perma.cc/CH62-2EWJ>
-
-[[76](/en/ch9#Clark2005-marker)] Christopher Clark, Keir Fraser, Steven Hand,
-Jacob Gorm Hansen, Eric Jul, Christian Limpach, Ian Pratt, and Andrew Warfield.
-[Live
-Migration of Virtual Machines](https://www.usenix.org/legacy/publications/library/proceedings/nsdi05/tech/full_papers/clark/clark.pdf). At *2nd USENIX Symposium on Symposium on
-Networked Systems Design & Implementation* (NSDI), May 2005.
-
-[[77](/en/ch9#Shaver2008-marker)] Mike Shaver.
-[fsyncers and
-Curveballs](https://web.archive.org/web/20220107141023/http%3A//shaver.off.net/diary/2008/05/25/fsyncers-and-curveballs/). *shaver.off.net*, May 2008. Archived at
-[archive.org](https://web.archive.org/web/20220107141023/http%3A//shaver.off.net/diary/2008/05/25/fsyncers-and-curveballs/)
-
-[[78](/en/ch9#Zhuang2016-marker)] Zhenyun Zhuang and Cuong Tran.
-[Eliminating
-Large JVM GC Pauses Caused by Background IO Traffic](https://engineering.linkedin.com/blog/2016/02/eliminating-large-jvm-gc-pauses-caused-by-background-io-traffic). *engineering.linkedin.com*, February 2016.
-Archived at [perma.cc/ML2M-X9XT](https://perma.cc/ML2M-X9XT)
-
-[[79](/en/ch9#Thompson2013-marker)] Martin Thompson.
-[Java
-Garbage Collection Distilled](https://mechanical-sympathy.blogspot.com/2013/07/java-garbage-collection-distilled.html). *mechanical-sympathy.blogspot.co.uk*, July 2013.
-Archived at [perma.cc/DJT3-NQLQ](https://perma.cc/DJT3-NQLQ)
-
-[[80](/en/ch9#Terei2015-marker)] David Terei and Amit Levy.
-[Blade: A Data Center Garbage Collector](https://arxiv.org/pdf/1504.02578).
-arXiv:1504.02578, April 2015.
-
-[[81](/en/ch9#Maas2015-marker)] Martin Maas, Tim Harris, Krste Asanović, and John Kubiatowicz.
-[Trash Day: Coordinating Garbage Collection in
-Distributed Systems](https://timharris.uk/papers/2015-hotos.pdf). At *15th USENIX Workshop on Hot Topics in Operating Systems*
-(HotOS), May 2015.
-
-[[82](/en/ch9#Fowler2011_ch9-marker)] Martin Fowler.
-[The LMAX Architecture](https://martinfowler.com/articles/lmax.html).
-*martinfowler.com*, July 2011.
-Archived at [perma.cc/5AV4-N6RJ](https://perma.cc/5AV4-N6RJ)
-
-[[83](/en/ch9#Halpern1990-marker)] Joseph Y. Halpern and Yoram Moses.
-[Knowledge and common knowledge
-in a distributed environment](https://groups.csail.mit.edu/tds/papers/Halpern/JACM90.pdf). *Journal of the ACM* (JACM), volume 37, issue 3, pages
-549–587, July 1990.
-[doi:10.1145/79147.79161](https://doi.org/10.1145/79147.79161)
-
-[[84](/en/ch9#Tang2022-marker)] Chuzhe Tang, Zhaoguo Wang, Xiaodong Zhang, Qianmian
-Yu, Binyu Zang, Haibing Guan, and Haibo Chen.
-[Ad Hoc Transactions
-in Web Applications: The Good, the Bad, and the Ugly](https://ipads.se.sjtu.edu.cn/_media/publications/concerto-sigmod22.pdf). At *ACM International Conference on
-Management of Data* (SIGMOD), June 2022.
-[doi:10.1145/3514221.3526120](https://doi.org/10.1145/3514221.3526120)
-
-[[85](/en/ch9#Junqueira2013_ch9-marker)] Flavio P. Junqueira and Benjamin Reed.
-[*ZooKeeper: Distributed
-Process Coordination*](https://www.oreilly.com/library/view/zookeeper/9781449361297/). O’Reilly Media, 2013. ISBN: 978-1-449-36130-3
-
-[[86](/en/ch9#Soztutar2013hdfs-marker)] Enis Söztutar.
-[HBase
-and HDFS: Understanding Filesystem Usage in HBase](https://www.slideshare.net/slideshow/hbase-and-hdfs-understanding-filesystem-usage/22990858). At *HBaseCon*, June 2013.
-Archived at [perma.cc/4DXR-9P88](https://perma.cc/4DXR-9P88)
-
-[[87](/en/ch9#SUSE2025-marker)] SUSE LLC.
-[SUSE
-Linux Enterprise High Availability 15 SP6 Administration Guide, Section 12: Fencing and STONITH](https://documentation.suse.com/sle-ha/15-SP6/html/SLE-HA-all/cha-ha-fencing.html).
-*documentation.suse.com*, March 2025.
-Archived at [perma.cc/8LAR-EL9D](https://perma.cc/8LAR-EL9D)
-
-[[88](/en/ch9#Burrows2006_ch9-marker)] Mike Burrows.
-[The Chubby Lock Service for Loosely-Coupled
-Distributed Systems](https://research.google/pubs/pub27897/). At *7th USENIX Symposium on Operating System Design and
-Implementation* (OSDI), November 2006.
-
-[[89](/en/ch9#Kingsbury2020etcd-marker)] Kyle Kingsbury.
-[etcd 3.4.3](https://jepsen.io/analyses/etcd-3.4.3). *jepsen.io*, January 2020.
-Archived at [perma.cc/2P3Y-MPWU](https://perma.cc/2P3Y-MPWU)
-
-[[90](/en/ch9#BasriKahveci2019-marker)] Ensar Basri Kahveci.
-[Distributed Locks are Dead; Long
-Live Distributed Locks!](https://hazelcast.com/blog/long-live-distributed-locks/) *hazelcast.com*, April 2019.
-Archived at [perma.cc/7FS5-LDXE](https://perma.cc/7FS5-LDXE)
-
-[[91](/en/ch9#Kleppmann2016-marker)] Martin Kleppmann.
-[How to do
-distributed locking](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html). *martin.kleppmann.com*, February 2016.
-Archived at [perma.cc/Y24W-YQ5L](https://perma.cc/Y24W-YQ5L)
-
-[[92](/en/ch9#Sanfilippo2016-marker)] Salvatore Sanfilippo.
-[Is Redlock safe?](https://antirez.com/news/101) *antirez.com*, February 2016.
-Archived at [perma.cc/B6GA-9Q6A](https://perma.cc/B6GA-9Q6A)
-
-[[93](/en/ch9#Morling2024_ch9-marker)] Gunnar Morling.
-[Leader
-Election With S3 Conditional Writes](https://www.morling.dev/blog/leader-election-with-s3-conditional-writes/). *www.morling.dev*, August 2024.
-Archived at [perma.cc/7V2N-J78Y](https://perma.cc/7V2N-J78Y)
-
-[[94](/en/ch9#Lamport1982-marker)] Leslie Lamport, Robert Shostak, and Marshall Pease.
-[The
-Byzantine Generals Problem](https://www.microsoft.com/en-us/research/publication/byzantine-generals-problem/). *ACM Transactions on Programming Languages and Systems*
-(TOPLAS), volume 4, issue 3, pages 382–401, July 1982.
-[doi:10.1145/357172.357176](https://doi.org/10.1145/357172.357176)
-
-[[95](/en/ch9#Gray1978-marker)] Jim N. Gray.
-[Notes on Data Base
-Operating Systems](https://jimgray.azurewebsites.net/papers/dbos.pdf). in *Operating Systems: An Advanced Course*, Lecture
-Notes in Computer Science, volume 60, edited by R. Bayer, R. M. Graham, and G. Seegmüller,
-pages 393–481, Springer-Verlag, 1978. ISBN: 978-3-540-08755-7.
-Archived at [perma.cc/7S9M-2LZU](https://perma.cc/7S9M-2LZU)
-
-[[96](/en/ch9#Palmer2011-marker)] Brian Palmer.
-[How
-Complicated Was the Byzantine Empire?](https://slate.com/news-and-politics/2011/10/the-byzantine-tax-code-how-complicated-was-byzantium-anyway.html) *slate.com*, October 2011.
-Archived at [perma.cc/AN7X-FL3N](https://perma.cc/AN7X-FL3N)
-
-[[97](/en/ch9#LamportPubs-marker)] Leslie Lamport.
-[My Writings](https://lamport.azurewebsites.net/pubs/pubs.html).
-*lamport.azurewebsites.net*, December 2014.
-Archived at [perma.cc/5NNM-SQGR](https://perma.cc/5NNM-SQGR)
-
-[[98](/en/ch9#Rushby2001-marker)] John Rushby.
-[Bus Architectures for
-Safety-Critical Embedded Systems](https://www.csl.sri.com/papers/emsoft01/emsoft01.pdf). At *1st International Workshop on Embedded Software*
-(EMSOFT), October 2001.
-[doi:10.1007/3-540-45449-7\_22](https://doi.org/10.1007/3-540-45449-7_22)
-
-[[99](/en/ch9#Edge2013-marker)] Jake Edge.
-[ELC: SpaceX Lessons Learned](https://lwn.net/Articles/540368/). *lwn.net*,
-March 2013. Archived at [perma.cc/AYX8-QP5X](https://perma.cc/AYX8-QP5X)
-
-[[100](/en/ch9#Bano2019_ch9-marker)] Shehar Bano, Alberto Sonnino, Mustafa
-Al-Bassam, Sarah Azouvi, Patrick McCorry, Sarah Meiklejohn, and George Danezis.
-[SoK: Consensus in the Age of Blockchains](https://smeiklej.com/files/aft19a.pdf). At
-*1st ACM Conference on Advances in Financial Technologies* (AFT), October 2019.
-[doi:10.1145/3318041.3355458](https://doi.org/10.1145/3318041.3355458)
-
-[[101](/en/ch9#Feilden2024-marker)] Ezra Feilden, Adi Oltean, and Philip Johnston.
-[Why we should train AI in space](https://www.starcloud.com/wp).
-White Paper, *starcloud.com*, September 2024.
-Archived at [perma.cc/7Y3S-8UB6](https://perma.cc/7Y3S-8UB6)
-
-[[102](/en/ch9#Mickens2013-marker)] James Mickens.
-[The Saddest
-Moment](https://www.usenix.org/system/files/login-logout_1305_mickens.pdf). *USENIX ;login*, May 2013.
-Archived at [perma.cc/T7BZ-XCFR](https://perma.cc/T7BZ-XCFR)
-
-[[103](/en/ch9#Kleppmann2020-marker)] Martin Kleppmann and Heidi Howard.
-[Byzantine Eventual Consistency and the Fundamental Limits
-of Peer-to-Peer Databases](https://arxiv.org/abs/2012.00472). *arxiv.org*, December 2020.
-[doi:10.48550/arXiv.2012.00472](https://doi.org/10.48550/arXiv.2012.00472)
-
-[[104](/en/ch9#Kleppmann2022-marker)] Martin Kleppmann.
-[Making CRDTs Byzantine Fault
-Tolerant](https://martin.kleppmann.com/papers/bft-crdt-papoc22.pdf). At *9th Workshop on Principles and Practice of Consistency for Distributed
-Data* (PaPoC), April 2022.
-[doi:10.1145/3517209.3524042](https://doi.org/10.1145/3517209.3524042)
-
-[[105](/en/ch9#Gilman2015-marker)] Evan Gilman.
-[The
-Discovery of Apache ZooKeeper’s Poison Packet](https://www.pagerduty.com/blog/the-discovery-of-apache-zookeepers-poison-packet/). *pagerduty.com*, May 2015.
-Archived at [perma.cc/RV6L-Y5CQ](https://perma.cc/RV6L-Y5CQ)
-
-[[106](/en/ch9#Stone2000-marker)] Jonathan Stone and Craig Partridge.
-[When
-the CRC and TCP Checksum Disagree](https://conferences2.sigcomm.org/sigcomm/2000/conf/paper/sigcomm2000-9-1.pdf). At *ACM Conference on Applications,
-Technologies, Architectures, and Protocols for Computer Communication* (SIGCOMM), August 2000.
-[doi:10.1145/347059.347561](https://doi.org/10.1145/347059.347561)
-
-[[107](/en/ch9#Jones2015-marker)] Evan Jones.
-[How Both TCP and Ethernet
-Checksums Fail](https://www.evanjones.ca/tcp-and-ethernet-checksums-fail.html). *evanjones.ca*, October 2015.
-Archived at [perma.cc/9T5V-B8X5](https://perma.cc/9T5V-B8X5)
-
-[[108](/en/ch9#Dwork1988_ch9-marker)] Cynthia Dwork, Nancy Lynch, and Larry Stockmeyer.
-[Consensus in the
-Presence of Partial Synchrony](https://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf). *Journal of the ACM*, volume 35, issue 2, pages 288–323,
-April 1988. [doi:10.1145/42282.42283](https://doi.org/10.1145/42282.42283)
-
-[[109](/en/ch9#Schlichting1983-marker)] Richard D. Schlichting and Fred B. Schneider.
-[Fail-stop processors: an
-approach to designing fault-tolerant computing systems](https://www.cs.cornell.edu/fbs/publications/Fail_Stop.pdf). *ACM Transactions on Computer
-Systems* (TOCS), volume 1, issue 3, pages 222–238, August 1983.
-[doi:10.1145/357369.357371](https://doi.org/10.1145/357369.357371)
-
-[[110](/en/ch9#Do2013-marker)] Thanh Do, Mingzhe Hao, Tanakorn Leesatapornwongsa,
-Tiratat Patana-anake, and Haryadi S. Gunawi.
-[Limplock: Understanding the Impact
-of Limpware on Scale-out Cloud Systems](https://ucare.cs.uchicago.edu/pdf/socc13-limplock.pdf). At *4th ACM Symposium on Cloud Computing*
-(SoCC), October 2013.
-[doi:10.1145/2523616.2523627](https://doi.org/10.1145/2523616.2523627)
-
-[[111](/en/ch9#Snyder2019-marker)] Josh Snyder and Joseph Lynch.
-[Garbage collecting
-unhealthy JVMs, a proactive approach](https://netflixtechblog.medium.com/introducing-jvmquake-ec944c60ba70). Netflix Technology Blog,
-*netflixtechblog.medium.com*, November 2019.
-Archived at [perma.cc/8BTA-N3YB](https://perma.cc/8BTA-N3YB)
-
-[[112](/en/ch9#Gunawi2018_ch9-marker)] Haryadi S. Gunawi, Riza O. Suminto, Russell
-Sears, Casey Golliher, Swaminathan Sundararaman, Xing Lin, Tim Emami, Weiguang Sheng, Nematollah
-Bidokhti, Caitie McCaffrey, Gary Grider, Parks M. Fields, Kevin Harms, Robert B. Ross, Andree
-Jacobson, Robert Ricci, Kirk Webb, Peter Alvaro, H. Birali Runesha, Mingzhe Hao, and Huaicheng Li.
-[Fail-Slow at
-Scale: Evidence of Hardware Performance Faults in Large Production Systems](https://www.usenix.org/system/files/conference/fast18/fast18-gunawi.pdf).
-At *16th USENIX Conference on File and Storage Technologies*, February 2018.
-
-[[113](/en/ch9#Huang2017_ch9-marker)] Peng Huang, Chuanxiong Guo, Lidong Zhou,
-Jacob R. Lorch, Yingnong Dang, Murali Chintalapati, and Randolph Yao.
-[Gray
-Failure: The Achilles’ Heel of Cloud-Scale Systems](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/paper-1.pdf). At *16th Workshop on Hot Topics in
-Operating Systems* (HotOS), May 2017.
-[doi:10.1145/3102980.3103005](https://doi.org/10.1145/3102980.3103005)
-
-[[114](/en/ch9#Lou2020-marker)] Chang Lou, Peng Huang, and Scott Smith.
-[Understanding, Detecting and
-Localizing Partial Failures in Large System Software](https://www.usenix.org/conference/nsdi20/presentation/lou). At *17th USENIX Symposium on
-Networked Systems Design and Implementation* (NSDI), February 2020.
-
-[[115](/en/ch9#Bailis2013_ch9-marker)] Peter Bailis and Ali Ghodsi.
-[Eventual Consistency Today: Limitations,
-Extensions, and Beyond](https://queue.acm.org/detail.cfm?id=2462076). *ACM Queue*, volume 11, issue 3, pages 55-63, March 2013.
-[doi:10.1145/2460276.2462076](https://doi.org/10.1145/2460276.2462076)
-
-[[116](/en/ch9#Alpern1985-marker)] Bowen Alpern and Fred B. Schneider.
-[Defining Liveness](https://www.cs.cornell.edu/fbs/publications/DefLiveness.pdf).
-*Information Processing Letters*, volume 21, issue 4, pages 181–185, October 1985.
-[doi:10.1016/0020-0190(85)90056-0](https://doi.org/10.1016/0020-0190%2885%2990056-0)
-
-[[117](/en/ch9#Junqueira2015-marker)] Flavio P. Junqueira.
-[Dude, Where’s My Metadata?](https://fpj.me/2015/05/28/dude-wheres-my-metadata/)
-*fpj.me*, May 2015.
-Archived at [perma.cc/D2EU-Y9S5](https://perma.cc/D2EU-Y9S5)
-
-[[118](/en/ch9#Sanders2016-marker)] Scott Sanders.
-[January 28th Incident
-Report](https://github.com/blog/2106-january-28th-incident-report). *github.com*, February 2016.
-Archived at [perma.cc/5GZR-88TV](https://perma.cc/5GZR-88TV)
-
-[[119](/en/ch9#Kreps2013-marker)] Jay Kreps.
-[A Few Notes
-on Kafka and Jepsen](https://blog.empathybox.com/post/62279088548/a-few-notes-on-kafka-and-jepsen). *blog.empathybox.com*, September 2013.
-[perma.cc/XJ5C-F583](https://perma.cc/XJ5C-F583)
-
-[[120](/en/ch9#Brooker2024correctness-marker)] Marc Brooker and Ankush Desai.
-[Systems Correctness Practices at AWS](https://dl.acm.org/doi/pdf/10.1145/3712057).
-*Queue, Volume 22, Issue 6*, November/December 2024.
-[doi:10.1145/3712057](https://doi.org/10.1145/3712057)
-
-[[121](/en/ch9#SatarinTesting-marker)] Andrey Satarin.
-[Testing Distributed Systems:
-Curated list of resources on testing distributed systems](https://asatarin.github.io/testing-distributed-systems/). *asatarin.github.io*.
-Archived at [perma.cc/U5V8-XP24](https://perma.cc/U5V8-XP24)
-
-[[122](/en/ch9#Vanlightly2024-marker)] Jack Vanlightly.
-[Verifying Kafka transactions - Diary entry 2 - Writing an initial TLA+ spec](https://jack-vanlightly.com/analyses/2024/12/3/verifying-kafka-transactions-diary-entry-2-writing-an-initial-tla-spec).
-*jack-vanlightly.com*, December 2024.
-Archived at [perma.cc/NSQ8-MQ5N](https://perma.cc/NSQ8-MQ5N)
-
-[[123](/en/ch9#Tang2018-marker)] Siddon Tang.
-[From Chaos to Order — Tools and
-Techniques for Testing TiDB, A Distributed NewSQL Database](https://www.pingcap.com/blog/chaos-practice-in-tidb/). *pingcap.com*, April 2018.
-Archived at [perma.cc/5EJB-R29F](https://perma.cc/5EJB-R29F)
-
-[[124](/en/ch9#VanBenschoten2019-marker)] Nathan VanBenschoten.
-[Parallel Commits: An atomic commit
-protocol for globally distributed transactions](https://www.cockroachlabs.com/blog/parallel-commits/). *cockroachlabs.com*, November 2019.
-Archived at [perma.cc/5FZ7-QK6J](https://perma.cc/5FZ7-QK6J%20)
-
-[[125](/en/ch9#Vanlightly2022-marker)] Jack Vanlightly.
-[Paper: VR Revisited - State Transfer (part 3)](https://jack-vanlightly.com/analyses/2022/12/28/paper-vr-revisited-state-transfer-part-3).
-*jack-vanlightly.com*, December 2022.
-Archived at [perma.cc/KNK3-K6WS](https://perma.cc/KNK3-K6WS)
-
-[[126](/en/ch9#Wayne2024-marker)] Hillel Wayne.
-[What if
-the spec doesn’t match the code?](https://buttondown.com/hillelwayne/archive/what-if-the-spec-doesnt-match-the-code/) *buttondown.com*, March 2024.
-Archived at [perma.cc/8HEZ-KHER](https://perma.cc/8HEZ-KHER)
-
-[[127](/en/ch9#Ouyang2025-marker)] Lingzhi Ouyang, Xudong Sun, Ruize Tang, Yu Huang,
-Madhav Jivrajani, Xiaoxing Ma, Tianyin Xu.
-[Multi-Grained Specifications for Distributed System Model
-Checking and Verification](https://arxiv.org/abs/2409.14301). At *20th European Conference on Computer Systems* (EuroSys),
-March 2025. [doi:10.1145/3689031.3696069](https://doi.org/10.1145/3689031.3696069)
-
-[[128](/en/ch9#Izrailevsky2011-marker)] Yury Izrailevsky and Ariel Tseitlin.
-[The Netflix Simian Army](https://netflixtechblog.com/the-netflix-simian-army-16e57fbab116).
-*netflixtechblog.com*, July, 2011.
-Archived at [perma.cc/M3NY-FJW6](https://perma.cc/M3NY-FJW6)
-
-[[129](/en/ch9#Kingsbury2013jepsen-marker)] Kyle Kingsbury.
-[Jepsen: On the perils of network partitions](https://aphyr.com/posts/281-jepsen-on-the-perils-of-network-partitions).
-*aphyr.com*, May, 2013.
-Archived at [perma.cc/W98G-6HQP](https://perma.cc/W98G-6HQP)
-
-[[130](/en/ch9#Kingsbury2024-marker)] Kyle Kingsbury.
-[Jepsen Analyses](https://jepsen.io/analyses). *jepsen.io*, 2024.
-Archived at [perma.cc/8LDN-D2T8](https://perma.cc/8LDN-D2T8)
-
-[[131](/en/ch9#Majumdar2017-marker)] Rupak Majumdar and Filip Niksic.
-[Why is random testing effective for partition
-tolerance bugs?](https://dl.acm.org/doi/pdf/10.1145/3158134) *Proceedings of the ACM on Programming Languages* (PACMPL), volume 2,
-issue POPL, article no. 46, December 2017.
-[doi:10.1145/3158134](https://doi.org/10.1145/3158134)
-
-[[132](/en/ch9#FoundationDB_ch9-marker)] FoundationDB project authors.
-[Simulation and Testing](https://apple.github.io/foundationdb/testing.html).
-*apple.github.io*.
-Archived at [perma.cc/NQ3L-PM4C](https://perma.cc/NQ3L-PM4C)
-
-[[133](/en/ch9#Kladov2023-marker)] Alex Kladov.
-[Simulation
-Testing For Liveness](https://tigerbeetle.com/blog/2023-07-06-simulation-testing-for-liveness/). *tigerbeetle.com*, July 2023.
-Archived at [perma.cc/RKD4-HGCR](https://perma.cc/RKD4-HGCR)
-
-[[134](/en/ch9#Marques2024-marker)] Alfonso Subiotto Marqués.
-[(Mostly)
-Deterministic Simulation Testing in Go](https://www.polarsignals.com/blog/posts/2024/05/28/mostly-dst-in-go). *polarsignals.com*, May 2024.
-Archived at [perma.cc/ULD6-TSA4](https://perma.cc/ULD6-TSA4)
+[^1]: Mark Cavage. [There’s Just No Getting Around It: You’re Building a Distributed System](https://queue.acm.org/detail.cfm?id=2482856). *ACM Queue*, volume 11, issue 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](https://doi.org/10.1145/2466486.2482856)
+[^2]: Jay Kreps. [Getting Real About Distributed System Reliability](https://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability). *blog.empathybox.com*, March 2012. Archived at [perma.cc/9B5Q-AEBW](https://perma.cc/9B5Q-AEBW)
+[^3]: Coda Hale. [You Can’t Sacrifice Partition Tolerance](https://codahale.com/you-cant-sacrifice-partition-tolerance/). *codahale.com*, October 2010. <https://perma.cc/6GJU-X4G5>
+[^4]: Jeff Hodges. [Notes on Distributed Systems for Young Bloods](https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/). *somethingsimilar.com*, January 2013. Archived at [perma.cc/B636-62CE](https://perma.cc/B636-62CE)
+[^5]: Van Jacobson. [Congestion Avoidance and Control](https://www.cs.usask.ca/ftp/pub/discus/seminars2002-2003/p314-jacobson.pdf). At *ACM Symposium on Communications Architectures and Protocols* (SIGCOMM), August 1988. [doi:10.1145/52324.52356](https://doi.org/10.1145/52324.52356)
+[^6]: Bert Hubert. [The Ultimate SO\_LINGER Page, or: Why Is My TCP Not Reliable](https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable). *blog.netherlabs.nl*, January 2009. Archived at [perma.cc/6HDX-L2RR](https://perma.cc/6HDX-L2RR)
+[^7]: Jerome H. Saltzer, David P. Reed, and David D. Clark. [End-To-End Arguments in System Design](https://groups.csail.mit.edu/ana/Publications/PubPDFs/End-to-End%20Arguments%20in%20System%20Design.pdf). *ACM Transactions on Computer Systems*, volume 2, issue 4, pages 277–288, November 1984. [doi:10.1145/357401.357402](https://doi.org/10.1145/357401.357402)
+[^8]: Peter Bailis and Kyle Kingsbury. [The Network Is Reliable](https://queue.acm.org/detail.cfm?id=2655736). *ACM Queue*, volume 12, issue 7, pages 48-55, July 2014. [doi:10.1145/2639988.2639988](https://doi.org/10.1145/2639988.2639988)
+[^9]: Joshua B. Leners, Trinabh Gupta, Marcos K. Aguilera, and Michael Walfish. [Taming Uncertainty in Distributed Systems with Help from the Network](https://cs.nyu.edu/~mwalfish/papers/albatross-eurosys15.pdf). At *10th European Conference on Computer Systems* (EuroSys), April 2015. [doi:10.1145/2741948.2741976](https://doi.org/10.1145/2741948.2741976)
+[^10]: Phillipa Gill, Navendu Jain, and Nachiappan Nagappan. [Understanding Network Failures in Data Centers: Measurement, Analysis, and Implications](https://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p350.pdf). At *ACM SIGCOMM Conference*, August 2011. [doi:10.1145/2018436.2018477](https://doi.org/10.1145/2018436.2018477)
+[^11]: Urs Hölzle. [But recently a farmer had started grazing a herd of cows nearby. And whenever they stepped on the fiber link, they bent it enough to cause a blip](https://x.com/uhoelzle/status/1263333283107991558). *x.com*, May 2020. Archived at [perma.cc/WX8X-ZZA5](https://perma.cc/WX8X-ZZA5)
+[^12]: CBC News. [Hundreds lose internet service in northern B.C. after beaver chews through cable](https://www.cbc.ca/news/canada/british-columbia/beaver-internet-down-tumbler-ridge-1.6001594). *cbc.ca*, April 2021. Archived at [perma.cc/UW8C-H2MY](https://perma.cc/UW8C-H2MY)
+[^13]: Will Oremus. [The Global Internet Is Being Attacked by Sharks, Google Confirms](https://slate.com/technology/2014/08/shark-attacks-threaten-google-s-undersea-internet-cables-video.html). *slate.com*, August 2014. Archived at [perma.cc/P6F3-C6YG](https://perma.cc/P6F3-C6YG)
+[^14]: Jess Auerbach Jahajeeah. [Down to the wire: The ship fixing our internet](https://continent.substack.com/p/down-to-the-wire-the-ship-fixing). *continent.substack.com*, November 2023. Archived at [perma.cc/DP7B-EQ7S](https://perma.cc/DP7B-EQ7S)
+[^15]: Santosh Janardhan. [More details about the October 4 outage](https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/). *engineering.fb.com*, October 2021. Archived at [perma.cc/WW89-VSXH](https://perma.cc/WW89-VSXH)
+[^16]: Tom Parfitt. [Georgian woman cuts off web access to whole of Armenia](https://www.theguardian.com/world/2011/apr/06/georgian-woman-cuts-web-access). *theguardian.com*, April 2011. Archived at [perma.cc/KMC3-N3NZ](https://perma.cc/KMC3-N3NZ)
+[^17]: Antonio Voce, Tural Ahmedzade and Ashley Kirk. [‘Shadow fleets’ and subaquatic sabotage: are Europe’s undersea internet cables under attack?](https://www.theguardian.com/world/ng-interactive/2025/mar/05/shadow-fleets-subaquatic-sabotage-europe-undersea-internet-cables-under-attack) *theguardian.com*, March 2025. Archived at [perma.cc/HA7S-ZDBV](https://perma.cc/HA7S-ZDBV)
+[^18]: Shengyun Liu, Paolo Viotti, Christian Cachin, Vivien Quéma, and Marko Vukolić. [XFT: Practical Fault Tolerance beyond Crashes](https://www.usenix.org/system/files/conference/osdi16/osdi16-liu.pdf). At *12th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), November 2016.
+[^19]: Mark Imbriaco. [Downtime last Saturday](https://github.blog/news-insights/the-library/downtime-last-saturday/). *github.blog*, December 2012. Archived at [perma.cc/M7X5-E8SQ](https://perma.cc/M7X5-E8SQ)
+[^20]: Tom Lianza and Chris Snook. [A Byzantine failure in the real world](https://blog.cloudflare.com/a-byzantine-failure-in-the-real-world/). *blog.cloudflare.com*, November 2020. Archived at [perma.cc/83EZ-ALCY](https://perma.cc/83EZ-ALCY)
+[^21]: Mohammed Alfatafta, Basil Alkhatib, Ahmed Alquraan, and Samer Al-Kiswany. [Toward a Generic Fault Tolerance Technique for Partial Network Partitioning](https://www.usenix.org/conference/osdi20/presentation/alfatafta). At *14th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), November 2020.
+[^22]: Marc A. Donges. [Re: bnx2 cards Intermittantly Going Offline](https://www.spinics.net/lists/netdev/msg210485.html). Message to Linux *netdev* mailing list, *spinics.net*, September 2012. Archived at [perma.cc/TXP6-H8R3](https://perma.cc/TXP6-H8R3)
+[^23]: Troy Toman. [Inside a CODE RED: Network Edition](https://signalvnoise.com/svn3/inside-a-code-red-network-edition/). *signalvnoise.com*, September 2020. Archived at [perma.cc/BET6-FY25](https://perma.cc/BET6-FY25)
+[^24]: Kyle Kingsbury. [Call Me Maybe: Elasticsearch](https://aphyr.com/posts/317-call-me-maybe-elasticsearch). *aphyr.com*, June 2014. [perma.cc/JK47-S89J](https://perma.cc/JK47-S89J)
+[^25]: Salvatore Sanfilippo. [A Few Arguments About Redis Sentinel Properties and Fail Scenarios](https://antirez.com/news/80). *antirez.com*, October 2014. [perma.cc/8XEU-CLM8](https://perma.cc/8XEU-CLM8)
+[^26]: Nicolas Liochon. [CAP: If All You Have Is a Timeout, Everything Looks Like a Partition](http://blog.thislongrun.com/2015/05/CAP-theorem-partition-timeout-zookeeper.html). *blog.thislongrun.com*, May 2015. Archived at [perma.cc/FS57-V2PZ](https://perma.cc/FS57-V2PZ)
+[^27]: Matthew P. Grosvenor, Malte Schwarzkopf, Ionel Gog, Robert N. M. Watson, Andrew W. Moore, Steven Hand, and Jon Crowcroft. [Queues Don’t Matter When You Can JUMP Them!](https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-grosvenor_update.pdf) At *12th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), May 2015.
+[^28]: Theo Julienne. [Debugging network stalls on Kubernetes](https://github.blog/engineering/debugging-network-stalls-on-kubernetes/). *github.blog*, November 2019. Archived at [perma.cc/K9M8-XVGL](https://perma.cc/K9M8-XVGL)
+[^29]: Guohui Wang and T. S. Eugene Ng. [The Impact of Virtualization on Network Performance of Amazon EC2 Data Center](https://www.cs.rice.edu/~eugeneng/papers/INFOCOM10-ec2.pdf). At *29th IEEE International Conference on Computer Communications* (INFOCOM), March 2010. [doi:10.1109/INFCOM.2010.5461931](https://doi.org/10.1109/INFCOM.2010.5461931)
+[^30]: Brandon Philips. [etcd: Distributed Locking and Service Discovery](https://www.youtube.com/watch?v=HJIjTTHWYnE). At *Strange Loop*, September 2014.
+[^31]: Steve Newman. [A Systematic Look at EC2 I/O](https://www.sentinelone.com/blog/a-systematic-look-at-ec2-i-o/). *blog.scalyr.com*, October 2012. Archived at [perma.cc/FL4R-H2VE](https://perma.cc/FL4R-H2VE)
+[^32]: Naohiro Hayashibara, Xavier Défago, Rami Yared, and Takuya Katayama. [The ϕ Accrual Failure Detector](https://hdl.handle.net/10119/4784). Japan Advanced Institute of Science and Technology, School of Information Science, Technical Report IS-RR-2004-010, May 2004. Archived at [perma.cc/NSM2-TRYA](https://perma.cc/NSM2-TRYA)
+[^33]: Jeffrey Wang. [Phi Accrual Failure Detector](https://ternarysearch.blogspot.com/2013/08/phi-accrual-failure-detector.html). *ternarysearch.blogspot.co.uk*, August 2013. [perma.cc/L452-AMLV](https://perma.cc/L452-AMLV)
+[^34]: Srinivasan Keshav. *An Engineering Approach to Computer Networking: ATM Networks, the Internet, and the Telephone Network*. Addison-Wesley Professional, May 1997. ISBN: 978-0-201-63442-6
+[^35]: Othmar Kyas. *ATM Networks*. International Thomson Publishing, 1995. ISBN: 978-1-850-32128-6
+[^36]: Mellanox Technologies. [InfiniBand FAQ, Rev 1.3](https://network.nvidia.com/related-docs/whitepapers/InfiniBandFAQ_FQ_100.pdf). *network.nvidia.com*, December 2014. Archived at [perma.cc/LQJ4-QZVK](https://perma.cc/LQJ4-QZVK)
+[^37]: Jose Renato Santos, Yoshio Turner, and G. (John) Janakiraman. [End-to-End Congestion Control for InfiniBand](https://infocom2003.ieee-infocom.org/papers/28_01.PDF). At *22nd Annual Joint Conference of the IEEE Computer and Communications Societies* (INFOCOM), April 2003. Also published by HP Laboratories Palo Alto, Tech Report HPL-2002-359. [doi:10.1109/INFCOM.2003.1208949](https://doi.org/10.1109/INFCOM.2003.1208949)
+[^38]: Jialin Li, Naveen Kr. Sharma, Dan R. K. Ports, and Steven D. Gribble. [Tales of the Tail: Hardware, OS, and Application-level Sources of Tail Latency](https://syslab.cs.washington.edu/papers/latency-socc14.pdf). At *ACM Symposium on Cloud Computing* (SOCC), November 2014. [doi:10.1145/2670979.2670988](https://doi.org/10.1145/2670979.2670988)
+[^39]: Ulrich Windl, David Dalton, Marc Martinec, and Dale R. Worley. [The NTP FAQ and HOWTO](https://www.ntp.org/ntpfaq/). *ntp.org*, November 2006.
+[^40]: John Graham-Cumming. [How and why the leap second affected Cloudflare DNS](https://blog.cloudflare.com/how-and-why-the-leap-second-affected-cloudflare-dns/). *blog.cloudflare.com*, January 2017. Archived at [archive.org](https://web.archive.org/web/20250202041444/https%3A//blog.cloudflare.com/how-and-why-the-leap-second-affected-cloudflare-dns/)
+[^41]: David Holmes. [Inside the Hotspot VM: Clocks, Timers and Scheduling Events – Part I – Windows](https://web.archive.org/web/20160308031939/https%3A//blogs.oracle.com/dholmes/entry/inside_the_hotspot_vm_clocks). *blogs.oracle.com*, October 2006. Archived at [archive.org](https://web.archive.org/web/20160308031939/https%3A//blogs.oracle.com/dholmes/entry/inside_the_hotspot_vm_clocks)
+[^42]: Joran Dirk Greef. [Three Clocks are Better than One](https://tigerbeetle.com/blog/2021-08-30-three-clocks-are-better-than-one/). *tigerbeetle.com*, August 2021. Archived at [perma.cc/5RXG-EU6B](https://perma.cc/5RXG-EU6B)
+[^43]: Oliver Yang. [Pitfalls of TSC usage](https://oliveryang.net/2015/09/pitfalls-of-TSC-usage/). *oliveryang.net*, September 2015. Archived at [perma.cc/Z2QY-5FRA](https://perma.cc/Z2QY-5FRA)
+[^44]: Steve Loughran. [Time on Multi-Core, Multi-Socket Servers](https://steveloughran.blogspot.com/2015/09/time-on-multi-core-multi-socket-servers.html). *steveloughran.blogspot.co.uk*, September 2015. Archived at [perma.cc/7M4S-D4U6](https://perma.cc/7M4S-D4U6)
+[^45]: James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
+[^46]: M. Caporaloni and R. Ambrosini. [How Closely Can a Personal Computer Clock Track the UTC Timescale Via the Internet?](https://iopscience.iop.org/0143-0807/23/4/103/) *European Journal of Physics*, volume 23, issue 4, pages L17–L21, June 2012. [doi:10.1088/0143-0807/23/4/103](https://doi.org/10.1088/0143-0807/23/4/103)
+[^47]: Nelson Minar. [A Survey of the NTP Network](https://alumni.media.mit.edu/~nelson/research/ntp-survey99/). *alumni.media.mit.edu*, December 1999. Archived at [perma.cc/EV76-7ZV3](https://perma.cc/EV76-7ZV3)
+[^48]: Viliam Holub. [Synchronizing Clocks in a Cassandra Cluster Pt. 1 – The Problem](https://blog.rapid7.com/2014/03/14/synchronizing-clocks-in-a-cassandra-cluster-pt-1-the-problem/). *blog.rapid7.com*, March 2014. Archived at [perma.cc/N3RV-5LNL](https://perma.cc/N3RV-5LNL)
+[^49]: Poul-Henning Kamp. [The One-Second War (What Time Will You Die?)](https://queue.acm.org/detail.cfm?id=1967009) *ACM Queue*, volume 9, issue 4, pages 44–48, April 2011. [doi:10.1145/1966989.1967009](https://doi.org/10.1145/1966989.1967009)
+[^50]: Nelson Minar. [Leap Second Crashes Half the Internet](https://www.somebits.com/weblog/tech/bad/leap-second-2012.html). *somebits.com*, July 2012. Archived at [perma.cc/2WB8-D6EU](https://perma.cc/2WB8-D6EU)
+[^51]: Christopher Pascoe. [Time, Technology and Leaping Seconds](https://googleblog.blogspot.com/2011/09/time-technology-and-leaping-seconds.html). *googleblog.blogspot.co.uk*, September 2011. Archived at [perma.cc/U2JL-7E74](https://perma.cc/U2JL-7E74)
+[^52]: Mingxue Zhao and Jeff Barr. [Look Before You Leap – The Coming Leap Second and AWS](https://aws.amazon.com/blogs/aws/look-before-you-leap-the-coming-leap-second-and-aws/). *aws.amazon.com*, May 2015. Archived at [perma.cc/KPE9-XMFM](https://perma.cc/KPE9-XMFM)
+[^53]: Darryl Veitch and Kanthaiah Vijayalayan. [Network Timing and the 2015 Leap Second](https://opus.lib.uts.edu.au/bitstream/10453/43923/1/LeapSecond_camera.pdf). At *17th International Conference on Passive and Active Measurement* (PAM), April 2016. [doi:10.1007/978-3-319-30505-9\_29](https://doi.org/10.1007/978-3-319-30505-9_29)
+[^54]: VMware, Inc. [Timekeeping in VMware Virtual Machines](https://www.vmware.com/docs/vmware_timekeeping). *vmware.com*, October 2008. Archived at [perma.cc/HM5R-T5NF](https://perma.cc/HM5R-T5NF)
+[^55]: Victor Yodaiken. [Clock Synchronization in Finance and Beyond](https://www.yodaiken.com/wp-content/uploads/2018/05/financeandbeyond.pdf). *yodaiken.com*, November 2017. Archived at [perma.cc/9XZD-8ZZN](https://perma.cc/9XZD-8ZZN)
+[^56]: Mustafa Emre Acer, Emily Stark, Adrienne Porter Felt, Sascha Fahl, Radhika Bhargava, Bhanu Dev, Matt Braithwaite, Ryan Sleevi, and Parisa Tabriz. [Where the Wild Warnings Are: Root Causes of Chrome HTTPS Certificate Errors](https://acmccs.github.io/papers/p1407-acerA.pdf). At *ACM SIGSAC Conference on Computer and Communications Security* (CCS), pages 1407–1420, October 2017. [doi:10.1145/3133956.3134007](https://doi.org/10.1145/3133956.3134007)
+[^57]: European Securities and Markets Authority. [MiFID II / MiFIR: Regulatory Technical and Implementing Standards – Annex I](https://www.esma.europa.eu/sites/default/files/library/2015/11/2015-esma-1464_annex_i_-_draft_rts_and_its_on_mifid_ii_and_mifir.pdf). *esma.europa.eu*, Report ESMA/2015/1464, September 2015. Archived at [perma.cc/ZLX9-FGQ3](https://perma.cc/ZLX9-FGQ3)
+[^58]: Luke Bigum. [Solving MiFID II Clock Synchronisation With Minimum Spend (Part 1)](https://catach.blogspot.com/2015/11/solving-mifid-ii-clock-synchronisation.html). *catach.blogspot.com*, November 2015. Archived at [perma.cc/4J5W-FNM4](https://perma.cc/4J5W-FNM4)
+[^59]: Oleg Obleukhov and Ahmad Byagowi. [How Precision Time Protocol is being deployed at Meta](https://engineering.fb.com/2022/11/21/production-engineering/precision-time-protocol-at-meta/). *engineering.fb.com*, November 2022. Archived at [perma.cc/29G6-UJNW](https://perma.cc/29G6-UJNW)
+[^60]: John Wiseman. [gpsjam.org](https://gpsjam.org/), July 2022.
+[^61]: Josh Levinson, Julien Ridoux, and Chris Munns. [It’s About Time: Microsecond-Accurate Clocks on Amazon EC2 Instances](https://aws.amazon.com/blogs/compute/its-about-time-microsecond-accurate-clocks-on-amazon-ec2-instances/). *aws.amazon.com*, November 2023. Archived at [perma.cc/56M6-5VMZ](https://perma.cc/56M6-5VMZ)
+[^62]: Kyle Kingsbury. [Call Me Maybe: Cassandra](https://aphyr.com/posts/294-call-me-maybe-cassandra/). *aphyr.com*, September 2013. Archived at [perma.cc/4MBR-J96V](https://perma.cc/4MBR-J96V)
+[^63]: John Daily. [Clocks Are Bad, or, Welcome to the Wonderful World of Distributed Systems](https://riak.com/clocks-are-bad-or-welcome-to-distributed-systems/). *riak.com*, November 2013. Archived at [perma.cc/4XB5-UCXY](https://perma.cc/4XB5-UCXY)
+[^64]: Marc Brooker. [It’s About Time!](https://brooker.co.za/blog/2023/11/27/about-time.html) *brooker.co.za*, November 2023. Archived at [perma.cc/N6YK-DRPA](https://perma.cc/N6YK-DRPA)
+[^65]: Kyle Kingsbury. [The Trouble with Timestamps](https://aphyr.com/posts/299-the-trouble-with-timestamps). *aphyr.com*, October 2013. Archived at [perma.cc/W3AM-5VAV](https://perma.cc/W3AM-5VAV)
+[^66]: Leslie Lamport. [Time, Clocks, and the Ordering of Events in a Distributed System](https://www.microsoft.com/en-us/research/publication/time-clocks-ordering-events-distributed-system/). *Communications of the ACM*, volume 21, issue 7, pages 558–565, July 1978. [doi:10.1145/359545.359563](https://doi.org/10.1145/359545.359563)
+[^67]: Justin Sheehy. [There Is No Now: Problems With Simultaneity in Distributed Systems](https://queue.acm.org/detail.cfm?id=2745385). *ACM Queue*, volume 13, issue 3, pages 36–41, March 2015. [doi:10.1145/2733108](https://doi.org/10.1145/2733108)
+[^68]: Murat Demirbas. [Spanner: Google’s Globally-Distributed Database](https://muratbuffalo.blogspot.com/2013/07/spanner-googles-globally-distributed_4.html). *muratbuffalo.blogspot.co.uk*, July 2013. Archived at [perma.cc/6VWR-C9WB](https://perma.cc/6VWR-C9WB)
+[^69]: Dahlia Malkhi and Jean-Philippe Martin. [Spanner’s Concurrency Control](https://www.cs.cornell.edu/~ie53/publications/DC-col51-Sep13.pdf). *ACM SIGACT News*, volume 44, issue 3, pages 73–77, September 2013. [doi:10.1145/2527748.2527767](https://doi.org/10.1145/2527748.2527767)
+[^70]: Franck Pachot. [Achieving Precise Clock Synchronization on AWS](https://www.yugabyte.com/blog/aws-clock-synchronization/). *yugabyte.com*, December 2024. Archived at [perma.cc/UYM6-RNBS](https://perma.cc/UYM6-RNBS)
+[^71]: Spencer Kimball. [Living Without Atomic Clocks: Where CockroachDB and Spanner diverge](https://www.cockroachlabs.com/blog/living-without-atomic-clocks/). *cockroachlabs.com*, January 2022. Archived at [perma.cc/AWZ7-RXFT](https://perma.cc/AWZ7-RXFT)
+[^72]: Murat Demirbas. [Use of Time in Distributed Databases (part 4): Synchronized clocks in production databases](https://muratbuffalo.blogspot.com/2025/01/use-of-time-in-distributed-databases.html). *muratbuffalo.blogspot.com*, January 2025. Archived at [perma.cc/9WNX-Q9U3](https://perma.cc/9WNX-Q9U3)
+[^73]: Cary G. Gray and David R. Cheriton. [Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache Consistency](https://courses.cs.duke.edu/spring11/cps210/papers/p202-gray.pdf). At *12th ACM Symposium on Operating Systems Principles* (SOSP), December 1989. [doi:10.1145/74850.74870](https://doi.org/10.1145/74850.74870)
+[^74]: Daniel Sturman, Scott Delap, Max Ross, et al. [Roblox Return to Service](https://corp.roblox.com/newsroom/2022/01/roblox-return-to-service-10-28-10-31-2021). *corp.roblox.com*, January 2022. Archived at [perma.cc/8ALT-WAS4](https://perma.cc/8ALT-WAS4)
+[^75]: Todd Lipcon. [Avoiding Full GCs with MemStore-Local Allocation Buffers](https://www.slideshare.net/slideshow/hbase-hug-presentation/7038178). *slideshare.net*, February 2011. Archived at <https://perma.cc/CH62-2EWJ>
+[^76]: Christopher Clark, Keir Fraser, Steven Hand, Jacob Gorm Hansen, Eric Jul, Christian Limpach, Ian Pratt, and Andrew Warfield. [Live Migration of Virtual Machines](https://www.usenix.org/legacy/publications/library/proceedings/nsdi05/tech/full_papers/clark/clark.pdf). At *2nd USENIX Symposium on Symposium on Networked Systems Design & Implementation* (NSDI), May 2005.
+[^77]: Mike Shaver. [fsyncers and Curveballs](https://web.archive.org/web/20220107141023/http%3A//shaver.off.net/diary/2008/05/25/fsyncers-and-curveballs/). *shaver.off.net*, May 2008. Archived at [archive.org](https://web.archive.org/web/20220107141023/http%3A//shaver.off.net/diary/2008/05/25/fsyncers-and-curveballs/)
+[^78]: Zhenyun Zhuang and Cuong Tran. [Eliminating Large JVM GC Pauses Caused by Background IO Traffic](https://engineering.linkedin.com/blog/2016/02/eliminating-large-jvm-gc-pauses-caused-by-background-io-traffic). *engineering.linkedin.com*, February 2016. Archived at [perma.cc/ML2M-X9XT](https://perma.cc/ML2M-X9XT)
+[^79]: Martin Thompson. [Java Garbage Collection Distilled](https://mechanical-sympathy.blogspot.com/2013/07/java-garbage-collection-distilled.html). *mechanical-sympathy.blogspot.co.uk*, July 2013. Archived at [perma.cc/DJT3-NQLQ](https://perma.cc/DJT3-NQLQ)
+[^80]: David Terei and Amit Levy. [Blade: A Data Center Garbage Collector](https://arxiv.org/pdf/1504.02578). arXiv:1504.02578, April 2015.
+[^81]: Martin Maas, Tim Harris, Krste Asanović, and John Kubiatowicz. [Trash Day: Coordinating Garbage Collection in Distributed Systems](https://timharris.uk/papers/2015-hotos.pdf). At *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
+[^82]: Martin Fowler. [The LMAX Architecture](https://martinfowler.com/articles/lmax.html). *martinfowler.com*, July 2011. Archived at [perma.cc/5AV4-N6RJ](https://perma.cc/5AV4-N6RJ)
+[^83]: Joseph Y. Halpern and Yoram Moses. [Knowledge and common knowledge in a distributed environment](https://groups.csail.mit.edu/tds/papers/Halpern/JACM90.pdf). *Journal of the ACM* (JACM), volume 37, issue 3, pages 549–587, July 1990. [doi:10.1145/79147.79161](https://doi.org/10.1145/79147.79161)
+[^84]: Chuzhe Tang, Zhaoguo Wang, Xiaodong Zhang, Qianmian Yu, Binyu Zang, Haibing Guan, and Haibo Chen. [Ad Hoc Transactions in Web Applications: The Good, the Bad, and the Ugly](https://ipads.se.sjtu.edu.cn/_media/publications/concerto-sigmod22.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2022. [doi:10.1145/3514221.3526120](https://doi.org/10.1145/3514221.3526120)
+[^85]: Flavio P. Junqueira and Benjamin Reed. [*ZooKeeper: Distributed Process Coordination*](https://www.oreilly.com/library/view/zookeeper/9781449361297/). O’Reilly Media, 2013. ISBN: 978-1-449-36130-3
+[^86]: Enis Söztutar. [HBase and HDFS: Understanding Filesystem Usage in HBase](https://www.slideshare.net/slideshow/hbase-and-hdfs-understanding-filesystem-usage/22990858). At *HBaseCon*, June 2013. Archived at [perma.cc/4DXR-9P88](https://perma.cc/4DXR-9P88)
+[^87]: SUSE LLC. [SUSE Linux Enterprise High Availability 15 SP6 Administration Guide, Section 12: Fencing and STONITH](https://documentation.suse.com/sle-ha/15-SP6/html/SLE-HA-all/cha-ha-fencing.html). *documentation.suse.com*, March 2025. Archived at [perma.cc/8LAR-EL9D](https://perma.cc/8LAR-EL9D)
+[^88]: Mike Burrows. [The Chubby Lock Service for Loosely-Coupled Distributed Systems](https://research.google/pubs/pub27897/). At *7th USENIX Symposium on Operating System Design and Implementation* (OSDI), November 2006.
+[^89]: Kyle Kingsbury. [etcd 3.4.3](https://jepsen.io/analyses/etcd-3.4.3). *jepsen.io*, January 2020. Archived at [perma.cc/2P3Y-MPWU](https://perma.cc/2P3Y-MPWU)
+[^90]: Ensar Basri Kahveci. [Distributed Locks are Dead; Long Live Distributed Locks!](https://hazelcast.com/blog/long-live-distributed-locks/) *hazelcast.com*, April 2019. Archived at [perma.cc/7FS5-LDXE](https://perma.cc/7FS5-LDXE)
+[^91]: Martin Kleppmann. [How to do distributed locking](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html). *martin.kleppmann.com*, February 2016. Archived at [perma.cc/Y24W-YQ5L](https://perma.cc/Y24W-YQ5L)
+[^92]: Salvatore Sanfilippo. [Is Redlock safe?](https://antirez.com/news/101) *antirez.com*, February 2016. Archived at [perma.cc/B6GA-9Q6A](https://perma.cc/B6GA-9Q6A)
+[^93]: Gunnar Morling. [Leader Election With S3 Conditional Writes](https://www.morling.dev/blog/leader-election-with-s3-conditional-writes/). *www.morling.dev*, August 2024. Archived at [perma.cc/7V2N-J78Y](https://perma.cc/7V2N-J78Y)
+[^94]: Leslie Lamport, Robert Shostak, and Marshall Pease. [The Byzantine Generals Problem](https://www.microsoft.com/en-us/research/publication/byzantine-generals-problem/). *ACM Transactions on Programming Languages and Systems* (TOPLAS), volume 4, issue 3, pages 382–401, July 1982. [doi:10.1145/357172.357176](https://doi.org/10.1145/357172.357176)
+[^95]: Jim N. Gray. [Notes on Data Base Operating Systems](https://jimgray.azurewebsites.net/papers/dbos.pdf). in *Operating Systems: An Advanced Course*, Lecture Notes in Computer Science, volume 60, edited by R. Bayer, R. M. Graham, and G. Seegmüller, pages 393–481, Springer-Verlag, 1978. ISBN: 978-3-540-08755-7. Archived at [perma.cc/7S9M-2LZU](https://perma.cc/7S9M-2LZU)
+[^96]: Brian Palmer. [How Complicated Was the Byzantine Empire?](https://slate.com/news-and-politics/2011/10/the-byzantine-tax-code-how-complicated-was-byzantium-anyway.html) *slate.com*, October 2011. Archived at [perma.cc/AN7X-FL3N](https://perma.cc/AN7X-FL3N)
+[^97]: Leslie Lamport. [My Writings](https://lamport.azurewebsites.net/pubs/pubs.html). *lamport.azurewebsites.net*, December 2014. Archived at [perma.cc/5NNM-SQGR](https://perma.cc/5NNM-SQGR)
+[^98]: John Rushby. [Bus Architectures for Safety-Critical Embedded Systems](https://www.csl.sri.com/papers/emsoft01/emsoft01.pdf). At *1st International Workshop on Embedded Software* (EMSOFT), October 2001. [doi:10.1007/3-540-45449-7\_22](https://doi.org/10.1007/3-540-45449-7_22)
+[^99]: Jake Edge. [ELC: SpaceX Lessons Learned](https://lwn.net/Articles/540368/). *lwn.net*, March 2013. Archived at [perma.cc/AYX8-QP5X](https://perma.cc/AYX8-QP5X)
+[^100]: Shehar Bano, Alberto Sonnino, Mustafa Al-Bassam, Sarah Azouvi, Patrick McCorry, Sarah Meiklejohn, and George Danezis. [SoK: Consensus in the Age of Blockchains](https://smeiklej.com/files/aft19a.pdf). At *1st ACM Conference on Advances in Financial Technologies* (AFT), October 2019. [doi:10.1145/3318041.3355458](https://doi.org/10.1145/3318041.3355458)
+[^101]: Ezra Feilden, Adi Oltean, and Philip Johnston. [Why we should train AI in space](https://www.starcloud.com/wp). White Paper, *starcloud.com*, September 2024. Archived at [perma.cc/7Y3S-8UB6](https://perma.cc/7Y3S-8UB6)
+[^102]: James Mickens. [The Saddest Moment](https://www.usenix.org/system/files/login-logout_1305_mickens.pdf). *USENIX ;login*, May 2013. Archived at [perma.cc/T7BZ-XCFR](https://perma.cc/T7BZ-XCFR)
+[^103]: Martin Kleppmann and Heidi Howard. [Byzantine Eventual Consistency and the Fundamental Limits of Peer-to-Peer Databases](https://arxiv.org/abs/2012.00472). *arxiv.org*, December 2020. [doi:10.48550/arXiv.2012.00472](https://doi.org/10.48550/arXiv.2012.00472)
+[^104]: Martin Kleppmann. [Making CRDTs Byzantine Fault Tolerant](https://martin.kleppmann.com/papers/bft-crdt-papoc22.pdf). At *9th Workshop on Principles and Practice of Consistency for Distributed Data* (PaPoC), April 2022. [doi:10.1145/3517209.3524042](https://doi.org/10.1145/3517209.3524042)
+[^105]: Evan Gilman. [The Discovery of Apache ZooKeeper’s Poison Packet](https://www.pagerduty.com/blog/the-discovery-of-apache-zookeepers-poison-packet/). *pagerduty.com*, May 2015. Archived at [perma.cc/RV6L-Y5CQ](https://perma.cc/RV6L-Y5CQ)
+[^106]: Jonathan Stone and Craig Partridge. [When the CRC and TCP Checksum Disagree](https://conferences2.sigcomm.org/sigcomm/2000/conf/paper/sigcomm2000-9-1.pdf). At *ACM Conference on Applications, Technologies, Architectures, and Protocols for Computer Communication* (SIGCOMM), August 2000. [doi:10.1145/347059.347561](https://doi.org/10.1145/347059.347561)
+[^107]: Evan Jones. [How Both TCP and Ethernet Checksums Fail](https://www.evanjones.ca/tcp-and-ethernet-checksums-fail.html). *evanjones.ca*, October 2015. Archived at [perma.cc/9T5V-B8X5](https://perma.cc/9T5V-B8X5)
+[^108]: Cynthia Dwork, Nancy Lynch, and Larry Stockmeyer. [Consensus in the Presence of Partial Synchrony](https://groups.csail.mit.edu/tds/papers/Lynch/jacm88.pdf). *Journal of the ACM*, volume 35, issue 2, pages 288–323, April 1988. [doi:10.1145/42282.42283](https://doi.org/10.1145/42282.42283)
+[^109]: Richard D. Schlichting and Fred B. Schneider. [Fail-stop processors: an approach to designing fault-tolerant computing systems](https://www.cs.cornell.edu/fbs/publications/Fail_Stop.pdf). *ACM Transactions on Computer Systems* (TOCS), volume 1, issue 3, pages 222–238, August 1983. [doi:10.1145/357369.357371](https://doi.org/10.1145/357369.357371)
+[^110]: Thanh Do, Mingzhe Hao, Tanakorn Leesatapornwongsa, Tiratat Patana-anake, and Haryadi S. Gunawi. [Limplock: Understanding the Impact of Limpware on Scale-out Cloud Systems](https://ucare.cs.uchicago.edu/pdf/socc13-limplock.pdf). At *4th ACM Symposium on Cloud Computing* (SoCC), October 2013. [doi:10.1145/2523616.2523627](https://doi.org/10.1145/2523616.2523627)
+[^111]: Josh Snyder and Joseph Lynch. [Garbage collecting unhealthy JVMs, a proactive approach](https://netflixtechblog.medium.com/introducing-jvmquake-ec944c60ba70). Netflix Technology Blog, *netflixtechblog.medium.com*, November 2019. Archived at [perma.cc/8BTA-N3YB](https://perma.cc/8BTA-N3YB)
+[^112]: Haryadi S. Gunawi, Riza O. Suminto, Russell Sears, Casey Golliher, Swaminathan Sundararaman, Xing Lin, Tim Emami, Weiguang Sheng, Nematollah Bidokhti, Caitie McCaffrey, Gary Grider, Parks M. Fields, Kevin Harms, Robert B. Ross, Andree Jacobson, Robert Ricci, Kirk Webb, Peter Alvaro, H. Birali Runesha, Mingzhe Hao, and Huaicheng Li. [Fail-Slow at Scale: Evidence of Hardware Performance Faults in Large Production Systems](https://www.usenix.org/system/files/conference/fast18/fast18-gunawi.pdf). At *16th USENIX Conference on File and Storage Technologies*, February 2018.
+[^113]: Peng Huang, Chuanxiong Guo, Lidong Zhou, Jacob R. Lorch, Yingnong Dang, Murali Chintalapati, and Randolph Yao. [Gray Failure: The Achilles’ Heel of Cloud-Scale Systems](https://www.microsoft.com/en-us/research/wp-content/uploads/2017/06/paper-1.pdf). At *16th Workshop on Hot Topics in Operating Systems* (HotOS), May 2017. [doi:10.1145/3102980.3103005](https://doi.org/10.1145/3102980.3103005)
+[^114]: Chang Lou, Peng Huang, and Scott Smith. [Understanding, Detecting and Localizing Partial Failures in Large System Software](https://www.usenix.org/conference/nsdi20/presentation/lou). At *17th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), February 2020.
+[^115]: Peter Bailis and Ali Ghodsi. [Eventual Consistency Today: Limitations, Extensions, and Beyond](https://queue.acm.org/detail.cfm?id=2462076). *ACM Queue*, volume 11, issue 3, pages 55-63, March 2013. [doi:10.1145/2460276.2462076](https://doi.org/10.1145/2460276.2462076)
+[^116]: Bowen Alpern and Fred B. Schneider. [Defining Liveness](https://www.cs.cornell.edu/fbs/publications/DefLiveness.pdf). *Information Processing Letters*, volume 21, issue 4, pages 181–185, October 1985. [doi:10.1016/0020-0190(85)90056-0](https://doi.org/10.1016/0020-0190%2885%2990056-0)
+[^117]: Flavio P. Junqueira. [Dude, Where’s My Metadata?](https://fpj.me/2015/05/28/dude-wheres-my-metadata/) *fpj.me*, May 2015. Archived at [perma.cc/D2EU-Y9S5](https://perma.cc/D2EU-Y9S5)
+[^118]: Scott Sanders. [January 28th Incident Report](https://github.com/blog/2106-january-28th-incident-report). *github.com*, February 2016. Archived at [perma.cc/5GZR-88TV](https://perma.cc/5GZR-88TV)
+[^119]: Jay Kreps. [A Few Notes on Kafka and Jepsen](https://blog.empathybox.com/post/62279088548/a-few-notes-on-kafka-and-jepsen). *blog.empathybox.com*, September 2013. [perma.cc/XJ5C-F583](https://perma.cc/XJ5C-F583)
+[^120]: Marc Brooker and Ankush Desai. [Systems Correctness Practices at AWS](https://dl.acm.org/doi/pdf/10.1145/3712057). *Queue, Volume 22, Issue 6*, November/December 2024. [doi:10.1145/3712057](https://doi.org/10.1145/3712057)
+[^121]: Andrey Satarin. [Testing Distributed Systems: Curated list of resources on testing distributed systems](https://asatarin.github.io/testing-distributed-systems/). *asatarin.github.io*. Archived at [perma.cc/U5V8-XP24](https://perma.cc/U5V8-XP24)
+[^122]: Jack Vanlightly. [Verifying Kafka transactions - Diary entry 2 - Writing an initial TLA+ spec](https://jack-vanlightly.com/analyses/2024/12/3/verifying-kafka-transactions-diary-entry-2-writing-an-initial-tla-spec). *jack-vanlightly.com*, December 2024. Archived at [perma.cc/NSQ8-MQ5N](https://perma.cc/NSQ8-MQ5N)
+[^123]: Siddon Tang. [From Chaos to Order — Tools and Techniques for Testing TiDB, A Distributed NewSQL Database](https://www.pingcap.com/blog/chaos-practice-in-tidb/). *pingcap.com*, April 2018. Archived at [perma.cc/5EJB-R29F](https://perma.cc/5EJB-R29F)
+[^124]: Nathan VanBenschoten. [Parallel Commits: An atomic commit protocol for globally distributed transactions](https://www.cockroachlabs.com/blog/parallel-commits/). *cockroachlabs.com*, November 2019. Archived at [perma.cc/5FZ7-QK6J](https://perma.cc/5FZ7-QK6J%20)
+[^125]: Jack Vanlightly. [Paper: VR Revisited - State Transfer (part 3)](https://jack-vanlightly.com/analyses/2022/12/28/paper-vr-revisited-state-transfer-part-3). *jack-vanlightly.com*, December 2022. Archived at [perma.cc/KNK3-K6WS](https://perma.cc/KNK3-K6WS)
+[^126]: Hillel Wayne. [What if the spec doesn’t match the code?](https://buttondown.com/hillelwayne/archive/what-if-the-spec-doesnt-match-the-code/) *buttondown.com*, March 2024. Archived at [perma.cc/8HEZ-KHER](https://perma.cc/8HEZ-KHER)
+[^127]: Lingzhi Ouyang, Xudong Sun, Ruize Tang, Yu Huang, Madhav Jivrajani, Xiaoxing Ma, Tianyin Xu. [Multi-Grained Specifications for Distributed System Model Checking and Verification](https://arxiv.org/abs/2409.14301). At *20th European Conference on Computer Systems* (EuroSys), March 2025. [doi:10.1145/3689031.3696069](https://doi.org/10.1145/3689031.3696069)
+[^128]: Yury Izrailevsky and Ariel Tseitlin. [The Netflix Simian Army](https://netflixtechblog.com/the-netflix-simian-army-16e57fbab116). *netflixtechblog.com*, July, 2011. Archived at [perma.cc/M3NY-FJW6](https://perma.cc/M3NY-FJW6)
+[^129]: Kyle Kingsbury. [Jepsen: On the perils of network partitions](https://aphyr.com/posts/281-jepsen-on-the-perils-of-network-partitions). *aphyr.com*, May, 2013. Archived at [perma.cc/W98G-6HQP](https://perma.cc/W98G-6HQP)
+[^130]: Kyle Kingsbury. [Jepsen Analyses](https://jepsen.io/analyses). *jepsen.io*, 2024. Archived at [perma.cc/8LDN-D2T8](https://perma.cc/8LDN-D2T8)
+[^131]: Rupak Majumdar and Filip Niksic. [Why is random testing effective for partition tolerance bugs?](https://dl.acm.org/doi/pdf/10.1145/3158134) *Proceedings of the ACM on Programming Languages* (PACMPL), volume 2, issue POPL, article no. 46, December 2017. [doi:10.1145/3158134](https://doi.org/10.1145/3158134)
+[^132]: FoundationDB project authors. [Simulation and Testing](https://apple.github.io/foundationdb/testing.html). *apple.github.io*. Archived at [perma.cc/NQ3L-PM4C](https://perma.cc/NQ3L-PM4C)
+[^133]: Alex Kladov. [Simulation Testing For Liveness](https://tigerbeetle.com/blog/2023-07-06-simulation-testing-for-liveness/). *tigerbeetle.com*, July 2023. Archived at [perma.cc/RKD4-HGCR](https://perma.cc/RKD4-HGCR)
+[^134]: Alfonso Subiotto Marqués. [(Mostly) Deterministic Simulation Testing in Go](https://www.polarsignals.com/blog/posts/2024/05/28/mostly-dst-in-go). *polarsignals.com*, May 2024. Archived at [perma.cc/ULD6-TSA4](https://perma.cc/ULD6-TSA4) 
