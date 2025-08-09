@@ -1,0 +1,7 @@
+.md-example { margin: 1.25rem 0; padding: 1rem; border: 1px solid var(--border); border-radius: .75rem; }
+.md-example__caption { display: flex; gap: .5rem; align-items: baseline; margin-bottom: .5rem; }
+.md-example__label { font-weight: 600; opacity: .85; }
+.md-example__title { font-weight: 600; }
+.md-example__anchor { margin-left: auto; text-decoration: none; opacity: .6; }
+.md-example__anchor:hover { opacity: 1; }
+.md-example__note { margin-top: .5rem; font-size: .95em; opacity: .85; }

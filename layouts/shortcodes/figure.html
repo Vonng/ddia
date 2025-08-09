@@ -1,0 +1,22 @@
+{{- $src  := .Get "src" -}}
+{{- $link := .Get "link" -}}
+
+<figure
+        {{ with .Get "id" }}id="{{ . }}"{{ end }}
+{{ with .Get "class" }}class="{{ . }}"{{ end }}
+>
+{{- if $src -}}
+{{- with $link }}<a href="{{ . }}">{{ end -}}
+    <img
+            src="{{ $src }}"
+            {{ with .Get "alt" }}alt="{{ . }}"{{ end }}
+    {{ with .Get "width" }}width="{{ . }}"{{ end }}
+    {{ with .Get "height" }}height="{{ . }}"{{ end }}
+    />
+    {{- if $link }}</a>{{ end -}}
+{{- end -}}
+
+{{ with .Get "title" }}<h4>{{ . }}</h4>{{ end }}
+{{ with .Get "caption" }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+</figure>
+{{- if $src }}<br />{{- end -}}

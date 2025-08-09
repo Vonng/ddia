@@ -1,0 +1,49 @@
+/* 调整左侧导航栏的宽度 */
+/* 增加宽度以确保文本不换行 */
+
+/* 左侧导航栏宽度调整 - 增加到 28rem 以避免换行 */
+.hextra-sidebar {
+  width: 28rem !important;
+  min-width: 28rem !important;
+}
+
+/* 确保导航内容正确显示 */
+.hextra-sidebar nav {
+  width: 100%;
+}
+
+/* 防止导航项文字换行 */
+.hextra-sidebar li {
+  white-space: nowrap;
+}
+
+.sidebar-container {
+    width: 20rem !important;
+    white-space: nowrap;
+}
+
+/* 确保导航链接不换行 */
+.hextra-sidebar a {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+/* 调整右侧页内目录（On This Page）的宽度 */
+/* Hextra 默认宽度约为 16rem (256px)，增加 1.5 倍变为 24rem (384px) */
+
+/* 右侧目录的宽度 */
+.hextra-toc {
+  width: 24rem !important;
+}
+
+/* 确保目录内容正确显示 */
+.hextra-toc nav {
+  width: 100%;
+}
+
+/* 调整目录项的文字换行以适应更宽的空间 */
+.hextra-toc li {
+  word-wrap: break-word;
+}
