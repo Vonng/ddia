@@ -51,7 +51,7 @@ Some databases treat partitions and shards as two distinct concepts. For example
 partitioning is a way of splitting a large table into several files that are stored on the same
 machine (which has several advantages, such as making it very fast to delete an entire partition),
 whereas sharding splits a dataset across multiple machines
-[[^1], [^2]].
+[^1] [^2].
 In many other systems, partitioning is just another word for sharding.
 
 While *partitioning* is quite descriptive, the term *sharding* is perhaps surprising. According to
@@ -408,7 +408,7 @@ to the number of nodes (3 ranges per node in [Figure 7-6](/en/ch7#fig_sharding_
 per node in Cassandra by default, and 256 per node in ScyllaDB), with random boundaries between
 those ranges. This means some ranges are bigger than others, but by having multiple ranges per node
 those imbalances tend to even out
-[[^15], [^18]].
+[^15] [^18].
 
 ![ddia 0706](/fig/ddia_0706.png)
 
@@ -459,7 +459,7 @@ This event can result in a large volume of reads and writes to the same key (whe
 is perhaps the user ID of the celebrity, or the ID of the action that people are commenting on).
 
 In such situations, a more flexible sharding policy is required
-[[^25], [^26]].
+[^25] [^26].
 A system that defines shards based on ranges of keys (or ranges of hashes) makes it possible to put
 an individual hot key in a shard by its own, and perhaps even assigning it a dedicated machine [^27].
 
@@ -502,7 +502,7 @@ Fully automated rebalancing can be convenient, because there is less operational
 normal maintenance, and such systems can even auto-scale to adapt to changes in workload. Cloud
 databases such as DynamoDB are promoted as being able to automatically add and remove shards to
 adapt to big increases or decreases of load within a matter of minutes
-[[^17], [^29]].
+[^17] [^29].
 
 However, automatic shard management can also be unpredictable. Rebalancing is an expensive
 operation, because it requires rerouting requests and moving a large amount of data from one node to
@@ -779,7 +779,7 @@ that question in the following chapters.
 
 
 
-### Summary
+### References
 
 
 [^1]: Claire Giordano. [Understanding partitioning and sharding in Postgres and Citus](https://www.citusdata.com/blog/2023/08/04/understanding-partitioning-and-sharding-in-postgres-and-citus/). *citusdata.com*, August 2023. Archived at [perma.cc/8BTK-8959](https://perma.cc/8BTK-8959) 

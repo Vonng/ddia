@@ -320,8 +320,7 @@ In the context of an LSM storage engines, false positives are no problem:
 
 An important detail is how the LSM storage chooses when to perform compaction, and which SSTables to
 include in a compaction. Many LSM-based storage systems allow you to configure which compaction
-strategy to use, and some of the common choices are
-[[^16], [^17]]:
+strategy to use, and some of the common choices are [^16] [^17]:
 
 Size-tiered compaction
 : Newer and smaller SSTables are successively merged into older and larger SSTables. The SSTables
@@ -452,7 +451,7 @@ In order to make the database resilient to crashes, it is common for B-tree impl
 include an additional data structure on disk: a *write-ahead log* (WAL). This is an append-only file
 to which every B-tree modification must be written before it can be applied to the pages of the tree
 itself. When the database comes back up after a crash, this log is used to restore the B-tree back
-to a consistent state [[^2], [^24]].
+to a consistent state [^2] [^24].
 In filesystems, the equivalent mechanism is known as *journaling*.
 
 To improve performance, B-tree implementations typically don’t immediately write every modified page
@@ -484,8 +483,7 @@ mention just a few:
 
 ## Comparing B-Trees and LSM-Trees
 
-As a rule of thumb, LSM-trees are better suited for write-heavy applications, whereas B-trees are faster for reads
-[[^27], [^28]].
+As a rule of thumb, LSM-trees are better suited for write-heavy applications, whereas B-trees are faster for reads [^27] [^28].
 However, benchmarks are often sensitive to details of the workload. You need to test systems with
 your particular workload in order to make a valid comparison. Moreover, it’s not a strict either/or
 choice between LSM and B-trees: storage engines sometimes blend characteristics of both approaches,
@@ -512,7 +510,7 @@ memtable fills up. This happens if data can’t be written out to disk fast enou
 the compaction process cannot keep up with incoming writes. Many storage engines, including RocksDB,
 perform *backpressure* in this situation: they suspend all reads and writes until the memtable has
 been written out to disk
-[[^30], [^31]].
+[^30] [^31].
 
 Regarding read throughput, modern SSDs (and especially NVMe) can perform many independent read
 requests in parallel. Both LSM-trees and B-trees are able to provide high read throughput, but
@@ -555,7 +553,7 @@ A sequential write workload writes larger chunks of data at a time, so it is lik
 can be erased without having to perform any GC. On the other hand, with a random write workload, it
 is more likely that a block contains a mixture of pages with valid and invalid data, so the GC has
 to perform more work before a block can be erased
-[[^34], [^35], [^36]].
+[^34] [^35] [^36].
 
 The write bandwidth consumed by GC is then not available for the application. Moreover, the
 additional writes performed by GC contribute to wear on the flash memory; therefore, random writes
@@ -573,7 +571,7 @@ containing keys and references to values [^37].)
 A B-tree index must write every piece of data at least twice: once to the write-ahead log, and once
 to the tree page itself. In addition, they sometimes need to write out an entire page, even if only
 a few bytes in that page changed, to ensure the B-tree can be correctly recovered after a crash or
-power failure [[^38], [^39]].
+power failure [^38] [^39].
 
 If you take the total number of bytes written to disk in some workload, and divide by the number of
 bytes you would have to write if you simply wrote an append-only log with no index, you get the
@@ -610,7 +608,7 @@ the data files anyway, and SSTables don’t have pages with unused space. Moreov
 key-value pairs can better be compressed in SSTables, and thus often produce smaller files on disk
 than B-trees. Keys and values that have been overwritten continue to consume space until they are
 removed by a compaction, but this overhead is quite low when using leveled compaction
-[[^40], [^41]].
+[^40] [^41].
 Size-tiered compaction (see [“Compaction strategies”](/en/ch4#sec_storage_lsm_compaction)) uses more disk space, especially
 temporarily during compaction.
 
@@ -710,7 +708,7 @@ easily be backed up, inspected, and analyzed by external utilities.
 Products such as VoltDB, SingleStore, and Oracle TimesTen are in-memory databases with a relational model,
 and the vendors claim that they can offer big performance improvements by removing all the overheads
 associated with managing on-disk data structures
-[[^46], [^47]].
+[^46] [^47].
 RAMCloud is an open source, in-memory key-value store with durability (using a log-structured
 approach for the data in memory as well as the data on disk) [^48].
 
@@ -744,7 +742,7 @@ transaction processing and data warehousing in the same product. However, these 
 and analytical processing (HTAP) databases (introduced in [“Data Warehousing”](/en/ch1#sec_introduction_dwh)) are increasingly
 becoming two separate storage and query engines, which happen to be accessible through a common SQL
 interface
-[[^50], [^51], [^52], [^53]].
+[^50] [^51] [^52] [^53].
 
 ## Cloud Data Warehouses
 
@@ -881,11 +879,11 @@ to single-node embedded databases such as DuckDB [^62],
 and product analytics systems such as Pinot [^63]
 and Druid [^64].
 It is used in storage formats such as Parquet, ORC
-[[^65], [^66]],
+[^65] [^66],
 Lance [^67],
 and Nimble [^68],
 and in-memory analytics formats like Apache Arrow
-[[^65], [^69]]
+[^65] [^69]
 and Pandas/NumPy [^70].
 Some time-series databases, such as InfluxDB IOx [^71] and TimescaleDB [^72],
 are also based on column-oriented storage.
@@ -999,7 +997,7 @@ Queries need to examine both the column data on disk and the recent writes in me
 the two. The query execution engine hides this distinction from the user. From an analyst’s point
 of view, data that has been modified with inserts, updates, or deletes is immediately reflected in
 subsequent queries. Snowflake, Vertica, Apache Pinot, Apache Druid, and many others do this
-[[^61], [^63], [^64], [^76]].
+[^61] [^63] [^64] [^76].
 
 ## Query Execution: Compilation and Vectorization
 
@@ -1034,7 +1032,7 @@ Vectorized processing
 : The query is interpreted, not compiled, but it is made fast by processing many values from a
  column in a batch, instead of iterating over rows one by one. A fixed set of predefined operators
  are built into the database; we can pass arguments to them and get back a batch of results
- [[^50], [^75]].
+ [^50] [^75].
 
  For example, we could pass the `product_sk` column and the ID of “bananas” to an equality operator,
  and get back a bitmap (one bit per value in the input column, which is 1 if it’s a banana); we could
@@ -1056,9 +1054,7 @@ performance by taking advantages of the characteristics of modern CPUs:
 * doing most of the work in tight inner loops (that is, with a small number of instructions and no
  function calls) to keep the CPU instruction processing pipeline busy and avoid branch
  mispredictions,
-* making use of parallelism such as multiple threads and single-instruction-multi-data (SIMD)
- instructions [[^79],
- [^80]], and
+* making use of parallelism such as multiple threads and single-instruction-multi-data (SIMD) instructions [^79] [^80], and
 * operating directly on compressed data without decoding it into a separate in-memory
  representation, which saves memory allocation and copying costs.
 
@@ -1196,7 +1192,7 @@ It stores the mapping from term to postings list in SSTable-like sorted files, w
 the background using the same log-structured approach we saw earlier in this chapter [^91].
 PostgreSQL’s GIN index type also uses postings lists to support full-text search and indexing inside
 JSON documents
-[[^92], [^93]].
+[^92] [^93].
 
 Instead of breaking text into words, an alternative is to find all the substrings of length *n*,
 which are called *n*-grams. For example, the trigrams (*n* = 3) of the string
@@ -1295,7 +1291,7 @@ variations of each [^101],
 and PostgreSQL’s pgvector supports both as well [^102].
 The full details of the IVF and HNSW algorithms are beyond the scope of this book, but their papers
 are an excellent resource
-[[^103], [^104]].
+[^103] [^104].
 
 ## Summary
 
@@ -1347,7 +1343,7 @@ documentation for the database of your choice.
 
 
 
-### Summary
+### References
 
 
 

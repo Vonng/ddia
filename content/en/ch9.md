@@ -22,7 +22,7 @@ anything that *can* go wrong *will* go wrong.
 
 Moreover, working with distributed systems is fundamentally different from writing software on a
 single computer—and the main difference is that there are lots of new and exciting ways for things
-to go wrong [[^1], [^2]].
+to go wrong [^1] [^2].
 In this chapter, you will get a taste of the problems that arise in practice, and an understanding
 of the things you can and cannot rely on.
 
@@ -197,7 +197,7 @@ even in controlled environments like a datacenter operated by one company [^8]:
  (though shark bites have become rarer due to better shielding of submarine cables [^14]).
  Humans are also at fault, be it due to accidental misconfiguration [^15], scavenging [^16], or sabotage [^17].
 * Across different cloud regions, round-trip times of up to several *minutes* have been observed at
- high percentiles [[^18], Table 3].
+ high percentiles [^18].
  Even within a single datacenter, packet delay of more than a minute can occur during a network
  topology reconfiguration, triggered by a problem during a software upgrade for a switch
  [^19].
@@ -364,7 +364,7 @@ network links and switches, and even each machine’s network interface and CPUs
 virtual machines), are shared. Processing large amounts of data can use the entire capacity of
 network links (*saturate* them). As you have no control over or insight into other customers’ usage of the shared
 resources, network delays can be highly variable if someone near you (a *noisy neighbor*) is
-using a lot of resources [[^30], [^31]].
+using a lot of resources [^30] [^31].
 
 In such environments, you can only choose timeouts experimentally: measure the distribution of
 network round-trip times over an extended period, and over many machines, to determine the expected
@@ -665,7 +665,7 @@ fixed. On the other hand, if its quartz clock is defective or its NTP client is 
 things will seem to work fine, even though its clock gradually drifts further and further away from
 reality. If some piece of software is relying on an accurately synchronized clock, the result is
 more likely to be silent and subtle data loss than a dramatic crash
-[[^62], [^63]].
+[^62] [^63].
 
 Thus, if you use software that requires synchronized clocks, it is essential that you also carefully
 monitor the clock offsets between all the machines. Any node whose clock drifts too far from the
@@ -715,8 +715,7 @@ serious problems:
 
 * Database writes can mysteriously disappear: a node with a lagging clock is unable to overwrite
  values previously written by a node with a fast clock until the clock skew between the nodes has
- elapsed [[^63],
- [^65]].
+ elapsed [^63] [^65].
  This scenario can cause arbitrary amounts of data to be silently dropped without any error being
  reported to the application.
 * LWW cannot distinguish between writes that occurred sequentially in quick succession (in
@@ -812,7 +811,7 @@ the synchronization good enough, they would have the right properties: later tra
 higher timestamp. The problem, of course, is the uncertainty about clock accuracy.
 
 Spanner implements snapshot isolation across datacenters in this way
-[[^68], [^69]].
+[^68] [^69].
 It uses the clock’s confidence interval as reported by the TrueTime API, and is based on the
 following observation: if you have two confidence intervals, each consisting of an earliest and
 latest possible timestamp (*A* = [*Aearliest*, *Alatest*] and
@@ -1011,11 +1010,11 @@ handle requests from clients while one node is collecting its garbage. If the ru
 application that a node soon requires a GC pause, the application can stop sending new requests to
 that node, wait for it to finish processing outstanding requests, and then perform the GC while no
 requests are in progress. This trick hides GC pauses from clients and reduces the high percentiles
-of the response time [[^80], [^81]].
+of the response time [^80] [^81].
 
 A variant of this idea is to use the garbage collector only for short-lived objects (which are fast
 to collect) and to restart processes periodically, before they accumulate enough long-lived objects
-to require a full GC of long-lived objects [[^79], [^82]].
+to require a full GC of long-lived objects [^79] [^82].
 One node can be restarted at a time, and traffic can be shifted away from the node before the
 planned restart, like in a rolling upgrade (see [Chapter 5](/en/ch5#ch_encoding)).
 
@@ -1120,7 +1119,7 @@ could be lost or corrupted data, which is much more serious.
 
 For example, [Figure 9-4](/en/ch9#fig_distributed_lease_pause) shows a data corruption bug due to an incorrect
 implementation of locking. (The bug is not theoretical: HBase used to have this problem
-[[^85], [^86]].)
+[^85] [^86].)
 Say you want to ensure that a file in a storage service can only be
 accessed by one client at a time, because if multiple clients tried to write to it, the file would
 become corrupted. You try to implement this by requiring a client to obtain a lease from a lock
@@ -1207,7 +1206,7 @@ services support such a check: Amazon S3 calls it *conditional writes*, Azure Bl
 
 If your clients need to write only to one storage service that supports such conditional writes, the
 lock service is somewhat redundant
-[[^91], [^92]],
+[^91] [^92],
 since the lease assignment could have been implemented directly based on that storage service [^93].
 However, once you have a fencing token you can also use it with multiple services or replicas, and
 ensure that the old leaseholder is fenced off on all of those services.
@@ -1286,8 +1285,7 @@ with the network. This concern is relevant in certain specific circumstances. Fo
  by radiation, leading it to respond to other nodes in arbitrarily unpredictable ways. Since a
  system failure would be very expensive (e.g., an aircraft crashing and killing everyone on board,
  or a rocket colliding with the International Space Station), flight control systems must tolerate
- Byzantine faults [[^98],
- [^99]].
+ Byzantine faults [^98] [^99].
 * In a system with multiple participating parties, some participants may attempt to cheat or
  defraud others. In such circumstances, it is not safe for a node to simply trust another node’s
  messages, since they may be sent with malicious intent. For example, cryptocurrencies like
@@ -1311,7 +1309,7 @@ escaping are so important: to prevent SQL injection and cross-site scripting, fo
 we typically don’t use Byzantine fault-tolerant protocols here, but simply make the server the
 authority on deciding what client behavior is and isn’t allowed. In peer-to-peer networks, where
 there is no such central authority, Byzantine fault tolerance is more relevant
-[[^103], [^104]].
+[^103] [^104].
 
 A bug in the software could be regarded as a Byzantine fault, but if you deploy the same software to
 all nodes, then a Byzantine fault-tolerant algorithm cannot save you. Most Byzantine fault-tolerant
@@ -1336,9 +1334,7 @@ pragmatic steps toward better reliability. For example:
 
 * Network packets do sometimes get corrupted due to hardware issues or bugs in operating systems,
  drivers, routers, etc. Usually, corrupted packets are caught by the checksums built into TCP and
- UDP, but sometimes they evade detection [[^105],
- [^106],
- [^107]].
+ UDP, but sometimes they evade detection [^105] [^106] [^107].
  Simple measures are usually sufficient protection against such corruption, such as checksums in
  the application-level protocol. TLS-encrypted connections also offer protection against
  corruption.
@@ -1542,7 +1538,7 @@ It is prudent to combine theoretical analysis with empirical testing to verify t
 behave as expected. Techniques such as property-based testing, fuzzing, and deterministic simulation
 testing (DST) use randomization to test a system in a wide range of situations. Companies such as
 Amazon Web Services have successfully used a combination of these techniques on many of their
-products [[^120], [^121]].
+products [^120] [^121].
 
 ### Model checking and specification languages
 
@@ -1563,7 +1559,7 @@ longer executions would then not be found.
 Still, model checkers strike a nice balance between ease of use and the ability to find non-obvious
 bugs. CockroachDB, TiDB, Kafka, and many other distributed systems use model specifications to find
 and fix bugs
-[[^122], [^123], [^124]]. For example,
+[^122] [^123] [^124]. For example,
 using TLA+, researchers were able to demonstrate the potential for data loss in viewstamped
 replication (VR) caused by ambiguity in the prose description of the algorithm [^125].
 
@@ -1601,7 +1597,7 @@ It’s common to adopt a fault injection framework like Jepsen to run fault inje
 simplify the process. Such frameworks come with integrations for various operating systems and many
 pre-built fault injectors [^129].
 Jepsen has been remarkably effective at finding critical bugs in many widely-used systems
-[[^130], [^131]].
+[^130] [^131].
 
 ### Deterministic simulation testing
 
@@ -1750,7 +1746,7 @@ problems in distributed systems.
 
 
 
-### Summary
+### References
 
 [^1]: Mark Cavage. [There’s Just No Getting Around It: You’re Building a Distributed System](https://queue.acm.org/detail.cfm?id=2482856). *ACM Queue*, volume 11, issue 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](https://doi.org/10.1145/2466486.2482856) 
 [^2]: Jay Kreps. [Getting Real About Distributed System Reliability](https://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability). *blog.empathybox.com*, March 2012. Archived at [perma.cc/9B5Q-AEBW](https://perma.cc/9B5Q-AEBW) 

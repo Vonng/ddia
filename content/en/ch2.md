@@ -186,19 +186,13 @@ is a long queue of requests waiting to be handled, response times may increase s
 time out and resend their request. This causes the rate of requests to increase even further, making
 the problem worse—a *retry storm*. Even when the load is reduced again, such a system may remain in
 an overloaded state until it is rebooted or otherwise reset. This phenomenon is called a *metastable
-failure*, and it can cause serious outages in production systems
-[[^7], [^8]].
+failure*, and it can cause serious outages in production systems [^7] [^8].
 
 To avoid retries overloading a service, you can increase and randomize the time between successive
-retries on the client side (*exponential backoff*
-[[^9], [^10]]),
-and temporarily stop sending requests to a service that has returned errors or timed out recently
-(using a *circuit breaker* [[^11], [^12]]
-or *token bucket* algorithm [^13]).
+retries on the client side (*exponential backoff* [^9] [^10]), and temporarily stop sending requests to a service that has returned errors or timed out recently
+(using a *circuit breaker* [^11] [^12] or *token bucket* algorithm [^13]).
 The server can also detect when it is approaching overload and start proactively rejecting requests
-(*load shedding* [^14]), and send back
-responses asking clients to slow down (*backpressure*
-[[^1], [^15]]).
+(*load shedding* [^14]), and send back responses asking clients to slow down (*backpressure* [^1] [^15]).
 The choice of queueing and load-balancing algorithms can also make a difference [^16].
 
 In terms of performance metrics, the response time is usually what users care about the most,
@@ -342,7 +336,7 @@ For example, an SLO may set a target for a service to have a median response tim
 result in non-error responses. An SLA is a contract that specifies what happens if the SLO is not
 met (for example, customers may be entitled to a refund). That is the basic idea, at least; in
 practice, defining good availability metrics for SLOs and SLAs is not straightforward
-[[^28], [^29]].
+[^28] [^29].
 
 # Computing percentiles
 
@@ -355,7 +349,7 @@ The simplest implementation is to keep a list of response times for all requests
 window and to sort that list every minute. If that is too inefficient for you, there are algorithms
 that can calculate a good approximation of percentiles at minimal CPU and memory cost.
 Open source percentile estimation libraries include HdrHistogram,
-t-digest [[^30], [^31]],
+t-digest [^30] [^31],
 OpenHistogram [^32], and DDSketch [^33].
 
 Beware that averaging percentiles, e.g., to reduce the time resolution or to combine data from
@@ -375,7 +369,7 @@ software, typical expectations include:
 If all those things together mean “working correctly,” then we can understand *reliability* as
 meaning, roughly, “continuing to work correctly, even when things go wrong.” To be more precise
 about things going wrong, we will distinguish between *faults* and *failures*
-[[^35], [^36], [^37]]:
+[^35] [^36] [^37]:
 
 Fault
 : A fault is when a particular *part* of a system stops working correctly: for example, if a
@@ -432,21 +426,14 @@ cured, as described in the following sections.
 
 When we think of causes of system failure, hardware faults quickly come to mind:
 
-* Approximately 2–5% of magnetic hard drives fail per year
- [[^40],
- [^41]];
+* Approximately 2–5% of magnetic hard drives fail per year [^40] [^41];
  in a storage cluster with 10,000 disks, we should therefore expect on average one disk failure per day.
- Recent data suggests that disks are getting more reliable, but failure rates remain significant
- [^42].
-* Approximately 0.5–1% of solid state drives (SSDs) fail per year
- [^43].
- Small numbers of bit errors are corrected automatically
- [^44],
+ Recent data suggests that disks are getting more reliable, but failure rates remain significant [^42].
+* Approximately 0.5–1% of solid state drives (SSDs) fail per year [^43].
+ Small numbers of bit errors are corrected automatically [^44],
  but uncorrectable errors occur approximately once per year per drive, even in drives that are
  fairly new (i.e., that have experienced little wear); this error rate is higher than that of
- magnetic hard drives
- [[^45],
- [^46]].
+ magnetic hard drives [^45], [^46].
 * Other hardware components such as power supplies, RAID controllers, and memory modules also fail,
  although less frequently than hard drives [^47] [^48].
 * Approximately one in 1,000 machines has a CPU core that occasionally computes the wrong result,
@@ -676,7 +663,7 @@ If you can double the resources in order to handle twice the load, while keeping
 same, we say that you have *linear scalability*, and this is considered a good thing. Occasionally
 it is possible to handle twice the load with less than double the resources, due to economies of
 scale or a better distribution of peak load
-[[^79], [^80]].
+[^79] [^80].
 Much more likely is that the cost grows faster than linearly, and there may be many reasons for the
 inefficiency. For example, if you have a lot of data, then processing a single write request may
 involve more work than if you have a small amount of data, even if the size of the request is the
@@ -762,7 +749,7 @@ bugs that need fixing.
 It is widely recognized that the majority of the cost of software is not in its initial development,
 but in its ongoing maintenance—fixing bugs, keeping its systems operational, investigating failures,
 adapting it to new platforms, modifying it for new use cases, repaying technical debt, and adding
-new features [[^85], [^86]].
+new features [^85] [^86].
 
 However, maintenance is also difficult. If a system has been successfully running for a long time,
 it may well use outdated technologies that not many engineers understand today (such as mainframes
@@ -925,7 +912,7 @@ There are no easy answers on how to achieve these things, but one thing that can
 applications using well-understood building blocks that provide useful abstractions. The rest of
 this book will cover a selection of building blocks that have proved to be valuable in practice.
 
-### Summary
+### References
 
 [^1]: Mike Cvet. [How We Learned to Stop Worrying and Love Fan-In at Twitter](https://www.youtube.com/watch?v=WEgCjwyXvwc). At *QCon San Francisco*, December 2016. 
 [^2]: Raffi Krikorian. [Timelines at Scale](https://www.infoq.com/presentations/Twitter-Timeline-Scalability/). At *QCon San Francisco*, November 2012. Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK) 

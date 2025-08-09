@@ -219,10 +219,7 @@ structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 ###### Figure 3-2. One-to-many relationships forming a tree structure.
 
 > [!NOTE]
-> This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé
-> typically has a small number of positions
-> [[^9],
-> [^10]].
+> This type of relationship is sometimes called *one-to-few* rather than *one-to-many*, since a résumé typically has a small number of positions [^9] [^10].
 > In situations where there may be a genuinely large number of related items—say, comments on a
 > celebrity’s social media post, of which there could be many thousands—embedding them all in the same
 > document may be too unwieldy, so the relational approach in [Figure 3-1](/en/ch3#fig_obama_relational) is preferable.
@@ -540,7 +537,7 @@ such applications well, because the items (or their IDs) can simply be stored in
 determine their order. In relational databases there isn’t a standard way of representing such
 reorderable lists, and various tricks are used: sorting by an integer column (requiring renumbering
 when you insert into the middle), a linked list of IDs, or fractional indexing
-[[^14], [^15], [^16]].
+[^14] [^15] [^16].
 
 ### Schema flexibility in the document model
 
@@ -593,7 +590,7 @@ since every row needs to be rewritten, and other schema operations (such as chan
 of a column) also typically require the entire table to be copied.
 
 Various tools exist to allow this type of schema changes to be performed in the background without downtime
-[[^21], [^22], [^23], [^24]],
+[^21] [^22] [^23] [^24],
 but performing such migrations on large databases remains operationally challenging. Complicated
 migrations can be avoided by only adding the `first_name` column with a default value of `NULL`
 (which is fast), and filling it in at read time, like you would with a document database.
@@ -1044,7 +1041,7 @@ Oracle has a different SQL extension for recursive queries, which it calls *hier
 [^41].
 
 However, the situation may be improving: at the time of writing, there are plans to add a graph
-query language called GQL to the SQL standard [[^42], [^43]],
+query language called GQL to the SQL standard [^42] [^43],
 which will provide a syntax inspired by Cypher, GSQL [^44], and PGQL [^45].
 
 ## Triple-Stores and SPARQL
@@ -1127,7 +1124,7 @@ Some of the research and development effort on triple stores was motivated by th
 early-2000s effort to facilitate internet-wide data exchange by publishing data not only as
 human-readable web pages, but also in a standardized, machine-readable format. Although the Semantic
 Web as originally envisioned did not succeed
-[[^49], [^50]],
+[^49] [^50],
 the legacy of the Semantic Web project lives on in a couple of specific technologies: *linked data*
 standards such as JSON-LD [^51],
 *ontologies* used in biomedical science [^52],
@@ -1238,7 +1235,7 @@ various other triple stores [^36].
 ## Datalog: Recursive Relational Queries
 
 Datalog is a much older language than SPARQL or Cypher: it arose from academic research in the 1980s
-[[^57], [^58], [^59]].
+[^57] [^58] [^59].
 It is less well known among software engineers and not widely supported in mainstream databases, but
 it ought to be better-known since it is a very expressive language that is particularly powerful for
 complex queries. Several niche databases, including Datomic, LogicBlox, CozoDB, and LinkedIn’s
@@ -1498,7 +1495,7 @@ the status of each booking, another that computes charts for the conference orga
 and a third that generates files for the printer that produces the attendees’ badges.
 
 The idea of using events as the source of truth, and expressing every state change as an event, is
-known as *event sourcing* [[^62], [^63]].
+known as *event sourcing* [^62] [^63].
 The principle of maintaining separate read-optimized representations and deriving them from the
 write-optimized representation is called *command query responsibility segregation (CQRS)*
 [^64].
@@ -1724,11 +1721,7 @@ come into play when *implementing* the data models described in this chapter.
 
 
 
-### Summary
-
-
-
-
+### References
 
 [^1]: Jamie Brandon. [Unexplanations: query optimization works because sql is declarative](https://www.scattered-thoughts.net/writing/unexplanations-sql-declarative/). *scattered-thoughts.net*, February 2024. Archived at [perma.cc/P6W2-WMFZ](https://perma.cc/P6W2-WMFZ) 
 [^2]: Joseph M. Hellerstein. [The Declarative Imperative: Experiences and Conjectures in Distributed Logic](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf). Tech report UCB/EECS-2010-90, Electrical Engineering and Computer Sciences, University of California at Berkeley, June 2010. Archived at [perma.cc/K56R-VVQM](https://perma.cc/K56R-VVQM) 

@@ -221,9 +221,7 @@ for live queries. Storing database data in object storage has many benefits:
 * Object stores also provide multi-zone, dual-region, or multi-region replication with very high
   durability guarantees. This also allows databases to bypass inter-zone network fees.
 * Databases can use an object store’s *conditional write* feature—essentially, a *compare-and-set*
-  (CAS) operation—to implement transactions and leadership election
-  [[10](/ch06.html#Morling2024_ch6),
-  [11](/ch06.html#Chandramohan2024)]).
+  (CAS) operation—to implement transactions and leadership election [^10] [^11]
 * Storing data from multiple databases in the same object store can simplify data integration,
   particularly when open formats such as Apache Parquet and Apache Iceberg are used.
 
@@ -420,9 +418,7 @@ heap into a consistent state, we can use the exact same log to build a replica o
 besides writing the log to disk, the leader also sends it across the network to its followers. When
 the follower processes this log, it builds a copy of the exact same files as found on the leader.
 
-This method of replication is used in PostgreSQL and Oracle, among others
-[[17](/ch06.html#Suzuki2017_ch6),
-[18](/ch06.html#Kapila2012)].
+This method of replication is used in PostgreSQL and Oracle, among others [^17] [^18]
 The main disadvantage is that the log describes the data on a very low level: a WAL contains details
 of which bytes were changed in which disk blocks. This makes replication tightly coupled to the
 storage engine. If the database changes its storage format from one version to another, it is
@@ -915,10 +911,7 @@ Moreover, many modern web apps offer *real-time collaboration* features, such as
 Sheets for text documents and spreadsheets, Figma for graphics, and Linear for project management.
 What makes these apps so responsive is that user input is immediately reflected in the user
 interface, without waiting for a network round-trip to the server, and edits by one user are shown
-to their collaborators with low latency
-[[32](/ch06.html#DayRichter2010),
-[33](/ch06.html#Wallace2019),
-[34](/ch06.html#Artman2023)].
+to their collaborators with low latency [^32] [^33] [^34]
 
 This again results in a multi-leader architecture: each web browser tab that has opened the shared
 file is a replica, and any updates that you make to the file are asynchronously replicated to the
@@ -935,19 +928,14 @@ multiple users have changed the file concurrently, conflict resolution logic may
 those changes.
 
 A software library that supports this process is called a *sync engine*. Although the idea has
-existed for a long time, the term has recently gained attention
-[[35](/ch06.html#Saafan2024),
-[36](/ch06.html#Hagoel2024),
-[37](/ch06.html#Jayakar2024)].
+existed for a long time, the term has recently gained attention [^35] [^36] [^37].
 An application that allows a user to continue editing a file while offline (which may be implemented
-using a sync engine) is called *offline-first*
-[^38].
+using a sync engine) is called *offline-first* [^38].
 The term *local-first software* refers to collaborative apps that are not only offline-first, but
 are also designed to continue working even if the developer who made the software shuts down all of
 their online services [^39].
 This can be achieved by using a sync engine with an open standard sync protocol for which multiple
-service providers are available
-[^40].
+service providers are available [^40].
 For example, Git is a local-first collaboration system (albeit one that doesn’t support real-time
 collaboration) since you can sync via GitHub, GitLab, or any other repository hosting service.
 
@@ -1243,20 +1231,16 @@ writes in the same order.
 
 Some data storage systems take a different approach, abandoning the concept of a leader and
 allowing any replica to directly accept writes from clients. Some of the earliest replicated data
-systems were leaderless [[1](/ch06.html#Lindsay1979_ch6),
-[50](/ch06.html#Gifford1979)], but the
-idea was mostly forgotten during the era of dominance of relational databases. It once again became
+systems were leaderless [^1] [^50], but the idea was mostly forgotten during the era of dominance of relational databases. It once again became
 a fashionable architecture for databases after Amazon used it for its in-house *Dynamo* system in
 2007 [^45].
 Riak, Cassandra, and ScyllaDB are open source datastores with leaderless replication models inspired
 by Dynamo, so this kind of database is also known as *Dynamo-style*.
 
 > [!NOTE]
-> The original *Dynamo* system was only described in a paper
-> [^45], but never released outside of
-> Amazon. The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a
-> completely different architecture: it uses single-leader replication based on the Multi-Paxos
-> consensus algorithm [^5].
+> The original *Dynamo* system was only described in a paper [^45], but never released outside of Amazon. 
+> The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a completely different architecture: 
+> it uses single-leader replication based on the Multi-Paxos consensus algorithm [^5].
 
 In some leaderless implementations, the client directly sends its writes to several replicas, while
 in others, a coordinator node does this on behalf of the client. However, unlike a leader database,
@@ -1707,15 +1691,9 @@ replica increments its own version number when processing a write, and also keep
 version numbers it has seen from each of the other replicas. This information indicates which values
 to overwrite and which values to keep as siblings.
 
-The collection of version numbers from all the replicas is called a *version vector*
-[^58].
-A few variants of this idea are in use, but the most interesting is probably the *dotted version
-vector*
-[[59](/ch06.html#Preguica2010),
-[60](/ch06.html#Manepalli2022)],
-which is used in Riak 2.0
-[[61](/ch06.html#Cribbs2014),
-[62](/ch06.html#Brown2015)].
+The collection of version numbers from all the replicas is called a *version vector* [^58].
+A few variants of this idea are in use, but the most interesting is probably the *dotted version vector* [^59] [^60],
+which is used in Riak 2.0 [^61] [^62].
 We won’t go into the details, but the way it works is quite similar to what we saw in our cart example.
 
 Like the version numbers in [Figure 6-15](/ch06.html#fig_replication_causality_single), version vectors are sent from the
@@ -1731,10 +1709,7 @@ siblings are merged correctly.
 # Version vectors and vector clocks
 
 A *version vector* is sometimes also called a *vector clock*, even though they are not quite the
-same. The difference is subtle—please see the references for details
-[[60](/ch06.html#Manepalli2022),
-[63](/ch06.html#Baquero2011),
-[64](/ch06.html#Schwarz1994)]. In brief, when
+same. The difference is subtle—please see the references for details [^60] [^63] [^64]. In brief, when
 comparing the state of replicas, version vectors are the right data structure to use.
 
 ## Summary
@@ -1760,8 +1735,7 @@ Despite being a simple goal—keeping a copy of the same data on several machine
 to be a remarkably tricky problem. It requires carefully thinking about concurrency and about all
 the things that can go wrong, and dealing with the consequences of those faults. At a minimum, we
 need to deal with unavailable nodes and network interruptions (and that’s not even considering the
-more insidious kinds of fault, such as silent data corruption due to software bugs or hardware
-errors).
+more insidious kinds of fault, such as silent data corruption due to software bugs or hardware errors).
 
 We discussed three main approaches to replication:
 
@@ -1817,7 +1791,7 @@ machine to store only a subset of the data.
 
 
 
-### Summary
+### References
 
 
 [^1]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)

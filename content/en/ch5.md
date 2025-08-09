@@ -447,7 +447,7 @@ application code is expecting, and their types.
 If the reader’s and writer’s schema are the same, decoding is easy. If they are different, Avro
 resolves the differences by looking at the writer’s schema and the reader’s schema side by side and
 translating the data from the writer’s schema into the reader’s schema. The Avro specification
-[[^16], [^17]]
+[^16] [^17]
 defines exactly how this resolution works, and it is illustrated in
 [Figure 5-6](/en/ch5#fig_encoding_avro_resolution).
 
@@ -571,7 +571,7 @@ languages.
 
 The ideas on which these encodings are based are by no means new. For example, they have a lot in
 common with ASN.1, a schema definition language that was first standardized in 1984
-[[^23], [^24]].
+[^23] [^24].
 It was used to define various network protocols, and its binary encoding (DER) is still used to encode
 SSL certificates (X.509), for example [^25].
 ASN.1 supports schema evolution using tag numbers, similar to Protocol Buffers [^26].
@@ -737,7 +737,7 @@ different contexts. For example:
  systems, or OAuth for shared access to user data.
 
 The most popular service design philosophy is REST, which builds upon the principles of HTTP
-[[^30], [^31]].
+[^30] [^31].
 It emphasizes simple data formats, using URLs for identifying resources and using HTTP features for
 cache control, authentication, and content type negotiation. An API designed according to the
 principles of REST is called *RESTful*.
@@ -824,14 +824,14 @@ Architecture (CORBA) is excessively complex, and does not provide backward or fo
 compatibility [^33].
 SOAP and the WS-\* web services framework aim to provide interoperability across vendors, but are
 also plagued by complexity and compatibility problems
-[[^34], [^35], [^36]].
+[^34] [^35] [^36].
 
 All of these are based on the idea of a *remote procedure call* (RPC), which has been around since
 the 1970s [^37].
 The RPC model tries to make a request to a remote network service look the same as calling a function or
 method in your programming language, within the same process (this abstraction is called *location
 transparency*). Although RPC seems convenient at first, the approach is fundamentally flawed
-[[^38], [^39]].
+[^38] [^39].
 A network request is very different from a local function call:
 
 * A local function call is predictable and either succeeds or fails, depending only on parameters
@@ -1016,7 +1016,7 @@ task fails, the framework will re-execute the task, but will skip any RPC calls 
 that the task made successfully before failing. Instead, the framework will pretend to make the
 call, but will instead return the results from the previous call. This is possible because durable
 execution frameworks log all RPCs and state changes to durable storage like a write-ahead log
-[[^45], [^46]].
+[^45] [^46].
 [Example 5-5](/en/ch5#fig_temporal_workflow) shows an example of a workflow definition that supports durable execution
 using Temporal.
 
@@ -1109,7 +1109,7 @@ Message brokers typically don’t enforce any particular data model—a message 
 bytes with some metadata, so you can use any encoding format. A common approach is to use Protocol
 Buffers, Avro, or JSON, and to deploy a schema registry alongside the message broker to store all
 the valid schema versions and check their compatibility
-[[^19], [^21]].
+[^19] [^21].
 AsyncAPI, a messaging-based equivalent of OpenAPI, can also be used to specify the schema of
 messages.
 
@@ -1197,7 +1197,7 @@ quite achievable. May your application’s evolution be rapid and your deploymen
 
 
 
-### Summary
+### References
 
 
 

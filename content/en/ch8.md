@@ -67,7 +67,7 @@ the challenge of achieving atomicity in a distributed transaction.
 
 Almost all relational databases today, and some nonrelational databases, support transactions. Most
 of them follow the style that was introduced in 1975 by IBM System R, the first SQL database
-[[^2], [^3], [^4]].
+[^2] [^3] [^4].
 Although some implementation details have changed, the general idea has remained virtually the same
 for 50 years: the transaction support in MySQL, PostgreSQL, Oracle, SQL Server, etc., is uncannily
 similar to that of System R.
@@ -214,7 +214,7 @@ However, serializability has a performance cost. In practice, many databases use
 that are weaker than serializability: that is, they allow concurrent transactions to interfere with
 each other in limited ways. Some popular databases, such as Oracle, don’t even implement it (Oracle
 has an isolation level called “serializable,” but it actually implements *snapshot isolation*, which
-is a weaker guarantee than serializability [[^10], [^14]]).
+is a weaker guarantee than serializability [^10] [^14]).
 This means that some kinds of race conditions can still occur. We will explore snapshot isolation
 and other forms of isolation in [“Weak Isolation Levels”](/en/ch8#sec_transactions_isolation_levels).
 
@@ -254,37 +254,22 @@ The truth is, nothing is perfect:
 * In an asynchronously replicated system, recent writes may be lost when the leader becomes
  unavailable (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
 * When the power is suddenly cut, SSDs in particular have been shown to sometimes violate the
- guarantees they are supposed to provide: even `fsync` isn’t guaranteed to work correctly
- [^15].
- Disk firmware can have bugs, just like any other kind of software
- [[^16],
- [^17]],
- e.g. causing drives to fail after exactly 32,768 hours of operation
- [^18].
- And `fsync` is hard to use; even PostgreSQL used it incorrectly for over 20 years
- [[^19],
- [^20],
- [^21]].
+ guarantees they are supposed to provide: even `fsync` isn’t guaranteed to work correctly [^15].
+ Disk firmware can have bugs, just like any other kind of software [^16] [^17],
+ e.g. causing drives to fail after exactly 32,768 hours of operation [^18].
+ And `fsync` is hard to use; even PostgreSQL used it incorrectly for over 20 years [^19] [^20] [^21].
 * Subtle interactions between the storage engine and the filesystem implementation can lead to bugs
- that are hard to track down, and may cause files on disk to be corrupted after a crash
- [[^22],
- [^23]].
- Filesystem errors on one replica can sometimes spread to other replicas as well
- [^24].
-* Data on disk can gradually become corrupted without this being detected
- [^25].
+ that are hard to track down, and may cause files on disk to be corrupted after a crash [^22] [^23].
+ Filesystem errors on one replica can sometimes spread to other replicas as well [^24].
+* Data on disk can gradually become corrupted without this being detected [^25].
  If data has been corrupted for some time, replicas and recent backups may also be corrupted. In
  this case, you will need to try to restore the data from a historical backup.
 * One study of SSDs found that between 30% and 80% of drives develop at least one bad block during
- the first four years of operation, and only some of these can be corrected by the firmware
- [^26].
- Magnetic hard drives have a lower rate of bad sectors, but a higher rate of complete failure than
- SSDs.
+ the first four years of operation, and only some of these can be corrected by the firmware [^26].
+ Magnetic hard drives have a lower rate of bad sectors, but a higher rate of complete failure than SSDs.
 * When a worn-out SSD (that has gone through many write/erase cycles) is disconnected from power,
- it can start losing data within a timescale of weeks to months, depending on the temperature
- [^27].
- This is less of a problem for drives with lower wear levels
- [^28].
+ it can start losing data within a timescale of weeks to months, depending on the temperature [^27].
+ This is less of a problem for drives with lower wear levels [^28].
 
 In practice, there is no one technique that can provide absolute guarantees. There are only various
 risk-reduction techniques, including writing to disk, replicating to remote machines, and
@@ -489,7 +474,7 @@ nevertheless used in practice [^29].
 
 Concurrency bugs caused by weak transaction isolation are not just a theoretical problem. They have
 caused substantial loss of money
-[[^30], [^31], [^32]],
+[^30] [^31] [^32],
 led to investigation by financial auditors [^33],
 and caused customer data to be corrupted [^34].
 A popular comment on revelations of such problems is “Use an ACID database if you’re handling
@@ -515,7 +500,7 @@ decide what level is appropriate to your application. Once we’ve done that, we
 serializability in detail (see [“Serializability”](/en/ch8#sec_transactions_serializability)). Our discussion of isolation
 levels will be informal, using examples. If you want rigorous definitions and analyses of their
 properties, you can find them in the academic literature
-[[^36], [^37], [^38], [^39]].
+[^36] [^37] [^38] [^39].
 
 ## Read Committed
 
@@ -690,7 +675,7 @@ database, frozen at a particular point in time, it is much easier to understand.
 
 Snapshot isolation is a popular feature: variants of it are supported by PostgreSQL, MySQL with the
 InnoDB storage engine, Oracle, SQL Server, and others, although the detailed behavior varies from
-one system to the next [[^29], [^40], [^41]].
+one system to the next [^29] [^40] [^41].
 Some databases, such as Oracle, TiDB, and Aurora DSQL, even choose snapshot isolation as their
 highest isolation level.
 
@@ -713,7 +698,7 @@ maintains several versions of a row side by side, this technique is known as *mu
 concurrency control* (MVCC).
 
 [Figure 8-7](/en/ch8#fig_transactions_mvcc) illustrates how MVCC-based snapshot isolation is implemented in PostgreSQL
-[[^40], [^42], [^43]] (other implementations are similar).
+[^40] [^42] [^43] (other implementations are similar).
 When a transaction is started, it is given a unique, always-increasing transaction ID (`txid`).
 Whenever a transaction writes anything to the database, the data it writes is tagged with the
 transaction ID of the writer. (To be precise, transaction IDs in PostgreSQL are 32-bit integers, so
@@ -742,7 +727,7 @@ All of the versions of a row are stored within the same database heap (see
 [“Storing values within the index”](/en/ch4#sec_storage_index_heap)), regardless of whether the transactions that wrote them have committed
 or not. The versions of the same row form a linked list, going either from newest version to oldest
 version or the other way round, so that queries can internally iterate over all versions of a row
-[[^45], [^46]].
+[^45] [^46].
 
 ### Visibility rules for observing a consistent snapshot
 
@@ -790,7 +775,7 @@ value matches what the query is looking for. When garbage collection removes old
 are no longer visible to any transaction, the corresponding index entries can also be removed.
 
 Many implementation details affect the performance of multi-version concurrency control
-[[^45], [^46]].
+[^45] [^46].
 For example, PostgreSQL has optimizations for avoiding index updates if different versions of the
 same row can fit on the same page [^40].
 Some other databases avoid storing full copies of modified rows, and only store differences between
@@ -829,7 +814,7 @@ Unfortunately, the SQL standard’s definition of isolation levels is flawed—i
 imprecise, and not as implementation-independent as a standard should be [^36]. Even though several databases
 implement repeatable read, there are big differences in the guarantees they actually provide,
 despite being ostensibly standardized [^29]. There has been a formal definition of
-repeatable read in the research literature [[^37], [^38]], but most implementations don’t satisfy that
+repeatable read in the research literature [^37] [^38], but most implementations don’t satisfy that
 formal definition. And to top it off, IBM Db2 uses “repeatable read” to refer to serializability [^10].
 
 As a result, nobody really knows what repeatable read means.
@@ -884,7 +869,7 @@ Another option is to simply force all atomic operations to be executed on a sing
 
 Unfortunately, object-relational mapping (ORM) frameworks make it easy to accidentally write code
 that performs unsafe read-modify-write cycles instead of using atomic operations provided by the
-database [[^49], [^50], [^51]].
+database [^49] [^50] [^51].
 This can be a source of subtle bugs that are difficult to find by testing.
 
 ### Explicit locking
@@ -940,8 +925,8 @@ An advantage of this approach is that databases can perform this check efficient
 with snapshot isolation. Indeed, PostgreSQL’s repeatable read, Oracle’s serializable, and SQL
 Server’s snapshot isolation levels automatically detect when a lost update has occurred and abort
 the offending transaction. However, MySQL/InnoDB’s repeatable read does not detect lost updates
-[[^29], [^41]].
-Some authors [[^36], [^38]] argue that a database must prevent lost
+[^29] [^41].
+Some authors [^36] [^38] argue that a database must prevent lost
 updates in order to qualify as providing snapshot isolation, so MySQL does not provide snapshot
 isolation under this definition.
 
@@ -1023,7 +1008,7 @@ To begin, imagine this example: you are writing an application for doctors to ma
 shifts at a hospital. The hospital usually tries to have several doctors on call at any one time,
 but it absolutely must have at least one doctor on call. Doctors can give up their shifts (e.g., if
 they are sick themselves), provided that at least one colleague remains on call in that shift
-[[^53], [^54]].
+[^53] [^54].
 
 Now imagine that Aaliyah and Bryce are the two on-call doctors for a particular shift. Both are
 feeling unwell, so they both decide to request leave. Unfortunately, they happen to click the button
@@ -1184,7 +1169,7 @@ transaction, is called a *phantom* [^4].
 Snapshot isolation avoids phantoms in read-only queries, but in read-write transactions like the
 examples we discussed, phantoms can lead to particularly tricky cases of write skew. The SQL
 generated by ORMs is also prone to write skew
-[[^50], [^51]].
+[^50] [^51].
 
 ### Materializing conflicts
 
@@ -1271,7 +1256,7 @@ Two developments caused this rethink:
  outside of the serial execution loop.
 
 The approach of executing transactions serially is implemented in VoltDB/H-Store, Redis, and Datomic,
-for example [[^58], [^59], [^60]].
+for example [^58] [^59] [^60].
 A system designed for single-threaded execution can sometimes perform better than a system that
 supports concurrency, because it can avoid the coordination overhead of locking. However, its
 throughput is limited to that of a single CPU core. In order to make the most of that single thread,
@@ -1541,7 +1526,7 @@ becomes serializable.
 Unfortunately, predicate locks do not perform well: if there are many locks by active transactions,
 checking for matching locks becomes time-consuming. For that reason, most databases with 2PL
 actually implement *index-range locking* (also known as *next-key locking*), which is a simplified
-approximation of predicate locking [[^54], [^64]].
+approximation of predicate locking [^54] [^64].
 
 It’s safe to simplify a predicate by making it match a greater set of objects. For example, if you
 have a predicate lock for bookings of room 123 between noon and 1 p.m., you can approximate it by
@@ -1585,7 +1570,7 @@ serializable isolation and good performance fundamentally at odds with each othe
 It seems not: an algorithm called *serializable snapshot isolation* (SSI) provides full
 serializability with only a small performance penalty compared to snapshot isolation. SSI is
 comparatively new: it was first described in 2008
-[[^53], [^65]].
+[^53] [^65].
 
 Today SSI and similar algorithms are used in single-node databases (the serializable isolation level
 in PostgreSQL [^54], SQL Server’s In-Memory
@@ -1733,7 +1718,7 @@ tracking is faster, but may lead to more transactions being aborted than strictl
 In some cases, it’s okay for a transaction to read information that was overwritten by another
 transaction: depending on what else happened, it’s sometimes possible to prove that the result of
 the execution is nevertheless serializable. PostgreSQL uses this theory to reduce the number of
-unnecessary aborts [[^14], [^54]].
+unnecessary aborts [^14] [^54].
 
 Compared to two-phase locking, the big advantage of serializable snapshot isolation is that one
 transaction doesn’t need to block waiting for locks held by another transaction. Like under snapshot
@@ -1824,12 +1809,12 @@ problem.
 
 Two-phase commit is an algorithm for achieving atomic transaction commit across multiple nodes. It
 is a classic algorithm in distributed databases
-[[^13], [^71], [^72]]. 2PC is used
+[^13] [^71] [^72]. 2PC is used
 internally in some databases and also made available to applications in the form of *XA transactions*
 [^73]
 (which are supported by the Java Transaction API, for example) or via WS-AtomicTransaction for SOAP
 web services
-[[^74], [^75]].
+[^74] [^75].
 
 The basic flow of 2PC is illustrated in [Figure 8-13](/en/ch8#fig_transactions_two_phase_commit). Instead of a single
 commit request, as with a single-node transaction, the commit/abort process in 2PC is split into two
@@ -1958,7 +1943,7 @@ stuck waiting for the coordinator to recover. It is possible to make an atomic c
 is not so straightforward.
 
 As an alternative to 2PC, an algorithm called *three-phase commit* (3PC) has been proposed
-[[^13], [^77]].
+[^13] [^77].
 However, 3PC assumes a network with bounded delay and nodes with bounded response times; in most
 practical systems with unbounded network delay and process pauses (see [Chapter 9](/en/ch9#ch_distributed)), it
 cannot guarantee atomicity.
@@ -1971,7 +1956,7 @@ consensus protocol. We will see how to do this in [Chapter 10](/en/ch10#ch_cons
 Distributed transactions and two-phase commit have a mixed reputation. On the one hand, they are
 seen as providing an important safety guarantee that would be hard to achieve otherwise; on the
 other hand, they are criticized for causing operational problems, killing performance, and promising
-more than they can deliver [[^78], [^79], [^80], [^81]].
+more than they can deliver [^78] [^79] [^80] [^81].
 Many cloud services choose not to implement distributed transactions due to the operational
 problems they engender [^82].
 
@@ -2089,7 +2074,7 @@ transaction is resolved.
 
 In theory, if the coordinator crashes and is restarted, it should cleanly recover its state from the
 log and resolve any in-doubt transactions. However, in practice, *orphaned* in-doubt transactions do
-occur [[^83], [^84]]—that is,
+occur [^83] [^84]—that is,
 transactions for which the coordinator cannot decide the outcome for whatever reason (e.g., because
 the transaction log has been lost or corrupted due to a software bug). These transactions cannot be
 resolved automatically, so they sit forever in the database, holding locks and blocking other
@@ -2326,7 +2311,7 @@ is used.
 
 
 
-### Summary
+### References
 
 
 
