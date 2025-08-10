@@ -1,8 +1,8 @@
 # 设计数据密集型应用（第二版） - 中文翻译版
 
 [![Webite: ddia](https://img.shields.io/badge/简体中文-第二版-slategray?style=flat)](https://ddia.vonng.com)
-[![Webite: ddia](https://img.shields.io/badge/简体中文-第一版-slategray?style=flat)](https://ddia.vonng.com/v1)
 [![Webite: ddia](https://img.shields.io/badge/繁体中文-第二版-slategray?style=flat)](https://ddia.vonng.com/tw)
+[![Webite: ddia](https://img.shields.io/badge/简体中文-第一版-slategray?style=flat)](https://ddia.vonng.com/v1)
 [![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html)： 英国剑桥大学分布式系统研究员，演讲者，博主和开源贡献者，软件工程师和企业家，曾在 LinkedIn 和 Rapportive 负责数据基础架构。
@@ -13,7 +13,8 @@
 
 **阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [hugo](https://gohugo.io/documentation/) / [hextra](https://imfing.github.io/hextra/zh-cn/) 主题自行构建。
 
-**通知**：DDIA [**第二版**](https://ddia.vonng.com) 正在翻译中 ([`v2`](https://github.com/Vonng/ddia/tree/v2) 分支)，欢迎加入并提出您的宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
+> [!NOTE] 
+> **通知**：DDIA [**第二版**](https://ddia.vonng.com) 预览版正在翻译中 ([`main`](https://github.com/Vonng/ddia/tree/main) 分支)，欢迎加入并提出您的宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
 
 
 ---------
