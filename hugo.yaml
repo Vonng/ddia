@@ -29,12 +29,6 @@ languages:
     contentDir: content/zh
     weight: 1
     title: 设计数据密集型应用（第二版）
-  v2:
-    languageName: 第二版
-    languageCode: v2
-    contentDir: content/v2
-    weight: 2
-    title: 设计数据密集型应用（第二版）
   tw:
     languageName: 繁体中文
     languageCode: tw
@@ -87,10 +81,6 @@ menu:
       name: "简体中文 ↗"
       url: "/"
       weight: 2
-    - identifier: simplified-chinese2
-      name: "第二版 ↗"
-      url: "/v2"
-      weight: 3
     - identifier: traditional-chinese
       name: "繁體中文 ↗"
       url: "/tw"
