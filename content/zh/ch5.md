@@ -34,7 +34,7 @@ breadcrumbs: false
 
 向前兼容性的另一个挑战如 [图 5-1](/ch5#fig_encoding_preserve_field) 所示。假设你向记录模式添加了一个字段，新代码创建了包含该新字段的记录并将其存储在数据库中。随后，旧版本的代码（尚不知道新字段）读取记录，更新它，然后写回。在这种情况下，理想的行为通常是旧代码保持新字段不变，即使它无法解释。但是，如果记录被解码为不显式保留未知字段的模型对象，数据可能会丢失，如 [图 5-1](/ch5#fig_encoding_preserve_field) 所示。
 
-{{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="当旧版本的应用程序更新之前由新版本应用程序写入的数据时，如果不小心，数据可能会丢失。" class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="图 5-1. 当旧版本的应用程序更新之前由新版本应用程序写入的数据时，如果不小心，数据可能会丢失。" class="w-full my-4" >}}
 
 在本章中，我们将研究几种编码数据的格式，包括 JSON、XML、Protocol Buffers 和 Avro。特别是，我们将研究它们如何处理模式变化，以及它们如何支持新旧数据和代码需要共存的系统。然后我们将讨论这些格式如何用于数据存储和通信：在数据库、Web 服务、REST API、远程过程调用（RPC）、工作流引擎以及事件驱动系统（如 actor 和消息队列）中。
 

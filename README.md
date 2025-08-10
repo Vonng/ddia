@@ -1,7 +1,7 @@
 # 设计数据密集型应用（第二版） - 中文翻译版
 
-[![Webite: ddia](https://img.shields.io/badge/在线阅读-v2-slategray?style=flat)](https://ddia.vonng.com)
-[![Webite: ddia](https://img.shields.io/badge/在线阅读-v1-slategray?style=flat)](https://ddia.vonng.com/v1)
+[![Webite: ddia](https://img.shields.io/badge/在线阅读-第二版-slategray?style=flat)](https://ddia.vonng.com)
+[![Webite: ddia](https://img.shields.io/badge/在线阅读-第一版-slategray?style=flat)](https://ddia.vonng.com/v1)
 [![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html)： 英国剑桥大学分布式系统研究员，演讲者，博主和开源贡献者，软件工程师和企业家，曾在 LinkedIn 和 Rapportive 负责数据基础架构。
@@ -13,7 +13,7 @@
 **阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [hugo](https://gohugo.io/documentation/) / [hextra](https://imfing.github.io/hextra/zh-cn/) 主题自行构建。
 
 > [!NOTE] 
-> **通知**：DDIA [**第二版**](https://ddia.vonng.com) 预览版正在翻译中 ([`main`](https://github.com/Vonng/ddia/tree/main) 分支)，欢迎加入并提出您的宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
+> [**DDIA 第二版**](https://ddia.vonng.com) 正在翻译中（翻译至至第十章），欢迎阅览并提出您的宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
 
 
 ---------
@@ -66,13 +66,14 @@
   - [8. 事务](https://ddia.vonng.com/ch8)
   - [9. 分布式系统的麻烦](https://ddia.vonng.com/ch9)
   - [10.一致性与共识](https://ddia.vonng.com/ch10)
-* [第三部分：派生数据](https://ddia.vonng.com/part-iii
+* [第三部分：派生数据](https://ddia.vonng.com/part-iii)
   - [11. 批处理](https://ddia.vonng.com/ch11) （尚未发布）
   - [12. 流处理](https://ddia.vonng.com/ch12) （尚未发布）
-  - [13. 做正确的事](https://ddia.vonng.com/ch13) （尚未发布）
+  - [13. 做正确的事](https://ddia.vonng.com/ch13)（尚未发布）
 * [术语表](https://ddia.vonng.com/glossary)
 * [后记](https://ddia.vonng.com/colophon)
 
+![](static/title.jpg)
 
 
 ---------
@@ -85,7 +86,9 @@
 
 译者保留对此版本译文的署名权，其他权利以原作者和出版社的主张为准。
 
-本译文只供学习研究参考之用，不得公开传播发行或用于商业用途。有能力阅读英文书籍者请购买正版支持。
+本译文只供学习研究参考之用，不得公开发行或用于商业用途，有能力阅读英文书籍者请购买正版支持，本书英文原版在 [O'REILLY](https://learning.oreilly.com/api/v1/continue/9781098119058/) 平台上提供在线免费试预览。
+
+
 
 
 ---------
