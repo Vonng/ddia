@@ -1,5 +1,5 @@
 ---
-title: 設計資料密集型應用
+title: 設計資料密集型應用（第二版）
 linkTitle: DDIA
 cascade:
   type: docs
@@ -19,7 +19,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 **校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/contrib)
 
 > [!NOTE]
-> DDIA [**第二版**](/v2) 正在翻譯中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main) 目錄)，歡迎加入並提出您的寶貴意見！
+> DDIA [**第二版**](/v2) 正在翻譯中 ([`v2/v2`](https://github.com/Vonng/ddia/tree/main) 目錄)，歡迎加入並提出您的寶貴意見！
 
 
 
@@ -69,7 +69,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 * [第八章：分散式系統的麻煩](/tw/ch8)
 * [第九章：一致性與共識](/tw/ch9)
 
-### [第三部分：衍生資料](/tw/part-iii)
+### [第三部分：派生資料](/tw/part-iii)
 
 * [第十章：批處理](/tw/ch10)
 * [第十一章：流處理](/tw/ch11)

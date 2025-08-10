@@ -2191,7 +2191,7 @@ several widely used isolation levels, in particular *read committed*, *snapshot 
 (sometimes called *repeatable read*), and *serializable*. We characterized those isolation levels by
 discussing various examples of race conditions, summarized in [Table 8-1](/en/ch8#ch_transactions_isolation_levels):
 
-Table 8-1. Summary of anomalies that can occur at various isolation levels
+{{< figure id="ch_transactions_isolation_levels" title="Table 8-1. Summary of anomalies that can occur at various isolation levels" class="w-full my-4" >}}
 
 | Isolation level    | Dirty reads | Read skew   | Phantom reads | Lost updates | Write skew  |
 |--------------------|-------------|-------------|---------------|--------------|-------------|
@@ -2348,4 +2348,4 @@ The examples in this chapter used a relational data model. However, as discussed
 [^82]: Clemens Vasters. [Transactions in Windows Azure (with Service Bus) – An Email Discussion](https://learn.microsoft.com/en-gb/archive/blogs/clemensv/transactions-in-windows-azure-with-service-bus-an-email-discussion). *learn.microsoft.com*, July 2012. Archived at [perma.cc/4EZ9-5SKW](https://perma.cc/4EZ9-5SKW) 
 [^83]: Ajmer Dhariwal. [Orphaned MSDTC Transactions (-2 spids)](https://www.eraofdata.com/posts/2008/orphaned-msdtc-transactions-2-spids/). *eraofdata.com*, December 2008. Archived at [perma.cc/YG6F-U34C](https://perma.cc/YG6F-U34C) 
 [^84]: Paul Randal. [Real World Story of DBCC PAGE Saving the Day](https://www.sqlskills.com/blogs/paul/real-world-story-of-dbcc-page-saving-the-day/). *sqlskills.com*, June 2013. Archived at [perma.cc/2MJN-A5QH](https://perma.cc/2MJN-A5QH) 
-[^85]: Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva Mehta, Varun Madan, and Jun Rao. [Consistency and Completeness: Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556) 
+[^85]: Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva Mehta, Varun Madan, and Jun Rao. [Consistency and Completeness: Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556)

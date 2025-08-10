@@ -4,6 +4,10 @@ weight: 600
 breadcrumbs: false
 ---
 
+{{< callout type="warning" >}}
+當前頁面來自本書第一版，第二版尚不可用
+{{< /callout >}}
+
 ## 關於作者
 
 **Martin Kleppmann** 是英國劍橋大學分散式系統的研究員。此前他曾在網際網路公司擔任過軟體工程師和企業家，其中包括 LinkedIn 和 Rapportive，負責大規模資料基礎架構。在這個過程中，他以艱難的方式學習了一些東西，他希望這本書能夠讓你避免重蹈覆轍。
