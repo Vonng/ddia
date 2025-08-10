@@ -1,6 +1,7 @@
 ---
 title: "8. 事务"
 weight: 208
+math: true
 breadcrumbs: false
 ---
 

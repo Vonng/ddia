@@ -19,7 +19,7 @@ PostgreSQL 专家，数据库老司机，云计算泥石流。
 **校订**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本维护** by  [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](/contrib)
 
 > [!NOTE]
-> **DDIA 第二版** 正在翻译中 ([`v2`](https://github.com/Vonng/ddia/tree/v2) 分支)，欢迎加入并提出您的宝贵意见！
+> **DDIA 第二版** 正在翻译中 ([`main`](https://github.com/Vonng/ddia/tree/main) 分支)，欢迎加入并提出您的宝贵意见！[点击此处阅览第一版](/v1)。
 
 
 

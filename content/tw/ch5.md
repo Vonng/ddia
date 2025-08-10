@@ -1,6 +1,7 @@
 ---
 title: "5. 編碼與演化"
 weight: 105
+math: true
 breadcrumbs: false
 ---
 

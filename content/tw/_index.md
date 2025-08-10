@@ -19,7 +19,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 **校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/contrib)
 
 > [!NOTE]
-> **DDIA 第二版** 正在翻譯中 ([`v2`](https://github.com/Vonng/ddia/tree/v2) 分支)，歡迎加入並提出您的寶貴意見！
+> **DDIA 第二版** 正在翻譯中 ([`main`](https://github.com/Vonng/ddia/tree/main) 分支)，歡迎加入並提出您的寶貴意見！[點選此處閱覽第一版](/v1)。
 
 
 

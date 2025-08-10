@@ -1,6 +1,7 @@
 ---
 title: "2. 定义非功能性需求"
 weight: 102
+math: true
 breadcrumbs: false
 ---
 

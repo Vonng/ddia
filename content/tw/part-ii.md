@@ -72,7 +72,7 @@ breadcrumbs: false
 
 複製和分割槽是不同的機制，但它們經常同時使用。如 [圖 II-1](#fig_replication_partitioning) 所示。
 
-{{< figure src="/fig/ddia_08.png" id="fig_replication_partitioning" caption="圖 II-1 一個數據庫切分為兩個分割槽，每個分割槽都有兩個副本" class="w-full my-4" >}}
+{{< figure src="/v1/ddia_08.png" id="fig_replication_partitioning" caption="圖 II-1 一個數據庫切分為兩個分割槽，每個分割槽都有兩個副本" class="w-full my-4" >}}
 
 
 理解了這些概念，就可以開始討論在分散式系統中需要做出的困難抉擇。[第八章](/tw/ch8) 將討論 **事務（Transaction）**，這對於瞭解資料系統中可能出現的各種問題，以及我們可以做些什麼很有幫助。
