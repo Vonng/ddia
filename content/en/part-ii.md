@@ -89,24 +89,52 @@ Replication can also help improve performance. We discuss replication in [Chapte
  Splitting a big database into smaller subsets called *partitions* so that different partitions can be assigned to different nodes (also known as *sharding*). 
  We discuss partitioning in [Chapter 7](/en/ch7).
 
-These are separate mechanisms, but they often go hand in hand, as illustrated in Figure II-1.
+These are separate mechanisms, but they often go hand in hand, as illustrated in [Figure II-1](#fig_replication_partitioning).
 
-![](/fig/ddia_08.png)
+{{< figure src="/fig/ddia_08.png" id="fig_replication_partitioning" caption="*Figure II-1. A database split into two partitions, with two replicas per partition." class="w-full my-4" >}}
 
-> *Figure II-1. A database split into two partitions, with two replicas per partition.*
+With an understanding of those concepts, we can discuss the difficult trade-offs that you need to make in a distributed system. 
+We’ll discuss *transactions* in [Chapter 8](/en/ch8), as that will help you understand all the many things that can go wrong in a data system, and what you can do about them. 
+We’ll conclude this part of the book by discussing the fundamental limitations of distributed systems in [Chapters 9](/en/ch9) and [10](/en/ch10).
 
-With an understanding of those concepts, we can discuss the difficult trade-offs that you need to make in a distributed system. We’ll discuss *transactions* in Chapter 7, as that will help you understand all the many things that can go wrong in a data system, and what you can do about them. We’ll conclude this part of the book by discussing the fundamental limitations of distributed systems in Chapters 8 and 9.
+Later, in [Part III](/en/part-iii) of this book, we will discuss how you can take several (potentially distributed) datastores and integrate them into a larger system, 
+satisfying the needs of a complex application. But first, let’s talk about distributed data.
 
-Later, in Part III of this book, we will discuss how you can take several (potentially distributed) datastores and integrate them into a larger system, satisfying the needs of a complex application. But first, let’s talk about distributed data.
 
+## [6. Replication](/en/ch6)
+- [Single-Leader Replication](/en/ch6#sec_replication_leader)
+- [Problems with Replication Lag](/en/ch6#sec_replication_lag)
+- [Multi-Leader Replication](/en/ch6#sec_replication_multi_leader)
+- [Leaderless Replication](/en/ch6#sec_replication_leaderless)
+- [Summary](/en/ch6#summary)
 
-## Index
+## [7. Sharding](/en/ch7)
+- [Pros and Cons of Sharding](/en/ch7#sec_sharding_reasons)
+- [Sharding of Key-Value Data](/en/ch7#sec_sharding_key_value)
+- [Request Routing](/en/ch7#sec_sharding_routing)
+- [Sharding and Secondary Indexes](/en/ch7#sec_sharding_secondary_indexes)
+- [Summary](/en/ch7#summary)
 
-- [6. Replication](/en/ch6)
-- [7. Partitioning](/en/ch7)
-- [8. Transactions](/en/ch8)
-- [9. The Trouble with Distributed Systems](/en/ch9)
-- [10. Consistency and Consensus](/en/ch10)
+## [8. Transactions](/en/ch8)
+- [What Exactly Is a Transaction?](/en/ch8#sec_transactions_overview)
+- [Weak Isolation Levels](/en/ch8#sec_transactions_isolation_levels)
+- [Serializability](/en/ch8#sec_transactions_serializability)
+- [Distributed Transactions](/en/ch8#sec_transactions_distributed)
+- [Summary](/en/ch8#summary)
+
+## [9. The Trouble with Distributed Systems](/en/ch9)
+- [Faults and Partial Failures](/en/ch9#sec_distributed_partial_failure)
+- [Unreliable Networks](/en/ch9#sec_distributed_networks)
+- [Unreliable Clocks](/en/ch9#sec_distributed_clocks)
+- [Knowledge, Truth, and Lies](/en/ch9#sec_distributed_truth)
+- [Summary](/en/ch9#summary)
+
+## [10. Consistency and Consensus](/en/ch10)
+- [Linearizability](/en/ch10#sec_consistency_linearizability)
+- [ID Generators and Logical Clocks](/en/ch10#sec_consistency_logical)
+- [Consensus](/en/ch10#sec_consistency_consensus)
+- [Summary](/en/ch10#summary)
+
 
 ### References
 

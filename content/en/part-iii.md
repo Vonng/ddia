@@ -57,7 +57,6 @@ By being clear about which data is derived from which other data, you can bring 
 This point will be a running theme throughout this part of the book.
 
 
-
 ## Overview of Chapters
 
 We will start in [Chapter 11](/en/ch11) by examining batch-oriented dataflow systems such as MapReduce, and see how they give us good tools and principles for building large- scale data systems. 
@@ -70,3 +69,4 @@ In [Chapter 12](/en/ch12) we will take those ideas and apply them to data stream
 - [11. Batch Processing](/en/ch11) (WIP)
 - [12. Stream Processing](/en/ch12) (WIP)
 - [13. Doing the Right Thing](/en/ch13) (WIP)
+

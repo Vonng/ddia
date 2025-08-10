@@ -15,106 +15,111 @@ breadcrumbs: false
 
 -------
 
-在本书的 [第一部分](/part-i) 中，我们讨论了数据系统的各个方面，但仅限于数据存储在单台机器上的情况。现在我们到了 [第二部分](/part-ii)，进入更高的层次，并提出一个问题：如果 **多台机器** 参与数据的存储和检索，会发生什么？
+在本书的 [第一部分](/part-i) 中，我们讨论了数据系统的各个方面，但仅限于数据存储在单台机器上的情况。
+现在我们到了 [第二部分](/part-ii)，进入更高的层次，并提出一个问题：如果 **多台机器** 参与数据的存储和检索，会发生什么？
 
 你可能会出于各种各样的原因，希望将数据库分布到多台机器上：
 
-* 可伸缩性
+可伸缩性
+: 如果你的数据量、读取负载、写入负载超出单台机器的处理能力，可以将负载分散到多台计算机上。
 
-  如果你的数据量、读取负载、写入负载超出单台机器的处理能力，可以将负载分散到多台计算机上。
+容错 / 高可用性
+: 如果你的应用需要在单台机器（或多台机器，网络或整个数据中心）出现故障的情况下仍然能继续工作，则可使用多台机器，以提供冗余。一台故障时，另一台可以接管。
 
-* 容错 / 高可用性
+延迟
+: 如果在世界各地都有用户，你也许会考虑在全球范围部署多个服务器，从而每个用户可以从地理上最近的数据中心获取服务，避免了等待网络数据包穿越半个世界。
 
-  如果你的应用需要在单台机器（或多台机器，网络或整个数据中心）出现故障的情况下仍然能继续工作，则可使用多台机器，以提供冗余。一台故障时，另一台可以接管。
+## 伸缩至更高的负载
 
-* 延迟
+如果你需要的只是伸缩至更高的 **负载（load）**，最简单的方法就是购买更强大的机器（有时称为 **垂直伸缩**，即 vertical scaling，或 **向上伸缩**，即 scale up）。许多处理器，内存和磁盘可以在同一个操作系统下相互连接，快速的相互连接允许任意处理器访问内存或磁盘的任意部分。在这种 **共享内存架构（shared-memory architecture）** 中，所有的组件都可以看作一台单独的机器。
 
-  如果在世界各地都有用户，你也许会考虑在全球范围部署多个服务器，从而每个用户可以从地理上最近的数据中心获取服务，避免了等待网络数据包穿越半个世界。
-
-## 伸缩至更高的载荷
-
-如果你需要的只是伸缩至更高的 **载荷（load）**，最简单的方法就是购买更强大的机器（有时称为 **垂直伸缩**，即 vertical scaling，或 **向上伸缩**，即 scale up）。许多处理器，内存和磁盘可以在同一个操作系统下相互连接，快速的相互连接允许任意处理器访问内存或磁盘的任意部分。在这种 **共享内存架构（shared-memory architecture）** 中，所有的组件都可以看作一台单独的机器 [^i]。
-
-[^i]: 在大型机中，尽管任意处理器都可以访问内存的任意部分，但总有一些内存区域与一些处理器更接近（称为 **非均匀内存访问（nonuniform memory access, NUMA）**【1】）。为了有效利用这种架构特性，需要对处理进行细分，以便每个处理器主要访问临近的内存，这意味着即使表面上看起来只有一台机器在运行，**分区（partitioning）** 仍然是必要的。
+> [!NOTE]
+> 在大型机中，尽管任意处理器都可以访问内存的任意部分，但总有一些内存区域与一些处理器更接近（称为 **非均匀内存访问（nonuniform memory access, NUMA）** [^1]）。为了有效利用这种架构特性，需要对处理进行细分，以便每个处理器主要访问临近的内存，这意味着即使表面上看起来只有一台机器在运行，**分区（partitioning）** 仍然是必要的。
 
 共享内存方法的问题在于，成本增长速度快于线性增长：一台有着双倍处理器数量，双倍内存大小，双倍磁盘容量的机器，通常成本会远远超过原来的两倍。而且可能因为存在瓶颈，并不足以处理双倍的载荷。
 
 共享内存架构可以提供有限的容错能力，高端机器可以使用热插拔的组件（不关机更换磁盘，内存模块，甚至处理器）—— 但它必然囿于单个地理位置的桎梏。
 
-另一种方法是 **共享磁盘架构（shared-disk architecture）**，它使用多台具有独立处理器和内存的机器，但将数据存储在机器之间共享的磁盘阵列上，这些磁盘通过快速网络连接 [^ii]。这种架构用于某些数据仓库，但竞争和锁定的开销限制了共享磁盘方法的可伸缩性【2】。
+另一种方法是 **共享磁盘架构（shared-disk architecture）**，它使用多台具有独立处理器和内存的机器，但将数据存储在机器之间共享的磁盘阵列上，这些磁盘通过快速网络连接。这种架构用于某些数据仓库，但竞争和锁定的开销限制了共享磁盘方法的可伸缩性 [^2]。
 
-[^ii]: 网络附属存储（Network Attached Storage, NAS），或 **存储区网络（Storage Area Network, SAN）**
+> [!NOTE]
+> 网络附属存储（Network Attached Storage, NAS），或 **存储区网络（Storage Area Network, SAN）**
 
 ### 无共享架构
 
-相比之下，**无共享架构**【3】（shared-nothing architecture，有时被称为 **水平伸缩**，即 horizontal scaling，或 **向外伸缩**，即 scaling out）已经相当普及。在这种架构中，运行数据库软件的每台机器 / 虚拟机都称为 **节点（node）**。每个节点只使用各自的处理器，内存和磁盘。节点之间的任何协调，都是在软件层面使用传统网络实现的。
+相比之下，**无共享架构** [^3]（shared-nothing architecture，有时被称为 **水平伸缩**，即 horizontal scaling，或 **向外伸缩**，即 scaling out）已经相当普及。
+在这种架构中，运行数据库软件的每台机器 / 虚拟机都称为 **节点（node）**。每个节点只使用各自的处理器，内存和磁盘。节点之间的任何协调，都是在软件层面使用传统网络实现的。
 
-无共享系统不需要使用特殊的硬件，所以你可以用任意机器 —— 比如性价比最好的机器。你也许可以跨多个地理区域分布数据从而减少用户延迟，或者在损失一整个数据中心的情况下幸免于难。随着云端虚拟机部署的出现，即使是小公司，现在无需 Google 级别的运维，也可以实现异地分布式架构。
+无共享系统不需要使用特殊的硬件，所以你可以用任意机器 —— 比如性价比最好的机器。你也许可以跨多个地理区域分布数据从而减少用户延迟，或者在损失一整个数据中心的情况下幸免于难。
+随着云端虚拟机部署的出现，即使是小公司，现在无需 Google 级别的运维，也可以实现异地分布式架构。
 
-在这一部分里，我们将重点放在无共享架构上。它不见得是所有场景的最佳选择，但它是最需要你谨慎从事的架构。如果你的数据分布在多个节点上，你需要意识到这样一个分布式系统中约束和权衡 —— 数据库并不能魔术般地把这些东西隐藏起来。
+在这一部分里，我们将重点放在无共享架构上。它不见得是所有场景的最佳选择，但它是最需要你谨慎从事的架构。
+如果你的数据分布在多个节点上，你需要意识到这样一个分布式系统中约束和权衡 —— 数据库并不能魔术般地把这些东西隐藏起来。
 
-虽然分布式无共享架构有许多优点，但它通常也会给应用带来额外的复杂度，有时也会限制你可用数据模型的表达力。在某些情况下，一个简单的单线程程序可以比一个拥有超过 100 个 CPU 核的集群表现得更好【4】。另一方面，无共享系统可以非常强大。接下来的几章，将详细讨论分布式数据会带来的问题。
+虽然分布式无共享架构有许多优点，但它通常也会给应用带来额外的复杂度，有时也会限制你可用数据模型的表达力。
+在某些情况下，一个简单的单线程程序可以比一个拥有超过 100 个 CPU 核的集群表现得更好 [^4]。另一方面，无共享系统可以非常强大。接下来的几章，将详细讨论分布式数据会带来的问题。
+
 
 ### 复制 vs 分区
 
 数据分布在多个节点上有两种常见的方式：
 
-* 复制（Replication）
+复制（Replication）
+: 在几个不同的节点上保存数据的相同副本，可能放在不同的位置。复制提供了冗余：如果一些节点不可用，剩余的节点仍然可以提供数据服务。复制也有助于改善性能。[第六章](/ch6) 将讨论复制。
 
-  在几个不同的节点上保存数据的相同副本，可能放在不同的位置。复制提供了冗余：如果一些节点不可用，剩余的节点仍然可以提供数据服务。复制也有助于改善性能。[第五章](/ch5) 将讨论复制。
+分区 (Partitioning)
+: 将一个大型数据库拆分成较小的子集（称为 **分区**，即 partitions），从而不同的分区可以指派给不同的 **节点**（nodes，亦称 **分片**，即 sharding）。[第七章](/ch7) 将讨论分区。
 
-* 分区 (Partitioning)
+复制和分区是不同的机制，但它们经常同时使用。如 [图 II-1](#fig_replication_partitioning) 所示。
 
-  将一个大型数据库拆分成较小的子集（称为 **分区**，即 partitions），从而不同的分区可以指派给不同的 **节点**（nodes，亦称 **分片**，即 sharding）。[第六章](/ch6) 将讨论分区。
+{{< figure src="/fig/ddia_08.png" id="fig_replication_partitioning" caption="图 II-1 一个数据库切分为两个分区，每个分区都有两个副本" class="w-full my-4" >}}
 
-复制和分区是不同的机制，但它们经常同时使用。如 [图 II-1](/img/figii-1.png) 所示。
 
-![](/img/figii-1.png)
-
-**图 II-1 一个数据库切分为两个分区，每个分区都有两个副本**
-
-理解了这些概念，就可以开始讨论在分布式系统中需要做出的困难抉择。[第七章](/ch7) 将讨论 **事务（Transaction）**，这对于了解数据系统中可能出现的各种问题，以及我们可以做些什么很有帮助。[第八章](/ch8) 和 [第九章](/ch9) 将讨论分布式系统的根本局限性。
+理解了这些概念，就可以开始讨论在分布式系统中需要做出的困难抉择。[第八章](/ch8) 将讨论 **事务（Transaction）**，这对于了解数据系统中可能出现的各种问题，以及我们可以做些什么很有帮助。
+[第九章](/ch9) 和 [第十章](/ch10) 将讨论分布式系统的根本局限性。
 
 在本书的 [第三部分](/part-iii) 中，将讨论如何将多个（可能是分布式的）数据存储集成为一个更大的系统，以满足复杂的应用需求。但首先，我们来聊聊分布式的数据。
 
 
-## 索引
+## [6. 复制](/ch6)
+- [单主复制](/ch6#sec_replication_leader)
+- [复制延迟的问题](/ch6#sec_replication_lag)
+- [多主复制](/ch6#sec_replication_multi_leader)
+- [无主复制](/ch6#sec_replication_leaderless)
+- [总结](/ch6#summary)
 
-* [第五章：复制](/ch5)
-  * [领导者与追随者](/ch5#领导者与追随者)
-  * [复制延迟问题](/ch5#复制延迟问题)
-  * [多主复制](/ch5#多主复制)
-  * [无主复制](/ch5#无主复制)
-  * [本章小结](/ch5#本章小结)
-* [第六章：分区](/ch6)
-  * [分区与复制](/ch6#分区与复制)
-  * [键值数据的分区](/ch6#键值数据的分区)
-  * [分区与次级索引](/ch6#分区与次级索引)
-  * [分区再平衡](/ch6#分区再平衡)
-  * [请求路由](/ch6#请求路由)
-  * [本章小结](/ch6#本章小结)
-* [第七章：事务](/ch7)
-  * [事务的棘手概念](/ch7#事务的棘手概念)
-  * [弱隔离级别](/ch7#弱隔离级别)
-  * [可串行化](/ch7#可串行化)
-  * [本章小结](/ch7#本章小结)
-* [第八章：分布式系统的麻烦](/ch8)
-  * [故障与部分失效](/ch8#故障与部分失效)
-  * [不可靠的网络](/ch8#不可靠的网络)
-  * [不可靠的时钟](/ch8#不可靠的时钟)
-  * [知识、真相与谎言](/ch8#知识真相与谎言)
-  * [本章小结](/ch8#本章小结)
-* [第九章：一致性与共识](/ch9)
-  * [一致性保证](/ch9#一致性保证)
-  * [线性一致性](/ch9#线性一致性)
-  * [顺序保证](/ch9#顺序保证)
-  * [分布式事务与共识](/ch9#分布式事务与共识)
-  * [本章小结](/ch9#本章小结)
+## [7. 分片](/ch7)
+- [分片的利与弊](/ch7#sec_sharding_reasons)
+- [键值数据的分片](/ch7#sec_sharding_key_value)
+- [请求路由](/ch7#sec_sharding_routing)
+- [分片与二级索引](/ch7#sec_sharding_secondary_indexes)
+- [总结](/ch7#summary)
+
+## [8. 事务](/ch8)
+- [事务到底是什么？](/ch8#sec_transactions_overview)
+- [弱隔离级别](/ch8#sec_transactions_isolation_levels)
+- [可串行化](/ch8#sec_transactions_serializability)
+- [分布式事务](/ch8#sec_transactions_distributed)
+- [总结](/ch8#summary)
+- [参考](/ch8#参考)
+
+## [9. 分布式系统的麻烦](/ch9)
+- [故障与部分失效](/ch9#sec_distributed_partial_failure)
+- [不可靠的网络](/ch9#sec_distributed_networks)
+- [不可靠的时钟](/ch9#sec_distributed_clocks)
+- [知识、真相和谎言](/ch9#sec_distributed_truth)
+- [总结](/ch9#summary)
+
+## [10. 一致性与共识](/ch10)
+- [线性一致性](/ch10#sec_consistency_linearizability)
+- [ID 生成器和逻辑时钟](/ch10#sec_consistency_logical)
+- [共识](/ch10#sec_consistency_consensus)
+- [总结](/ch10#summary)
 
 
-## 参考文献
+### 参考
 
-1. Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
-1. Ben Stopford: “[Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” benstopford.com, November 24, 2009.
-1. Michael Stonebraker: “[The Case for Shared Nothing](http://db.cs.berkeley.edu/papers/hpts85-nothing.pdf),” IEEE Database EngineeringBulletin, volume 9, number 1, pages 4–9, March 1986.
-1. Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at 15th USENIX Workshop on Hot Topics in Operating Systems (HotOS),May 2015.
+[^1]: Ulrich Drepper: “[What Every Programmer Should Know About Memory](https://people.freebsd.org/~lstewart/articles/cpumemory.pdf),” akka‐dia.org, November 21, 2007.
+[^2]: Ben Stopford: “[Shared Nothing vs. Shared Disk Architectures: An Independent View](http://www.benstopford.com/2009/11/24/understanding-the-shared-nothing-architecture/),” benstopford.com, November 24, 2009.
+[^3]: Michael Stonebraker: “[The Case for Shared Nothing](http://db.cs.berkeley.edu/papers/hpts85-nothing.pdf),” IEEE Database EngineeringBulletin, volume 9, number 1, pages 4–9, March 1986.
+[^4]: Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at 15th USENIX Workshop on Hot Topics in Operating Systems (HotOS),May 2015.
