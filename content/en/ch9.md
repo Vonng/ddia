@@ -4,6 +4,8 @@ weight: 209
 breadcrumbs: false
 ---
 
+![](/map/ch08.png)
+
 > *They’re funny things, Accidents. You never have them till you’re having them.*
 >
 > A.A. Milne, *The House at Pooh Corner* (1928)

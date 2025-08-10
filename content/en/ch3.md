@@ -4,6 +4,8 @@ weight: 103
 breadcrumbs: false
 ---
 
+![](/map/ch02.png)
+
 > *The limits of my language mean the limits of my world.*
 >
 > Ludwig Wittgenstein, *Tractatus Logico-Philosophicus* (1922)
@@ -263,9 +265,9 @@ human-readable. In a relational data model, this is done using a *join*, for exa
 
 ```sql
 SELECT users.*, regions.region_name
-FROM users
-JOIN regions ON users.region_id = regions.id
-WHERE users.id = 251;
+    FROM users
+    JOIN regions ON users.region_id = regions.id
+    WHERE users.id = 251;
 ```
 
 Document databases can store both normalized and denormalized data, but they are often associated
@@ -343,11 +345,11 @@ In other words, it is a precomputed result of (approximately) the following quer
 
 ```sql
 SELECT posts.id, posts.sender_id 
-FROM posts
-JOIN follows ON posts.sender_id = follows.followee_id
-WHERE follows.follower_id = current_user
-ORDER BY posts.timestamp DESC
-LIMIT 1000
+    FROM posts
+    JOIN follows ON posts.sender_id = follows.followee_id
+    WHERE follows.follower_id = current_user
+    ORDER BY posts.timestamp DESC
+    LIMIT 1000
 ```
 
 This means that whenever the timeline is read, the service still needs to perform two joins: look up

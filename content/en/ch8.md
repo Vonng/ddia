@@ -4,6 +4,8 @@ weight: 208
 breadcrumbs: false
 ---
 
+![](/map/ch07.png)
+
 > *Some authors have claimed that general two-phase commit is too expensive to support, because of the
 > performance or availability problems that it brings. We believe it is better to have application
 > programmers deal with performance problems due to overuse of transactions as bottlenecks arise,

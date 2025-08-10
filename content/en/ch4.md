@@ -4,6 +4,8 @@ weight: 104
 breadcrumbs: false
 ---
 
+![](/map/ch03.png)
+
 > *One of the miseries of life is that everybody names things a little bit wrong. And so it makes
 > everything a little harder to understand in the world than it would be if it were named
 > differently. A computer does not primarily compute in the sense of doing arithmetic. […] They

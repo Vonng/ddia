@@ -4,6 +4,8 @@ weight: 206
 breadcrumbs: false
 ---
 
+![](/map/ch05.png)
+
 > *The major difference between a thing that might go wrong and a thing that cannot possibly go wrong
 > is that when a thing that cannot possibly go wrong goes wrong it usually turns out to be impossible
 > to get at or repair.*

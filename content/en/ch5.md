@@ -4,6 +4,7 @@ weight: 105
 breadcrumbs: false
 ---
 
+![](/map/ch04.png)
 
 > *Everything changes and nothing stands still.*
 >
