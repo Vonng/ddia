@@ -1,8 +1,7 @@
 # 设计数据密集型应用（第二版） - 中文翻译版
 
-[![Webite: ddia](https://img.shields.io/badge/简体中文-第二版-slategray?style=flat)](https://ddia.vonng.com)
-[![Webite: ddia](https://img.shields.io/badge/繁体中文-第二版-slategray?style=flat)](https://ddia.vonng.com/tw)
-[![Webite: ddia](https://img.shields.io/badge/简体中文-第一版-slategray?style=flat)](https://ddia.vonng.com/v1)
+[![Webite: ddia](https://img.shields.io/badge/在线阅读-v2-slategray?style=flat)](https://ddia.vonng.com)
+[![Webite: ddia](https://img.shields.io/badge/在线阅读-v1-slategray?style=flat)](https://ddia.vonng.com/v1)
 [![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html)： 英国剑桥大学分布式系统研究员，演讲者，博主和开源贡献者，软件工程师和企业家，曾在 LinkedIn 和 Rapportive 负责数据基础架构。
@@ -53,86 +52,26 @@
 
 ## 目录
 
-### [序言](content/zh/preface.md)
 
-### [第一部分：数据系统基础](content/zh/part-i.md)
-
-* [第一章：可靠性、可伸缩性和可维护性](content/zh/ch1.md)
-    * [关于数据系统的思考](content/zh/ch1.md#关于数据系统的思考)
-    * [可靠性](content/zh/ch1.md#可靠性)
-    * [可伸缩性](content/zh/ch1.md#可伸缩性)
-    * [可维护性](content/zh/ch1.md#可维护性)
-    * [本章小结](content/zh/ch1.md#本章小结)
-* [第二章：数据模型与查询语言](content/zh/ch2.md)
-    * [关系模型与文档模型](content/zh/ch2.md#关系模型与文档模型)
-    * [数据查询语言](content/zh/ch2.md#数据查询语言)
-    * [图数据模型](content/zh/ch2.md#图数据模型)
-    * [本章小结](content/zh/ch2.md#本章小结)
-* [第三章：存储与检索](content/zh/ch3.md)
-    * [驱动数据库的数据结构](content/zh/ch3.md#驱动数据库的数据结构)
-    * [事务处理还是分析？](content/zh/ch3.md#事务处理还是分析？)
-    * [列式存储](content/zh/ch3.md#列式存储)
-    * [本章小结](content/zh/ch3.md#本章小结)
-* [第四章：编码与演化](content/zh/ch4.md)
-    * [编码数据的格式](content/zh/ch4.md#编码数据的格式)
-    * [数据流的类型](content/zh/ch4.md#数据流的类型)
-    * [本章小结](content/zh/ch4.md#本章小结)
-
-### [第二部分：分布式数据](content/zh/part-ii.md)
-
-* [第五章：复制](content/zh/ch5.md)
-    * [领导者与追随者](content/zh/ch5.md#领导者与追随者)
-    * [复制延迟问题](content/zh/ch5.md#复制延迟问题)
-    * [多主复制](content/zh/ch5.md#多主复制)
-    * [无主复制](content/zh/ch5.md#无主复制)
-    * [本章小结](content/zh/ch5.md#本章小结)
-* [第六章：分区](content/zh/ch6.md)
-    * [分区与复制](content/zh/ch6.md#分区与复制)
-    * [键值数据的分区](content/zh/ch6.md#键值数据的分区)
-    * [分区与次级索引](content/zh/ch6.md#分区与次级索引)
-    * [分区再平衡](content/zh/ch6.md#分区再平衡)
-    * [请求路由](content/zh/ch6.md#请求路由)
-    * [本章小结](content/zh/ch6.md#本章小结)
-* [第七章：事务](content/zh/ch7.md)
-    * [事务的棘手概念](content/zh/ch7.md#事务的棘手概念)
-    * [弱隔离级别](content/zh/ch7.md#弱隔离级别)
-    * [可串行化](content/zh/ch7.md#可串行化)
-    * [本章小结](content/zh/ch7.md#本章小结)
-* [第八章：分布式系统的麻烦](content/zh/ch8.md)
-    * [故障与部分失效](content/zh/ch8.md#故障与部分失效)
-    * [不可靠的网络](content/zh/ch8.md#不可靠的网络)
-    * [不可靠的时钟](content/zh/ch8.md#不可靠的时钟)
-    * [知识、真相与谎言](content/zh/ch8.md#知识、真相与谎言)
-    * [本章小结](content/zh/ch8.md#本章小结)
-* [第九章：一致性与共识](content/zh/ch9.md)
-    * [一致性保证](content/zh/ch9.md#一致性保证)
-    * [线性一致性](content/zh/ch9.md#线性一致性)
-    * [顺序保证](content/zh/ch9.md#顺序保证)
-    * [分布式事务与共识](content/zh/ch9.md#分布式事务与共识)
-    * [本章小结](content/zh/ch9.md#本章小结)
-
-### [第三部分：衍生数据](content/zh/part-iii.md)
-
-* [第十章：批处理](content/zh/ch10.md)
-    * [使用Unix工具的批处理](content/zh/ch10.md#使用Unix工具的批处理)
-    * [MapReduce和分布式文件系统](content/zh/ch10.md#MapReduce和分布式文件系统)
-    * [MapReduce之后](content/zh/ch10.md#MapReduce之后)
-    * [本章小结](content/zh/ch10.md#本章小结)
-* [第十一章：流处理](content/zh/ch11.md)
-    * [传递事件流](content/zh/ch11.md#传递事件流)
-    * [数据库与流](content/zh/ch11.md#数据库与流)
-    * [流处理](content/zh/ch11.md#流处理)
-    * [本章小结](content/zh/ch11.md#本章小结)
-* [第十二章：数据系统的未来](content/zh/ch12.md)
-    * [数据集成](content/zh/ch12.md#数据集成)
-    * [分拆数据库](content/zh/ch12.md#分拆数据库)
-    * [将事情做正确](content/zh/ch12.md#将事情做正确)
-    * [做正确的事情](content/zh/ch12.md#做正确的事情)
-    * [本章小结](content/zh/ch12.md#本章小结)
-
-### [术语表](content/zh/glossary.md)
-
-### [后记](content/zh/colophon.md)
+* [序言](https://ddia.vonng.com/preface)
+* [第一部分：数据系统基础](https://ddia.vonng.com//part-i)
+  - [1. 数据系统架构中的权衡](https://ddia.vonng.com/ch1)
+  - [2. 定义非功能性需求](https://ddia.vonng.com/ch2)
+  - [3. 数据模型与查询语言](https://ddia.vonng.com/ch3)
+  - [4. 存储与检索](https://ddia.vonng.com/ch4)
+  - [5. 编码与演化](https://ddia.vonng.com/ch5)
+* [第二部分：分布式数据](https://ddia.vonng.com/part-ii)
+  - [6. 复制](https://ddia.vonng.com/ch6)
+  - [7. 分片](https://ddia.vonng.com/ch7)
+  - [8. 事务](https://ddia.vonng.com/ch8)
+  - [9. 分布式系统的麻烦](https://ddia.vonng.com/ch9)
+  - [10.一致性与共识](https://ddia.vonng.com/ch10)
+* [第三部分：派生数据](https://ddia.vonng.com/part-iii
+  - [11. 批处理](https://ddia.vonng.com/ch11) （尚未发布）
+  - [12. 流处理](https://ddia.vonng.com/ch12) （尚未发布）
+  - [13. 做正确的事](https://ddia.vonng.com/ch13) （尚未发布）
+* [术语表](https://ddia.vonng.com/glossary)
+* [后记](https://ddia.vonng.com/colophon)
 
 
 
