@@ -4,6 +4,10 @@ weight: 600
 breadcrumbs: false
 ---
 
+{{< callout type="warning" >}}
+当前页面来自本书第一版，第二版尚不可用
+{{< /callout >}}
+
 ## 关于作者
 
 **Martin Kleppmann** 是英国剑桥大学分布式系统的研究员。此前他曾在互联网公司担任过软件工程师和企业家，其中包括 LinkedIn 和 Rapportive，负责大规模数据基础架构。在这个过程中，他以艰难的方式学习了一些东西，他希望这本书能够让你避免重蹈覆辙。

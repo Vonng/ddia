@@ -1,757 +1,2349 @@
 ---
-title: "第八章：分布式系统的麻烦"
-linkTitle: "8. 分布式系统的麻烦"
+title: "8. 事务"
 weight: 208
 breadcrumbs: false
 ---
 
-
-![](/img/ch8.png)
-
-> 邂逅相遇
+> *Some authors have claimed that general two-phase commit is too expensive to support, because of the
+> performance or availability problems that it brings. We believe it is better to have application
+> programmers deal with performance problems due to overuse of transactions as bottlenecks arise,
+> rather than always coding around the lack of transactions.*
 >
-> 网络延迟
->
-> 存之为吾
->
-> 无食我数
->
-> —— Kyle Kingsbury, Carly Rae Jepsen 《网络分区的危害》（2013 年）[^译著1]
-
-
-最近几章中反复出现的主题是，系统如何处理错误的事情。例如，我们讨论了 **副本故障切换**（“[处理节点中断](/ch5#处理节点宕机)”），**复制延迟**（“[复制延迟问题](/ch5#复制延迟问题)”）和事务控制（“[弱隔离级别](/ch7#弱隔离级别)”）。当我们了解可能在实际系统中出现的各种边缘情况时，我们会更好地处理它们。
-
-但是，尽管我们已经谈了很多错误，但之前几章仍然过于乐观。现实更加黑暗。我们现在将悲观主义最大化，假设任何可能出错的东西 **都会** 出错 [^i]。（经验丰富的系统运维会告诉你，这是一个合理的假设。如果你问得好，他们可能会一边治疗心理创伤一边告诉你一些可怕的故事）
-
-[^i]: 除了一个例外：我们将假定故障是非拜占庭式的（请参阅 “[拜占庭故障](#拜占庭故障)”）。
-
-使用分布式系统与在一台计算机上编写软件有着根本的区别，主要的区别在于，有许多新颖和刺激的方法可以使事情出错【1,2】。在这一章中，我们将了解实践中出现的问题，理解我们能够依赖，和不可以依赖的东西。
-
-最后，作为工程师，我们的任务是构建能够完成工作的系统（即满足用户期望的保证），尽管一切都出错了。在 [第九章](/ch9) 中，我们将看看一些可以在分布式系统中提供这种保证的算法的例子。但首先，在本章中，我们必须了解我们面临的挑战。
-
-本章对分布式系统中可能出现的问题进行彻底的悲观和沮丧的总结。我们将研究网络的问题（“[不可靠的网络](#不可靠的网络)”）; 时钟和时序问题（“[不可靠的时钟](#不可靠的时钟)”）; 我们将讨论他们可以避免的程度。所有这些问题的后果都是困惑的，所以我们将探索如何思考一个分布式系统的状态，以及如何推理发生的事情（“[知识、真相与谎言](#知识、真相与谎言)”）。
-
-
-## 故障与部分失效
-
-当你在一台计算机上编写一个程序时，它通常会以一种相当可预测的方式运行：无论是工作还是不工作。充满错误的软件可能会让人觉得电脑有时候也会有 “糟糕的一天”（这种问题通常是重新启动就恢复了），但这主要是软件写得不好的结果。
-
-单个计算机上的软件没有根本性的不可靠原因：当硬件正常工作时，相同的操作总是产生相同的结果（这是确定性的）。如果存在硬件问题（例如，内存损坏或连接器松动），其后果通常是整个系统故障（例如，内核恐慌，“蓝屏死机”，启动失败）。装有良好软件的个人计算机通常要么功能完好，要么完全失效，而不是介于两者之间。
-
-这是计算机设计中的一个有意的选择：如果发生内部错误，我们宁愿电脑完全崩溃，而不是返回错误的结果，因为错误的结果很难处理。因为计算机隐藏了模糊不清的物理实现，并呈现出一个理想化的系统模型，并以数学一样的完美的方式运作。CPU 指令总是做同样的事情；如果你将一些数据写入内存或磁盘，那么这些数据将保持不变，并且不会被随机破坏。从第一台数字计算机开始，*始终正确地计算* 这个设计目标贯穿始终【3】。
-
-当你编写运行在多台计算机上的软件时，情况有本质上的区别。在分布式系统中，我们不再处于理想化的系统模型中，我们别无选择，只能面对现实世界的混乱现实。而在现实世界中，各种各样的事情都可能会出现问题【4】，如下面的轶事所述：
-
-> 在我有限的从业经历中，我已经和很多东西打过交道：单个 **数据中心（DC）** 中长期存在的网络分区，配电单元 PDU 故障，交换机故障，整个机架的意外重启，整个数据中心主干网络故障，整个数据中心的电源故障，以及一个低血糖的司机把他的福特皮卡撞在数据中心的 HVAC（加热，通风和空调）系统上。而且我甚至不是一个运维。
->
-> —— 柯达黑尔
-
-在分布式系统中，尽管系统的其他部分工作正常，但系统的某些部分可能会以某种不可预知的方式被破坏。这被称为 **部分失效（partial failure）**。难点在于部分失效是 **不确定性的（nondeterministic）**：如果你试图做任何涉及多个节点和网络的事情，它有时可能会工作，有时会出现不可预知的失败。正如我们将要看到的，你甚至不知道是否成功了，因为消息通过网络传播的时间也是不确定的！
-
-这种不确定性和部分失效的可能性，使得分布式系统难以工作【5】。
-
-### 云计算与超级计算机
-
-关于如何构建大型计算系统有一系列的哲学：
-
-* 一个极端是高性能计算（HPC）领域。具有数千个 CPU 的超级计算机通常用于计算密集型科学计算任务，如天气预报或分子动力学（模拟原子和分子的运动）。
-* 另一个极端是 **云计算（cloud computing）**，云计算并不是一个良好定义的概念【6】，但通常与多租户数据中心，连接 IP 网络（通常是以太网）的商用计算机，弹性 / 按需资源分配以及计量计费等相关联。
-* 传统企业数据中心位于这两个极端之间。
-
-不同的哲学会导致不同的故障处理方式。在超级计算机中，作业通常会不时地将计算的状态存盘到持久存储中。如果一个节点出现故障，通常的解决方案是简单地停止整个集群的工作负载。故障节点修复后，计算从上一个检查点重新开始【7,8】。因此，超级计算机更像是一个单节点计算机而不是分布式系统：通过让部分失败升级为完全失败来处理部分失败 —— 如果系统的任何部分发生故障，只是让所有的东西都崩溃（就像单台机器上的内核恐慌一样）。
-
-在本书中，我们将重点放在实现互联网服务的系统上，这些系统通常与超级计算机看起来有很大不同：
-
-* 许多与互联网有关的应用程序都是 **在线（online）** 的，因为它们需要能够随时以低延迟服务用户。使服务不可用（例如，停止集群以进行修复）是不可接受的。相比之下，像天气模拟这样的离线（批处理）工作可以停止并重新启动，影响相当小。
-
-* 超级计算机通常由专用硬件构建而成，每个节点相当可靠，节点通过共享内存和 **远程直接内存访问（RDMA）** 进行通信。另一方面，云服务中的节点是由商用机器构建而成的，由于规模经济，可以以较低的成本提供相同的性能，而且具有较高的故障率。
-
-* 大型数据中心网络通常基于 IP 和以太网，以 CLOS 拓扑排列，以提供更高的对分（bisection）带宽【9】。超级计算机通常使用专门的网络拓扑结构，例如多维网格和 Torus 网络 【10】，这为具有已知通信模式的 HPC 工作负载提供了更好的性能。
-
-* 系统越大，其组件之一就越有可能坏掉。随着时间的推移，坏掉的东西得到修复，新的东西又坏掉，但是在一个有成千上万个节点的系统中，有理由认为总是有一些东西是坏掉的【7】。当错误处理的策略只由简单放弃组成时，一个大的系统最终会花费大量时间从错误中恢复，而不是做有用的工作【8】。
-
-* 如果系统可以容忍发生故障的节点，并继续保持整体工作状态，那么这对于运营和维护非常有用：例如，可以执行滚动升级（请参阅 [第四章](/ch4)），一次重新启动一个节点，同时继续给用户提供不中断的服务。在云环境中，如果一台虚拟机运行不佳，可以杀死它并请求一台新的虚拟机（希望新的虚拟机速度更快）。
-
-* 在地理位置分散的部署中（保持数据在地理位置上接近用户以减少访问延迟），通信很可能通过互联网进行，与本地网络相比，通信速度缓慢且不可靠。超级计算机通常假设它们的所有节点都靠近在一起。
-
-如果要使分布式系统工作，就必须接受部分故障的可能性，并在软件中建立容错机制。换句话说，我们需要从不可靠的组件构建一个可靠的系统（正如 “[可靠性](/ch1#可靠性)” 中所讨论的那样，没有完美的可靠性，所以我们需要理解我们可以实际承诺的极限）。
-
-即使在只有少数节点的小型系统中，考虑部分故障也是很重要的。在一个小系统中，很可能大部分组件在大部分时间都正常工作。然而，迟早会有一部分系统出现故障，软件必须以某种方式处理。故障处理必须是软件设计的一部分，并且作为软件的运维，你需要知道在发生故障的情况下，软件可能会表现出怎样的行为。
-
-简单地假设缺陷很罕见并希望始终保持最好的状况是不明智的。考虑一系列可能的错误（甚至是不太可能的错误），并在测试环境中人为地创建这些情况来查看会发生什么是非常重要的。在分布式系统中，怀疑，悲观和偏执狂是值得的。
-
-> #### 从不可靠的组件构建可靠的系统
->
-> 你可能想知道这是否有意义 —— 直观地看来，系统只能像其最不可靠的组件（最薄弱的环节）一样可靠。事实并非如此：事实上，从不太可靠的潜在基础构建更可靠的系统是计算机领域的一个古老思想【11】。例如：
->
-> * 纠错码允许数字数据在通信信道上准确传输，偶尔会出现一些错误，例如由于无线网络上的无线电干扰【12】。
-> * **互联网协议（Internet Protocol, IP）** 不可靠：可能丢弃、延迟、重复或重排数据包。传输控制协议（Transmission Control Protocol, TCP）在互联网协议（IP）之上提供了更可靠的传输层：它确保丢失的数据包被重新传输，消除重复，并且数据包被重新组装成它们被发送的顺序。
->
-> 虽然这个系统可以比它的底层部分更可靠，但它的可靠性总是有限的。例如，纠错码可以处理少量的单比特错误，但是如果你的信号被干扰所淹没，那么通过信道可以得到多少数据，是有根本性的限制的【13】。TCP 可以隐藏数据包的丢失，重复和重新排序，但是它不能神奇地消除网络中的延迟。
->
-> 虽然更可靠的高级系统并不完美，但它仍然有用，因为它处理了一些棘手的低级错误，所以其余的错误通常更容易推理和处理。我们将在 “[数据库的端到端原则](/ch12#数据库的端到端原则)” 中进一步探讨这个问题。
-
-
-## 不可靠的网络
-
-正如在 [第二部分](/part-ii) 的介绍中所讨论的那样，我们在本书中关注的分布式系统是无共享的系统，即通过网络连接的一堆机器。网络是这些机器可以通信的唯一途径 —— 我们假设每台机器都有自己的内存和磁盘，一台机器不能访问另一台机器的内存或磁盘（除了通过网络向服务器发出请求）。
-
-**无共享** 并不是构建系统的唯一方式，但它已经成为构建互联网服务的主要方式，其原因如下：相对便宜，因为它不需要特殊的硬件，可以利用商品化的云计算服务，通过跨多个地理分布的数据中心进行冗余可以实现高可靠性。
-
-互联网和数据中心（通常是以太网）中的大多数内部网络都是 **异步分组网络（asynchronous packet networks）**。在这种网络中，一个节点可以向另一个节点发送一个消息（一个数据包），但是网络不能保证它什么时候到达，或者是否到达。如果你发送请求并期待响应，则很多事情可能会出错（其中一些如 [图 8-1](/img/fig8-1.png) 所示）：
-
-1. 请求可能已经丢失（可能有人拔掉了网线）。
-2. 请求可能正在排队，稍后将交付（也许网络或接收方过载）。
-3. 远程节点可能已经失效（可能是崩溃或关机）。
-4. 远程节点可能暂时停止了响应（可能会遇到长时间的垃圾回收暂停；请参阅 “[进程暂停](#进程暂停)”），但稍后会再次响应。
-5. 远程节点可能已经处理了请求，但是网络上的响应已经丢失（可能是网络交换机配置错误）。
-6. 远程节点可能已经处理了请求，但是响应已经被延迟，并且稍后将被传递（可能是网络或者你自己的机器过载）。
-
-![](/img/fig8-1.png)
-
-**图 8-1 如果发送请求并没有得到响应，则无法区分（a）请求是否丢失，（b）远程节点是否关闭，或（c）响应是否丢失。**
-
-发送者甚至不能分辨数据包是否被发送：唯一的选择是让接收者发送响应消息，这可能会丢失或延迟。这些问题在异步网络中难以区分：你所拥有的唯一信息是，你尚未收到响应。如果你向另一个节点发送请求并且没有收到响应，则不可能判断是什么原因。
-
-处理这个问题的通常方法是 **超时（Timeout）**：在一段时间之后放弃等待，并且认为响应不会到达。但是，当发生超时时，你仍然不知道远程节点是否收到了请求（如果请求仍然在某个地方排队，那么即使发送者已经放弃了该请求，仍然可能会将其发送给接收者）。
-
-### 真实世界的网络故障
-
-我们几十年来一直在建设计算机网络 —— 有人可能希望现在我们已经找出了使网络变得可靠的方法。但是现在似乎还没有成功。
-
-有一些系统的研究和大量的轶事证据表明，即使在像一家公司运营的数据中心那样的受控环境中，网络问题也可能出乎意料地普遍。在一家中型数据中心进行的一项研究发现，每个月大约有 12 个网络故障，其中一半断开一台机器，一半断开整个机架【15】。另一项研究测量了架顶式交换机，汇聚交换机和负载平衡器等组件的故障率【16】。它发现添加冗余网络设备不会像你所希望的那样减少故障，因为它不能防范人为错误（例如，错误配置的交换机），这是造成中断的主要原因。
-
-诸如 EC2 之类的公有云服务因频繁的暂态网络故障而臭名昭著【14】，管理良好的私有数据中心网络可能是更稳定的环境。尽管如此，没有人不受网络问题的困扰：例如，交换机软件升级过程中的一个问题可能会引发网络拓扑重构，在此期间网络数据包可能会延迟超过一分钟【17】。鲨鱼可能咬住海底电缆并损坏它们 【18】。其他令人惊讶的故障包括网络接口有时会丢弃所有入站数据包，但是成功发送出站数据包 【19】：仅仅因为网络链接在一个方向上工作，并不能保证它也在相反的方向工作。
-
-> #### 网络分区
->
-> 当网络的一部分由于网络故障而被切断时，有时称为 **网络分区（network partition）** 或 **网络断裂（netsplit）**。在本书中，我们通常会坚持使用更一般的术语 **网络故障（network fault）**，以避免与 [第六章](/ch6) 讨论的存储系统的分区（分片）相混淆。
-
-即使网络故障在你的环境中非常罕见，故障可能发生的事实，意味着你的软件需要能够处理它们。无论何时通过网络进行通信，都可能会失败，这是无法避免的。
-
-如果网络故障的错误处理没有定义与测试，武断地讲，各种错误可能都会发生：例如，即使网络恢复【20】，集群可能会发生 **死锁**，永久无法为请求提供服务，甚至可能会删除所有的数据【21】。如果软件被置于意料之外的情况下，它可能会做出出乎意料的事情。
-
-处理网络故障并不意味着容忍它们：如果你的网络通常是相当可靠的，一个有效的方法可能是当你的网络遇到问题时，简单地向用户显示一条错误信息。但是，你确实需要知道你的软件如何应对网络问题，并确保系统能够从中恢复。有意识地触发网络问题并测试系统响应（这是 Chaos Monkey 背后的想法；请参阅 “[可靠性](/ch1#可靠性)”）。
-
-### 检测故障
-
-许多系统需要自动检测故障节点。例如：
-
-* 负载平衡器需要停止向已死亡的节点转发请求（从轮询列表移出，即 out of rotation）。
-* 在单主复制功能的分布式数据库中，如果主库失效，则需要将从库之一升级为新主库（请参阅 “[处理节点宕机](/ch5#处理节点宕机)”）。
-
-不幸的是，网络的不确定性使得很难判断一个节点是否工作。在某些特定的情况下，你可能会收到一些反馈信息，明确告诉你某些事情没有成功：
-
-* 如果你可以连接到运行节点的机器，但没有进程正在侦听目标端口（例如，因为进程崩溃），操作系统将通过发送 FIN 或 RST 来关闭并重用 TCP 连接。但是，如果节点在处理请求时发生崩溃，则无法知道远程节点实际处理了多少数据【22】。
-* 如果节点进程崩溃（或被管理员杀死），但节点的操作系统仍在运行，则脚本可以通知其他节点有关该崩溃的信息，以便另一个节点可以快速接管，而无需等待超时到期。例如，HBase 就是这么做的【23】。
-* 如果你有权访问数据中心网络交换机的管理界面，则可以通过它们检测硬件级别的链路故障（例如，远程机器是否关闭电源）。如果你通过互联网连接，或者如果你处于共享数据中心而无法访问交换机，或者由于网络问题而无法访问管理界面，则排除此选项。
-* 如果路由器确认你尝试连接的 IP 地址不可用，则可能会使用 ICMP 目标不可达数据包回复你。但是，路由器不具备神奇的故障检测能力 —— 它受到与网络其他参与者相同的限制。
-
-关于远程节点关闭的快速反馈很有用，但是你不能指望它。即使 TCP 确认已经传送了一个数据包，应用程序在处理之前可能已经崩溃。如果你想确保一个请求是成功的，你需要应用程序本身的正确响应【24】。
-
-相反，如果出了什么问题，你可能会在堆栈的某个层次上得到一个错误响应，但总的来说，你必须假设你可能根本就得不到任何回应。你可以重试几次（TCP 重试是透明的，但是你也可以在应用程序级别重试），等待超时过期，并且如果在超时时间内没有收到响应，则最终声明节点已经死亡。
-
-### 超时与无穷的延迟
-
-如果超时是检测故障的唯一可靠方法，那么超时应该等待多久？不幸的是没有简单的答案。
-
-长时间的超时意味着长时间等待，直到一个节点被宣告死亡（在这段时间内，用户可能不得不等待，或者看到错误信息）。短的超时可以更快地检测到故障，但有更高地风险误将一个节点宣布为失效，而该节点实际上只是暂时地变慢了（例如由于节点或网络上的负载峰值）。
-
-过早地声明一个节点已经死了是有问题的：如果这个节点实际上是活着的，并且正在执行一些动作（例如，发送一封电子邮件），而另一个节点接管，那么这个动作可能会最终执行两次。我们将在 “[知识、真相与谎言](#知识、真相与谎言)” 以及 [第九章](/ch9) 和 [第十一章](/ch11) 中更详细地讨论这个问题。
-
-当一个节点被宣告死亡时，它的职责需要转移到其他节点，这会给其他节点和网络带来额外的负担。如果系统已经处于高负荷状态，则过早宣告节点死亡会使问题更严重。特别是如果节点实际上没有死亡，只是由于过载导致其响应缓慢；这时将其负载转移到其他节点可能会导致 **级联失效**（即 cascading failure，表示在极端情况下，所有节点都宣告对方死亡，所有节点都将停止工作）。
-
-设想一个虚构的系统，其网络可以保证数据包的最大延迟 —— 每个数据包要么在一段时间内传送，要么丢失，但是传递永远不会比 $d$ 更长。此外，假设你可以保证一个非故障节点总是在一段时间 $r$ 内处理一个请求。在这种情况下，你可以保证每个成功的请求在 $2d + r$ 时间内都能收到响应，如果你在此时间内没有收到响应，则知道网络或远程节点不工作。如果这是成立的，$2d + r$ 会是一个合理的超时设置。
-
-不幸的是，我们所使用的大多数系统都没有这些保证：异步网络具有无限的延迟（即尽可能快地传送数据包，但数据包到达可能需要的时间没有上限），并且大多数服务器实现并不能保证它们可以在一定的最大时间内处理请求（请参阅 “[响应时间保证](#响应时间保证)”）。对于故障检测，即使系统大部分时间快速运行也是不够的：如果你的超时时间很短，往返时间只需要一个瞬时尖峰就可以使系统失衡。
-
-#### 网络拥塞和排队
-
-在驾驶汽车时，由于交通拥堵，道路交通网络的通行时间往往不尽相同。同样，计算机网络上数据包延迟的可变性通常是由于排队【25】：
-
-* 如果多个不同的节点同时尝试将数据包发送到同一目的地，则网络交换机必须将它们排队并将它们逐个送入目标网络链路（如 [图 8-2](/img/fig8-2.png) 所示）。在繁忙的网络链路上，数据包可能需要等待一段时间才能获得一个插槽（这称为网络拥塞）。如果传入的数据太多，交换机队列填满，数据包将被丢弃，因此需要重新发送数据包 - 即使网络运行良好。
-* 当数据包到达目标机器时，如果所有 CPU 内核当前都处于繁忙状态，则来自网络的传入请求将被操作系统排队，直到应用程序准备好处理它为止。根据机器上的负载，这可能需要一段任意的时间。
-* 在虚拟化环境中，正在运行的操作系统经常暂停几十毫秒，因为另一个虚拟机正在使用 CPU 内核。在这段时间内，虚拟机不能从网络中消耗任何数据，所以传入的数据被虚拟机监视器 【26】排队（缓冲），进一步增加了网络延迟的可变性。
-* TCP 执行 **流量控制**（flow control，也称为 **拥塞避免**，即 congestion avoidance，或 **背压**，即 backpressure），其中节点会限制自己的发送速率以避免网络链路或接收节点过载【27】。这意味着甚至在数据进入网络之前，在发送者处就需要进行额外的排队。
-
-![](/img/fig8-2.png)
-
-**图 8-2 如果有多台机器将网络流量发送到同一目的地，则其交换机队列可能会被填满。在这里，端口 1,2 和 4 都试图发送数据包到端口 3**
-
-而且，如果 TCP 在某个超时时间内没有被确认（这是根据观察的往返时间计算的），则认为数据包丢失，丢失的数据包将自动重新发送。尽管应用程序没有看到数据包丢失和重新传输，但它看到了延迟（等待超时到期，然后等待重新传输的数据包得到确认）。
-
-
-> #### TCP与UDP
->
-> 一些对延迟敏感的应用程序，比如视频会议和 IP 语音（VoIP），使用了 UDP 而不是 TCP。这是在可靠性和和延迟变化之间的折衷：由于 UDP 不执行流量控制并且不重传丢失的分组，所以避免了网络延迟变化的一些原因（尽管它仍然易受切换队列和调度延迟的影响）。
->
-> 在延迟数据毫无价值的情况下，UDP 是一个不错的选择。例如，在 VoIP 电话呼叫中，可能没有足够的时间重新发送丢失的数据包，并在扬声器上播放数据。在这种情况下，重发数据包没有意义 —— 应用程序必须使用静音填充丢失数据包的时隙（导致声音短暂中断），然后在数据流中继续。重试发生在人类层（“你能再说一遍吗？声音刚刚断了一会儿。”）。
-
-所有这些因素都会造成网络延迟的变化。当系统接近其最大容量时，排队延迟的变化范围特别大：拥有足够备用容量的系统可以轻松排空队列，而在高利用率的系统中，很快就能积累很长的队列。
-
-在公共云和多租户数据中心中，资源被许多客户共享：网络链接和交换机，甚至每个机器的网卡和 CPU（在虚拟机上运行时）。批处理工作负载（如 MapReduce，请参阅 [第十章](/ch10)）能够很容易使网络链接饱和。由于无法控制或了解其他客户对共享资源的使用情况，如果附近的某个人（嘈杂的邻居）正在使用大量资源，则网络延迟可能会发生剧烈变化【28,29】。
-
-在这种环境下，你只能通过实验方式选择超时：在一段较长的时期内、在多台机器上测量网络往返时间的分布，以确定延迟的预期变化。然后，考虑到应用程序的特性，可以确定 **故障检测延迟** 与 **过早超时风险** 之间的适当折衷。
-
-更好的一种做法是，系统不是使用配置的常量超时时间，而是连续测量响应时间及其变化（抖动），并根据观察到的响应时间分布自动调整超时时间。这可以通过 Phi Accrual 故障检测器【30】来完成，该检测器在例如 Akka 和 Cassandra 【31】中使用。TCP 的超时重传机制也是以类似的方式工作【27】。
-
-### 同步网络与异步网络
-
-如果我们可以依靠网络来传递一些 **最大延迟固定** 的数据包，而不是丢弃数据包，那么分布式系统就会简单得多。为什么我们不能在硬件层面上解决这个问题，使网络可靠，使软件不必担心呢？
-
-为了回答这个问题，将数据中心网络与非常可靠的传统固定电话网络（非蜂窝，非 VoIP）进行比较是很有趣的：延迟音频帧和掉话是非常罕见的。一个电话需要一个很低的端到端延迟，以及足够的带宽来传输你声音的音频采样数据。在计算机网络中有类似的可靠性和可预测性不是很好吗？
-
-当你通过电话网络拨打电话时，它会建立一个电路：在两个呼叫者之间的整个路线上为呼叫分配一个固定的，有保证的带宽量。这个电路会保持至通话结束【32】。例如，ISDN 网络以每秒 4000 帧的固定速率运行。呼叫建立时，每个帧内（每个方向）分配 16 位空间。因此，在通话期间，每一方都保证能够每 250 微秒发送一个精确的 16 位音频数据【33,34】。
-
-这种网络是同步的：即使数据经过多个路由器，也不会受到排队的影响，因为呼叫的 16 位空间已经在网络的下一跳中保留了下来。而且由于没有排队，网络的最大端到端延迟是固定的。我们称之为 **有限延迟（bounded delay）**。
-
-#### 我们不能简单地使网络延迟可预测吗？
-
-请注意，电话网络中的电路与 TCP 连接有很大不同：电路是固定数量的预留带宽，在电路建立时没有其他人可以使用，而 TCP 连接的数据包 **机会性地** 使用任何可用的网络带宽。你可以给 TCP 一个可变大小的数据块（例如，一个电子邮件或一个网页），它会尽可能在最短的时间内传输它。TCP 连接空闲时，不使用任何带宽 [^ii]。
-
-[^ii]: 除了偶尔的 keepalive 数据包，如果 TCP keepalive 被启用。
-
-如果数据中心网络和互联网是电路交换网络，那么在建立电路时就可以建立一个受保证的最大往返时间。但是，它们并不能这样：以太网和 IP 是 **分组交换协议**，不得不忍受排队的折磨和因此导致的网络无限延迟，这些协议没有电路的概念。
-
-为什么数据中心网络和互联网使用分组交换？答案是，它们针对 **突发流量（bursty traffic）** 进行了优化。一个电路适用于音频或视频通话，在通话期间需要每秒传送相当数量的比特。另一方面，请求网页，发送电子邮件或传输文件没有任何特定的带宽要求 —— 我们只是希望它尽快完成。
-
-如果想通过电路传输文件，你得预测一个带宽分配。如果你猜的太低，传输速度会不必要的太慢，导致网络容量闲置。如果你猜的太高，电路就无法建立（因为如果无法保证其带宽分配，网络不能建立电路）。因此，将电路用于突发数据传输会浪费网络容量，并且使传输不必要地缓慢。相比之下，TCP 动态调整数据传输速率以适应可用的网络容量。
-
-已经有一些尝试去建立同时支持电路交换和分组交换的混合网络，比如 ATM [^iii]。InfiniBand 有一些相似之处【35】：它在链路层实现了端到端的流量控制，从而减少了在网络中排队的需要，尽管它仍然可能因链路拥塞而受到延迟【36】。通过仔细使用 **服务质量**（quality of service，即 QoS，数据包的优先级和调度）和 **准入控制**（admission control，限速发送器），可以在分组网络上模拟电路交换，或提供统计上的 **有限延迟**【25,32】。
-
-[^iii]: **异步传输模式（Asynchronous Transfer Mode, ATM）** 在 20 世纪 80 年代是以太网的竞争对手【32】，但在电话网核心交换机之外并没有得到太多的采用。它与自动柜员机（也称为自动取款机）无关，尽管共用一个缩写词。或许，在一些平行的世界里，互联网是基于像 ATM 这样的东西，因此它们的互联网视频通话可能比我们的更可靠，因为它们不会遭受包的丢失和延迟。
-
-但是，目前在多租户数据中心和公共云或通过互联网 [^iv] 进行通信时，此类服务质量尚未启用。当前部署的技术不允许我们对网络的延迟或可靠性作出任何保证：我们必须假设网络拥塞，排队和无限的延迟总是会发生。因此，超时时间没有 “正确” 的值 —— 它需要通过实验来确定。
-
-[^iv]: 互联网服务提供商之间的对等协议和通过 **BGP 网关协议（BGP）** 建立的路由，与 IP 协议相比，更接近于电路交换。在这个级别上，可以购买专用带宽。但是，互联网路由在网络级别运行，而不是主机之间的单独连接，而且运行时间要长得多。
-
-> ### 延迟和资源利用
->
-> 更一般地说，可以将 **延迟变化** 视为 **动态资源分区** 的结果。
->
-> 假设两台电话交换机之间有一条线路，可以同时进行 10,000 个呼叫。通过此线路切换的每个电路都占用其中一个呼叫插槽。因此，你可以将线路视为可由多达 10,000 个并发用户共享的资源。资源以静态方式分配：即使你现在是线路上唯一的呼叫，并且所有其他 9,999 个插槽都未使用，你的电路仍将分配与线路充分利用时相同的固定数量的带宽。
->
-> 相比之下，互联网动态分享网络带宽。发送者互相推挤和争夺，以让他们的数据包尽可能快地通过网络，并且网络交换机决定从一个时刻到另一个时刻发送哪个分组（即，带宽分配）。这种方法有排队的缺点，但其优点是它最大限度地利用了线路。线路固定成本，所以如果你更好地利用它，你通过线路发送的每个字节都会更便宜。
->
-> CPU 也会出现类似的情况：如果你在多个线程间动态共享每个 CPU 内核，则一个线程有时必须在操作系统的运行队列里等待，而另一个线程正在运行，这样每个线程都有可能被暂停一个不定的时间长度。但是，与为每个线程分配静态数量的 CPU 周期相比，这会更好地利用硬件（请参阅 “[响应时间保证](#响应时间保证)”）。更好的硬件利用率也是使用虚拟机的重要动机。
->
-> 如果资源是静态分区的（例如，专用硬件和专用带宽分配），则在某些环境中可以实现 **延迟保证**。但是，这是以降低利用率为代价的 —— 换句话说，它是更昂贵的。另一方面，动态资源分配的多租户提供了更好的利用率，所以它更便宜，但它具有可变延迟的缺点。
->
-> 网络中的可变延迟不是一种自然规律，而只是成本 / 收益权衡的结果。
-
-
-## 不可靠的时钟
-
-时钟和时间很重要。应用程序以各种方式依赖于时钟来回答以下问题：
-
-1. 这个请求是否超时了？
-2. 这项服务的第 99 百分位响应时间是多少？
-3. 在过去五分钟内，该服务平均每秒处理多少个查询？
-4. 用户在我们的网站上花了多长时间？
-5. 这篇文章在何时发布？
-6. 在什么时间发送提醒邮件？
-7. 这个缓存条目何时到期？
-8. 日志文件中此错误消息的时间戳是什么？
-
-[例 1-4](/ch1) 测量了 **持续时间**（durations，例如，请求发送与响应接收之间的时间间隔），而 [例 5-8](/ch5) 描述了 **时间点**（point in time，在特定日期和和特定时间发生的事件）。
-
-在分布式系统中，时间是一件棘手的事情，因为通信不是即时的：消息通过网络从一台机器传送到另一台机器需要时间。收到消息的时间总是晚于发送的时间，但是由于网络中的可变延迟，我们不知道晚了多少时间。这个事实导致有时很难确定在涉及多台机器时发生事情的顺序。
-
-而且，网络上的每台机器都有自己的时钟，这是一个实际的硬件设备：通常是石英晶体振荡器。这些设备不是完全准确的，所以每台机器都有自己的时间概念，可能比其他机器稍快或更慢。可以在一定程度上同步时钟：最常用的机制是 **网络时间协议（NTP）**，它允许根据一组服务器报告的时间来调整计算机时钟【37】。服务器则从更精确的时间源（如 GPS 接收机）获取时间。
-
-### 单调钟与日历时钟
-
-现代计算机至少有两种不同的时钟：日历时钟（time-of-day clock）和单调钟（monotonic clock）。尽管它们都衡量时间，但区分这两者很重要，因为它们有不同的目的。
-
-#### 日历时钟
-
-日历时钟是你直观地了解时钟的依据：它根据某个日历（也称为 **挂钟时间**，即 wall-clock time）返回当前日期和时间。例如，Linux 上的 `clock_gettime(CLOCK_REALTIME)`[^v] 和 Java 中的 `System.currentTimeMillis()` 返回自 epoch（UTC 时间 1970 年 1 月 1 日午夜）以来的秒数（或毫秒），根据公历（Gregorian）日历，不包括闰秒。有些系统使用其他日期作为参考点。
-
-[^v]: 虽然该时钟被称为实时时钟，但它与实时操作系统无关，如 “[响应时间保证](#响应时间保证)” 中所述。
-
-日历时钟通常与 NTP 同步，这意味着来自一台机器的时间戳（理想情况下）与另一台机器上的时间戳相同。但是如下节所述，日历时钟也具有各种各样的奇特之处。特别是，如果本地时钟在 NTP 服务器之前太远，则它可能会被强制重置，看上去好像跳回了先前的时间点。这些跳跃以及他们经常忽略闰秒的事实，使日历时钟不能用于测量经过时间（elapsed time）【38】。
-
-历史上的日历时钟还具有相当粗略的分辨率，例如，在较早的 Windows 系统上以 10 毫秒为单位前进【39】。在最近的系统中这已经不是一个问题了。
-
-#### 单调钟
-
-单调钟适用于测量持续时间（时间间隔），例如超时或服务的响应时间：Linux 上的 `clock_gettime(CLOCK_MONOTONIC)`，和 Java 中的 `System.nanoTime()` 都是单调时钟。这个名字来源于他们保证总是往前走的事实（而日历时钟可以往回跳）。
-
-你可以在某个时间点检查单调钟的值，做一些事情，且稍后再次检查它。这两个值之间的差异告诉你两次检查之间经过了多长时间。但单调钟的绝对值是毫无意义的：它可能是计算机启动以来的纳秒数，或类似的任意值。特别是比较来自两台不同计算机的单调钟的值是没有意义的，因为它们并不是一回事。
-
-在具有多个 CPU 插槽的服务器上，每个 CPU 可能有一个单独的计时器，但不一定与其他 CPU 同步。操作系统会补偿所有的差异，并尝试向应用线程表现出单调钟的样子，即使这些线程被调度到不同的 CPU 上。当然，明智的做法是不要太把这种单调性保证当回事【40】。
-
-如果 NTP 协议检测到计算机的本地石英钟比 NTP 服务器要更快或更慢，则可以调整单调钟向前走的频率（这称为 **偏移（skewing）** 时钟）。默认情况下，NTP 允许时钟速率增加或减慢最高至 0.05%，但 NTP 不能使单调时钟向前或向后跳转。单调时钟的分辨率通常相当好：在大多数系统中，它们能在几微秒或更短的时间内测量时间间隔。
-
-在分布式系统中，使用单调钟测量 **经过时间**（elapsed time，比如超时）通常很好，因为它不假定不同节点的时钟之间存在任何同步，并且对测量的轻微不准确性不敏感。
-
-### 时钟同步与准确性
-
-单调钟不需要同步，但是日历时钟需要根据 NTP 服务器或其他外部时间源来设置才能有用。不幸的是，我们获取时钟的方法并不像你所希望的那样可靠或准确 —— 硬件时钟和 NTP 可能会变幻莫测。举几个例子：
-
-* 计算机中的石英钟不够精确：它会 **漂移**（drifts，即运行速度快于或慢于预期）。时钟漂移取决于机器的温度。Google 假设其服务器时钟漂移为 200 ppm（百万分之一）【41】，相当于每 30 秒与服务器重新同步一次的时钟漂移为 6 毫秒，或者每天重新同步的时钟漂移为 17 秒。即使一切工作正常，此漂移也会限制可以达到的最佳准确度。
-* 如果计算机的时钟与 NTP 服务器的时钟差别太大，可能会拒绝同步，或者本地时钟将被强制重置【37】。任何观察重置前后时间的应用程序都可能会看到时间倒退或突然跳跃。
-* 如果某个节点被 NTP 服务器的防火墙意外阻塞，有可能会持续一段时间都没有人会注意到。有证据表明，这在实践中确实发生过。
-* NTP 同步只能和网络延迟一样好，所以当你在拥有可变数据包延迟的拥塞网络上时，NTP 同步的准确性会受到限制。一个实验表明，当通过互联网同步时，35 毫秒的最小误差是可以实现的，尽管偶尔的网络延迟峰值会导致大约一秒的误差。根据配置，较大的网络延迟会导致 NTP 客户端完全放弃。
-* 一些 NTP 服务器是错误的或者配置错误的，报告的时间可能相差几个小时【43,44】。还好 NTP 客户端非常健壮，因为他们会查询多个服务器并忽略异常值。无论如何，依赖于互联网上的陌生人所告诉你的时间来保证你的系统的正确性，这还挺让人担忧的。
-* 闰秒导致一分钟可能有 59 秒或 61 秒，这会打破一些在设计之时未考虑闰秒的系统的时序假设【45】。闰秒已经使许多大型系统崩溃的事实【38,46】说明了，关于时钟的错误假设是多么容易偷偷溜入系统中。处理闰秒的最佳方法可能是让 NTP 服务器 “撒谎”，并在一天中逐渐执行闰秒调整（这被称为 **拖尾**，即 smearing）【47,48】，虽然实际的 NTP 服务器表现各异【49】。
-* 在虚拟机中，硬件时钟被虚拟化，这对于需要精确计时的应用程序提出了额外的挑战【50】。当一个 CPU 核心在虚拟机之间共享时，每个虚拟机都会暂停几十毫秒，与此同时另一个虚拟机正在运行。从应用程序的角度来看，这种停顿表现为时钟突然向前跳跃【26】。
-* 如果你在没有完整控制权的设备（例如，移动设备或嵌入式设备）上运行软件，则可能完全不能信任该设备的硬件时钟。一些用户故意将其硬件时钟设置为不正确的日期和时间，例如，为了规避游戏中的时间限制，时钟可能会被设置到很远的过去或将来。
-
-如果你足够在乎这件事并投入大量资源，就可以达到非常好的时钟精度。例如，针对金融机构的欧洲法规草案 MiFID II 要求所有高频率交易基金在 UTC 时间 100 微秒内同步时钟，以便调试 “闪崩” 等市场异常现象，并帮助检测市场操纵【51】。
-
-通过 GPS 接收机，精确时间协议（PTP）【52】以及仔细的部署和监测可以实现这种精确度。然而，这需要很多努力和专业知识，而且有很多东西都会导致时钟同步错误。如果你的 NTP 守护进程配置错误，或者防火墙阻止了 NTP 通信，由漂移引起的时钟误差可能很快就会变大。
-
-### 依赖同步时钟
-
-时钟的问题在于，虽然它们看起来简单易用，但却具有令人惊讶的缺陷：一天可能不会有精确的 86,400 秒，**日历时钟** 可能会前后跳跃，而一个节点上的时间可能与另一个节点上的时间完全不同。
-
-本章早些时候，我们讨论了网络丢包和任意延迟包的问题。尽管网络在大多数情况下表现良好，但软件的设计必须假定网络偶尔会出现故障，而软件必须正常处理这些故障。时钟也是如此：尽管大多数时间都工作得很好，但需要准备健壮的软件来处理不正确的时钟。
-
-有一部分问题是，不正确的时钟很容易被视而不见。如果一台机器的 CPU 出现故障或者网络配置错误，很可能根本无法工作，所以很快就会被注意和修复。另一方面，如果它的石英时钟有缺陷，或者它的 NTP 客户端配置错误，大部分事情似乎仍然可以正常工作，即使它的时钟逐渐偏离现实。如果某个软件依赖于精确同步的时钟，那么结果更可能是悄无声息的，仅有微量的数据丢失，而不是一次惊天动地的崩溃【53,54】。
-
-因此，如果你使用需要同步时钟的软件，必须仔细监控所有机器之间的时钟偏移。时钟偏离其他时钟太远的节点应当被宣告死亡，并从集群中移除。这样的监控可以确保你在损失发生之前注意到破损的时钟。
-
-#### 有序事件的时间戳
-
-让我们考虑一个特别的情况，一件很有诱惑但也很危险的事情：依赖时钟，在多个节点上对事件进行排序。例如，如果两个客户端写入分布式数据库，谁先到达？ 哪一个更近？
-
-[图 8-3](/img/fig8-3.png) 显示了在具有多主复制的数据库中对时钟的危险使用（该例子类似于 [图 5-9](/img/fig5-9.png)）。客户端 A 在节点 1 上写入 `x = 1`；写入被复制到节点 3；客户端 B 在节点 3 上增加 x（我们现在有 `x = 2`）；最后这两个写入都被复制到节点 2。
-
-![](/img/fig8-3.png)
-
-**图 8-3 客户端 B 的写入比客户端 A 的写入要晚，但是 B 的写入具有较早的时间戳。**
-
-在 [图 8-3](/img/fig8-3.png) 中，当一个写入被复制到其他节点时，它会根据发生写入的节点上的日历时钟标记一个时间戳。在这个例子中，时钟同步是非常好的：节点 1 和节点 3 之间的偏差小于 3ms，这可能比你在实践中能预期的更好。
-
-尽管如此，[图 8-3](/img/fig8-3.png) 中的时间戳却无法正确排列事件：写入 `x = 1` 的时间戳为 42.004 秒，但写入 `x = 2` 的时间戳为 42.003 秒，即使 `x = 2` 在稍后出现。当节点 2 接收到这两个事件时，会错误地推断出 `x = 1` 是最近的值，而丢弃写入 `x = 2`。效果上表现为，客户端 B 的增量操作会丢失。
-
-这种冲突解决策略被称为 **最后写入胜利（LWW）**，它在多主复制和无主数据库（如 Cassandra 【53】和 Riak 【54】）中被广泛使用（请参阅 “[最后写入胜利（丢弃并发写入）](/ch5#最后写入胜利（丢弃并发写入）)” 一节）。有些实现会在客户端而不是服务器上生成时间戳，但这并不能改变 LWW 的基本问题：
-
-* 数据库写入可能会神秘地消失：具有滞后时钟的节点无法覆盖之前具有快速时钟的节点写入的值，直到节点之间的时钟偏差消逝【54,55】。此方案可能导致一定数量的数据被悄悄丢弃，而未向应用报告任何错误。
-* LWW 无法区分 **高频顺序写入**（在 [图 8-3](/img/fig8-3.png) 中，客户端 B 的增量操作 **一定** 发生在客户端 A 的写入之后）和 **真正并发写入**（写入者意识不到其他写入者）。需要额外的因果关系跟踪机制（例如版本向量），以防止违背因果关系（请参阅 “[检测并发写入](/ch5#检测并发写入)”）。
-* 两个节点很可能独立地生成具有相同时间戳的写入，特别是在时钟仅具有毫秒分辨率的情况下。为了解决这样的冲突，还需要一个额外的 **决胜值**（tiebreaker，可以简单地是一个大随机数），但这种方法也可能会导致违背因果关系【53】。
-
-因此，尽管通过保留 “最近” 的值并放弃其他值来解决冲突是很诱惑人的，但是要注意，“最近” 的定义取决于本地的 **日历时钟**，这很可能是不正确的。即使用严格同步的 NTP 时钟，一个数据包也可能在时间戳 100 毫秒（根据发送者的时钟）时发送，并在时间戳 99 毫秒（根据接收者的时钟）处到达 —— 看起来好像数据包在发送之前已经到达，这是不可能的。
-
-NTP 同步是否能足够准确，以至于这种不正确的排序不会发生？也许不能，因为 NTP 的同步精度本身，除了石英钟漂移这类误差源之外，还受到网络往返时间的限制。为了进行正确的排序，你需要一个比测量对象（即网络延迟）要精确得多的时钟。
-
-所谓的 **逻辑时钟（logic clock）**【56,57】是基于递增计数器而不是振荡石英晶体，对于排序事件来说是更安全的选择（请参阅 “[检测并发写入](/ch5#检测并发写入)”）。逻辑时钟不测量一天中的时间或经过的秒数，而仅测量事件的相对顺序（无论一个事件发生在另一个事件之前还是之后）。相反，用来测量实际经过时间的 **日历时钟** 和 **单调钟** 也被称为 **物理时钟（physical clock）**。我们将在 “[顺序保证](/ch9#顺序保证)” 中来看顺序问题。
-
-#### 时钟读数存在置信区间
-
-你可能能够以微秒或甚至纳秒的精度读取机器的时钟。但即使可以得到如此细致的测量结果，这并不意味着这个值对于这样的精度实际上是准确的。实际上，大概率是不准确的 —— 如前所述，即使你每分钟与本地网络上的 NTP 服务器进行同步，几毫秒的时间漂移也很容易在不精确的石英时钟上发生。使用公共互联网上的 NTP 服务器，最好的准确度可能达到几十毫秒，而且当网络拥塞时，误差可能会超过 100 毫秒【57】。
-
-因此，将时钟读数视为一个时间点是没有意义的 —— 它更像是一段时间范围：例如，一个系统可能以 95% 的置信度认为当前时间处于本分钟内的第 10.3 秒和 10.5 秒之间，它可能没法比这更精确了【58】。如果我们只知道 ±100 毫秒的时间，那么时间戳中的微秒数字部分基本上是没有意义的。
-
-不确定性界限可以根据你的时间源来计算。如果你的 GPS 接收器或原子（铯）时钟直接连接到你的计算机上，预期的错误范围由制造商告知。如果从服务器获得时间，则不确定性取决于自上次与服务器同步以来的石英钟漂移的期望值，加上 NTP 服务器的不确定性，再加上到服务器的网络往返时间（只是获取粗略近似值，并假设服务器是可信的）。
-
-不幸的是，大多数系统不公开这种不确定性：例如，当调用 `clock_gettime()` 时，返回值不会告诉你时间戳的预期错误，所以你不知道其置信区间是 5 毫秒还是 5 年。
-
-一个有趣的例外是 Spanner 中的 Google TrueTime API 【41】，它明确地报告了本地时钟的置信区间。当你询问当前时间时，你会得到两个值：[最早，最晚]，这是最早可能的时间戳和最晚可能的时间戳。在不确定性估计的基础上，时钟知道当前的实际时间落在该区间内。区间的宽度取决于自从本地石英钟最后与更精确的时钟源同步以来已经过了多长时间。
-
-#### 全局快照的同步时钟
-
-在 “[快照隔离和可重复读](/ch7#快照隔离和可重复读)” 中，我们讨论了快照隔离，这是数据库中非常有用的功能，需要支持小型快速读写事务和大型长时间运行的只读事务（用于备份或分析）。它允许只读事务看到特定时间点的处于一致状态的数据库，且不会锁定和干扰读写事务。
-
-快照隔离最常见的实现需要单调递增的事务 ID。如果写入比快照晚（即，写入具有比快照更大的事务 ID），则该写入对于快照事务是不可见的。在单节点数据库上，一个简单的计数器就足以生成事务 ID。
-
-但是当数据库分布在许多机器上，也许可能在多个数据中心中时，由于需要协调，（跨所有分区）全局单调递增的事务 ID 会很难生成。事务 ID 必须反映因果关系：如果事务 B 读取由事务 A 写入的值，则 B 必须具有比 A 更大的事务 ID，否则快照就无法保持一致。在有大量的小规模、高频率的事务情景下，在分布式系统中创建事务 ID 成为一个难以处理的瓶颈 [^vi]。
-
-[^vi]: 存在分布式序列号生成器，例如 Twitter 的雪花（Snowflake），其以可伸缩的方式（例如，通过将 ID 空间的块分配给不同节点）近似单调地增加唯一 ID。但是，它们通常无法保证与因果关系一致的排序，因为分配的 ID 块的时间范围比数据库读取和写入的时间范围要长。另请参阅 “[顺序保证](/ch9#顺序保证)”。
-
-我们可以使用同步时钟的时间戳作为事务 ID 吗？如果我们能够获得足够好的同步性，那么这种方法将具有很合适的属性：更晚的事务会有更大的时间戳。当然，问题在于时钟精度的不确定性。
-
-Spanner 以这种方式实现跨数据中心的快照隔离【59，60】。它使用 TrueTime API 报告的时钟置信区间，并基于以下观察结果：如果你有两个置信区间，每个置信区间包含最早和最晚可能的时间戳（$A = [A_{earliest}, A_{latest}]$，$B=[B_{earliest}, B_{latest}]$），这两个区间不重叠（即：$A_{earliest} <A_{latest} <B_{earliest} <B_{latest}$）的话，那么 B 肯定发生在 A 之后 —— 这是毫无疑问的。只有当区间重叠时，我们才不确定 A 和 B 发生的顺序。
-
-为了确保事务时间戳反映因果关系，在提交读写事务之前，Spanner 在提交读写事务时，会故意等待置信区间长度的时间。通过这样，它可以确保任何可能读取数据的事务处于足够晚的时间，因此它们的置信区间不会重叠。为了保持尽可能短的等待时间，Spanner 需要保持尽可能小的时钟不确定性，为此，Google 在每个数据中心都部署了一个 GPS 接收器或原子钟，这允许时钟同步到大约 7 毫秒以内【41】。
-
-对分布式事务语义使用时钟同步是一个活跃的研究领域【57,61,62】。这些想法很有趣，但是它们还没有在谷歌之外的主流数据库中实现。
-
-### 进程暂停
-
-让我们考虑在分布式系统中使用危险时钟的另一个例子。假设你有一个数据库，每个分区只有一个领导者。只有领导被允许接受写入。一个节点如何知道它仍然是领导者（它并没有被别人宣告为死亡），并且它可以安全地接受写入？
-
-一种选择是领导者从其他节点获得一个 **租约（lease）**，类似一个带超时的锁【63】。任一时刻只有一个节点可以持有租约 —— 因此，当一个节点获得一个租约时，它知道它在某段时间内自己是领导者，直到租约到期。为了保持领导地位，节点必须周期性地在租约过期前续期。
-
-如果节点发生故障，就会停止续期，所以当租约过期时，另一个节点可以接管。
-
-可以想象，请求处理循环看起来像这样：
-
-```java
-while (true) {
-  request = getIncomingRequest();
-  // 确保租约还剩下至少 10 秒
-  if (lease.expiryTimeMillis - System.currentTimeMillis() < 10000){
-    lease = lease.renew();
-  }
-
-  if (lease.isValid()) {
-    process(request);
-  }
-}
+> James Corbett et al., *Spanner: Google’s Globally-Distributed Database* (2012)
+
+In the harsh reality of data systems, many things can go wrong:
+
+* The database software or hardware may fail at any time (including in the middle of a write
+ operation).
+* The application may crash at any time (including halfway through a series of operations).
+* Interruptions in the network can unexpectedly cut off the application from the database, or one
+ database node from another.
+* Several clients may write to the database at the same time, overwriting each other’s changes.
+* A client may read data that doesn’t make sense because it has only partially been updated.
+* Race conditions between clients can cause surprising bugs.
+
+In order to be reliable, a system has to deal with these faults and ensure that they don’t cause
+catastrophic failure of the entire system. However, implementing fault-tolerance mechanisms is a lot
+of work. It requires a lot of careful thinking about all the things that can go wrong, and a lot of
+testing to ensure that the solution actually works.
+
+For decades, *transactions* have been the mechanism of choice for simplifying these issues. A
+transaction is a way for an application to group several reads and writes together into a logical
+unit. Conceptually, all the reads and writes in a transaction are executed as one operation: either
+the entire transaction succeeds (*commit*) or it fails (*abort*, *rollback*). If it fails, the
+application can safely retry. With transactions, error handling becomes much simpler for an
+application, because it doesn’t need to worry about partial failure—i.e., the case where some
+operations succeed and some fail (for whatever reason).
+
+If you have spent years working with transactions, they may seem obvious, but we shouldn’t take them
+for granted. Transactions are not a law of nature; they were created with a purpose, namely to
+*simplify the programming model* for applications accessing a database. By using transactions, the
+application is free to ignore certain potential error scenarios and concurrency issues, because the
+database takes care of them instead (we call these *safety guarantees*).
+
+Not every application needs transactions, and sometimes there are advantages to weakening
+transactional guarantees or abandoning them entirely (for example, to achieve higher performance or
+higher availability). Some safety properties can be achieved without transactions. On the other
+hand, transactions can prevent a lot of grief: for example, the technical cause behind the Post
+Office Horizon scandal (see [“How Important Is Reliability?”](/en/ch2#sidebar_reliability_importance)) was probably a lack of ACID
+transactions in the underlying accounting system [^1].
+
+How do you figure out whether you need transactions? In order to answer that question, we first need
+to understand exactly what safety guarantees transactions can provide, and what costs are associated
+with them. Although transactions seem straightforward at first glance, there are actually many
+subtle but important details that come into play.
+
+In this chapter, we will examine many examples of things that can go wrong, and explore the
+algorithms that databases use to guard against those issues. We will go especially deep in the area
+of concurrency control, discussing various kinds of race conditions that can occur and how
+databases implement isolation levels such as *read committed*, *snapshot isolation*, and
+*serializability*.
+
+Concurrency control is relevant for both single-node and distributed databases. Later in this
+chapter, in [“Distributed Transactions”](/en/ch8#sec_transactions_distributed), we will examine the *two-phase commit* protocol and
+the challenge of achieving atomicity in a distributed transaction.
+
+## 事务到底是什么？ {#sec_transactions_overview}
+
+Almost all relational databases today, and some nonrelational databases, support transactions. Most
+of them follow the style that was introduced in 1975 by IBM System R, the first SQL database [^2] [^3] [^4].
+Although some implementation details have changed, the general idea has remained virtually the same
+for 50 years: the transaction support in MySQL, PostgreSQL, Oracle, SQL Server, etc., is uncannily
+similar to that of System R.
+
+In the late 2000s, nonrelational (NoSQL) databases started gaining popularity. They aimed to
+improve upon the relational status quo by offering a choice of new data models (see
+[Chapter 3](/en/ch3#ch_datamodels)), and by including replication ([Chapter 6](/en/ch6#ch_replication)) and sharding
+([Chapter 7](/en/ch7#ch_sharding)) by default. Transactions were the main casualty of this movement: many of this
+generation of databases abandoned transactions entirely, or redefined the word to describe a
+much weaker set of guarantees than had previously been understood.
+
+The hype around NoSQL distributed databases led to a popular belief that transactions were
+fundamentally unscalable, and that any large-scale system would have to abandon transactions in
+order to maintain good performance and high availability. More recently, that belief has turned out
+to be wrong. So-called “NewSQL” databases such as CockroachDB [^5], TiDB [^6], Spanner [^7], FoundationDB [^8],
+and Yugabyte have shown that transactional systems can scale to large data volumes and high
+throughput. These systems combine sharding with consensus protocols ([Chapter 10](/en/ch10#ch_consistency)) to provide
+strong ACID guarantees at scale.
+
+However, that doesn’t mean that every system must be transactional either: like every other
+technical design choice, transactions have advantages and limitations. In order to understand those
+trade-offs, let’s go into the details of the guarantees that transactions can provide—both in normal
+operation and in various extreme (but realistic) circumstances.
+
+### ACID 的含义 {#sec_transactions_acid}
+
+The safety guarantees provided by transactions are often described by the well-known acronym *ACID*,
+which stands for *Atomicity*, *Consistency*, *Isolation*, and *Durability*. It was coined in 1983 by
+Theo Härder and Andreas Reuter [^9] in an effort to establish precise terminology for fault-tolerance mechanisms in databases.
+
+However, in practice, one database’s implementation of ACID does not equal another’s implementation.
+For example, as we shall see, there is a lot of ambiguity around the meaning of *isolation* [^10].
+The high-level idea is sound, but the devil is in the details. Today, when a system claims to be
+“ACID compliant,” it’s unclear what guarantees you can actually expect. ACID has unfortunately
+become mostly a marketing term.
+
+(Systems that do not meet the ACID criteria are sometimes called *BASE*, which stands for
+*Basically Available*, *Soft state*, and *Eventual consistency* [^11].
+This is even more vague than the definition of ACID. It seems that the only sensible definition of
+BASE is “not ACID”; i.e., it can mean almost anything you want.)
+
+Let’s dig into the definitions of atomicity, consistency, isolation, and durability, as this will let
+us refine our idea of transactions.
+
+#### 原子性 {#sec_transactions_acid_atomicity}
+
+In general, *atomic* refers to something that cannot be broken down into smaller parts. The word
+means similar but subtly different things in different branches of computing. For example, in
+multi-threaded programming, if one thread executes an atomic operation, that means there is no way
+that another thread could see the half-finished result of the operation. The system can only be in
+the state it was before the operation or after the operation, not something in between.
+
+By contrast, in the context of ACID, atomicity is *not* about concurrency. It does not describe
+what happens if several processes try to access the same data at the same time, because that is
+covered under the letter *I*, for *isolation* (see [“Isolation”](/en/ch8#sec_transactions_acid_isolation)).
+
+Rather, ACID atomicity describes what happens if a client wants to make several writes, but a fault
+occurs after some of the writes have been processed—for example, a process crashes, a network
+connection is interrupted, a disk becomes full, or some integrity constraint is violated.
+If the writes are grouped together into an atomic transaction, and the transaction cannot be
+completed (*committed*) due to a fault, then the transaction is *aborted* and the database must
+discard or undo any writes it has made so far in that transaction.
+
+Without atomicity, if an error occurs partway through making multiple changes, it’s difficult to
+know which changes have taken effect and which haven’t. The application could try again, but that
+risks making the same change twice, leading to duplicate or incorrect data. Atomicity simplifies
+this problem: if a transaction was aborted, the application can be sure that it didn’t change
+anything, so it can safely be retried.
+
+The ability to abort a transaction on error and have all writes from that transaction discarded is
+the defining feature of ACID atomicity. Perhaps *abortability* would have been a better term than
+*atomicity*, but we will stick with *atomicity* since that’s the usual word.
+
+#### 一致性 {#sec_transactions_acid_consistency}
+
+The word *consistency* is terribly overloaded:
+
+* In [Chapter 6](/en/ch6#ch_replication) we discussed *replica consistency* and the issue of *eventual consistency*
+ that arises in asynchronously replicated systems (see [“Problems with Replication Lag”](/en/ch6#sec_replication_lag)).
+* A *consistent snapshot* of a database, e.g. for a backup, is a snapshot of the entire database as
+ it existed at one moment in time. More precisely, it is consistent with the happens-before
+ relation (see [“The “happens-before” relation and concurrency”](/en/ch6#sec_replication_happens_before)): that is, if the snapshot contains a value that
+ was written at a particular time, then it also reflects all the writes that happened before that
+ value was written.
+* *Consistent hashing* is an approach to sharding that some systems use for rebalancing (see
+ [“Consistent hashing”](/en/ch7#sec_sharding_consistent_hashing)).
+* In the CAP theorem (see [Chapter 10](/en/ch10#ch_consistency)), the word *consistency* is used to mean
+ *linearizability* (see [“Linearizability”](/en/ch10#sec_consistency_linearizability)).
+* In the context of ACID, *consistency* refers to an application-specific notion of the database
+ being in a “good state.”
+
+It’s unfortunate that the same word is used with at least five different meanings.
+
+The idea of ACID consistency is that you have certain statements about your data (*invariants*) that
+must always be true—for example, in an accounting system, credits and debits across all accounts
+must always be balanced. If a transaction starts with a database that is valid according to these
+invariants, and any writes during the transaction preserve the validity, then you can be sure that
+the invariants are always satisfied. (An invariant may be temporarily violated during transaction
+execution, but it should be satisfied again at transaction commit.)
+
+If you want the database to enforce your invariants, you need to declare them as *constraints* as
+part of the schema. For example, foreign key constraints, uniqueness constraints, or check
+constraints (which restrict the values that can appear in an individual row) are often used to
+model specific types of invariants. More complex consistency requirements can sometimes be modeled
+using triggers or materialized views [^12].
+
+However, complex invariants can be difficult or impossible to model using the constraints that
+databases usually provide. In that case, it’s the application’s responsibility to define its
+transactions correctly so that they preserve consistency. If you write bad data that violates your
+invariants, but you haven’t declared those invariants, the database can’t stop you. As such, the C
+in ACID often depends on how the application uses the database, and it’s not a property of the
+database alone.
+
+#### 隔离性 {#sec_transactions_acid_isolation}
+
+Most databases are accessed by several clients at the same time. That is no problem if they are
+reading and writing different parts of the database, but if they are accessing the same database
+records, you can run into concurrency problems (race conditions).
+
+[Figure 8-1](/en/ch8#fig_transactions_increment) is a simple example of this kind of problem. Say you have two clients
+simultaneously incrementing a counter that is stored in a database. Each client needs to read the
+current value, add 1, and write the new value back (assuming there is no increment operation built
+into the database). In [Figure 8-1](/en/ch8#fig_transactions_increment) the counter should have increased from 42 to
+44, because two increments happened, but it actually only went to 43 because of the race condition.
+
+{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" caption="Figure 8-1. A race condition between two clients concurrently incrementing a counter." class="w-full my-4" >}}
+
+
+*Isolation* in the sense of ACID means that concurrently executing transactions are isolated from
+each other: they cannot step on each other’s toes. The classic database textbooks formalize
+isolation as *serializability*, which means that each transaction can pretend that it is the only
+transaction running on the entire database. The database ensures that when the transactions have
+committed, the result is the same as if they had run *serially* (one after another), even though in
+reality they may have run concurrently [^13].
+
+However, serializability has a performance cost. In practice, many databases use forms of isolation
+that are weaker than serializability: that is, they allow concurrent transactions to interfere with
+each other in limited ways. Some popular databases, such as Oracle, don’t even implement it (Oracle
+has an isolation level called “serializable,” but it actually implements *snapshot isolation*, which
+is a weaker guarantee than serializability [^10] [^14]).
+This means that some kinds of race conditions can still occur. We will explore snapshot isolation
+and other forms of isolation in [“Weak Isolation Levels”](/en/ch8#sec_transactions_isolation_levels).
+
+#### 持久性 {#durability}
+
+The purpose of a database system is to provide a safe place where data can be stored without fear of
+losing it. *Durability* is the promise that once a transaction has committed successfully, any data it
+has written will not be forgotten, even if there is a hardware fault or the database crashes.
+
+In a single-node database, durability typically means that the data has been written to nonvolatile
+storage such as a hard drive or SSD. Regular file writes are usually buffered in memory before being
+sent to the disk sometime later, which means they would be lost if there is a sudden power failure;
+many databases therefore use the `fsync()` system call to ensure the data really has been written to
+disk. Databases usually also have a write-ahead log or similar (see [“Making B-trees reliable”](/en/ch4#sec_storage_btree_wal)),
+which allows them to recover in the event that a crash occurs part way through a write.
+
+In a replicated database, durability may mean that the data has been successfully copied to some
+number of nodes. In order to provide a durability guarantee, a database must wait until these writes
+or replications are complete before reporting a transaction as successfully committed. However,
+as discussed in [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability), perfect durability does not exist: if all your
+hard disks and all your backups are destroyed at the same time, there’s obviously nothing your
+database can do to save you.
+
+--------
+
+> [!TIP] 复制与持久性
+
+Historically, durability meant writing to an archive tape. Then it was understood as writing to a disk
+or SSD. More recently, it has been adapted to mean replication. Which implementation is better?
+
+The truth is, nothing is perfect:
+
+* If you write to disk and the machine dies, even though your data isn’t lost, it is inaccessible
+ until you either fix the machine or transfer the disk to another machine. Replicated systems can
+ remain available.
+* A correlated fault—a power outage or a bug that crashes every node on a particular input—​can
+ knock out all replicas at once (see [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability)), losing any data that is
+ only in memory. Writing to disk is therefore still relevant for replicated databases.
+* In an asynchronously replicated system, recent writes may be lost when the leader becomes
+ unavailable (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
+* When the power is suddenly cut, SSDs in particular have been shown to sometimes violate the
+ guarantees they are supposed to provide: even `fsync` isn’t guaranteed to work correctly [^15].
+ Disk firmware can have bugs, just like any other kind of software [^16] [^17],
+ e.g. causing drives to fail after exactly 32,768 hours of operation [^18].
+ And `fsync` is hard to use; even PostgreSQL used it incorrectly for over 20 years [^19] [^20] [^21].
+* Subtle interactions between the storage engine and the filesystem implementation can lead to bugs
+ that are hard to track down, and may cause files on disk to be corrupted after a crash [^22] [^23].
+ Filesystem errors on one replica can sometimes spread to other replicas as well [^24].
+* Data on disk can gradually become corrupted without this being detected [^25].
+ If data has been corrupted for some time, replicas and recent backups may also be corrupted. In
+ this case, you will need to try to restore the data from a historical backup.
+* One study of SSDs found that between 30% and 80% of drives develop at least one bad block during
+ the first four years of operation, and only some of these can be corrected by the firmware [^26].
+ Magnetic hard drives have a lower rate of bad sectors, but a higher rate of complete failure than SSDs.
+* When a worn-out SSD (that has gone through many write/erase cycles) is disconnected from power,
+ it can start losing data within a timescale of weeks to months, depending on the temperature [^27].
+ This is less of a problem for drives with lower wear levels [^28].
+
+In practice, there is no one technique that can provide absolute guarantees. There are only various
+risk-reduction techniques, including writing to disk, replicating to remote machines, and
+backups—​and they can and should be used together. As always, it’s wise to take any theoretical
+“guarantees” with a healthy grain of salt.
+
+--------
+
+### 单对象与多对象操作 {#sec_transactions_multi_object}
+
+To recap, in ACID, atomicity and isolation describe what the database should do if a client makes
+several writes within the same transaction:
+
+Atomicity
+: If an error occurs halfway through a sequence of writes, the transaction should be aborted, and
+ the writes made up to that point should be discarded. In other words, the database saves you from
+ having to worry about partial failure, by giving an all-or-nothing guarantee.
+
+Isolation
+: Concurrently running transactions shouldn’t interfere with each other. For example, if one
+ transaction makes several writes, then another transaction should see either all or none of those
+ writes, but not some subset.
+
+These definitions assume that you want to modify several objects (rows, documents, records) at once.
+Such *multi-object transactions* are often needed if several pieces of data need to be kept in sync.
+[Figure 8-2](/en/ch8#fig_transactions_read_uncommitted) shows an example from an email application. To display the
+number of unread messages for a user, you could query something like:
+
+```
+SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 ```
 
-这个代码有什么问题？首先，它依赖于同步时钟：租约到期时间由另一台机器设置（例如，当前时间加上 30 秒，计算到期时间），并将其与本地系统时钟进行比较。如果时钟不同步超过几秒，这段代码将开始做奇怪的事情。
-
-其次，即使我们将协议更改为仅使用本地单调时钟，也存在另一个问题：代码假定在执行剩余时间检查 `System.currentTimeMillis()` 和实际执行请求 `process(request)` 中间的时间间隔非常短。通常情况下，这段代码运行得非常快，所以 10 秒的缓冲区已经足够确保 **租约** 在请求处理到一半时不会过期。
-
-但是，如果程序执行中出现了意外的停顿呢？例如，想象一下，线程在 `lease.isValid()` 行周围停止 15 秒，然后才继续。在这种情况下，在请求被处理的时候，租约可能已经过期，而另一个节点已经接管了领导。然而，没有什么可以告诉这个线程已经暂停了这么长时间了，所以这段代码不会注意到租约已经到期了，直到循环的下一个迭代 —— 到那个时候它可能已经做了一些不安全的处理请求。
-
-假设一个线程可能会暂停很长时间，这是疯了吗？不幸的是，这种情况发生的原因有很多种：
-
-* 许多编程语言运行时（如 Java 虚拟机）都有一个垃圾收集器（GC），偶尔需要停止所有正在运行的线程。这些 “**停止所有处理（stop-the-world）**”GC 暂停有时会持续几分钟【64】！甚至像 HotSpot JVM 的 CMS 这样的所谓的 “并行” 垃圾收集器也不能完全与应用程序代码并行运行，它需要不时地停止所有处理【65】。尽管通常可以通过改变分配模式或调整 GC 设置来减少暂停【66】，但是如果我们想要提供健壮的保证，就必须假设最坏的情况发生。
-* 在虚拟化环境中，可以 **挂起（suspend）** 虚拟机（暂停执行所有进程并将内存内容保存到磁盘）并恢复（恢复内存内容并继续执行）。这个暂停可以在进程执行的任何时候发生，并且可以持续任意长的时间。这个功能有时用于虚拟机从一个主机到另一个主机的实时迁移，而不需要重新启动，在这种情况下，暂停的长度取决于进程写入内存的速率【67】。
-* 在最终用户的设备（如笔记本电脑）上，执行也可能被暂停并随意恢复，例如当用户关闭笔记本电脑的盖子时。
-* 当操作系统上下文切换到另一个线程时，或者当管理程序切换到另一个虚拟机时（在虚拟机中运行时），当前正在运行的线程可能在代码中的任意点处暂停。在虚拟机的情况下，在其他虚拟机中花费的 CPU 时间被称为 **窃取时间（steal time）**。如果机器处于沉重的负载下（即，如果等待运行的线程队列很长），暂停的线程再次运行可能需要一些时间。
-* 如果应用程序执行同步磁盘访问，则线程可能暂停，等待缓慢的磁盘 I/O 操作完成【68】。在许多语言中，即使代码没有包含文件访问，磁盘访问也可能出乎意料地发生 —— 例如，Java 类加载器在第一次使用时惰性加载类文件，这可能在程序执行过程中随时发生。I/O 暂停和 GC 暂停甚至可能合谋组合它们的延迟【69】。如果磁盘实际上是一个网络文件系统或网络块设备（如亚马逊的 EBS），I/O 延迟进一步受到网络延迟变化的影响【29】。
-* 如果操作系统配置为允许交换到磁盘（页面交换），则简单的内存访问可能导致 **页面错误（page fault）**，要求将磁盘中的页面装入内存。当这个缓慢的 I/O 操作发生时，线程暂停。如果内存压力很高，则可能需要将另一个页面换出到磁盘。在极端情况下，操作系统可能花费大部分时间将页面交换到内存中，而实际上完成的工作很少（这被称为 **抖动**，即 thrashing）。为了避免这个问题，通常在服务器机器上禁用页面调度（如果你宁愿干掉一个进程来释放内存，也不愿意冒抖动风险）。
-* 可以通过发送 SIGSTOP 信号来暂停 Unix 进程，例如通过在 shell 中按下 Ctrl-Z。这个信号立即阻止进程继续执行更多的 CPU 周期，直到 SIGCONT 恢复为止，此时它将继续运行。即使你的环境通常不使用 SIGSTOP，也可能由运维工程师意外发送。
-
-所有这些事件都可以随时 **抢占（preempt）** 正在运行的线程，并在稍后的时间恢复运行，而线程甚至不会注意到这一点。这个问题类似于在单个机器上使多线程代码线程安全：你不能对时序做任何假设，因为随时可能发生上下文切换，或者出现并行运行。
-
-当在一台机器上编写多线程代码时，我们有相当好的工具来实现线程安全：互斥量、信号量、原子计数器、无锁数据结构、阻塞队列等等。不幸的是，这些工具并不能直接转化为分布式系统操作，因为分布式系统没有共享内存，只有通过不可靠网络发送的消息。
-
-分布式系统中的节点，必须假定其执行可能在任意时刻暂停相当长的时间，即使是在一个函数的中间。在暂停期间，世界的其它部分在继续运转，甚至可能因为该节点没有响应，而宣告暂停节点的死亡。最终暂停的节点可能会继续运行，在再次检查自己的时钟之前，甚至可能不会意识到自己进入了睡眠。
-
-#### 响应时间保证
-
-在许多编程语言和操作系统中，线程和进程可能暂停一段无限制的时间，正如讨论的那样。如果你足够努力，导致暂停的原因是 **可以** 消除的。
-
-某些软件的运行环境要求很高，不能在特定时间内响应可能会导致严重的损失：控制飞机、火箭、机器人、汽车和其他物体的计算机必须对其传感器输入做出快速而可预测的响应。在这些系统中，软件必须有一个特定的 **截止时间（deadline）**，如果截止时间不满足，可能会导致整个系统的故障。这就是所谓的 **硬实时（hard real-time）** 系统。
-
-> #### 实时是真的吗？
->
-> 在嵌入式系统中，实时是指系统经过精心设计和测试，以满足所有情况下的特定时间保证。这个含义与 Web 上对实时术语的模糊使用相反，后者描述了服务器将数据推送到客户端以及没有严格的响应时间限制的流处理（见 [第十一章](/ch11)）。
-
-例如，如果车载传感器检测到当前正在经历碰撞，你肯定不希望安全气囊释放系统因为 GC 暂停而延迟弹出。
-
-在系统中提供 **实时保证** 需要各级软件栈的支持：一个实时操作系统（RTOS），允许在指定的时间间隔内保证 CPU 时间的分配。库函数必须申明最坏情况下的执行时间；动态内存分配可能受到限制或完全不允许（实时垃圾收集器存在，但是应用程序仍然必须确保它不会给 GC 太多的负担）；必须进行大量的测试和测量，以确保达到保证。
-
-所有这些都需要大量额外的工作，严重限制了可以使用的编程语言、库和工具的范围（因为大多数语言和工具不提供实时保证）。由于这些原因，开发实时系统非常昂贵，并且它们通常用于安全关键的嵌入式设备。而且，“**实时**” 与 “**高性能**” 不一样 —— 事实上，实时系统可能具有较低的吞吐量，因为他们必须让及时响应的优先级高于一切（另请参阅 “[延迟和资源利用](#延迟和资源利用)”）。
-
-对于大多数服务器端数据处理系统来说，实时保证是不经济或不合适的。因此，这些系统必须承受在非实时环境中运行的暂停和时钟不稳定性。
-
-#### 限制垃圾收集的影响
-
-进程暂停的负面影响可以在不诉诸昂贵的实时调度保证的情况下得到缓解。语言运行时在计划垃圾回收时具有一定的灵活性，因为它们可以跟踪对象分配的速度和随着时间的推移剩余的空闲内存。
-
-一个新兴的想法是将 GC 暂停视为一个节点的短暂计划中断，并在这个节点收集其垃圾的同时，让其他节点处理来自客户端的请求。如果运行时可以警告应用程序一个节点很快需要 GC 暂停，那么应用程序可以停止向该节点发送新的请求，等待它完成处理未完成的请求，然后在没有请求正在进行时执行 GC。这个技巧向客户端隐藏了 GC 暂停，并降低了响应时间的高百分比【70,71】。一些对延迟敏感的金融交易系统【72】使用这种方法。
-
-这个想法的一个变种是只用垃圾收集器来处理短命对象（这些对象可以快速收集），并定期在积累大量长寿对象（因此需要完整 GC）之前重新启动进程【65,73】。一次可以重新启动一个节点，在计划重新启动之前，流量可以从该节点移开，就像 [第四章](/ch4) 里描述的滚动升级一样。
-
-这些措施不能完全阻止垃圾回收暂停，但可以有效地减少它们对应用的影响。
-
-
-## 知识、真相与谎言
-
-本章到目前为止，我们已经探索了分布式系统与运行在单台计算机上的程序的不同之处：没有共享内存，只有通过可变延迟的不可靠网络传递的消息，系统可能遭受部分失效，不可靠的时钟和处理暂停。
-
-如果你不习惯于分布式系统，那么这些问题的后果就会让人迷惑不解。网络中的一个节点无法确切地知道任何事情 —— 它只能根据它通过网络接收到（或没有接收到）的消息进行猜测。节点只能通过交换消息来找出另一个节点所处的状态（存储了哪些数据，是否正确运行等等）。如果远程节点没有响应，则无法知道它处于什么状态，因为网络中的问题不能可靠地与节点上的问题区分开来。
-
-这些系统的讨论与哲学有关：在系统中什么是真什么是假？如果感知和测量的机制都是不可靠的，那么关于这些知识我们又能多么确定呢？软件系统应该遵循我们对物理世界所期望的法则，如因果关系吗？
-
-幸运的是，我们不需要去搞清楚生命的意义。在分布式系统中，我们可以陈述关于行为（系统模型）的假设，并以满足这些假设的方式设计实际系统。算法可以被证明在某个系统模型中正确运行。这意味着即使底层系统模型提供了很少的保证，也可以实现可靠的行为。
-
-但是，尽管可以使软件在不可靠的系统模型中表现良好，但这并不是可以直截了当实现的。在本章的其余部分中，我们将进一步探讨分布式系统中的知识和真相的概念，这将有助于我们思考我们可以做出的各种假设以及我们可能希望提供的保证。在 [第九章](/ch9) 中，我们将着眼于分布式系统的一些例子，这些算法在特定的假设条件下提供了特定的保证。
-
-### 真相由多数所定义
-
-设想一个具有不对称故障的网络：一个节点能够接收发送给它的所有消息，但是来自该节点的任何传出消息被丢弃或延迟【19】。即使该节点运行良好，并且正在接收来自其他节点的请求，其他节点也无法听到其响应。经过一段时间后，其他节点宣布它已经死亡，因为他们没有听到节点的消息。这种情况就像梦魇一样：**半断开（semi-disconnected）** 的节点被拖向墓地，敲打尖叫道 “我没死！” —— 但是由于没有人能听到它的尖叫，葬礼队伍继续以坚忍的决心继续行进。
-
-在一个稍微不那么梦魇的场景中，半断开的节点可能会注意到它发送的消息没有被其他节点确认，因此意识到网络中必定存在故障。尽管如此，节点被其他节点错误地宣告为死亡，而半连接的节点对此无能为力。
-
-第三种情况，想象一个正在经历长时间 **垃圾收集暂停（stop-the-world GC Pause）** 的节点，节点的所有线程被 GC 抢占并暂停一分钟，因此没有请求被处理，也没有响应被发送。其他节点等待，重试，不耐烦，并最终宣布节点死亡，并将其丢到灵车上。最后，GC 完成，节点的线程继续，好像什么也没有发生。其他节点感到惊讶，因为所谓的死亡节点突然从棺材中抬起头来，身体健康，开始和旁观者高兴地聊天。GC 后的节点最初甚至没有意识到已经经过了整整一分钟，而且自己已被宣告死亡。从它自己的角度来看，从最后一次与其他节点交谈以来，几乎没有经过任何时间。
-
-这些故事的寓意是，节点不一定能相信自己对于情况的判断。分布式系统不能完全依赖单个节点，因为节点可能随时失效，可能会使系统卡死，无法恢复。相反，许多分布式算法都依赖于法定人数，即在节点之间进行投票（请参阅 “[读写的法定人数](/ch5#读写的法定人数)”）：决策需要来自多个节点的最小投票数，以减少对于某个特定节点的依赖。
-
-这也包括关于宣告节点死亡的决定。如果法定数量的节点宣告另一个节点已经死亡，那么即使该节点仍感觉自己活着，它也必须被认为是死的。个体节点必须遵守法定决定并下台。
-
-最常见的法定人数是超过一半的绝对多数（尽管其他类型的法定人数也是可能的）。多数法定人数允许系统继续工作，如果单个节点发生故障（三个节点可以容忍单节点故障；五个节点可以容忍双节点故障）。系统仍然是安全的，因为在这个制度中只能有一个多数 —— 不能同时存在两个相互冲突的多数决定。当我们在 [第九章](/ch9) 中讨论 **共识算法（consensus algorithms）** 时，我们将更详细地讨论法定人数的应用。
-
-#### 领导者和锁
-
-通常情况下，一些东西在一个系统中只能有一个。例如：
-
-* 数据库分区的领导者只能有一个节点，以避免 **脑裂**（即 split brain，请参阅 “[处理节点宕机](/ch5#处理节点宕机)”）。
-* 特定资源的锁或对象只允许一个事务 / 客户端持有，以防同时写入和损坏。
-* 一个特定的用户名只能被一个用户所注册，因为用户名必须唯一标识一个用户。
-
-在分布式系统中实现这一点需要注意：即使一个节点认为它是 “**天选者（the choosen one）**”（分区的负责人，锁的持有者，成功获取用户名的用户的请求处理程序），但这并不一定意味着有法定人数的节点同意！一个节点可能以前是领导者，但是如果其他节点在此期间宣布它死亡（例如，由于网络中断或 GC 暂停），则它可能已被降级，且另一个领导者可能已经当选。
-
-如果一个节点继续表现为 **天选者**，即使大多数节点已经声明它已经死了，则在考虑不周的系统中可能会导致问题。这样的节点能以自己赋予的权能向其他节点发送消息，如果其他节点相信，整个系统可能会做一些不正确的事情。
-
-例如，[图 8-4](/img/fig8-4.png) 显示了由于不正确的锁实现导致的数据损坏错误。（这个错误不仅仅是理论上的：HBase 曾经有这个问题【74,75】）假设你要确保一个存储服务中的文件一次只能被一个客户访问，因为如果多个客户试图对此写入，该文件将被损坏。你尝试通过在访问文件之前要求客户端从锁定服务获取租约来实现此目的。
-
-![](/img/fig8-4.png)
-
-**图 8-4 分布式锁的实现不正确：客户端 1 认为它仍然具有有效的租约，即使它已经过期，从而破坏了存储中的文件**
-
-这个问题就是我们先前在 “[进程暂停](#进程暂停)” 中讨论过的一个例子：如果持有租约的客户端暂停太久，它的租约将到期。另一个客户端可以获得同一文件的租约，并开始写入文件。当暂停的客户端回来时，它认为（不正确）它仍然有一个有效的租约，并继续写入文件。结果，客户的写入将产生冲突并损坏文件。
-
-#### 防护令牌
-
-当使用锁或租约来保护对某些资源（如 [图 8-4](/img/fig8-4.png) 中的文件存储）的访问时，需要确保一个被误认为自己是 “天选者” 的节点不能扰乱系统的其它部分。实现这一目标的一个相当简单的技术就是 **防护（fencing）**，如 [图 8-5](/img/fig8-5.png) 所示
-
-![](/img/fig8-5.png)
-
-**图 8-5 只允许以增加防护令牌的顺序进行写操作，从而保证存储安全**
-
-我们假设每次锁定服务器授予锁或租约时，它还会返回一个 **防护令牌（fencing token）**，这个数字在每次授予锁定时都会增加（例如，由锁定服务增加）。然后，我们可以要求客户端每次向存储服务发送写入请求时，都必须包含当前的防护令牌。
-
-在 [图 8-5](/img/fig8-5.png) 中，客户端 1 以 33 的令牌获得租约，但随后进入一个长时间的停顿并且租约到期。客户端 2 以 34 的令牌（该数字总是增加）获取租约，然后将其写入请求发送到存储服务，包括 34 的令牌。稍后，客户端 1 恢复生机并将其写入存储服务，包括其令牌值 33。但是，存储服务器会记住它已经处理了一个具有更高令牌编号（34）的写入，因此它会拒绝带有令牌 33 的请求。
-
-如果将 ZooKeeper 用作锁定服务，则可将事务标识 `zxid` 或节点版本 `cversion` 用作防护令牌。由于它们保证单调递增，因此它们具有所需的属性【74】。
-
-请注意，这种机制要求资源本身在检查令牌方面发挥积极作用，通过拒绝使用旧的令牌，而不是已经被处理的令牌来进行写操作 —— 仅仅依靠客户端检查自己的锁状态是不够的。对于不明确支持防护令牌的资源，可能仍然可以解决此限制（例如，在文件存储服务的情况下，可以将防护令牌包含在文件名中）。但是，为了避免在锁的保护之外处理请求，需要进行某种检查。
-
-在服务器端检查一个令牌可能看起来像是一个缺点，但这可以说是一件好事：一个服务假定它的客户总是守规矩并不明智，因为使用客户端的人与运行服务的人优先级非常不一样【76】。因此，任何服务保护自己免受意外客户的滥用是一个好主意。
-
-### 拜占庭故障
-
-防护令牌可以检测和阻止无意中发生错误的节点（例如，因为它尚未发现其租约已过期）。但是，如果节点有意破坏系统的保证，则可以通过使用假防护令牌发送消息来轻松完成此操作。
-
-在本书中，我们假设节点是不可靠但诚实的：它们可能很慢或者从不响应（由于故障），并且它们的状态可能已经过时（由于 GC 暂停或网络延迟），但是我们假设如果节点它做出了回应，它正在说出 “真相”：尽其所知，它正在按照协议的规则扮演其角色。
-
-如果存在节点可能 “撒谎”（发送任意错误或损坏的响应）的风险，则分布式系统的问题变得更困难了 —— 例如，如果节点可能声称其实际上没有收到特定的消息。这种行为被称为 **拜占庭故障（Byzantine fault）**，**在不信任的环境中达成共识的问题被称为拜占庭将军问题**【77】。
-
-> ### 拜占庭将军问题
->
-> 拜占庭将军问题是对所谓 “两将军问题” 的泛化【78】，它想象两个将军需要就战斗计划达成一致的情况。由于他们在两个不同的地点建立了营地，他们只能通过信使进行沟通，信使有时会被延迟或丢失（就像网络中的信息包一样）。我们将在 [第九章](/ch9) 讨论这个共识问题。
->
-> 在这个问题的拜占庭版本里，有 n 位将军需要同意，他们的努力因为有一些叛徒在他们中间而受到阻碍。大多数的将军都是忠诚的，因而发出了真实的信息，但是叛徒可能会试图通过发送虚假或不真实的信息来欺骗和混淆他人（在试图保持未被发现的同时）。事先并不知道叛徒是谁。
->
-> 拜占庭是后来成为君士坦丁堡的古希腊城市，现在在土耳其的伊斯坦布尔。没有任何历史证据表明拜占庭将军比其他地方更容易出现诡计和阴谋。相反，这个名字来源于拜占庭式的过度复杂，官僚，迂回等意义，早在计算机之前就已经在政治中被使用了【79】。Lamport 想要选一个不会冒犯任何读者的国家，他被告知将其称为阿尔巴尼亚将军问题并不是一个好主意【80】。
-
-当一个系统在部分节点发生故障、不遵守协议、甚至恶意攻击、扰乱网络时仍然能继续正确工作，称之为 **拜占庭容错（Byzantine fault-tolerant）** 的，这种担忧在某些特定情况下是有意义的：
-
-* 在航空航天环境中，计算机内存或 CPU 寄存器中的数据可能被辐射破坏，导致其以任意不可预知的方式响应其他节点。由于系统故障非常昂贵（例如，飞机撞毁和炸死船上所有人员，或火箭与国际空间站相撞），飞行控制系统必须容忍拜占庭故障【81,82】。
-* 在多个参与组织的系统中，一些参与者可能会试图欺骗或诈骗他人。在这种情况下，节点仅仅信任另一个节点的消息是不安全的，因为它们可能是出于恶意的目的而被发送的。例如，像比特币和其他区块链一样的对等网络可以被认为是让互不信任的各方同意交易是否发生的一种方式，而不依赖于中心机构（central authority）【83】。
-
-然而，在本书讨论的那些系统中，我们通常可以安全地假设没有拜占庭式的错误。在你的数据中心里，所有的节点都是由你的组织控制的（所以他们可以信任），辐射水平足够低，内存损坏不是一个大问题。制作拜占庭容错系统的协议相当复杂【84】，而容错嵌入式系统依赖于硬件层面的支持【81】。在大多数服务器端数据系统中，部署拜占庭容错解决方案的成本使其变得不切实际。
-
-Web 应用程序确实需要预期受终端用户控制的客户端（如 Web 浏览器）的任意和恶意行为。这就是为什么输入验证，数据清洗和输出转义如此重要：例如，防止 SQL 注入和跨站点脚本。然而，我们通常不在这里使用拜占庭容错协议，而只是让服务器有权决定是否允许客户端行为。但在没有这种中心机构的对等网络中，拜占庭容错更为重要。
-
-软件中的一个错误（bug）可能被认为是拜占庭式的错误，但是如果你将相同的软件部署到所有节点上，那么拜占庭式的容错算法帮不到你。大多数拜占庭式容错算法要求超过三分之二的节点能够正常工作（即，如果有四个节点，最多只能有一个故障）。要使用这种方法对付 bug，你必须有四个独立的相同软件的实现，并希望一个 bug 只出现在四个实现之一中。
-
-同样，如果一个协议可以保护我们免受漏洞，安全渗透和恶意攻击，那么这将是有吸引力的。不幸的是，这也是不现实的：在大多数系统中，如果攻击者可以渗透一个节点，那他们可能会渗透所有这些节点，因为它们可能都运行着相同的软件。因此，传统机制（认证，访问控制，加密，防火墙等）仍然是抵御攻击者的主要保护措施。
-
-#### 弱谎言形式
-
-尽管我们假设节点通常是诚实的，但值得向软件中添加防止 “撒谎” 弱形式的机制 —— 例如，由硬件问题导致的无效消息，软件错误和错误配置。这种保护机制并不是完全的拜占庭容错，因为它们不能抵挡决心坚定的对手，但它们仍然是简单而实用的步骤，以提高可靠性。例如：
-
-* 由于硬件问题或操作系统、驱动程序、路由器等中的错误，网络数据包有时会受到损坏。通常，损坏的数据包会被内建于 TCP 和 UDP 中的校验和所俘获，但有时它们也会逃脱检测【85,86,87】 。要对付这种破坏通常使用简单的方法就可以做到，例如应用程序级协议中的校验和。
-* 可公开访问的应用程序必须仔细清理来自用户的任何输入，例如检查值是否在合理的范围内，并限制字符串的大小以防止通过大内存分配的拒绝服务。防火墙后面的内部服务对于输入也许可以只采取一些不那么严格的检查，但是采取一些基本的合理性检查（例如，在协议解析中）仍然是一个好主意。
-* NTP 客户端可以配置多个服务器地址。同步时，客户端联系所有的服务器，估计它们的误差，并检查大多数服务器是否对某个时间范围达成一致。只要大多数的服务器没问题，一个配置错误的 NTP 服务器报告的时间会被当成特异值从同步中排除【37】。使用多个服务器使 NTP 更健壮（比起只用单个服务器来）。
-
-### 系统模型与现实
-
-已经有很多算法被设计以解决分布式系统问题 —— 例如，我们将在 [第九章](/ch9) 讨论共识问题的解决方案。为了有用，这些算法需要容忍我们在本章中讨论的分布式系统的各种故障。
-
-算法的编写方式不应该过分依赖于运行的硬件和软件配置的细节。这就要求我们以某种方式将我们期望在系统中发生的错误形式化。我们通过定义一个系统模型来做到这一点，这个模型是一个抽象，描述一个算法可以假设的事情。
-
-关于时序假设，三种系统模型是常用的：
-
-* 同步模型
-
-  **同步模型（synchronous model）** 假设网络延迟、进程暂停和和时钟误差都是受限的。这并不意味着完全同步的时钟或零网络延迟；这只意味着你知道网络延迟、暂停和时钟漂移将永远不会超过某个固定的上限【88】。同步模型并不是大多数实际系统的现实模型，因为（如本章所讨论的）无限延迟和暂停确实会发生。
-
-* 部分同步模型
-
-  **部分同步（partial synchronous）** 意味着一个系统在大多数情况下像一个同步系统一样运行，但有时候会超出网络延迟，进程暂停和时钟漂移的界限【88】。这是很多系统的现实模型：大多数情况下，网络和进程表现良好，否则我们永远无法完成任何事情，但是我们必须承认，在任何时刻都存在时序假设偶然被破坏的事实。发生这种情况时，网络延迟、暂停和时钟错误可能会变得相当大。
-
-* 异步模型
-
-  在这个模型中，一个算法不允许对时序做任何假设 —— 事实上它甚至没有时钟（所以它不能使用超时）。一些算法被设计为可用于异步模型，但非常受限。
-
-
-进一步来说，除了时序问题，我们还要考虑 **节点失效**。三种最常见的节点系统模型是：
-
-* 崩溃 - 停止故障
-
-  在 **崩溃停止（crash-stop）** 模型中，算法可能会假设一个节点只能以一种方式失效，即通过崩溃。这意味着节点可能在任意时刻突然停止响应，此后该节点永远消失 —— 它永远不会回来。
-
-* 崩溃 - 恢复故障
-
-  我们假设节点可能会在任何时候崩溃，但也许会在未知的时间之后再次开始响应。在 **崩溃 - 恢复（crash-recovery）** 模型中，假设节点具有稳定的存储（即，非易失性磁盘存储）且会在崩溃中保留，而内存中的状态会丢失。
-
-* 拜占庭（任意）故障
-
-  节点可以做（绝对意义上的）任何事情，包括试图戏弄和欺骗其他节点，如上一节所述。
-
-对于真实系统的建模，具有 **崩溃 - 恢复故障（crash-recovery）** 的 **部分同步模型（partial synchronous）** 通常是最有用的模型。分布式算法如何应对这种模型？
-
-#### 算法的正确性
-
-为了定义算法是正确的，我们可以描述它的属性。例如，排序算法的输出具有如下特性：对于输出列表中的任何两个不同的元素，左边的元素比右边的元素小。这只是定义对列表进行排序含义的一种形式方式。
-
-同样，我们可以写下我们想要的分布式算法的属性来定义它的正确含义。例如，如果我们正在为一个锁生成防护令牌（请参阅 “[防护令牌](#防护令牌)”），我们可能要求算法具有以下属性：
-
-* 唯一性（uniqueness）
-
-  没有两个防护令牌请求返回相同的值。
-
-* 单调序列（monotonic sequence）
-
-  如果请求 $x$ 返回了令牌 $t_x$，并且请求 $y$ 返回了令牌 $t_y$，并且 $x$ 在 $y$ 开始之前已经完成，那么 $t_x < t_y$。
-
-* 可用性（availability）
-
-  请求防护令牌并且不会崩溃的节点，最终会收到响应。
-
-如果一个系统模型中的算法总是满足它在所有我们假设可能发生的情况下的性质，那么这个算法是正确的。但这如何有意义？如果所有的节点崩溃，或者所有的网络延迟突然变得无限长，那么没有任何算法能够完成任何事情。
-
-#### 安全性和活性
-
-为了澄清这种情况，有必要区分两种不同的属性：**安全（safety）属性** 和 **活性（liveness）属性**。在刚刚给出的例子中，**唯一性** 和 **单调序列** 是安全属性，而 **可用性** 是活性属性。
-
-这两种性质有什么区别？一个试金石就是，活性属性通常在定义中通常包括 “**最终**” 一词（是的，你猜对了 —— 最终一致性是一个活性属性【89】）。
-
-安全通常被非正式地定义为：**没有坏事发生**，而活性通常就类似：**最终好事发生**。但是，最好不要过多地阅读那些非正式的定义，因为好与坏的含义是主观的。安全和活性的实际定义是精确的和数学的【90】：
-
-* 如果安全属性被违反，我们可以指向一个特定的安全属性被破坏的时间点（例如，如果违反了唯一性属性，我们可以确定重复的防护令牌被返回的特定操作）。违反安全属性后，违规行为不能被撤销 —— 损失已经发生。
-* 活性属性反过来：在某个时间点（例如，一个节点可能发送了一个请求，但还没有收到响应），它可能不成立，但总是希望在未来能成立（即通过接受答复）。
-
-区分安全属性和活性属性的一个优点是可以帮助我们处理困难的系统模型。对于分布式算法，在系统模型的所有可能情况下，要求 **始终** 保持安全属性是常见的【88】。也就是说，即使所有节点崩溃，或者整个网络出现故障，算法仍然必须确保它不会返回错误的结果（即保证安全属性得到满足）。
-
-但是，对于活性属性，我们可以提出一些注意事项：例如，只有在大多数节点没有崩溃的情况下，只有当网络最终从中断中恢复时，我们才可以说请求需要接收响应。部分同步模型的定义要求系统最终返回到同步状态 —— 即任何网络中断的时间段只会持续一段有限的时间，然后进行修复。
-
-#### 将系统模型映射到现实世界
-
-安全属性和活性属性以及系统模型对于推理分布式算法的正确性非常有用。然而，在实践中实施算法时，现实的混乱事实再一次地让你咬牙切齿，很明显系统模型是对现实的简化抽象。
-
-例如，在崩溃 - 恢复（crash-recovery）模型中的算法通常假设稳定存储器中的数据在崩溃后可以幸存。但是，如果磁盘上的数据被破坏，或者由于硬件错误或错误配置导致数据被清除，会发生什么情况【91】？如果服务器存在固件错误并且在重新启动时无法识别其硬盘驱动器，即使驱动器已正确连接到服务器，那又会发生什么情况【92】？
-
-法定人数算法（请参阅 “[读写的法定人数](/ch5#读写的法定人数)”）依赖节点来记住它声称存储的数据。如果一个节点可能患有健忘症，忘记了以前存储的数据，这会打破法定条件，从而破坏算法的正确性。也许需要一个新的系统模型，在这个模型中，我们假设稳定的存储大多能在崩溃后幸存，但有时也可能会丢失。但是那个模型就变得更难以推理了。
-
-算法的理论描述可以简单宣称一些事是不会发生的 —— 在非拜占庭式系统中，我们确实需要对可能发生和不可能发生的故障做出假设。然而，真实世界的实现，仍然会包括处理 “假设上不可能” 情况的代码，即使代码可能就是 `printf("Sucks to be you")` 和 `exit(666)`，实际上也就是留给运维来擦屁股【93】。（这可以说是计算机科学和软件工程间的一个差异）。
-
-这并不是说理论上抽象的系统模型是毫无价值的，恰恰相反。它们对于将实际系统的复杂性提取成一个个我们可以推理的可处理的错误类型是非常有帮助的，以便我们能够理解这个问题，并试图系统地解决这个问题。我们可以证明算法是正确的，通过表明它们的属性在某个系统模型中总是成立的。
-
-证明算法正确并不意味着它在真实系统上的实现必然总是正确的。但这迈出了很好的第一步，因为理论分析可以发现算法中的问题，这种问题可能会在现实系统中长期潜伏，直到你的假设（例如，时序）因为不寻常的情况被打破。理论分析与经验测试同样重要。
-
-
-## 本章小结
-
-在本章中，我们讨论了分布式系统中可能发生的各种问题，包括：
-
-* 当你尝试通过网络发送数据包时，数据包可能会丢失或任意延迟。同样，答复可能会丢失或延迟，所以如果你没有得到答复，你不知道消息是否发送成功了。
-* 节点的时钟可能会与其他节点显著不同步（尽管你尽最大努力设置 NTP），它可能会突然跳转或跳回，依靠它是很危险的，因为你很可能没有好的方法来测量你的时钟的错误间隔。
-* 一个进程可能会在其执行的任何时候暂停一段相当长的时间（可能是因为停止所有处理的垃圾收集器），被其他节点宣告死亡，然后再次复活，却没有意识到它被暂停了。
-
-这类 **部分失效（partial failure）** 可能发生的事实是分布式系统的决定性特征。每当软件试图做任何涉及其他节点的事情时，偶尔就有可能会失败，或者随机变慢，或者根本没有响应（最终超时）。在分布式系统中，我们试图在软件中建立 **部分失效** 的容错机制，这样整个系统在即使某些组成部分被破坏的情况下，也可以继续运行。
-
-为了容忍错误，第一步是 **检测** 它们，但即使这样也很难。大多数系统没有检测节点是否发生故障的准确机制，所以大多数分布式算法依靠 **超时** 来确定远程节点是否仍然可用。但是，超时无法区分网络失效和节点失效，并且可变的网络延迟有时会导致节点被错误地怀疑发生故障。此外，有时一个节点可能处于降级状态：例如，由于驱动程序错误，千兆网卡可能突然下降到 1 Kb/s 的吞吐量【94】。这样一个 “跛行” 而不是死掉的节点可能比一个干净的失效节点更难处理。
-
-一旦检测到故障，使系统容忍它也并不容易：没有全局变量，没有共享内存，没有共同的知识，或机器之间任何其他种类的共享状态。节点甚至不能就现在是什么时间达成一致，就不用说更深奥的了。信息从一个节点流向另一个节点的唯一方法是通过不可靠的网络发送信息。重大决策不能由一个节点安全地完成，因此我们需要一个能从其他节点获得帮助的协议，并争取达到法定人数以达成一致。
-
-如果你习惯于在理想化的数学完美的单机环境（同一个操作总能确定地返回相同的结果）中编写软件，那么转向分布式系统的凌乱的物理现实可能会有些令人震惊。相反，如果能够在单台计算机上解决一个问题，那么分布式系统工程师通常会认为这个问题是平凡的【5】，现在单个计算机确实可以做很多事情【95】。如果你可以避免打开潘多拉的盒子，把东西放在一台机器上，那么通常是值得的。
-
-但是，正如在 [第二部分](/part-ii) 的介绍中所讨论的那样，可伸缩性并不是使用分布式系统的唯一原因。容错和低延迟（通过将数据放置在距离用户较近的地方）是同等重要的目标，而这些不能用单个节点实现。
-
-在本章中，我们也转换了几次话题，探讨了网络、时钟和进程的不可靠性是否是不可避免的自然规律。我们看到这并不是：有可能给网络提供硬实时的响应保证和有限的延迟，但是这样做非常昂贵，且导致硬件资源的利用率降低。大多数非安全关键系统会选择 **便宜而不可靠**，而不是 **昂贵和可靠**。
-
-我们还谈到了超级计算机，它们采用可靠的组件，因此当组件发生故障时必须完全停止并重新启动。相比之下，分布式系统可以永久运行而不会在服务层面中断，因为所有的错误和维护都可以在节点级别进行处理 —— 至少在理论上是如此。（实际上，如果一个错误的配置变更被应用到所有的节点，仍然会使分布式系统瘫痪）。
-
-本章一直在讲存在的问题，给我们展现了一幅黯淡的前景。在 [下一章](/ch9) 中，我们将继续讨论解决方案，并讨论一些旨在解决分布式系统中所有问题的算法。
-
-
-## 参考文献
-
-1. Mark Cavage: “[There’s Just No Getting Around It: You’re Building a Distributed System](http://queue.acm.org/detail.cfm?id=2482856),” *ACM Queue*, volume 11, number 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](http://dx.doi.org/10.1145/2466486.2482856)
-1. Jay Kreps: “[Getting Real About Distributed System Reliability](http://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability),” *blog.empathybox.com*, March 19, 2012.
-1. Sydney Padua: *The Thrilling Adventures of Lovelace and Babbage: The (Mostly) True Story of the First Computer*. Particular Books, April 2015. ISBN: 978-0-141-98151-2
-1. Coda Hale: “[You Can’t Sacrifice Partition Tolerance](http://codahale.com/you-cant-sacrifice-partition-tolerance/),” *codahale.com*, October 7, 2010.
-1. Jeff Hodges: “[Notes on Distributed Systems for Young Bloods](https://web.archive.org/web/20200218095605/https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/),” *somethingsimilar.com*, January 14, 2013.
-1. Antonio Regalado: “[Who Coined 'Cloud Computing'?](https://www.technologyreview.com/2011/10/31/257406/who-coined-cloud-computing/),” *technologyreview.com*, October 31, 2011.
-1. Luiz André Barroso, Jimmy Clidaras, and Urs Hölzle: “[The Datacenter as a Computer: An Introduction to the Design of Warehouse-Scale Machines, Second Edition](https://web.archive.org/web/20140404113735/http://www.morganclaypool.com/doi/abs/10.2200/S00516ED2V01Y201306CAC024),” *Synthesis Lectures on Computer Architecture*, volume 8, number 3, Morgan & Claypool Publishers, July 2013. [doi:10.2200/S00516ED2V01Y201306CAC024](http://dx.doi.org/10.2200/S00516ED2V01Y201306CAC024), ISBN: 978-1-627-05010-4
-1. David Fiala, Frank Mueller, Christian Engelmann, et al.: “[Detection and Correction of Silent Data Corruption for Large-Scale High-Performance Computing](http://moss.csc.ncsu.edu/~mueller/ftp/pub/mueller/papers/sc12.pdf),” at *International Conference for High Performance Computing, Networking, Storage and Analysis* (SC12), November 2012.
-1. Arjun Singh, Joon Ong, Amit Agarwal, et al.: “[Jupiter Rising: A Decade of Clos Topologies and Centralized Control in Google’s Datacenter Network](http://conferences.sigcomm.org/sigcomm/2015/pdf/papers/p183.pdf),” at *Annual Conference of the ACM Special Interest Group on Data Communication* (SIGCOMM), August 2015. [doi:10.1145/2785956.2787508](http://dx.doi.org/10.1145/2785956.2787508)
-1. Glenn K. Lockwood: “[Hadoop's Uncomfortable Fit in HPC](http://glennklockwood.blogspot.co.uk/2014/05/hadoops-uncomfortable-fit-in-hpc.html),” *glennklockwood.blogspot.co.uk*, May 16, 2014.
-1. John von Neumann: “[Probabilistic Logics and the Synthesis of Reliable Organisms from Unreliable Components](https://personalpages.manchester.ac.uk/staff/nikolaos.kyparissas/uploads/VonNeumann1956.pdf),” in *Automata Studies (AM-34)*, edited by Claude E. Shannon and John McCarthy, Princeton University Press, 1956. ISBN: 978-0-691-07916-5
-1. Richard W. Hamming: *The Art of Doing Science and Engineering*. Taylor & Francis, 1997. ISBN: 978-9-056-99500-3
-1. Claude E. Shannon: “[A Mathematical Theory of Communication](http://cs.brynmawr.edu/Courses/cs380/fall2012/shannon1948.pdf),” *The Bell System Technical Journal*, volume 27, number 3, pages 379–423 and 623–656, July 1948.
-1. Peter Bailis and Kyle Kingsbury: “[The Network Is Reliable](https://queue.acm.org/detail.cfm?id=2655736),” *ACM Queue*, volume 12, number 7, pages 48-55, July 2014. [doi:10.1145/2639988.2639988](http://dx.doi.org/10.1145/2639988.2639988)
-1. Joshua B. Leners, Trinabh Gupta, Marcos K. Aguilera, and Michael Walfish: “[Taming Uncertainty in Distributed Systems with Help from the Network](http://www.cs.nyu.edu/~mwalfish/papers/albatross-eurosys15.pdf),” at *10th European Conference on Computer Systems* (EuroSys), April 2015. [doi:10.1145/2741948.2741976](http://dx.doi.org/10.1145/2741948.2741976)
-1. Phillipa Gill, Navendu Jain, and Nachiappan Nagappan: “[Understanding Network Failures in Data Centers: Measurement, Analysis, and Implications](http://conferences.sigcomm.org/sigcomm/2011/papers/sigcomm/p350.pdf),” at *ACM SIGCOMM Conference*, August 2011. [doi:10.1145/2018436.2018477](http://dx.doi.org/10.1145/2018436.2018477)
-1. Mark Imbriaco: “[Downtime Last Saturday](https://github.com/blog/1364-downtime-last-saturday),” *github.com*, December 26, 2012.
-1. Will Oremus: “[The Global Internet Is Being Attacked by Sharks, Google Confirms](http://www.slate.com/blogs/future_tense/2014/08/15/shark_attacks_threaten_google_s_undersea_internet_cables_video.html),” *slate.com*, August 15, 2014.
-1. Marc A. Donges: “[Re: bnx2 cards Intermittantly Going Offline](http://www.spinics.net/lists/netdev/msg210485.html),” Message to Linux *netdev* mailing list, *spinics.net*, September 13, 2012.
-1. Kyle Kingsbury: “[Call Me Maybe: Elasticsearch](https://aphyr.com/posts/317-call-me-maybe-elasticsearch),” *aphyr.com*, June 15, 2014.
-1. Salvatore Sanfilippo: “[A Few Arguments About Redis Sentinel Properties and Fail Scenarios](http://antirez.com/news/80),” *antirez.com*, October 21, 2014.
-1. Bert Hubert: “[The Ultimate SO_LINGER Page, or: Why Is My TCP Not Reliable](http://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable),” *blog.netherlabs.nl*, January 18, 2009.
-1. Nicolas Liochon: “[CAP: If All You Have Is a Timeout, Everything Looks Like a Partition](http://blog.thislongrun.com/2015/05/CAP-theorem-partition-timeout-zookeeper.html),” *blog.thislongrun.com*, May 25, 2015.
-1. Jerome H. Saltzer, David P. Reed, and David D. Clark: “[End-To-End Arguments in System Design](https://groups.csail.mit.edu/ana/Publications/PubPDFs/End-to-End%20Arguments%20in%20System%20Design.pdf),” *ACM Transactions on Computer Systems*, volume 2, number 4, pages 277–288, November 1984. [doi:10.1145/357401.357402](http://dx.doi.org/10.1145/357401.357402)
-1. Matthew P. Grosvenor, Malte Schwarzkopf, Ionel Gog, et al.: “[Queues Don’t Matter When You Can JUMP Them!](https://www.usenix.org/system/files/conference/nsdi15/nsdi15-paper-grosvenor_update.pdf),” at *12th USENIX Symposium on Networked Systems Design and Implementation* (NSDI), May 2015.
-1. Guohui Wang and T. S. Eugene Ng: “[The Impact of Virtualization on Network Performance of Amazon EC2 Data Center](http://www.cs.rice.edu/~eugeneng/papers/INFOCOM10-ec2.pdf),” at *29th IEEE International Conference on Computer Communications* (INFOCOM), March 2010. [doi:10.1109/INFCOM.2010.5461931](http://dx.doi.org/10.1109/INFCOM.2010.5461931)
-1. Van Jacobson: “[Congestion Avoidance and Control](http://www.cs.usask.ca/ftp/pub/discus/seminars2002-2003/p314-jacobson.pdf),” at *ACM Symposium on Communications Architectures and Protocols* (SIGCOMM), August 1988. [doi:10.1145/52324.52356](http://dx.doi.org/10.1145/52324.52356)
-1. Brandon Philips: “[etcd: Distributed Locking and Service Discovery](https://www.youtube.com/watch?v=HJIjTTHWYnE),” at *Strange Loop*, September 2014.
-1. Steve Newman: “[A Systematic Look at EC2 I/O](https://web.archive.org/web/20141211094156/http://blog.scalyr.com/2012/10/a-systematic-look-at-ec2-io/),” *blog.scalyr.com*, October 16, 2012.
-1. Naohiro Hayashibara, Xavier Défago, Rami Yared, and Takuya Katayama: “[The ϕ Accrual Failure Detector](http://hdl.handle.net/10119/4784),” Japan Advanced Institute of Science and Technology, School of Information Science, Technical Report IS-RR-2004-010, May 2004.
-1. Jeffrey Wang: “[Phi Accrual Failure Detector](http://ternarysearch.blogspot.co.uk/2013/08/phi-accrual-failure-detector.html),” *ternarysearch.blogspot.co.uk*, August 11, 2013.
-1. Srinivasan Keshav: *An Engineering Approach to Computer Networking: ATM Networks, the Internet, and the Telephone Network*. Addison-Wesley Professional, May 1997. ISBN: 978-0-201-63442-6
-1. Cisco, “[Integrated Services Digital Network](https://web.archive.org/web/20181229220921/http://docwiki.cisco.com/wiki/Integrated_Services_Digital_Network),” *docwiki.cisco.com*.
-1. Othmar Kyas: *ATM Networks*. International Thomson Publishing, 1995. ISBN: 978-1-850-32128-6
-1. “[InfiniBand FAQ](http://www.mellanox.com/related-docs/whitepapers/InfiniBandFAQ_FQ_100.pdf),” Mellanox Technologies, December 22, 2014.
-1. Jose Renato Santos, Yoshio Turner, and G. (John) Janakiraman: “[End-to-End Congestion Control for InfiniBand](http://www.hpl.hp.com/techreports/2002/HPL-2002-359.pdf),” at *22nd Annual Joint Conference of the IEEE Computer and Communications Societies* (INFOCOM), April 2003. Also published by HP Laboratories Palo Alto, Tech Report HPL-2002-359. [doi:10.1109/INFCOM.2003.1208949](http://dx.doi.org/10.1109/INFCOM.2003.1208949)
-1. Ulrich Windl, David Dalton, Marc Martinec, and Dale R. Worley: “[The NTP FAQ and HOWTO](http://www.ntp.org/ntpfaq/NTP-a-faq.htm),” *ntp.org*, November 2006.
-1. John Graham-Cumming: “[How and why the leap second affected Cloudflare DNS](https://blog.cloudflare.com/how-and-why-the-leap-second-affected-cloudflare-dns/),” *blog.cloudflare.com*, January 1, 2017.
-1. David Holmes: “[Inside the Hotspot VM: Clocks, Timers and Scheduling Events – Part I – Windows](https://web.archive.org/web/20160308031939/https://blogs.oracle.com/dholmes/entry/inside_the_hotspot_vm_clocks),” *blogs.oracle.com*, October 2, 2006.
-1. Steve Loughran: “[Time on Multi-Core, Multi-Socket Servers](http://steveloughran.blogspot.co.uk/2015/09/time-on-multi-core-multi-socket-servers.html),” *steveloughran.blogspot.co.uk*, September 17, 2015.
-1. James C. Corbett, Jeffrey Dean, Michael Epstein, et al.: “[Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/),” at *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
-1. M. Caporaloni and R. Ambrosini: “[How Closely Can a Personal Computer Clock Track the UTC Timescale Via the Internet?](https://iopscience.iop.org/0143-0807/23/4/103/),” *European Journal of Physics*, volume 23, number 4, pages L17–L21, June 2012. [doi:10.1088/0143-0807/23/4/103](http://dx.doi.org/10.1088/0143-0807/23/4/103)
-1. Nelson Minar: “[A Survey of the NTP Network](http://alumni.media.mit.edu/~nelson/research/ntp-survey99/),” *alumni.media.mit.edu*, December 1999.
-1. Viliam Holub: “[Synchronizing Clocks in a Cassandra Cluster Pt. 1 – The Problem](https://blog.rapid7.com/2014/03/14/synchronizing-clocks-in-a-cassandra-cluster-pt-1-the-problem/),” *blog.rapid7.com*, March 14, 2014.
-1. Poul-Henning Kamp: “[The One-Second War (What Time Will You Die?)](http://queue.acm.org/detail.cfm?id=1967009),” *ACM Queue*, volume 9, number 4, pages 44–48, April 2011. [doi:10.1145/1966989.1967009](http://dx.doi.org/10.1145/1966989.1967009)
-1. Nelson Minar: “[Leap Second Crashes Half the Internet](http://www.somebits.com/weblog/tech/bad/leap-second-2012.html),” *somebits.com*, July 3, 2012.
-1. Christopher Pascoe: “[Time, Technology and Leaping Seconds](http://googleblog.blogspot.co.uk/2011/09/time-technology-and-leaping-seconds.html),” *googleblog.blogspot.co.uk*, September 15, 2011.
-1. Mingxue Zhao and Jeff Barr: “[Look Before You Leap – The Coming Leap Second and AWS](https://aws.amazon.com/blogs/aws/look-before-you-leap-the-coming-leap-second-and-aws/),” *aws.amazon.com*, May 18, 2015.
-1. Darryl Veitch and Kanthaiah Vijayalayan: “[Network Timing and the 2015 Leap Second](https://tklab.feit.uts.edu.au/~darryl/Publications/LeapSecond_camera.pdf),” at *17th International Conference on Passive and Active Measurement* (PAM), April 2016. [doi:10.1007/978-3-319-30505-9_29](http://dx.doi.org/10.1007/978-3-319-30505-9_29)
-1. “[Timekeeping in VMware Virtual Machines](https://www.vmware.com/content/dam/digitalmarketing/vmware/en/pdf/techpaper/Timekeeping-In-VirtualMachines.pdf),” Information Guide, VMware, Inc., December 2011.
-1. “[MiFID II / MiFIR: Regulatory Technical and Implementing Standards – Annex I (Draft)](https://www.esma.europa.eu/sites/default/files/library/2015/11/2015-esma-1464_annex_i_-_draft_rts_and_its_on_mifid_ii_and_mifir.pdf),” European Securities and Markets Authority, Report ESMA/2015/1464, September 2015.
-1. Luke Bigum: “[Solving MiFID II Clock Synchronisation With Minimum Spend (Part 1)](https://web.archive.org/web/20170704030310/https://www.lmax.com/blog/staff-blogs/2015/11/27/solving-mifid-ii-clock-synchronisation-minimum-spend-part-1/),” *lmax.com*, November 27, 2015.
-1. Kyle Kingsbury: “[Call Me Maybe: Cassandra](https://aphyr.com/posts/294-call-me-maybe-cassandra/),” *aphyr.com*, September 24, 2013.
-1. John Daily: “[Clocks Are Bad, or, Welcome to the Wonderful World of Distributed Systems](https://riak.com/clocks-are-bad-or-welcome-to-distributed-systems/),” *riak.com*, November 12, 2013.
-1. Kyle Kingsbury: “[The Trouble with Timestamps](https://aphyr.com/posts/299-the-trouble-with-timestamps),” *aphyr.com*, October 12, 2013.
-1. Leslie Lamport: “[Time, Clocks, and the Ordering of Events in a Distributed System](https://www.microsoft.com/en-us/research/publication/time-clocks-ordering-events-distributed-system/),” *Communications of the ACM*, volume 21, number 7, pages 558–565, July 1978. [doi:10.1145/359545.359563](http://dx.doi.org/10.1145/359545.359563)
-1. Sandeep Kulkarni, Murat Demirbas, Deepak Madeppa, et al.: “[Logical Physical Clocks and Consistent Snapshots in Globally Distributed Databases](http://www.cse.buffalo.edu/tech-reports/2014-04.pdf),” State University of New York at Buffalo, Computer Science and Engineering Technical Report 2014-04, May 2014.
-1. Justin Sheehy: “[There Is No Now: Problems With Simultaneity in Distributed Systems](https://queue.acm.org/detail.cfm?id=2745385),” *ACM Queue*, volume 13, number 3, pages 36–41, March 2015. [doi:10.1145/2733108](http://dx.doi.org/10.1145/2733108)
-1. Murat Demirbas: “[Spanner: Google's Globally-Distributed Database](http://muratbuffalo.blogspot.co.uk/2013/07/spanner-googles-globally-distributed_4.html),” *muratbuffalo.blogspot.co.uk*, July 4, 2013.
-1. Dahlia Malkhi and Jean-Philippe Martin: “[Spanner's Concurrency Control](http://www.cs.cornell.edu/~ie53/publications/DC-col51-Sep13.pdf),” *ACM SIGACT News*, volume 44, number 3, pages 73–77, September 2013. [doi:10.1145/2527748.2527767](http://dx.doi.org/10.1145/2527748.2527767)
-1. Manuel Bravo, Nuno Diegues, Jingna Zeng, et al.: “[On the Use of Clocks to Enforce Consistency in the Cloud](http://sites.computer.org/debull/A15mar/p18.pdf),” *IEEE Data Engineering Bulletin*, volume 38, number 1, pages 18–31, March 2015.
-1. Spencer Kimball: “[Living Without Atomic Clocks](http://www.cockroachlabs.com/blog/living-without-atomic-clocks/),” *cockroachlabs.com*, February 17, 2016.
-1. Cary G. Gray and David R. Cheriton: “[Leases: An Efficient Fault-Tolerant Mechanism for Distributed File Cache Consistency](https://web.archive.org/web/20230325205928/http://web.stanford.edu/class/cs240/readings/89-leases.pdf),” at *12th ACM Symposium on Operating Systems Principles* (SOSP), December 1989. [doi:10.1145/74850.74870](http://dx.doi.org/10.1145/74850.74870)
-1. Todd Lipcon: “[Avoiding Full GCs in Apache HBase with MemStore-Local Allocation Buffers: Part 1](https://web.archive.org/web/20121101040711/http://blog.cloudera.com/blog/2011/02/avoiding-full-gcs-in-hbase-with-memstore-local-allocation-buffers-part-1/),” *blog.cloudera.com*, February 24, 2011.
-1. Martin Thompson: “[Java Garbage Collection Distilled](http://mechanical-sympathy.blogspot.co.uk/2013/07/java-garbage-collection-distilled.html),” *mechanical-sympathy.blogspot.co.uk*, July 16, 2013.
-1. Alexey Ragozin: “[How to Tame Java GC Pauses? Surviving 16GiB Heap and Greater](https://dzone.com/articles/how-tame-java-gc-pauses),” *dzone.com*, June 28, 2011.
-1. Christopher Clark, Keir Fraser, Steven Hand, et al.: “[Live Migration of Virtual Machines](http://www.cl.cam.ac.uk/research/srg/netos/papers/2005-nsdi-migration.pdf),” at *2nd USENIX Symposium on Symposium on Networked Systems Design & Implementation* (NSDI), May 2005.
-1. Mike Shaver: “[fsyncers and Curveballs](https://web.archive.org/web/20220107141023/http://shaver.off.net/diary/2008/05/25/fsyncers-and-curveballs/),” *shaver.off.net*, May 25, 2008.
-1. Zhenyun Zhuang and Cuong Tran: “[Eliminating Large JVM GC Pauses Caused by Background IO Traffic](https://engineering.linkedin.com/blog/2016/02/eliminating-large-jvm-gc-pauses-caused-by-background-io-traffic),” *engineering.linkedin.com*, February 10, 2016.
-1. David Terei and Amit Levy: “[Blade: A Data Center Garbage Collector](http://arxiv.org/pdf/1504.02578.pdf),” arXiv:1504.02578, April 13, 2015.
-1. Martin Maas, Tim Harris, Krste Asanović, and John Kubiatowicz: “[Trash Day: Coordinating Garbage Collection in Distributed Systems](https://timharris.uk/papers/2015-hotos.pdf),” at *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
-1. “[Predictable Low Latency](http://cdn2.hubspot.net/hubfs/1624455/Website_2016/content/White%20papers/Cinnober%20on%20GC%20pause%20free%20Java%20applications.pdf),” Cinnober Financial Technology AB, *cinnober.com*, November 24, 2013.
-1. Martin Fowler: “[The LMAX Architecture](http://martinfowler.com/articles/lmax.html),” *martinfowler.com*, July 12, 2011.
-1. Flavio P. Junqueira and Benjamin Reed: *ZooKeeper: Distributed Process Coordination*. O'Reilly Media, 2013. ISBN: 978-1-449-36130-3
-1. Enis Söztutar: “[HBase and HDFS: Understanding Filesystem Usage in HBase](http://www.slideshare.net/enissoz/hbase-and-hdfs-understanding-filesystem-usage),” at *HBaseCon*, June 2013.
-1. Caitie McCaffrey: “[Clients Are Jerks: AKA How Halo 4 DoSed the Services at Launch & How We Survived](https://web.archive.org/web/20230128065851/http://caitiem.com/2015/06/23/clients-are-jerks-aka-how-halo-4-dosed-the-services-at-launch-how-we-survived/),” *caitiem.com*, June 23, 2015.
-1. Leslie Lamport, Robert Shostak, and Marshall Pease: “[The Byzantine Generals Problem](https://www.microsoft.com/en-us/research/publication/byzantine-generals-problem/),” *ACM Transactions on Programming Languages and Systems* (TOPLAS), volume 4, number 3, pages 382–401, July 1982. [doi:10.1145/357172.357176](http://dx.doi.org/10.1145/357172.357176)
-1. Jim N. Gray: “[Notes on Data Base Operating Systems](http://jimgray.azurewebsites.net/papers/dbos.pdf),” in *Operating Systems: An Advanced Course*, Lecture Notes in Computer Science, volume 60, edited by R. Bayer, R. M. Graham, and G. Seegmüller, pages 393–481, Springer-Verlag, 1978. ISBN: 978-3-540-08755-7
-1. Brian Palmer: “[How Complicated Was the Byzantine Empire?](http://www.slate.com/articles/news_and_politics/explainer/2011/10/the_byzantine_tax_code_how_complicated_was_byzantium_anyway_.html),” *slate.com*, October 20, 2011.
-1. Leslie Lamport: “[My Writings](http://lamport.azurewebsites.net/pubs/pubs.html),” *lamport.azurewebsites.net*, December 16, 2014. This page can be found by searching the web for the 23-character string obtained by removing the hyphens from the string `allla-mport-spubso-ntheweb`.
-1. John Rushby: “[Bus Architectures for Safety-Critical Embedded Systems](http://www.csl.sri.com/papers/emsoft01/emsoft01.pdf),” at *1st International Workshop on Embedded Software* (EMSOFT), October 2001.
-1. Jake Edge: “[ELC: SpaceX Lessons Learned](http://lwn.net/Articles/540368/),” *lwn.net*, March 6, 2013.
-1. Andrew Miller and Joseph J. LaViola, Jr.: “[Anonymous Byzantine Consensus from Moderately-Hard Puzzles: A Model for Bitcoin](http://nakamotoinstitute.org/static/docs/anonymous-byzantine-consensus.pdf),” University of Central Florida, Technical Report CS-TR-14-01, April 2014.
-1. James Mickens: “[The Saddest Moment](https://www.usenix.org/system/files/login-logout_1305_mickens.pdf),” *USENIX ;login: logout*, May 2013.
-1. Evan Gilman: “[The Discovery of Apache ZooKeeper’s Poison Packet](http://www.pagerduty.com/blog/the-discovery-of-apache-zookeepers-poison-packet/),” *pagerduty.com*, May 7, 2015.
-1. Jonathan Stone and Craig Partridge: “[When the CRC and TCP Checksum Disagree](https://web.archive.org/web/20220818235232/https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.27.7611&rep=rep1&type=pdf),” at *ACM Conference on Applications, Technologies, Architectures, and Protocols for Computer Communication* (SIGCOMM), August 2000. [doi:10.1145/347059.347561](http://dx.doi.org/10.1145/347059.347561)
-1. Evan Jones: “[How Both TCP and Ethernet Checksums Fail](http://www.evanjones.ca/tcp-and-ethernet-checksums-fail.html),” *evanjones.ca*, October 5, 2015.
-1. Cynthia Dwork, Nancy Lynch, and Larry Stockmeyer: “[Consensus in the Presence of Partial Synchrony](https://dl.acm.org/doi/10.1145/42282.42283),” *Journal of the ACM*, volume 35, number 2, pages 288–323, April 1988. [doi:10.1145/42282.42283](http://dx.doi.org/10.1145/42282.42283)
-1. Peter Bailis and Ali Ghodsi: “[Eventual Consistency Today: Limitations, Extensions, and Beyond](http://queue.acm.org/detail.cfm?id=2462076),” *ACM Queue*, volume 11, number 3, pages 55-63, March 2013. [doi:10.1145/2460276.2462076](http://dx.doi.org/10.1145/2460276.2462076)
-1. Bowen Alpern and Fred B. Schneider: “[Defining Liveness](https://www.cs.cornell.edu/fbs/publications/DefLiveness.pdf),” *Information Processing Letters*, volume 21, number 4, pages 181–185, October 1985. [doi:10.1016/0020-0190(85)90056-0](http://dx.doi.org/10.1016/0020-0190(85)90056-0)
-1. Flavio P. Junqueira: “[Dude, Where’s My Metadata?](https://web.archive.org/web/20230604215314/https://fpj.systems/2015/05/28/dude-wheres-my-metadata/),” *fpj.me*, May 28, 2015.
-1. Scott Sanders: “[January 28th Incident Report](https://github.com/blog/2106-january-28th-incident-report),” *github.com*, February 3, 2016.
-1. Jay Kreps: “[A Few Notes on Kafka and Jepsen](http://blog.empathybox.com/post/62279088548/a-few-notes-on-kafka-and-jepsen),” *blog.empathybox.com*, September 25, 2013.
-1. Thanh Do, Mingzhe Hao, Tanakorn Leesatapornwongsa, et al.: “[Limplock: Understanding the Impact of Limpware on Scale-out Cloud Systems](http://ucare.cs.uchicago.edu/pdf/socc13-limplock.pdf),” at *4th ACM Symposium on Cloud Computing* (SoCC), October 2013. [doi:10.1145/2523616.2523627](http://dx.doi.org/10.1145/2523616.2523627)
-1. Frank McSherry, Michael Isard, and Derek G. Murray: “[Scalability! But at What COST?](http://www.frankmcsherry.org/assets/COST.pdf),” at *15th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2015.
-
-[^译著1]: 原诗为：Hey I just met you. The network’s laggy. But here’s my data. So store it maybe.Hey,  应改编自《Call Me Maybe》歌词：I just met you, And this is crazy, But here's my number, So call me, maybe?
+{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" caption="Figure 8-2. Violating isolation: one transaction reads another transaction's uncommitted writes (a \"dirty read\")." class="w-full my-4" >}}
+
+
+However, you might find this query to be too slow if there are many emails, and decide to store the
+number of unread messages in a separate field (a kind of denormalization, which we discuss in
+[“Normalization, Denormalization, and Joins”](/en/ch3#sec_datamodels_normalization)). Now, whenever a new message comes in, you have to increment the
+unread counter as well, and whenever a message is marked as read, you also have to decrement the
+unread counter.
+
+In [Figure 8-2](/en/ch8#fig_transactions_read_uncommitted), user 2 experiences an anomaly: the mailbox listing shows
+an unread message, but the counter shows zero unread messages because the counter increment has not
+yet happened. (If an incorrect counter in an email application seems too insignificant, think of a
+customer account balance instead of an unread counter, and a payment transaction instead of an
+email.) Isolation would have prevented this issue by ensuring that user 2 sees either both the
+inserted email and the updated counter, or neither, but not an inconsistent halfway point.
+
+[Figure 8-3](/en/ch8#fig_transactions_atomicity) illustrates the need for atomicity: if an error occurs somewhere
+over the course of the transaction, the contents of the mailbox and the unread counter might become out
+of sync. In an atomic transaction, if the update to the counter fails, the transaction is aborted
+and the inserted email is rolled back.
+
+{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" caption="Figure 8-3. Atomicity ensures that if an error occurs any prior writes from that transaction are undone, to avoid an inconsistent state." class="w-full my-4" >}}
+
+
+Multi-object transactions require some way of determining which read and write operations belong to
+the same transaction. In relational databases, that is typically done based on the client’s TCP
+connection to the database server: on any particular connection, everything between a `BEGIN
+TRANSACTION` and a `COMMIT` statement is considered to be part of the same transaction. If the TCP
+connection is interrupted, the transaction must be aborted.
+
+On the other hand, many nonrelational databases don’t have such a way of grouping operations
+together. Even if there is a multi-object API (for example, a key-value store may have a *multi-put*
+operation that updates several keys in one operation), that doesn’t necessarily mean it has
+transaction semantics: the command may succeed for some keys and fail for others, leaving the
+database in a partially updated state.
+
+#### 单对象写入 {#sec_transactions_single_object}
+
+Atomicity and isolation also apply when a single object is being changed. For example, imagine you
+are writing a 20 KB JSON document to a database:
+
+* If the network connection is interrupted after the first 10 KB have been sent, does the
+ database store that unparseable 10 KB fragment of JSON?
+* If the power fails while the database is in the middle of overwriting the previous value on disk,
+ do you end up with the old and new values spliced together?
+* If another client reads that document while the write is in progress, will it see a partially
+ updated value?
+
+Those issues would be incredibly confusing, so storage engines almost universally aim to provide
+atomicity and isolation on the level of a single object (such as a key-value pair) on one node.
+Atomicity can be implemented using a log for crash recovery (see [“Making B-trees reliable”](/en/ch4#sec_storage_btree_wal)), and
+isolation can be implemented using a lock on each object (allowing only one thread to access an
+object at any one time).
+
+Some databases also provide more complex atomic operations, such as an increment operation, which
+removes the need for a read-modify-write cycle like that in [Figure 8-1](/en/ch8#fig_transactions_increment).
+Similarly popular is a *conditional write* operation, which allows a write to happen only if the value
+has not been concurrently changed by someone else (see [“Conditional writes (compare-and-set)”](/en/ch8#sec_transactions_compare_and_set)),
+similarly to a compare-and-set or compare-and-swap (CAS) operation in shared-memory concurrency.
+
+--------
+
+> [!NOTE]
+> Strictly speaking, the term *atomic increment* uses the word *atomic* in the sense of multi-threaded
+> programming. In the context of ACID, it should actually be called an *isolated* or *serializable*
+> increment, but that’s not the usual term.
+
+--------
+
+These single-object operations are useful, as they can prevent lost updates when several clients try
+to write to the same object concurrently (see [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update)). However, they are
+not transactions in the usual sense of the word. For example, the “lightweight transactions” feature
+of Cassandra and ScyllaDB, and Aerospike’s “strong consistency” mode offer linearizable (see
+[“Linearizability”](/en/ch10#sec_consistency_linearizability)) reads and conditional writes on a single object, but no
+guarantees across multiple objects.
+
+#### 多对象事务的需求 {#sec_transactions_need}
+
+Do we need multi-object transactions at all? Would it be possible to implement any application with
+only a key-value data model and single-object operations?
+
+There are some use cases in which single-object inserts, updates, and deletes are sufficient.
+However, in many other cases writes to several different objects need to be coordinated:
+
+* In a relational data model, a row in one table often has a foreign key reference to a row in
+ another table. Similarly, in a graph-like data model, a vertex has edges to other vertices.
+ Multi-object transactions allow you to ensure that these references remain valid: when inserting
+ several records that refer to one another, the foreign keys have to be correct and up to date,
+ or the data becomes nonsensical.
+* In a document data model, the fields that need to be updated together are often within the same
+ document, which is treated as a single object—no multi-object transactions are needed when
+ updating a single document. However, document databases lacking join functionality also encourage
+ denormalization (see [“When to Use Which Model”](/en/ch3#sec_datamodels_document_summary)). When denormalized information needs to
+ be updated, like in the example of [Figure 8-2](/en/ch8#fig_transactions_read_uncommitted), you need to update
+ several documents in one go. Transactions are very useful in this situation to prevent
+ denormalized data from going out of sync.
+* In databases with secondary indexes (almost everything except pure key-value stores), the indexes
+ also need to be updated every time you change a value. These indexes are different database
+ objects from a transaction point of view: for example, without transaction isolation, it’s
+ possible for a record to appear in one index but not another, because the update to the second
+ index hasn’t happened yet (see [“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes)).
+
+Such applications can still be implemented without transactions. However, error handling becomes
+much more complicated without atomicity, and the lack of isolation can cause concurrency problems.
+We will discuss those in [“Weak Isolation Levels”](/en/ch8#sec_transactions_isolation_levels), and explore alternative approaches
+in [Link to Come].
+
+#### 处理错误和中止 {#handling-errors-and-aborts}
+
+A key feature of a transaction is that it can be aborted and safely retried if an error occurred.
+ACID databases are based on this philosophy: if the database is in danger of violating its guarantee
+of atomicity, isolation, or durability, it would rather abandon the transaction entirely than allow
+it to remain half-finished.
+
+Not all systems follow that philosophy, though. In particular, datastores with leaderless
+replication (see [“Leaderless Replication”](/en/ch6#sec_replication_leaderless)) work much more on a “best effort” basis, which
+could be summarized as “the database will do as much as it can, and if it runs into an error, it
+won’t undo something it has already done”—so it’s the application’s responsibility to recover from
+errors.
+
+Errors will inevitably happen, but many software developers prefer to think only about the happy
+path rather than the intricacies of error handling. For example, popular object-relational mapping
+(ORM) frameworks such as Rails’s ActiveRecord and Django don’t retry aborted transactions—the
+error usually results in an exception bubbling up the stack, so any user input is thrown away and
+the user gets an error message. This is a shame, because the whole point of aborts is to enable safe
+retries.
+
+Although retrying an aborted transaction is a simple and effective error handling mechanism, it
+isn’t perfect:
+
+* If the transaction actually succeeded, but the network was interrupted while the server tried to
+ acknowledge the successful commit to the client (so it timed out from the client’s point of view),
+ then retrying the transaction causes it to be performed twice—unless you have an additional
+ application-level deduplication mechanism in place.
+* If the error is due to overload or high contention between concurrent transactions, retrying the
+ transaction will make the problem worse, not better. To avoid such feedback cycles, you can limit
+ the number of retries, use exponential backoff, and handle overload-related errors differently
+ from other errors (see [“When an overloaded system won’t recover”](/en/ch2#sidebar_metastable)).
+* It is only worth retrying after transient errors (for example due to deadlock, isolation
+ violation, temporary network interruptions, and failover); after a permanent error (e.g.,
+ constraint violation) a retry would be pointless.
+* If the transaction also has side effects outside of the database, those side effects may happen
+ even if the transaction is aborted. For example, if you’re sending an email, you wouldn’t want to
+ send the email again every time you retry the transaction. If you want to make sure that several
+ different systems either commit or abort together, two-phase commit can help (we will discuss this
+ in [“Two-Phase Commit (2PC)”](/en/ch8#sec_transactions_2pc)).
+* If the client process crashes while retrying, any data it was trying to write to the database is lost.
+
+
+
+## 弱隔离级别 {#sec_transactions_isolation_levels}
+
+If two transactions don’t access the same data, or if both are read-only, they can safely be run in
+parallel, because neither depends on the other. Concurrency issues (race conditions) only come into
+play when one transaction reads data that is concurrently modified by another transaction, or when
+the two transactions try to modify the same data.
+
+Concurrency bugs are hard to find by testing, because such bugs are only triggered when you get
+unlucky with the timing. Such timing issues might occur very rarely, and are usually difficult to
+reproduce. Concurrency is also very difficult to reason about, especially in a large application
+where you don’t necessarily know which other pieces of code are accessing the database. Application
+development is difficult enough if you just have one user at a time; having many concurrent users
+makes it much harder still, because any piece of data could unexpectedly change at any time.
+
+For that reason, databases have long tried to hide concurrency issues from application developers by
+providing *transaction isolation*. In theory, isolation should make your life easier by letting you
+pretend that no concurrency is happening: *serializable* isolation means that the database
+guarantees that transactions have the same effect as if they ran *serially* (i.e., one at a time,
+without any concurrency).
+
+In practice, isolation is unfortunately not that simple. Serializable isolation has a performance
+cost, and many databases don’t want to pay that price [^10]. It’s therefore common for systems to use
+weaker levels of isolation, which protect against *some* concurrency issues, but not all. Those
+levels of isolation are much harder to understand, and they can lead to subtle bugs, but they are
+nevertheless used in practice [^29].
+
+Concurrency bugs caused by weak transaction isolation are not just a theoretical problem. They have
+caused substantial loss of money [^30] [^31] [^32], led to investigation by financial auditors [^33],
+and caused customer data to be corrupted [^34]. A popular comment on revelations of such problems is “Use an ACID database if you’re handling
+financial data!”—but that misses the point. Even many popular relational database systems (which
+are usually considered “ACID”) use weak isolation, so they wouldn’t necessarily have prevented these
+bugs from occurring.
+
+--------
+
+> [!NOTE]
+> Incidentally, much of the banking system relies on text files that are exchanged via secure FTP [^35].
+> In this context, having an audit trail and some human-level fraud prevention measures is actually
+> more important than ACID properties.
+
+--------
+
+Those examples also highlight an important point: even if concurrency issues are rare in normal
+operation, you have to consider the possibility that an attacker deliberately sends a burst of
+highly concurrent requests to your API in an attempt to deliberately exploit concurrency bugs [^30]. Therefore, in order to build
+applications that are reliable and secure, you have to ensure that such bugs are systematically
+prevented.
+
+In this section we will look at several weak (nonserializable) isolation levels that are used in
+practice, and discuss in detail what kinds of race conditions can and cannot occur, so that you can
+decide what level is appropriate to your application. Once we’ve done that, we will discuss
+serializability in detail (see [“Serializability”](/en/ch8#sec_transactions_serializability)). Our discussion of isolation
+levels will be informal, using examples. If you want rigorous definitions and analyses of their
+properties, you can find them in the academic literature [^36] [^37] [^38] [^39].
+
+### 读已提交 {#sec_transactions_read_committed}
+
+The most basic level of transaction isolation is *read committed*. It makes two guarantees:
+
+1. When reading from the database, you will only see data that has been committed (no *dirty reads*).
+2. When writing to the database, you will only overwrite data that has been committed (no *dirty writes*).
+
+Some databases support an even weaker isolation level called *read uncommitted*. It prevents dirty
+writes, but does not prevent dirty reads. Let’s discuss these two guarantees in more detail.
+
+#### 没有脏读 {#no-dirty-reads}
+
+Imagine a transaction has written some data to the database, but the transaction has not yet committed or aborted.
+Can another transaction see that uncommitted data? If yes, that is called a
+*dirty read* [^3].
+
+Transactions running at the read committed isolation level must prevent dirty reads. This means that
+any writes by a transaction only become visible to others when that transaction commits (and then
+all of its writes become visible at once). This is illustrated in [Figure 8-4](/en/ch8#fig_transactions_read_committed), where user 1 has set *x* = 3, but user 2’s *get x* still
+returns the old value, 2, while user 1 has not yet committed.
+
+{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" caption="Figure 8-4. No dirty reads: user 2 sees the new value for x only after user 1's transaction has committed." class="w-full my-4" >}}
+
+There are a few reasons why it’s useful to prevent dirty reads:
+
+* If a transaction needs to update several rows, a dirty read means that another transaction may
+ see some of the updates but not others. For example, in [Figure 8-2](/en/ch8#fig_transactions_read_uncommitted), the
+ user sees the new unread email but not the updated counter. This is a dirty read of the email.
+ Seeing the database in a partially updated state is confusing to users and may cause other
+ transactions to take incorrect decisions.
+* If a transaction aborts, any writes it has made need to be rolled back (like in
+ [Figure 8-3](/en/ch8#fig_transactions_atomicity)). If the database allows dirty reads, that means a transaction may
+ see data that is later rolled back—i.e., which is never actually committed to the database. Any
+ transaction that read uncommitted data would also need to be aborted, leading to a problem called
+ *cascading aborts*.
+
+#### 没有脏写 {#sec_transactions_dirty_write}
+
+What happens if two transactions concurrently try to update the same row in a database? We don’t
+know in which order the writes will happen, but we normally assume that the later write overwrites
+the earlier write.
+
+However, what happens if the earlier write is part of a transaction that has not yet committed, so
+the later write overwrites an uncommitted value? This is called a *dirty write* [^36]. Transactions running at the read
+committed isolation level must prevent dirty writes, usually by delaying the second write until the
+first write’s transaction has committed or aborted.
+
+By preventing dirty writes, this isolation level avoids some kinds of concurrency problems:
+
+* If transactions update multiple rows, dirty writes can lead to a bad outcome. For example,
+ consider [Figure 8-5](/en/ch8#fig_transactions_dirty_writes), which illustrates a used car sales website on which
+ two people, Aaliyah and Bryce, are simultaneously trying to buy the same car. Buying a car requires
+ two database writes: the listing on the website needs to be updated to reflect the buyer, and the
+ sales invoice needs to be sent to the buyer. In the case of [Figure 8-5](/en/ch8#fig_transactions_dirty_writes), the
+ sale is awarded to Bryce (because he performs the winning update to the `listings` table), but the
+ invoice is sent to Aaliyah (because she performs the winning update to the `invoices` table). Read
+ committed prevents such mishaps.
+* However, read committed does *not* prevent the race condition between two counter increments in
+ [Figure 8-1](/en/ch8#fig_transactions_increment). In this case, the second write happens after the first transaction
+ has committed, so it’s not a dirty write. It’s still incorrect, but for a different reason—in
+ [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update) we will discuss how to make such counter increments safe.
+
+{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" caption="Figure 8-5. With dirty writes, conflicting writes from different transactions can be mixed up." class="w-full my-4" >}}
+
+
+#### 实现读已提交 {#sec_transactions_read_committed_impl}
+
+Read committed is a very popular isolation level. It is the default setting in Oracle Database,
+PostgreSQL, SQL Server, and many other databases [^10].
+
+Most commonly, databases prevent dirty writes by using row-level locks: when a transaction wants to
+modify a particular row (or document or some other object), it must first acquire a lock on that
+row. It must then hold that lock until the transaction is committed or aborted. Only one transaction
+can hold the lock for any given row; if another transaction wants to write to the same row, it must
+wait until the first transaction is committed or aborted before it can acquire the lock and
+continue. This locking is done automatically by databases in read committed mode (or stronger
+isolation levels).
+
+How do we prevent dirty reads? One option would be to use the same lock, and to require any
+transaction that wants to read a row to briefly acquire the lock and then release it again
+immediately after reading. This would ensure that a read couldn’t happen while a row has a
+dirty, uncommitted value (because during that time the lock would be held by the transaction that
+has made the write).
+
+However, the approach of requiring read locks does not work well in practice, because one
+long-running write transaction can force many other transactions to wait until the long-running
+transaction has completed, even if the other transactions only read and do not write anything to the
+database. This harms the response time of read-only transactions and is bad for
+operability: a slowdown in one part of an application can have a knock-on effect in a completely
+different part of the application, due to waiting for locks.
+
+Nevertheless, locks are used to prevent dirty reads in some databases, such as IBM
+Db2 and Microsoft SQL Server in the `read_committed_snapshot=off` setting [^29].
+
+A more commonly used approach to preventing dirty reads is the one illustrated in [Figure 8-4](/en/ch8#fig_transactions_read_committed): for every
+row that is written, the database remembers both the old committed value and the new value
+set by the transaction that currently holds the write lock. While the transaction is ongoing, any
+other transactions that read the row are simply given the old value. Only when the new value is
+committed do transactions switch over to reading the new value (see
+[“Multi-version concurrency control (MVCC)”](/en/ch8#sec_transactions_snapshot_impl) for more detail).
+
+### 快照隔离与可重复读 {#sec_transactions_snapshot_isolation}
+
+If you look superficially at read committed isolation, you could be forgiven for thinking that it
+does everything that a transaction needs to do: it allows aborts (required for atomicity), it
+prevents reading the incomplete results of transactions, and it prevents concurrent writes from
+getting intermingled. Indeed, those are useful features, and much stronger guarantees than you can
+get from a system that has no transactions.
+
+However, there are still plenty of ways in which you can have concurrency bugs when using this
+isolation level. For example, [Figure 8-6](/en/ch8#fig_transactions_item_many_preceders) illustrates a problem that
+can occur with read committed.
+
+{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" caption="Figure 8-6. Read skew: Aaliyah observes the database in an inconsistent state." class="w-full my-4" >}}
+
+
+Say Aaliyah has $1,000 of savings at a bank, split across two accounts with $500 each. Now a
+transaction transfers $100 from one of her accounts to the other. If she is unlucky enough to look at her
+list of account balances in the same moment as that transaction is being processed, she may see one
+account balance at a time before the incoming payment has arrived (with a balance of $500), and the
+other account after the outgoing transfer has been made (the new balance being $400). To Aaliyah it
+now appears as though she only has a total of $900 in her accounts—it seems that $100 has
+vanished into thin air.
+
+This anomaly is called *read skew*, and it is an example of a *nonrepeatable read*:
+if Aaliyah were to read the balance of account 1 again at the end of the transaction, she would see a different value ($600) than she saw
+in her previous query. Read skew is considered acceptable under read committed isolation: the
+account balances that Aaliyah saw were indeed committed at the time when she read them.
+
+--------
+
+> [!NOTE]
+> The term *skew* is unfortunately overloaded: we previously used it in the sense of an *unbalanced
+> workload with hot spots* (see [“Skewed Workloads and Relieving Hot Spots”](/en/ch7#sec_sharding_skew)), whereas here it means *timing anomaly*.
+
+--------
+
+In Aaliyah’s case, this is not a lasting problem, because she will most likely see consistent account
+balances if she reloads the online banking website a few seconds later. However, some situations
+cannot tolerate such temporary inconsistency:
+
+Backups
+: Taking a backup requires making a copy of the entire database, which may take hours on a large
+ database. During the time that the backup process is running, writes will continue to be made to
+ the database. Thus, you could end up with some parts of the backup containing an older version of
+ the data, and other parts containing a newer version. If you need to restore from such a backup,
+ the inconsistencies (such as disappearing money) become permanent.
+
+Analytic queries and integrity checks
+: Sometimes, you may want to run a query that scans over large parts of the database. Such queries
+ are common in analytics (see [“Analytical versus Operational Systems”](/en/ch1#sec_introduction_analytics)), or may be part of a periodic integrity
+ check that everything is in order (monitoring for data corruption). These queries are likely to
+ return nonsensical results if they observe parts of the database at different points in time.
+
+*Snapshot isolation* [^36] is the most common
+solution to this problem. The idea is that each transaction reads from a *consistent snapshot* of
+the database—that is, the transaction sees all the data that was committed in the database at the
+start of the transaction. Even if the data is subsequently changed by another transaction, each
+transaction sees only the old data from that particular point in time.
+
+Snapshot isolation is a boon for long-running, read-only queries such as backups and analytics. It
+is very hard to reason about the meaning of a query if the data on which it operates is changing at
+the same time as the query is executing. When a transaction can see a consistent snapshot of the
+database, frozen at a particular point in time, it is much easier to understand.
+
+Snapshot isolation is a popular feature: variants of it are supported by PostgreSQL, MySQL with the
+InnoDB storage engine, Oracle, SQL Server, and others, although the detailed behavior varies from
+one system to the next [^29] [^40] [^41].
+Some databases, such as Oracle, TiDB, and Aurora DSQL, even choose snapshot isolation as their
+highest isolation level.
+
+#### 多版本并发控制（MVCC） {#sec_transactions_snapshot_impl}
+
+Like read committed isolation, implementations of snapshot isolation typically use write locks to
+prevent dirty writes (see [“Implementing read committed”](/en/ch8#sec_transactions_read_committed_impl)), which means that a transaction
+that makes a write can block the progress of another transaction that writes to the same row.
+However, reads do not require any locks. From a performance point of view, a key principle of
+snapshot isolation is *readers never block writers, and writers never block readers*. This allows a
+database to handle long-running read queries on a consistent snapshot at the same time as processing
+writes normally, without any lock contention between the two.
+
+To implement snapshot isolation, databases use a generalization of the mechanism we saw for
+preventing dirty reads in [Figure 8-4](/en/ch8#fig_transactions_read_committed). Instead of two versions of each row
+(the committed version and the overwritten-but-not-yet-committed version), the database must
+potentially keep several different committed versions of a row, because various in-progress
+transactions may need to see the state of the database at different points in time. Because it
+maintains several versions of a row side by side, this technique is known as *multi-version
+concurrency control* (MVCC).
+
+[Figure 8-7](/en/ch8#fig_transactions_mvcc) illustrates how MVCC-based snapshot isolation is implemented in PostgreSQL
+[^40] [^42] [^43] (other implementations are similar).
+When a transaction is started, it is given a unique, always-increasing transaction ID (`txid`).
+Whenever a transaction writes anything to the database, the data it writes is tagged with the
+transaction ID of the writer. (To be precise, transaction IDs in PostgreSQL are 32-bit integers, so
+they overflow after approximately 4 billion transactions. The vacuum process performs cleanup to
+ensure that overflow does not affect the data.)
+
+{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" caption="Figure 8-7. Implementing snapshot isolation using multi-version concurrency control." class="w-full my-4" >}}
+
+
+Each row in a table has a `inserted_by` field, containing the ID of the transaction that inserted
+this row into the table. Moreover, each row has a `deleted_by` field, which is initially empty. If a
+transaction deletes a row, the row isn’t actually removed from the database, but it is marked for
+deletion by setting the `deleted_by` field to the ID of the transaction that requested the deletion.
+At some later time, when it is certain that no transaction can any longer access the deleted data, a
+garbage collection process in the database removes any rows marked for deletion and frees their
+space.
+
+An update is internally translated into a delete and a insert [^44].
+For example, in [Figure 8-7](/en/ch8#fig_transactions_mvcc), transaction 13 deducts $100 from account 2, changing the
+balance from $500 to $400. The `accounts` table now actually contains two rows for account 2: a row
+with a balance of $500 which was marked as deleted by transaction 13, and a row with a balance of
+$400 which was inserted by transaction 13.
+
+All of the versions of a row are stored within the same database heap (see
+[“Storing values within the index”](/en/ch4#sec_storage_index_heap)), regardless of whether the transactions that wrote them have committed
+or not. The versions of the same row form a linked list, going either from newest version to oldest
+version or the other way round, so that queries can internally iterate over all versions of a row [^45] [^46].
+
+#### 观察一致快照的可见性规则 {#sec_transactions_mvcc_visibility}
+
+When a transaction reads from the database, transaction IDs are used to decide which row versions it
+can see and which are invisible. By carefully defining visibility rules, the database can present a
+consistent snapshot of the database to the application. This works roughly as follows [^43]:
+
+1. At the start of each transaction, the database makes a list of all the other transactions that
+ are in progress (not yet committed or aborted) at that time. Any writes that those
+ transactions have made are ignored, even if the transactions subsequently commit. This ensures
+ that we see a consistent snapshot that is not affected by another transaction committing.
+2. Any writes made by transactions with a later transaction ID (i.e., which started after the current
+ transaction started, and which are therefore not included in the list of in-progress
+ transactions) are ignored, regardless of whether those transactions have committed.
+3. Any writes made by aborted transactions are ignored, regardless of when that abort happened.
+ This has the advantage that when a transaction aborts, we don’t need to immediately remove the
+ rows it wrote from storage, since the visibility rule filters them out. The garbage collection
+ process can remove them later.
+4. All other writes are visible to the application’s queries.
+
+These rules apply to both insertion and deletion of rows. In [Figure 8-7](/en/ch8#fig_transactions_mvcc), when
+transaction 12 reads from account 2, it sees a balance of $500 because the deletion of the $500
+balance was made by transaction 13 (according to rule 2, transaction 12 cannot see a deletion made
+by transaction 13), and the insertion of the $400 balance is not yet visible (by the same rule).
+
+Put another way, a row is visible if both of the following conditions are true:
+
+* At the time when the reader’s transaction started, the transaction that inserted the row had
+ already committed.
+* The row is not marked for deletion, or if it is, the transaction that requested deletion had
+ not yet committed at the time when the reader’s transaction started.
+
+A long-running transaction may continue using a snapshot for a long time, continuing to read values
+that (from other transactions’ point of view) have long been overwritten or deleted. By never
+updating values in place but instead inserting a new version every time a value is changed, the
+database can provide a consistent snapshot while incurring only a small overhead.
+
+#### 索引与快照隔离 {#indexes-and-snapshot-isolation}
+
+How do indexes work in a multi-version database? The most common approach is that each index entry
+points at one of the versions of a row that matches the entry (either the oldest or the newest
+version). Each row version may contain a reference to the next-oldest or next-newest version. A
+query that uses the index must then iterate over the rows to find one that is visible, and where the
+value matches what the query is looking for. When garbage collection removes old row versions that
+are no longer visible to any transaction, the corresponding index entries can also be removed.
+
+Many implementation details affect the performance of multi-version concurrency control [^45] [^46].
+For example, PostgreSQL has optimizations for avoiding index updates if different versions of the
+same row can fit on the same page [^40]. Some other databases avoid storing full copies of modified rows, 
+and only store differences between versions to save space.
+
+Another approach is used in CouchDB, Datomic, and LMDB. Although they also use B-trees (see
+[“B-Trees”](/en/ch4#sec_storage_b_trees)), they use an *immutable* (copy-on-write) variant that does not overwrite
+pages of the tree when they are updated, but instead creates a new copy of each modified page.
+Parent pages, up to the root of the tree, are copied and updated to point to the new versions of
+their child pages. Any pages that are not affected by a write do not need to be copied, and can be
+shared with the new tree [^47].
+
+With immutable B-trees, every write transaction (or batch of transactions) creates a new B-tree
+root, and a particular root is a consistent snapshot of the database at the point in time when it
+was created. There is no need to filter out rows based on transaction IDs because subsequent
+writes cannot modify an existing B-tree; they can only create new tree roots. This approach also
+requires a background process for compaction and garbage collection.
+
+#### 快照隔离、可重复读和命名混淆 {#snapshot-isolation-repeatable-read-and-naming-confusion}
+
+MVCC is a commonly used implementation technique for databases, and often it is used to implement
+snapshot isolation. However, different databases sometimes use different terms to refer to the same
+thing: for example, snapshot isolation is called “repeatable read” in PostgreSQL, and “serializable”
+in Oracle [^29]. Sometimes different systems
+use the same term to mean different things: for example, while in PostgreSQL “repeatable read” means
+snapshot isolation, in MySQL it means an implementation of MVCC with weaker consistency than
+snapshot isolation [^41].
+
+The reason for this naming confusion is that the SQL standard doesn’t have the concept of snapshot
+isolation, because the standard is based on System R’s 1975 definition of isolation levels [^3] and snapshot isolation hadn’t yet been
+invented then. Instead, it defines repeatable read, which looks superficially similar to snapshot
+isolation. PostgreSQL calls its snapshot isolation level “repeatable read” because it meets the
+requirements of the standard, and so they can claim standards compliance.
+
+Unfortunately, the SQL standard’s definition of isolation levels is flawed—it is ambiguous,
+imprecise, and not as implementation-independent as a standard should be [^36]. Even though several databases
+implement repeatable read, there are big differences in the guarantees they actually provide,
+despite being ostensibly standardized [^29]. There has been a formal definition of
+repeatable read in the research literature [^37] [^38], but most implementations don’t satisfy that
+formal definition. And to top it off, IBM Db2 uses “repeatable read” to refer to serializability [^10].
+
+As a result, nobody really knows what repeatable read means.
+
+### 防止丢失更新 {#sec_transactions_lost_update}
+
+The read committed and snapshot isolation levels we’ve discussed so far have been primarily about the guarantees
+of what a read-only transaction can see in the presence of concurrent writes. We have mostly ignored
+the issue of two transactions writing concurrently—we have only discussed dirty writes (see
+[“No dirty writes”](/en/ch8#sec_transactions_dirty_write)), one particular type of write-write conflict that can occur.
+
+There are several other interesting kinds of conflicts that can occur between concurrently writing
+transactions. The best known of these is the *lost update* problem, illustrated in
+[Figure 8-1](/en/ch8#fig_transactions_increment) with the example of two concurrent counter increments.
+
+The lost update problem can occur if an application reads some value from the database, modifies it,
+and writes back the modified value (a *read-modify-write cycle*). If two transactions do this
+concurrently, one of the modifications can be lost, because the second write does not include the
+first modification. (We sometimes say that the later write *clobbers* the earlier write.) This
+pattern occurs in various different scenarios:
+
+* Incrementing a counter or updating an account balance (requires reading the current value,
+ calculating the new value, and writing back the updated value)
+* Making a local change to a complex value, e.g., adding an element to a list within a JSON document
+ (requires parsing the document, making the change, and writing back the modified document)
+* Two users editing a wiki page at the same time, where each user saves their changes by sending the
+ entire page contents to the server, overwriting whatever is currently in the database
+
+Because this is such a common problem, a variety of solutions have been developed [^48].
+
+#### 原子写操作 {#atomic-write-operations}
+
+Many databases provide atomic update operations, which remove the need to implement
+read-modify-write cycles in application code. They are usually the best solution if your code can be
+expressed in terms of those operations. For example, the following instruction is concurrency-safe
+in most relational databases:
+
+```sql
+UPDATE counters SET value = value + 1 WHERE key = 'foo';
+```
+
+Similarly, document databases such as MongoDB provide atomic operations for making local
+modifications to a part of a JSON document, and Redis provides atomic operations for modifying data
+structures such as priority queues. Not all writes can easily be expressed in terms of atomic
+operations—for example, updates to a wiki page involve arbitrary text editing, which can be handled
+using algorithms discussed in [“CRDTs and Operational Transformation”](/en/ch6#sec_replication_crdts)—but in situations where atomic operations
+can be used, they are usually the best choice.
+
+Atomic operations are usually implemented by taking an exclusive lock on the object when it is read
+so that no other transaction can read it until the update has been applied.
+Another option is to simply force all atomic operations to be executed on a single thread.
+
+Unfortunately, object-relational mapping (ORM) frameworks make it easy to accidentally write code
+that performs unsafe read-modify-write cycles instead of using atomic operations provided by the
+database [^49] [^50] [^51].
+This can be a source of subtle bugs that are difficult to find by testing.
+
+#### 显式锁定 {#explicit-locking}
+
+Another option for preventing lost updates, if the database’s built-in atomic operations don’t
+provide the necessary functionality, is for the application to explicitly lock objects that are
+going to be updated. Then the application can perform a read-modify-write cycle, and if any other
+transaction tries to concurrently update or lock the same object, it is forced to wait until the
+first read-modify-write cycle has completed.
+
+For example, consider a multiplayer game in which several players can move the same figure
+concurrently. In this case, an atomic operation may not be sufficient, because the application also
+needs to ensure that a player’s move abides by the rules of the game, which involves some logic that
+you cannot sensibly implement as a database query. Instead, you may use a lock to prevent two
+players from concurrently moving the same piece, as illustrated in [Example 8-1](/en/ch8#fig_transactions_select_for_update).
+
+{{< figure id="fig_transactions_select_for_update" title="Example 8-1. Explicitly locking rows to prevent lost updates" class="w-full my-4" >}}
+
+```sql
+BEGIN TRANSACTION;
+
+SELECT * FROM figures
+    WHERE name = 'robot' AND game_id = 222
+    FOR UPDATE; ❶
+
+-- Check whether move is valid, then update the position
+-- of the piece that was returned by the previous SELECT.
+UPDATE figures SET position = 'c4' WHERE id = 1234;
+
+COMMIT;
+```
+
+❶: The `FOR UPDATE` clause indicates that the database should take a lock on all rows returned by this query.
+
+This works, but to get it right, you need to carefully think about your application logic. It’s easy
+to forget to add a necessary lock somewhere in the code, and thus introduce a race condition.
+
+Moreover, if you lock multiple objects there is a risk of deadlock, where two or more transactions
+are waiting for each other to release their locks. Many databases automatically detect deadlocks,
+and abort one of the involved transactions so that the system can make progress. You can handle this
+situation at the application level by retrying the aborted transaction.
+
+#### 自动检测丢失的更新 {#automatically-detecting-lost-updates}
+
+Atomic operations and locks are ways of preventing lost updates by forcing the read-modify-write
+cycles to happen sequentially. An alternative is to allow them to execute in parallel and, if the
+transaction manager detects a lost update, abort the transaction and force it to retry
+its read-modify-write cycle.
+
+An advantage of this approach is that databases can perform this check efficiently in conjunction
+with snapshot isolation. Indeed, PostgreSQL’s repeatable read, Oracle’s serializable, and SQL
+Server’s snapshot isolation levels automatically detect when a lost update has occurred and abort
+the offending transaction. However, MySQL/InnoDB’s repeatable read does not detect lost updates [^29] [^41].
+Some authors [^36] [^38] argue that a database must prevent lost
+updates in order to qualify as providing snapshot isolation, so MySQL does not provide snapshot
+isolation under this definition.
+
+Lost update detection is a great feature, because it doesn’t require application code to use any
+special database features—you may forget to use a lock or an atomic operation and thus introduce
+a bug, but lost update detection happens automatically and is thus less error-prone. However, you
+also have to retry aborted transactions at the application level.
+
+#### 条件写入（比较并设置） {#sec_transactions_compare_and_set}
+
+In databases that don’t provide transactions, you sometimes find a *conditional write* operation
+that can prevent lost updates by allowing an update to happen only if the value has not changed
+since you last read it (previously mentioned in [“Single-object writes”](/en/ch8#sec_transactions_single_object)). If the current
+value does not match what you previously read, the update has no effect, and the read-modify-write
+cycle must be retried. It is the database equivalent of an atomic *compare-and-set* or
+*compare-and-swap* (CAS) instruction that is supported by many CPUs.
+
+For example, to prevent two users concurrently updating the same wiki page, you might try something
+like this, expecting the update to occur only if the content of the page hasn’t changed since the
+user started editing it:
+
+```sql
+-- This may or may not be safe, depending on the database implementation
+UPDATE wiki_pages SET content = 'new content'
+    WHERE id = 1234 AND content = 'old content';
+```
+
+If the content has changed and no longer matches `'old content'`, this update will have no effect,
+so you need to check whether the update took effect and retry if necessary. Instead of comparing the
+full content, you could also use a version number column that you increment on every update, and
+apply the update only if the current version number hasn’t changed. This approach is sometimes
+called *optimistic locking* [^52].
+
+Note that if another transaction has concurrently modified `content`, the new content may not be
+visible under the MVCC visibility rules (see [“Visibility rules for observing a consistent snapshot”](/en/ch8#sec_transactions_mvcc_visibility)). Many
+implementations of MVCC have an exception to the visibility rules for this scenario, where values
+written by other transactions are visible to the evaluation of the `WHERE` clause of `UPDATE` and
+`DELETE` queries, even though those writes are not otherwise visible in the snapshot.
+
+#### 冲突解决与复制 {#conflict-resolution-and-replication}
+
+In replicated databases (see [Chapter 6](/en/ch6#ch_replication)), preventing lost updates takes on another
+dimension: since they have copies of the data on multiple nodes, and the data can potentially be
+modified concurrently on different nodes, some additional steps need to be taken to prevent lost
+updates.
+
+Locks and conditional write operations assume that there is a single up-to-date copy of the data.
+However, databases with multi-leader or leaderless replication usually allow several writes to
+happen concurrently and replicate them asynchronously, so they cannot guarantee that there is a
+single up-to-date copy of the data. Thus, techniques based on locks or conditional writes do not apply
+in this context. (We will revisit this issue in more detail in [“Linearizability”](/en/ch10#sec_consistency_linearizability).)
+
+Instead, as discussed in [“Dealing with Conflicting Writes”](/en/ch6#sec_replication_write_conflicts), a common approach in such replicated
+databases is to allow concurrent writes to create several conflicting versions of a value (also
+known as *siblings*), and to use application code or special data structures to resolve and merge
+these versions after the fact.
+
+Merging conflicting values can prevent lost updates if the updates are commutative (i.e., you can
+apply them in a different order on different replicas, and still get the same result). For example,
+incrementing a counter or adding an element to a set are commutative operations. That is the idea
+behind CRDTs, which we encountered in [“CRDTs and Operational Transformation”](/en/ch6#sec_replication_crdts). However, some operations such as
+conditional writes cannot be made commutative.
+
+On the other hand, the *last write wins* (LWW) conflict resolution method is prone to lost updates,
+as discussed in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww). 
+Unfortunately, LWW is the default in many replicated databases.
+
+### 写偏斜与幻读 {#sec_transactions_write_skew}
+
+In the previous sections we saw *dirty writes* and *lost updates*, two kinds of race conditions that
+can occur when different transactions concurrently try to write to the same objects. In order to
+avoid data corruption, those race conditions need to be prevented—either automatically by the
+database, or by manual safeguards such as using locks or atomic write operations.
+
+However, that is not the end of the list of potential race conditions that can occur between
+concurrent writes. In this section we will see some subtler examples of conflicts.
+
+To begin, imagine this example: you are writing an application for doctors to manage their on-call
+shifts at a hospital. The hospital usually tries to have several doctors on call at any one time,
+but it absolutely must have at least one doctor on call. Doctors can give up their shifts (e.g., if
+they are sick themselves), provided that at least one colleague remains on call in that shift [^53] [^54].
+
+Now imagine that Aaliyah and Bryce are the two on-call doctors for a particular shift. Both are
+feeling unwell, so they both decide to request leave. Unfortunately, they happen to click the button
+to go off call at approximately the same time. What happens next is illustrated in
+[Figure 8-8](/en/ch8#fig_transactions_write_skew).
+
+{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" caption="Figure 8-8. Example of write skew causing an application bug." class="w-full my-4" >}}
+
+
+In each transaction, your application first checks that two or more doctors are currently on call;
+if yes, it assumes it’s safe for one doctor to go off call. Since the database is using snapshot
+isolation, both checks return `2`, so both transactions proceed to the next stage. Aaliyah updates her
+own record to take herself off call, and Bryce updates his own record likewise. Both transactions
+commit, and now no doctor is on call. Your requirement of having at least one doctor on call has been violated.
+
+#### 描述写偏斜 {#characterizing-write-skew}
+
+This anomaly is called *write skew* [^36]. It
+is neither a dirty write nor a lost update, because the two transactions are updating two different
+objects (Aaliyah’s and Bryce’s on-call records, respectively). It is less obvious that a conflict occurred
+here, but it’s definitely a race condition: if the two transactions had run one after another, the
+second doctor would have been prevented from going off call. The anomalous behavior was only
+possible because the transactions ran concurrently.
+
+You can think of write skew as a generalization of the lost update problem. Write skew can occur if two
+transactions read the same objects, and then update some of those objects (different transactions
+may update different objects). In the special case where different transactions update the same
+object, you get a dirty write or lost update anomaly (depending on the timing).
+
+We saw that there are various different ways of preventing lost updates. With write skew, our
+options are more restricted:
+
+* Atomic single-object operations don’t help, as multiple objects are involved.
+* The automatic detection of lost updates that you find in some implementations of snapshot
+ isolation unfortunately doesn’t help either: write skew is not automatically detected in
+ PostgreSQL’s repeatable read, MySQL/InnoDB’s repeatable read, Oracle’s serializable, or SQL
+ Server’s snapshot isolation level [^29]. 
+ Automatically preventing write skew requires true serializable isolation (see [“Serializability”](/en/ch8#sec_transactions_serializability)).
+* Some databases allow you to configure constraints, which are then enforced by the database (e.g.,
+ uniqueness, foreign key constraints, or restrictions on a particular value). However, in order to
+ specify that at least one doctor must be on call, you would need a constraint that involves
+ multiple objects. Most databases do not have built-in support for such constraints, but you may be
+ able to implement them with triggers or materialized views, as discussed in
+ [“Consistency”](/en/ch8#sec_transactions_acid_consistency) [^12].
+* If you can’t use a serializable isolation level, the second-best option in this case is probably
+ to explicitly lock the rows that the transaction depends on. In the doctors example, you could
+ write something like the following:
+
+ ```sql
+ BEGIN TRANSACTION;
+
+ SELECT * FROM doctors
+     WHERE on_call = true
+     AND shift_id = 1234 FOR UPDATE; ❶
+
+ UPDATE doctors
+    SET on_call = false
+    WHERE name = 'Aaliyah'
+    AND shift_id = 1234;
+
+ COMMIT;
+ ```
+
+❶: As before, `FOR UPDATE` tells the database to lock all rows returned by this query.
+
+#### 更多写偏斜的例子 {#more-examples-of-write-skew}
+
+Write skew may seem like an esoteric issue at first, but once you’re aware of it, you may notice
+more situations in which it can occur. Here are some more examples:
+
+Meeting room booking system
+: Say you want to enforce that there cannot be two bookings for the same meeting room at the same time [^55].
+    When someone wants to make a booking, you first check for any conflicting bookings (i.e.,
+    bookings for the same room with an overlapping time range), and if none are found, you create the
+    meeting (see [Example 8-2](/en/ch8#fig_transactions_meeting_rooms)).
+    
+    {{< figure id="fig_transactions_meeting_rooms" title="Example 8-2. A meeting room booking system tries to avoid double-booking (not safe under snapshot isolation)" class="w-full my-4" >}}
+    
+    ```sql
+    BEGIN TRANSACTION;
+    
+    -- Check for any existing bookings that overlap with the period of noon-1pm
+    SELECT COUNT(*) FROM bookings
+    WHERE room_id = 123 AND
+    end_time > '2025-01-01 12:00' AND start_time < '2025-01-01 13:00';
+    
+    -- If the previous query returned zero:
+    INSERT INTO bookings (room_id, start_time, end_time, user_id)
+    VALUES (123, '2025-01-01 12:00', '2025-01-01 13:00', 666);
+    
+    COMMIT;
+    ```
+
+     Unfortunately, snapshot isolation does not prevent another user from concurrently inserting a conflicting
+     meeting. In order to guarantee you won’t get scheduling conflicts, you once again need serializable
+     isolation.
+
+Multiplayer game
+: In [Example 8-1](/en/ch8#fig_transactions_select_for_update), we used a lock to prevent lost updates (that is, making
+ sure that two players can’t move the same figure at the same time). However, the lock doesn’t
+ prevent players from moving two different figures to the same position on the board or potentially
+ making some other move that violates the rules of the game. Depending on the kind of rule you are
+ enforcing, you might be able to use a unique constraint, but otherwise you’re vulnerable to write
+ skew.
+
+Claiming a username
+: On a website where each user has a unique username, two users may try to create accounts with the
+ same username at the same time. You may use a transaction to check whether a name is taken and, if
+ not, create an account with that name. However, like in the previous examples, that is not safe
+ under snapshot isolation. Fortunately, a unique constraint is a simple solution here (the second
+ transaction that tries to register the username will be aborted due to violating the constraint).
+
+Preventing double-spending
+: A service that allows users to spend money or points needs to check that a user doesn’t spend more
+ than they have. You might implement this by inserting a tentative spending item into a user’s
+ account, listing all the items in the account, and checking that the sum is positive.
+ With write skew, it could happen that two spending items are inserted concurrently that together
+ cause the balance to go negative, but that neither transaction notices the other.
+
+#### 导致写偏斜的幻读 {#sec_transactions_phantom}
+
+All of these examples follow a similar pattern:
+
+1. A `SELECT` query checks whether some requirement is satisfied by searching for rows that
+ match some search condition (there are at least two doctors on call, there are no existing
+ bookings for that room at that time, the position on the board doesn’t already have another
+ figure on it, the username isn’t already taken, there is still money in the account).
+2. Depending on the result of the first query, the application code decides how to continue (perhaps
+ to go ahead with the operation, or perhaps to report an error to the user and abort).
+3. If the application decides to go ahead, it makes a write (`INSERT`, `UPDATE`, or `DELETE`) to the
+ database and commits the transaction.
+
+ The effect of this write changes the precondition of the decision of step 2. In other words, if you
+ were to repeat the `SELECT` query from step 1 after committing the write, you would get a different
+ result, because the write changed the set of rows matching the search condition (there is now one
+ fewer doctor on call, the meeting room is now booked for that time, the position on the board is now
+ taken by the figure that was moved, the username is now taken, there is now less money in the
+ account).
+
+The steps may occur in a different order. For example, you could first make the write, then the
+`SELECT` query, and finally decide whether to abort or commit based on the result of the query.
+
+In the case of the doctor on call example, the row being modified in step 3 was one of the rows
+returned in step 1, so we could make the transaction safe and avoid write skew by locking the rows
+in step 1 (`SELECT FOR UPDATE`). However, the other four examples are different: they check for the
+*absence* of rows matching some search condition, and the write *adds* a row matching the same
+condition. If the query in step 1 doesn’t return any rows, `SELECT FOR UPDATE` can’t attach locks to
+anything [^56].
+
+This effect, where a write in one transaction changes the result of a search query in another
+transaction, is called a *phantom* [^4].
+Snapshot isolation avoids phantoms in read-only queries, but in read-write transactions like the
+examples we discussed, phantoms can lead to particularly tricky cases of write skew. The SQL
+generated by ORMs is also prone to write skew [^50] [^51].
+
+#### 物化冲突 {#materializing-conflicts}
+
+If the problem of phantoms is that there is no object to which we can attach the locks, perhaps we
+can artificially introduce a lock object into the database?
+
+For example, in the meeting room booking case you could imagine creating a table of time slots and
+rooms. Each row in this table corresponds to a particular room for a particular time period (say, 15
+minutes). You create rows for all possible combinations of rooms and time periods ahead of time,
+e.g. for the next six months.
+
+Now a transaction that wants to create a booking can lock (`SELECT FOR UPDATE`) the rows in the
+table that correspond to the desired room and time period. After it has acquired the locks, it can
+check for overlapping bookings and insert a new booking as before. Note that the additional table
+isn’t used to store information about the booking—it’s purely a collection of locks which is used
+to prevent bookings on the same room and time range from being modified concurrently.
+
+This approach is called *materializing conflicts*, because it takes a phantom and turns it into a
+lock conflict on a concrete set of rows that exist in the database [^14]. Unfortunately, it can be hard and
+error-prone to figure out how to materialize conflicts, and it’s ugly to let a concurrency control
+mechanism leak into the application data model. For those reasons, materializing conflicts should be
+considered a last resort if no alternative is possible. A serializable isolation level is much
+preferable in most cases.
+
+
+
+## 可串行化 {#sec_transactions_serializability}
+
+In this chapter we have seen several examples of transactions that are prone to race conditions.
+Some race conditions are prevented by the read committed and snapshot isolation levels, but
+others are not. We encountered some particularly tricky examples with write skew and phantoms. It’s
+a sad situation:
+
+* Isolation levels are hard to understand, and inconsistently implemented in different databases
+ (e.g., the meaning of “repeatable read” varies significantly).
+* If you look at your application code, it’s difficult to tell whether it is safe to run at a
+ particular isolation level—especially in a large application, where you might not be aware of
+ all the things that may be happening concurrently.
+* There are no good tools to help us detect race conditions. In principle, static analysis may
+ help [^33], but research techniques have not
+ yet found their way into practical use. Testing for concurrency issues is hard, because they are
+ usually nondeterministic—problems only occur if you get unlucky with the timing.
+
+This is not a new problem—it has been like this since the 1970s, when weak isolation levels were
+first introduced [^3]. All along, the answer
+from researchers has been simple: use *serializable* isolation!
+
+Serializable isolation is the strongest isolation level. It guarantees that even
+though transactions may execute in parallel, the end result is the same as if they had executed one
+at a time, *serially*, without any concurrency. Thus, the database guarantees that if the
+transactions behave correctly when run individually, they continue to be correct when run
+concurrently—in other words, the database prevents *all* possible race conditions.
+
+But if serializable isolation is so much better than the mess of weak isolation levels, then why
+isn’t everyone using it? To answer this question, we need to look at the options for implementing
+serializability, and how they perform. Most databases that provide serializability today use one of
+three techniques, which we will explore in the rest of this chapter:
+
+* Literally executing transactions in a serial order (see [“Actual Serial Execution”](/en/ch8#sec_transactions_serial))
+* Two-phase locking (see [“Two-Phase Locking (2PL)”](/en/ch8#sec_transactions_2pl)), which for several decades was the only viable option
+* Optimistic concurrency control techniques such as serializable snapshot isolation (see
+ [“Serializable Snapshot Isolation (SSI)”](/en/ch8#sec_transactions_ssi))
+
+### 实际串行执行 {#sec_transactions_serial}
+
+The simplest way of avoiding concurrency problems is to remove the concurrency entirely: to
+execute only one transaction at a time, in serial order, on a single thread. By doing so, we completely
+sidestep the problem of detecting and preventing conflicts between transactions: the resulting
+isolation is by definition serializable.
+
+Even though this seems like an obvious idea, it was only in the 2000s that database designers
+decided that a single-threaded loop for executing transactions was feasible [^57].
+If multi-threaded concurrency was considered essential for getting good performance during the
+previous 30 years, what changed to make single-threaded execution possible?
+
+Two developments caused this rethink:
+
+* RAM became cheap enough that for many use cases it is now feasible to keep the entire
+ active dataset in memory (see [“Keeping everything in memory”](/en/ch4#sec_storage_inmemory)). When all data that a transaction needs to
+ access is in memory, transactions can execute much faster than if they have to wait for data to be
+ loaded from disk.
+* Database designers realized that OLTP transactions are usually short and only make a small number
+ of reads and writes (see [“Analytical versus Operational Systems”](/en/ch1#sec_introduction_analytics)). By contrast, long-running analytic queries
+ are typically read-only, so they can be run on a consistent snapshot (using snapshot isolation)
+ outside of the serial execution loop.
+
+The approach of executing transactions serially is implemented in VoltDB/H-Store, Redis, and Datomic,
+for example [^58] [^59] [^60].
+A system designed for single-threaded execution can sometimes perform better than a system that
+supports concurrency, because it can avoid the coordination overhead of locking. However, its
+throughput is limited to that of a single CPU core. In order to make the most of that single thread,
+transactions need to be structured differently from their traditional form.
+
+#### 将事务封装在存储过程中 {#encapsulating-transactions-in-stored-procedures}
+
+In the early days of databases, the intention was that a database transaction could encompass an
+entire flow of user activity. For example, booking an airline ticket is a multi-stage process
+(searching for routes, fares, and available seats; deciding on an itinerary; booking seats on
+each of the flights of the itinerary; entering passenger details; making payment). Database
+designers thought that it would be neat if that entire process was one transaction so that it could
+be committed atomically.
+
+Unfortunately, humans are very slow to make up their minds and respond. If a database transaction
+needs to wait for input from a user, the database needs to support a potentially huge number of
+concurrent transactions, most of them idle. Most databases cannot do that efficiently, and so almost
+all OLTP applications keep transactions short by avoiding interactively waiting for a user within a
+transaction. On the web, this means that a transaction is committed within the same HTTP request—​a
+transaction does not span multiple requests. A new HTTP request starts a new transaction.
+
+Even though the human has been taken out of the critical path, transactions have continued to be
+executed in an interactive client/server style, one statement at a time. An application makes a
+query, reads the result, perhaps makes another query depending on the result of the first query, and
+so on. The queries and results are sent back and forth between the application code (running on one
+machine) and the database server (on another machine).
+
+In this interactive style of transaction, a lot of time is spent in network communication between
+the application and the database. If you were to disallow concurrency in the database and only
+process one transaction at a time, the throughput would be dreadful because the database would
+spend most of its time waiting for the application to issue the next query for the current
+transaction. In this kind of database, it’s necessary to process multiple transactions concurrently
+in order to get reasonable performance.
+
+For this reason, systems with single-threaded serial transaction processing don’t allow interactive
+multi-statement transactions. Instead, the application must either limit itself to transactions
+containing a single statement, or submit the entire transaction code to the database ahead of time,
+as a *stored procedure* [^61].
+
+The differences between interactive transactions and stored procedures is illustrated in
+[Figure 8-9](/en/ch8#fig_transactions_stored_proc). Provided that all data required by a transaction is in memory, the
+stored procedure can execute very quickly, without waiting for any network or disk I/O.
+
+{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" caption="Figure 8-9. The difference between an interactive transaction and a stored procedure (using the example transaction of [Figure 8-8](/en/ch8#fig_transactions_write_skew))." class="w-full my-4" >}}
+
+#### 存储过程的利弊 {#sec_transactions_stored_proc_tradeoffs}
+
+Stored procedures have existed for some time in relational databases, and they have been part of the
+SQL standard (SQL/PSM) since 1999. They have gained a somewhat bad reputation, for various reasons:
+
+* Traditionally, each database vendor had its own language for stored procedures (Oracle has PL/SQL, SQL Server
+ has T-SQL, PostgreSQL has PL/pgSQL, etc.). These languages haven’t kept up with developments in
+ general-purpose programming languages, so they look quite ugly and archaic from today’s point of
+ view, and they lack the ecosystem of libraries that you find with most programming languages.
+* Code running in a database is difficult to manage: compared to an application server, it’s harder
+ to debug, more awkward to keep in version control and deploy, trickier to test, and difficult to
+ integrate with a metrics collection system for monitoring.
+* A database is often much more performance-sensitive than an application server, because a single
+ database instance is often shared by many application servers. A badly written stored procedure
+ (e.g., using a lot of memory or CPU time) in a database can cause much more trouble than equivalent
+ badly written code in an application server.
+* In a multitenant system that allows tenants to write their own stored procedures, it’s a security
+ risk to execute untrusted code in the same process as the database kernel [^62].
+
+However, those issues can be overcome. Modern implementations of stored procedures have abandoned
+PL/SQL and use existing general-purpose programming languages instead: VoltDB uses Java or Groovy,
+Datomic uses Java or Clojure, Redis uses Lua, and MongoDB uses Javascript.
+
+Stored procedures are also useful in cases where application logic can’t easily be embedded
+elsewhere. Applications that use GraphQL, for example, might directly expose their database through
+a GraphQL proxy. If the proxy doesn’t support complex validation logic, you can embed such logic
+directly in the database using a stored procedure. If the database doesn’t support stored
+procedures, you would have to deploy a validation service between the proxy and the database to do validation.
+
+With stored procedures and in-memory data, executing all transactions on a single thread becomes
+feasible. When stored procedures don’t need to wait for I/O and avoid the overhead of other
+concurrency control mechanisms, they can achieve quite good throughput on a single thread.
+
+VoltDB also uses stored procedures for replication: instead of copying a transaction’s writes from
+one node to another, it executes the same stored procedure on each replica. VoltDB therefore
+requires that stored procedures are *deterministic* (when run on different nodes, they must produce
+the same result). If a transaction needs to use the current date and time, for example, it must do
+so through special deterministic APIs (see [“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows) for more details on
+deterministic operations). This approach is called *state machine replication*, and we will return
+to it in [Chapter 10](/en/ch10#ch_consistency).
+
+#### 分片 {#sharding}
+
+Executing all transactions serially makes concurrency control much simpler, but limits the
+transaction throughput of the database to the speed of a single CPU core on a single machine.
+Read-only transactions may execute elsewhere, using snapshot isolation, but for applications with
+high write throughput, the single-threaded transaction processor can become a serious bottleneck.
+
+In order to scale to multiple CPU cores, and multiple nodes, you can shard your data
+(see [Chapter 7](/en/ch7#ch_sharding)), which is supported in VoltDB. If you can find a way of sharding your dataset
+so that each transaction only needs to read and write data within a single shard, then each shard
+can have its own transaction processing thread running independently from the others. In this case,
+you can give each CPU core its own shard, which allows your transaction throughput to scale linearly
+with the number of CPU cores [^59].
+
+However, for any transaction that needs to access multiple shards, the database must coordinate the
+transaction across all the shards that it touches. The stored procedure needs to be performed in
+lock-step across all shards to ensure serializability across the whole system.
+
+Since cross-shard transactions have additional coordination overhead, they are vastly slower than
+single-shard transactions. VoltDB reports a throughput of about 1,000 cross-shard writes per second,
+which is orders of magnitude below its single-shard throughput and cannot be increased by adding
+more machines [^61]. More recent research
+has explored ways of making multi-shard transactions more scalable [^63].
+
+Whether transactions can be single-shard depends very much on the structure of the data used by the
+application. Simple key-value data can often be sharded very easily, but data with multiple
+secondary indexes is likely to require a lot of cross-shard coordination (see
+[“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes)).
+
+#### 串行执行总结 {#summary-of-serial-execution}
+
+Serial execution of transactions has become a viable way of achieving serializable isolation within
+certain constraints:
+
+* Every transaction must be small and fast, because it takes only one slow transaction to stall all transaction processing.
+* It is most appropriate in situations where the active dataset can fit in memory. Rarely accessed
+ data could potentially be moved to disk, but if it needed to be accessed in a single-threaded
+ transaction, the system would get very slow.
+* Write throughput must be low enough to be handled on a single CPU core, or else transactions need
+ to be sharded without requiring cross-shard coordination.
+* Cross-shard transactions are possible, but their throughput is hard to scale.
+
+### 两阶段锁定（2PL） {#sec_transactions_2pl}
+
+For around 30 years, there was only one widely used algorithm for serializability in databases:
+*two-phase locking* (2PL), sometimes called *strong strict two-phase locking* (SS2PL) to distinguish
+it from other variants of 2PL.
+
+
+--------
+
+> [!TIP] 2PL 不是 2PC
+
+Two-phase *locking* (2PL) and two-phase *commit* (2PC) are two very different things. 2PL provides
+serializable isolation, whereas 2PC provides atomic commit in a distributed database (see
+[“Two-Phase Commit (2PC)”](/en/ch8#sec_transactions_2pc)). To avoid confusion, it’s best to think of them as entirely separate
+concepts and to ignore the unfortunate similarity in the names.
+
+--------
+
+We saw previously that locks are often used to prevent dirty writes (see
+[“No dirty writes”](/en/ch8#sec_transactions_dirty_write)): if two transactions concurrently try to write to the same object,
+the lock ensures that the second writer must wait until the first one has finished its transaction
+(aborted or committed) before it may continue.
+
+Two-phase locking is similar, but makes the lock requirements much stronger. Several transactions
+are allowed to concurrently read the same object as long as nobody is writing to it. But as soon as
+anyone wants to write (modify or delete) an object, exclusive access is required:
+
+* If transaction A has read an object and transaction B wants to write to that object, B must wait
+ until A commits or aborts before it can continue. (This ensures that B can’t change the object
+ unexpectedly behind A’s back.)
+* If transaction A has written an object and transaction B wants to read that object, B must wait
+ until A commits or aborts before it can continue. (Reading an old version of the object, like in
+ [Figure 8-4](/en/ch8#fig_transactions_read_committed), is not acceptable under 2PL.)
+
+In 2PL, writers don’t just block other writers; they also block readers and vice
+versa. Snapshot isolation has the mantra *readers never block writers, and writers never block
+readers* (see [“Multi-version concurrency control (MVCC)”](/en/ch8#sec_transactions_snapshot_impl)), which captures this key difference between
+snapshot isolation and two-phase locking. On the other hand, because 2PL provides serializability,
+it protects against all the race conditions discussed earlier, including lost updates and write skew.
+
+#### 两阶段锁定的实现 {#implementation-of-two-phase-locking}
+
+2PL is used by the serializable isolation level in MySQL (InnoDB) and SQL Server, and the
+repeatable read isolation level in Db2 [^29].
+
+The blocking of readers and writers is implemented by having a lock on each object in the
+database. The lock can either be in *shared mode* or in *exclusive mode* (also known as a
+*multi-reader single-writer* lock). The lock is used as follows:
+
+* If a transaction wants to read an object, it must first acquire the lock in shared mode. Several
+ transactions are allowed to hold the lock in shared mode simultaneously, but if another
+ transaction already has an exclusive lock on the object, these transactions must wait.
+* If a transaction wants to write to an object, it must first acquire the lock in exclusive mode. No
+ other transaction may hold the lock at the same time (either in shared or in exclusive mode), so
+ if there is any existing lock on the object, the transaction must wait.
+* If a transaction first reads and then writes an object, it may upgrade its shared lock to an
+ exclusive lock. The upgrade works the same as getting an exclusive lock directly.
+* After a transaction has acquired the lock, it must continue to hold the lock until the end of the
+ transaction (commit or abort). This is where the name “two-phase” comes from: the first phase
+ (while the transaction is executing) is when the locks are acquired, and the second phase (at the
+ end of the transaction) is when all the locks are released.
+
+Since so many locks are in use, it can happen quite easily that transaction A is stuck waiting for
+transaction B to release its lock, and vice versa. This situation is called *deadlock*. The database
+automatically detects deadlocks between transactions and aborts one of them so that the others can
+make progress. The aborted transaction needs to be retried by the application.
+
+#### 两阶段锁定的性能 {#performance-of-two-phase-locking}
+
+The big downside of two-phase locking, and the reason why it hasn’t been used by everybody since the
+1970s, is performance: transaction throughput and response times of queries are significantly worse
+under two-phase locking than under weak isolation.
+
+This is partly due to the overhead of acquiring and releasing all those locks, but more importantly
+due to reduced concurrency. By design, if two concurrent transactions try to do anything that may
+in any way result in a race condition, one has to wait for the other to complete.
+
+For example, if you have a transaction that needs to read an entire table (e.g. a backup, analytics
+query, or integrity check, as discussed in [“Snapshot Isolation and Repeatable Read”](/en/ch8#sec_transactions_snapshot_isolation)), that
+transaction has to take a shared lock on the entire table. Therefore, the reading transaction first
+has to wait until all in-progress transactions writing to that table have completed; then, while the
+whole table is being read (which may take a long time on a large table), all other transactions that
+want to write to that table are blocked until the big read-only transaction commits. In effect, the
+database becomes unavailable for writes for an extended time.
+
+For this reason, databases running 2PL can have quite unstable latencies, and they can be very slow at
+high percentiles (see [“Describing Performance”](/en/ch2#sec_introduction_percentiles)) if there is contention in the workload. It
+may take just one slow transaction, or one transaction that accesses a lot of data and acquires many
+locks, to cause the rest of the system to grind to a halt.
+
+Although deadlocks can happen with the lock-based read committed isolation level, they occur much
+more frequently under 2PL serializable isolation (depending on the access patterns of your
+transaction). This can be an additional performance problem: when a transaction is aborted due to
+deadlock and is retried, it needs to do its work all over again. If deadlocks are frequent, this can
+mean significant wasted effort.
+
+#### 谓词锁 {#predicate-locks}
+
+In the preceding description of locks, we glossed over a subtle but important detail. In
+[“Phantoms causing write skew”](/en/ch8#sec_transactions_phantom) we discussed the problem of *phantoms*—that is, one transaction
+changing the results of another transaction’s search query. A database with serializable isolation
+must prevent phantoms.
+
+In the meeting room booking example this means that if one transaction has searched for existing
+bookings for a room within a certain time window (see [Example 8-2](/en/ch8#fig_transactions_meeting_rooms)), another
+transaction is not allowed to concurrently insert or update another booking for the same room and
+time range. (It’s okay to concurrently insert bookings for other rooms, or for the same room at a
+different time that doesn’t affect the proposed booking.)
+
+How do we implement this? Conceptually, we need a *predicate lock* [^4]. It works similarly to the
+shared/exclusive lock described earlier, but rather than belonging to a particular object (e.g., one
+row in a table), it belongs to all objects that match some search condition, such as:
+
+```
+SELECT * FROM bookings
+ WHERE room_id = 123 AND
+ end_time > '2025-01-01 12:00' AND
+ start_time < '2025-01-01 13:00';
+```
+
+A predicate lock restricts access as follows:
+
+* If transaction A wants to read objects matching some condition, like in that `SELECT` query, it
+ must acquire a shared-mode predicate lock on the conditions of the query. If another transaction B
+ currently has an exclusive lock on any object matching those conditions, A must wait until B
+ releases its lock before it is allowed to make its query.
+* If transaction A wants to insert, update, or delete any object, it must first check whether either the old
+ or the new value matches any existing predicate lock. If there is a matching predicate lock held by
+ transaction B, then A must wait until B has committed or aborted before it can continue.
+
+The key idea here is that a predicate lock applies even to objects that do not yet exist in the
+database, but which might be added in the future (phantoms). If two-phase locking includes predicate locks,
+the database prevents all forms of write skew and other race conditions, and so its isolation
+becomes serializable.
+
+#### 索引范围锁 {#sec_transactions_2pl_range}
+
+Unfortunately, predicate locks do not perform well: if there are many locks by active transactions,
+checking for matching locks becomes time-consuming. For that reason, most databases with 2PL
+actually implement *index-range locking* (also known as *next-key locking*), which is a simplified
+approximation of predicate locking [^54] [^64].
+
+It’s safe to simplify a predicate by making it match a greater set of objects. For example, if you
+have a predicate lock for bookings of room 123 between noon and 1 p.m., you can approximate it by
+locking bookings for room 123 at any time, or you can approximate it by locking all rooms (not just
+room 123) between noon and 1 p.m. This is safe because any write that matches the original predicate
+will definitely also match the approximations.
+
+In the room bookings database you would probably have an index on the `room_id` column, and/or
+indexes on `start_time` and `end_time` (otherwise the preceding query would be very slow on a large database):
+
+* Say your index is on `room_id`, and the database uses this index to find existing bookings for
+ room 123. Now the database can simply attach a shared lock to this index entry, indicating that a
+ transaction has searched for bookings of room 123.
+* Alternatively, if the database uses a time-based index to find existing bookings, it can attach a
+ shared lock to a range of values in that index, indicating that a transaction has searched for
+ bookings that overlap with the time period of noon to 1 p.m. on January 1, 2025.
+
+Either way, an approximation of the search condition is attached to one of the indexes. Now, if
+another transaction wants to insert, update, or delete a booking for the same room and/or an
+overlapping time period, it will have to update the same part of the index. In the process of doing
+so, it will encounter the shared lock, and it will be forced to wait until the lock is released.
+
+This provides effective protection against phantoms and write skew. Index-range locks are not as
+precise as predicate locks would be (they may lock a bigger range of objects than is strictly
+necessary to maintain serializability), but since they have much lower overheads, they are a good
+compromise.
+
+If there is no suitable index where a range lock can be attached, the database can fall back to a
+shared lock on the entire table. This will not be good for performance, since it will stop all
+other transactions writing to the table, but it’s a safe fallback position.
+
+### 可串行化快照隔离（SSI） {#sec_transactions_ssi}
+
+This chapter has painted a bleak picture of concurrency control in databases. On the one hand, we
+have implementations of serializability that don’t perform well (two-phase locking) or don’t scale
+well (serial execution). On the other hand, we have weak isolation levels that have good
+performance, but are prone to various race conditions (lost updates, write skew, phantoms, etc.). Are
+serializable isolation and good performance fundamentally at odds with each other?
+
+It seems not: an algorithm called *serializable snapshot isolation* (SSI) provides full
+serializability with only a small performance penalty compared to snapshot isolation. SSI is
+comparatively new: it was first described in 2008 [^53] [^65].
+
+Today SSI and similar algorithms are used in single-node databases (the serializable isolation level
+in PostgreSQL [^54], SQL Server’s In-Memory OLTP/Hekaton [^66], and HyPer [^67]), distributed databases (CockroachDB [^5] and
+FoundationDB [^8]), and embedded storage engines such as BadgerDB.
+
+#### 悲观并发控制与乐观并发控制 {#pessimistic-versus-optimistic-concurrency-control}
+
+Two-phase locking is a so-called *pessimistic* concurrency control mechanism: it is based on the
+principle that if anything might possibly go wrong (as indicated by a lock held by another
+transaction), it’s better to wait until the situation is safe again before doing anything. It is
+like *mutual exclusion*, which is used to protect data structures in multi-threaded programming.
+
+Serial execution is, in a sense, pessimistic to the extreme: it is essentially equivalent to each
+transaction having an exclusive lock on the entire database (or one shard of the database) for the
+duration of the transaction. We compensate for the pessimism by making each transaction very fast to
+execute, so it only needs to hold the “lock” for a short time.
+
+By contrast, serializable snapshot isolation is an *optimistic* concurrency control technique.
+Optimistic in this context means that instead of blocking if something potentially dangerous
+happens, transactions continue anyway, in the hope that everything will turn out all right. When a
+transaction wants to commit, the database checks whether anything bad happened (i.e., whether
+isolation was violated); if so, the transaction is aborted and has to be retried. Only transactions
+that executed serializably are allowed to commit.
+
+Optimistic concurrency control is an old idea [^68], and its advantages and disadvantages have been debated for a long time [^69].
+It performs badly if there is high contention (many transactions trying to access the same objects),
+as this leads to a high proportion of transactions needing to abort. If the system is already close
+to its maximum throughput, the additional transaction load from retried transactions can make
+performance worse.
+
+However, if there is enough spare capacity, and if contention between transactions is not too high,
+optimistic concurrency control techniques tend to perform better than pessimistic ones. Contention
+can be reduced with commutative atomic operations: for example, if several transactions concurrently
+want to increment a counter, it doesn’t matter in which order the increments are applied (as long as
+the counter isn’t read in the same transaction), so the concurrent increments can all be applied
+without conflicting.
+
+As the name suggests, SSI is based on snapshot isolation—that is, all reads within a transaction
+are made from a consistent snapshot of the database (see [“Snapshot Isolation and Repeatable Read”](/en/ch8#sec_transactions_snapshot_isolation)).
+On top of snapshot isolation, SSI adds an algorithm for detecting serialization conflicts among
+reads and writes, and determining which transactions to abort.
+
+#### 基于过时前提的决策 {#decisions-based-on-an-outdated-premise}
+
+When we previously discussed write skew in snapshot isolation (see [“Write Skew and Phantoms”](/en/ch8#sec_transactions_write_skew)),
+we observed a recurring pattern: a transaction reads some data from the database, examines the
+result of the query, and decides to take some action (write to the database) based on the result
+that it saw. However, under snapshot isolation, the result from the original query may no longer be
+up-to-date by the time the transaction commits, because the data may have been modified in the meantime.
+
+Put another way, the transaction is taking an action based on a *premise* (a fact that was true at
+the beginning of the transaction, e.g., “There are currently two doctors on call”). Later, when the
+transaction wants to commit, the original data may have changed—the premise may no longer be
+true.
+
+When the application makes a query (e.g., “How many doctors are currently on call?”), the database
+doesn’t know how the application logic uses the result of that query. To be safe, the database needs
+to assume that any change in the query result (the premise) means that writes in that transaction
+may be invalid. In other words, there may be a causal dependency between the queries and the writes
+in the transaction. In order to provide serializable isolation, the database must detect situations
+in which a transaction may have acted on an outdated premise and abort the transaction in that case.
+
+How does the database know if a query result might have changed? There are two cases to consider:
+
+* Detecting reads of a stale MVCC object version (uncommitted write occurred before the read)
+* Detecting writes that affect prior reads (the write occurs after the read)
+
+#### 检测陈旧的 MVCC 读取 {#detecting-stale-mvcc-reads}
+
+Recall that snapshot isolation is usually implemented by multi-version concurrency control (MVCC;
+see [“Multi-version concurrency control (MVCC)”](/en/ch8#sec_transactions_snapshot_impl)). When a transaction reads from a consistent snapshot in an
+MVCC database, it ignores writes that were made by any other transactions that hadn’t yet committed
+at the time when the snapshot was taken.
+
+In [Figure 8-10](/en/ch8#fig_transactions_detect_mvcc), transaction 43 sees
+Aaliyah as having `on_call = true`, because transaction 42 (which modified Aaliyah’s on-call status) is
+uncommitted. However, by the time transaction 43 wants to commit, transaction 42 has already
+committed. This means that the write that was ignored when reading from the consistent snapshot has
+now taken effect, and transaction 43’s premise is no longer true. Things get even more complicated
+when a writer inserts data that didn’t exist before (see [“Phantoms causing write skew”](/en/ch8#sec_transactions_phantom)). We’ll
+discuss detecting phantom writes for SSI in [“Detecting writes that affect prior reads”](/en/ch8#sec_detecting_writes_affect_reads).
+
+{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" caption="Figure 8-10. Detecting when a transaction reads outdated values from an MVCC snapshot." class="w-full my-4" >}}
+
+
+In order to prevent this anomaly, the database needs to track when a transaction ignores another
+transaction’s writes due to MVCC visibility rules. When the transaction wants to commit, the
+database checks whether any of the ignored writes have now been committed. If so, the transaction
+must be aborted.
+
+Why wait until committing? Why not abort transaction 43 immediately when the stale read is detected?
+Well, if transaction 43 was a read-only transaction, it wouldn’t need to be aborted, because there
+is no risk of write skew. At the time when transaction 43 makes its read, the database doesn’t yet
+know whether that transaction is going to later perform a write. Moreover, transaction 42 may yet
+abort or may still be uncommitted at the time when transaction 43 is committed, and so the read may
+turn out not to have been stale after all. By avoiding unnecessary aborts, SSI preserves snapshot
+isolation’s support for long-running reads from a consistent snapshot.
+
+#### 检测影响先前读取的写入 {#sec_detecting_writes_affect_reads}
+
+The second case to consider is when another transaction modifies data after it has been read. This
+case is illustrated in [Figure 8-11](/en/ch8#fig_transactions_detect_index_range).
+
+{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" caption="Figure 8-11. In serializable snapshot isolation, detecting when one transaction modifies another transaction's reads." class="w-full my-4" >}}
+
+
+In the context of two-phase locking we discussed index-range locks (see
+[“Index-range locks”](/en/ch8#sec_transactions_2pl_range)), which allow the database to lock access to all rows matching some
+search query, such as `WHERE shift_id = 1234`. We can use a similar technique here, except that SSI
+locks don’t block other transactions.
+
+In [Figure 8-11](/en/ch8#fig_transactions_detect_index_range), transactions 42 and 43 both search for on-call doctors
+during shift `1234`. If there is an index on `shift_id`, the database can use the index entry 1234 to
+record the fact that transactions 42 and 43 read this data. (If there is no index, this information
+can be tracked at the table level.) This information only needs to be kept for a while: after a
+transaction has finished (committed or aborted), and all concurrent transactions have finished, the
+database can forget what data it read.
+
+When a transaction writes to the database, it must look in the indexes for any other transactions
+that have recently read the affected data. This process is similar to acquiring a write lock on the affected
+key range, but rather than blocking until the readers have committed, the lock acts as a tripwire:
+it simply notifies the transactions that the data they read may no longer be up to date.
+
+In [Figure 8-11](/en/ch8#fig_transactions_detect_index_range), transaction 43 notifies transaction 42 that its prior
+read is outdated, and vice versa. Transaction 42 is first to commit, and it is successful: although
+transaction 43’s write affected 42, 43 hasn’t yet committed, so the write has not yet taken effect.
+However, when transaction 43 wants to commit, the conflicting write from 42 has already been
+committed, so 43 must abort.
+
+#### 可串行化快照隔离的性能 {#performance-of-serializable-snapshot-isolation}
+
+As always, many engineering details affect how well an algorithm works in practice. For example, one
+trade-off is the granularity at which transactions’ reads and writes are tracked. If the database
+keeps track of each transaction’s activity in great detail, it can be precise about which
+transactions need to abort, but the bookkeeping overhead can become significant. Less detailed
+tracking is faster, but may lead to more transactions being aborted than strictly necessary.
+
+In some cases, it’s okay for a transaction to read information that was overwritten by another
+transaction: depending on what else happened, it’s sometimes possible to prove that the result of
+the execution is nevertheless serializable. PostgreSQL uses this theory to reduce the number of
+unnecessary aborts [^14] [^54].
+
+Compared to two-phase locking, the big advantage of serializable snapshot isolation is that one
+transaction doesn’t need to block waiting for locks held by another transaction. Like under snapshot
+isolation, writers don’t block readers, and vice versa. This design principle makes query latency
+much more predictable and less variable. In particular, read-only queries can run on a consistent
+snapshot without requiring any locks, which is very appealing for read-heavy workloads.
+
+Compared to serial execution, serializable snapshot isolation is not limited to the throughput of a
+single CPU core: for example, FoundationDB distributes the detection of serialization conflicts across multiple
+machines, allowing it to scale to very high throughput. Even though data may be sharded across
+multiple machines, transactions can read and write data in multiple shards while ensuring
+serializable isolation.
+
+Compared to non-serializable snapshot isolation, the need to check for serializability violations
+introduces some performance overheads. How significant these overheads are is a matter of debate:
+some believe that serializability checking is not worth it [^70],
+while others believe that the performance of serializability is now so good that there is no need to
+use the weaker snapshot isolation any more [^67].
+
+The rate of aborts significantly affects the overall performance of SSI. For example, a transaction
+that reads and writes data over a long period of time is likely to run into conflicts and abort, so
+SSI requires that read-write transactions be fairly short (long-running read-only transactions are
+okay). However, SSI is less sensitive to slow transactions than two-phase locking or serial
+execution.
+
+## 分布式事务 {#sec_transactions_distributed}
+
+The last few sections have focused on concurrency control for isolation, the I in ACID. The
+algorithms we have seen apply to both single-node and distributed databases: although there are
+challenges in making concurrency control algorithms scalable (for example, performing distributed
+serializability checking for SSI), the high-level ideas for distributed concurrency control are
+similar to single-node concurrency control [^8].
+
+Consistency and durability also don’t change much when we move to distributed transactions. However,
+atomicity requires more care.
+
+For transactions that execute at a single database node, atomicity is commonly implemented by the
+storage engine. When the client asks the database node to commit the transaction, the database makes
+the transaction’s writes durable (typically in a write-ahead log; see [“Making B-trees reliable”](/en/ch4#sec_storage_btree_wal)) and
+then appends a commit record to the log on disk. If the database crashes in the middle of this
+process, the transaction is recovered from the log when the node restarts: if the commit record was
+successfully written to disk before the crash, the transaction is considered committed; if not, any
+writes from that transaction are rolled back.
+
+Thus, on a single node, transaction commitment crucially depends on the *order* in which data is
+durably written to disk: first the data, then the commit record [^22].
+The key deciding moment for whether the transaction commits or aborts is the moment at which the
+disk finishes writing the commit record: before that moment, it is still possible to abort (due to a
+crash), but after that moment, the transaction is committed (even if the database crashes). Thus, it
+is a single device (the controller of one particular disk drive, attached to one particular node)
+that makes the commit atomic.
+
+However, what if multiple nodes are involved in a transaction? For example, perhaps you have a
+multi-object transaction in a sharded database, or a global secondary index (in which the
+index entry may be on a different node from the primary data; see
+[“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes)). Most “NoSQL” distributed datastores do not support such
+distributed transactions, but various distributed relational databases do.
+
+In these cases, it is not sufficient to simply send a commit request to all of the nodes and
+independently commit the transaction on each one. It could easily happen that the commit succeeds on
+some nodes and fails on other nodes, as shown in [Figure 8-12](/en/ch8#fig_transactions_non_atomic):
+
+* Some nodes may detect a constraint violation or conflict, making an abort necessary, while other
+ nodes are successfully able to commit.
+* Some of the commit requests might be lost in the network, eventually aborting due to a timeout,
+ while other commit requests get through.
+* Some nodes may crash before the commit record is fully written and roll back on recovery, while
+ others successfully commit.
+
+{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" caption="Figure 8-12. When a transaction involves multiple database nodes, it may commit on some and fail on others." class="w-full my-4" >}}
+
+
+If some nodes commit the transaction but others abort it, the nodes become inconsistent with each
+other. And once a transaction has been committed on one node, it cannot be retracted again if it
+later turns out that it was aborted on another node. This is because once data has been committed,
+it becomes visible to other transactions under *read committed* or stronger isolation. For example,
+in [Figure 8-12](/en/ch8#fig_transactions_non_atomic), by the time user 1 notices that its commit failed on database 1,
+user 2 has already read the data from the same transaction on database 2. If user 1’s transaction
+was later aborted, user 2’s transaction would have to be reverted as well, since it was based on
+data that was retroactively declared not to have existed.
+
+A better approach is to ensure that the nodes involved in a transaction either all commit or all
+abort, and to prevent a mixture of the two. Ensuring this is known as the *atomic commitment* problem.
+
+### 两阶段提交（2PC） {#sec_transactions_2pc}
+
+Two-phase commit is an algorithm for achieving atomic transaction commit across multiple nodes. It
+is a classic algorithm in distributed databases [^13] [^71] [^72]. 2PC is used
+internally in some databases and also made available to applications in the form of *XA transactions* [^73]
+(which are supported by the Java Transaction API, for example) or via WS-AtomicTransaction for SOAP
+web services [^74] [^75].
+
+The basic flow of 2PC is illustrated in [Figure 8-13](/en/ch8#fig_transactions_two_phase_commit). Instead of a single
+commit request, as with a single-node transaction, the commit/abort process in 2PC is split into two
+phases (hence the name).
+
+{{< figure src="/fig/ddia_0813.png" id="fig_transactions_two_phase_commit" title="Figure 8-13. A successful execution of two-phase commit (2PC)." class="w-full my-4" >}}
+
+
+2PC uses a new component that does not normally appear in single-node transactions: a
+*coordinator* (also known as *transaction manager*). The coordinator is often implemented as a
+library within the same application process that is requesting the transaction (e.g., embedded in a
+Java EE container), but it can also be a separate process or service. Examples of such coordinators
+include Narayana, JOTM, BTM, or MSDTC.
+
+When 2PC is used, a distributed
+transaction begins with the application reading and writing data on multiple database nodes,
+as normal. We call these database nodes *participants* in the transaction. When the application is
+ready to commit, the coordinator begins phase 1: it sends a *prepare* request to each of the nodes,
+asking them whether they are able to commit. The coordinator then tracks the responses from the
+participants:
+
+* If all participants reply “yes,” indicating they are ready to commit, then the coordinator sends
+ out a *commit* request in phase 2, and the commit actually takes place.
+* If any of the participants replies “no,” the coordinator sends an *abort* request to all nodes in phase 2.
+
+This process is somewhat like the traditional marriage ceremony in Western cultures: the minister
+asks the bride and groom individually whether each wants to marry the other, and typically receives
+the answer “I do” from both. After receiving both acknowledgments, the minister pronounces the
+couple husband and wife: the transaction is committed, and the happy fact is broadcast to all
+attendees. If either bride or groom does not say “yes,” the ceremony is aborted [^76].
+
+#### 系统性的承诺 {#a-system-of-promises}
+
+From this short description it might not be clear why two-phase commit ensures atomicity, while
+one-phase commit across several nodes does not. Surely the prepare and commit requests can just
+as easily be lost in the two-phase case. What makes 2PC different?
+
+To understand why it works, we have to break down the process in a bit more detail:
+
+1. When the application wants to begin a distributed transaction, it requests a transaction ID from
+ the coordinator. This transaction ID is globally unique.
+2. The application begins a single-node transaction on each of the participants, and attaches the
+ globally unique transaction ID to the single-node transaction. All reads and writes are done in
+ one of these single-node transactions. If anything goes wrong at this stage (for example, a node
+ crashes or a request times out), the coordinator or any of the participants can abort.
+3. When the application is ready to commit, the coordinator sends a prepare request to all
+ participants, tagged with the global transaction ID. If any of these requests fails or times out,
+ the coordinator sends an abort request for that transaction ID to all participants.
+4. When a participant receives the prepare request, it makes sure that it can definitely commit
+ the transaction under all circumstances.
+
+ This includes writing all transaction data to disk (a crash, a power failure, or running out of
+ disk space is not an acceptable excuse for refusing to commit later), and checking for any
+ conflicts or constraint violations. By replying “yes” to the coordinator, the node promises to
+ commit the transaction without error if requested. In other words, the participant surrenders the
+ right to abort the transaction, but without actually committing it.
+5. When the coordinator has received responses to all prepare requests, it makes a definitive
+ decision on whether to commit or abort the transaction (committing only if all participants voted
+ “yes”). The coordinator must write that decision to its transaction log on disk so that it knows
+ which way it decided in case it subsequently crashes. This is called the *commit point*.
+6. Once the coordinator’s decision has been written to disk, the commit or abort request is sent
+ to all participants. If this request fails or times out, the coordinator must retry forever until
+ it succeeds. There is no more going back: if the decision was to commit, that decision must be
+ enforced, no matter how many retries it takes. If a participant has crashed in the meantime, the
+ transaction will be committed when it recovers—since the participant voted “yes,” it cannot
+ refuse to commit when it recovers.
+
+Thus, the protocol contains two crucial “points of no return”: when a participant votes “yes,” it
+promises that it will definitely be able to commit later (although the coordinator may still choose to
+abort); and once the coordinator decides, that decision is irrevocable. Those promises ensure the
+atomicity of 2PC. (Single-node atomic commit lumps these two events into one: writing the commit
+record to the transaction log.)
+
+Returning to the marriage analogy, before saying “I do,” you and your bride/groom have the freedom
+to abort the transaction by saying “No way!” (or something to that effect). However, after saying “I
+do,” you cannot retract that statement. If you faint after saying “I do” and you don’t hear the
+minister speak the words “You are now husband and wife,” that doesn’t change the fact that the
+transaction was committed. When you recover consciousness later, you can find out whether you are
+married or not by querying the minister for the status of your global transaction ID, or you can
+wait for the minister’s next retry of the commit request (since the retries will have continued
+throughout your period of unconsciousness).
+
+#### 协调器故障 {#coordinator-failure}
+
+We have discussed what happens if one of the participants or the network fails during 2PC: if any of
+the prepare requests fails or times out, the coordinator aborts the transaction; if any of the
+commit or abort requests fails, the coordinator retries them indefinitely. However, it is less
+clear what happens if the coordinator crashes.
+
+If the coordinator fails before sending the prepare requests, a participant can safely abort the
+transaction. But once the participant has received a prepare request and voted “yes,” it can no
+longer abort unilaterally—it must wait to hear back from the coordinator whether the transaction
+was committed or aborted. If the coordinator crashes or the network fails at this point, the
+participant can do nothing but wait. A participant’s transaction in this state is called *in doubt*
+or *uncertain*.
+
+The situation is illustrated in [Figure 8-14](/en/ch8#fig_transactions_2pc_crash). In this particular example, the
+coordinator actually decided to commit, and database 2 received the commit request. However, the
+coordinator crashed before it could send the commit request to database 1, and so database 1 does
+not know whether to commit or abort. Even a timeout does not help here: if database 1 unilaterally
+aborts after a timeout, it will end up inconsistent with database 2, which has committed. Similarly,
+it is not safe to unilaterally commit, because another participant may have aborted.
+
+{{< figure src="/fig/ddia_0814.png" id="fig_transactions_2pc_crash" title="Figure 8-14. The coordinator crashes after participants vote \"yes.\" Database 1 does not know whether to commit or abort." class="w-full my-4" >}}
+
+
+Without hearing from the coordinator, the participant has no way of knowing whether to commit or
+abort. In principle, the participants could communicate among themselves to find out how each
+participant voted and come to some agreement, but that is not part of the 2PC protocol.
+
+The only way 2PC can complete is by waiting for the coordinator to recover. This is why the
+coordinator must write its commit or abort decision to a transaction log on disk before sending
+commit or abort requests to participants: when the coordinator recovers, it determines the status of
+all in-doubt transactions by reading its transaction log. Any transactions that don’t have a commit
+record in the coordinator’s log are aborted. Thus, the commit point of 2PC comes down to a regular
+single-node atomic commit on the coordinator.
+
+#### 三阶段提交 {#three-phase-commit}
+
+Two-phase commit is called a *blocking* atomic commit protocol due to the fact that 2PC can become
+stuck waiting for the coordinator to recover. It is possible to make an atomic commit protocol
+*nonblocking*, so that it does not get stuck if a node fails. However, making this work in practice
+is not so straightforward.
+
+As an alternative to 2PC, an algorithm called *three-phase commit* (3PC) has been proposed [^13] [^77].
+However, 3PC assumes a network with bounded delay and nodes with bounded response times; in most
+practical systems with unbounded network delay and process pauses (see [Chapter 9](/en/ch9#ch_distributed)), it
+cannot guarantee atomicity.
+
+A better solution in practice is to replace the single-node coordinator with a fault-tolerant
+consensus protocol. We will see how to do this in [Chapter 10](/en/ch10#ch_consistency).
+
+### 跨不同系统的分布式事务 {#sec_transactions_xa}
+
+Distributed transactions and two-phase commit have a mixed reputation. On the one hand, they are
+seen as providing an important safety guarantee that would be hard to achieve otherwise; on the
+other hand, they are criticized for causing operational problems, killing performance, and promising
+more than they can deliver [^78] [^79] [^80] [^81].
+Many cloud services choose not to implement distributed transactions due to the operational problems they engender [^82].
+
+Some implementations of distributed transactions carry a heavy performance penalty. Much of the
+performance cost inherent in two-phase commit is due to the additional disk forcing (`fsync`) that
+is required for crash recovery, and the additional network round-trips.
+
+However, rather than dismissing distributed transactions outright, we should examine them in some
+more detail, because there are important lessons to be learned from them. To begin, we should be
+precise about what we mean by “distributed transactions.” Two quite different types of distributed
+transactions are often conflated:
+
+Database-internal distributed transactions
+: Some distributed databases (i.e., databases that use replication and sharding in their standard
+ configuration) support internal transactions among the nodes of that database. For example,
+ YugabyteDB, TiDB, FoundationDB, Spanner, VoltDB, and MySQL Cluster’s NDB storage engine have such
+ internal transaction support. In this case, all the nodes participating in the transaction are
+ running the same database software.
+
+Heterogeneous distributed transactions
+: In a *heterogeneous* transaction, the participants are two or more different technologies: for
+ example, two databases from different vendors, or even non-database systems such as message
+ brokers. A distributed transaction across these systems must ensure atomic commit, even though
+ the systems may be entirely different under the hood.
+
+Database-internal transactions do not have to be compatible with any other system, so they can
+use any protocol and apply optimizations specific to that particular technology. For that reason,
+database-internal distributed transactions can often work quite well. On the other hand,
+transactions spanning heterogeneous technologies are a lot more challenging.
+
+#### 精确一次消息处理 {#sec_transactions_exactly_once}
+
+Heterogeneous distributed transactions allow diverse systems to be integrated in powerful ways. For
+example, a message from a message queue can be acknowledged as processed if and only if the database
+transaction for processing the message was successfully committed. This is implemented by atomically
+committing the message acknowledgment and the database writes in a single transaction. With
+distributed transaction support, this is possible, even if the message broker and the database are
+two unrelated technologies running on different machines.
+
+If either the message delivery or the database transaction fails, both are aborted, and so the
+message broker may safely redeliver the message later. Thus, by atomically committing the message
+and the side effects of its processing, we can ensure that the message is *effectively* processed
+exactly once, even if it required a few retries before it succeeded. The abort discards any side
+effects of the partially completed transaction. This is known as *exactly-once semantics*.
+
+Such a distributed transaction is only possible if all systems affected by the transaction are able
+to use the same atomic commit protocol, however. For example, say a side effect of processing a
+message is to send an email, and the email server does not support two-phase commit: it could happen
+that the email is sent two or more times if message processing fails and is retried. But if all side
+effects of processing a message are rolled back on transaction abort, then the processing step can
+safely be retried as if nothing had happened.
+
+We will return to the topic of exactly-once semantics later in this chapter. Let’s look first at the
+atomic commit protocol that allows such heterogeneous distributed transactions.
+
+#### XA 事务 {#xa-transactions}
+
+*X/Open XA* (short for *eXtended Architecture*) is a standard for implementing two-phase commit
+across heterogeneous technologies [^73]. It was introduced in 1991 and has been widely
+implemented: XA is supported by many traditional relational databases (including PostgreSQL, MySQL,
+Db2, SQL Server, and Oracle) and message brokers (including ActiveMQ, HornetQ, MSMQ, and IBM MQ).
+
+XA is not a network protocol—it is merely a C API for interfacing with a transaction coordinator.
+Bindings for this API exist in other languages; for example, in the world of Java EE applications,
+XA transactions are implemented using the Java Transaction API (JTA), which in turn is supported by
+many drivers for databases using Java Database Connectivity (JDBC) and drivers for message brokers
+using the Java Message Service (JMS) APIs.
+
+XA assumes that your application uses a network driver or client library to communicate with the
+participant databases or messaging services. If the driver supports XA, that means it calls the XA
+API to find out whether an operation should be part of a distributed transaction—and if so, it
+sends the necessary information to the database server. The driver also exposes callbacks through
+which the coordinator can ask the participant to prepare, commit, or abort.
+
+The transaction coordinator implements the XA API. The standard does not specify how it should be
+implemented, but in practice the coordinator is often simply a library that is loaded into the same
+process as the application issuing the transaction (not a separate service). It keeps track of the
+participants in a transaction, collects partipants’ responses after asking them to prepare (via a
+callback into the driver), and uses a log on the local disk to keep track of the commit/abort
+decision for each transaction.
+
+If the application process crashes, or the machine on which the application is running dies, the
+coordinator goes with it. Any participants with prepared but uncommitted transactions are then stuck
+in doubt. Since the coordinator’s log is on the application server’s local disk, that server must be
+restarted, and the coordinator library must read the log to recover the commit/abort outcome of each
+transaction. Only then can the coordinator use the database driver’s XA callbacks to ask
+participants to commit or abort, as appropriate. The database server cannot contact the coordinator
+directly, since all communication must go via its client library.
+
+#### 存疑时持有锁 {#holding-locks-while-in-doubt}
+
+Why do we care so much about a transaction being stuck in doubt? Can’t the rest of the system just
+get on with its work, and ignore the in-doubt transaction that will be cleaned up eventually?
+
+The problem is with *locking*. As discussed in [“Read Committed”](/en/ch8#sec_transactions_read_committed), database
+transactions usually take a row-level exclusive lock on any rows they modify, to prevent dirty
+writes. In addition, if you want serializable isolation, a database using two-phase locking would
+also have to take a shared lock on any rows *read* by the transaction.
+
+The database cannot release those locks until the transaction commits or aborts (illustrated as a
+shaded area in [Figure 8-13](/en/ch8#fig_transactions_two_phase_commit)). Therefore, when using two-phase commit, a
+transaction must hold onto the locks throughout the time it is in doubt. If the coordinator has
+crashed and takes 20 minutes to start up again, those locks will be held for 20 minutes. If the
+coordinator’s log is entirely lost for some reason, those locks will be held forever—or at least
+until the situation is manually resolved by an administrator.
+
+While those locks are held, no other transaction can modify those rows. Depending on the isolation
+level, other transactions may even be blocked from reading those rows. Thus, other transactions
+cannot simply continue with their business—if they want to access that same data, they will be
+blocked. This can cause large parts of your application to become unavailable until the in-doubt
+transaction is resolved.
+
+#### 从协调器故障中恢复 {#recovering-from-coordinator-failure}
+
+In theory, if the coordinator crashes and is restarted, it should cleanly recover its state from the
+log and resolve any in-doubt transactions. However, in practice, *orphaned* in-doubt transactions do occur [^83] [^84] — that is,
+transactions for which the coordinator cannot decide the outcome for whatever reason (e.g., because
+the transaction log has been lost or corrupted due to a software bug). These transactions cannot be
+resolved automatically, so they sit forever in the database, holding locks and blocking other
+transactions.
+
+Even rebooting your database servers will not fix this problem, since a correct implementation of
+2PC must preserve the locks of an in-doubt transaction even across restarts (otherwise it would risk
+violating the atomicity guarantee). It’s a sticky situation.
+
+The only way out is for an administrator to manually decide whether to commit or roll back the
+transactions. The administrator must examine the participants of each in-doubt transaction,
+determine whether any participant has committed or aborted already, and then apply the same outcome
+to the other participants. Resolving the problem potentially requires a lot of manual effort, and
+most likely needs to be done under high stress and time pressure during a serious production outage
+(otherwise, why would the coordinator be in such a bad state?).
+
+Many XA implementations have an emergency escape hatch called *heuristic decisions*: allowing a
+participant to unilaterally decide to abort or commit an in-doubt transaction without a definitive
+decision from the coordinator [^73]. To be clear,
+*heuristic* here is a euphemism for *probably breaking atomicity*, since the heuristic decision
+violates the system of promises in two-phase commit. Thus, heuristic decisions are intended only for
+getting out of catastrophic situations, and not for regular use.
+
+#### XA 事务的问题 {#problems-with-xa-transactions}
+
+A single-node coordinator is a single point of failure for the entire system, and making it part of
+the application server is also problematic because the coordinator’s logs on its local disk become a
+crucial part of the durable system state—as important as the databases themselves.
+
+In principle, the coordinator of an XA transaction could be highly available and replicated, just
+like we would expect of any other important database. Unfortunately, this still doesn’t solve a
+fundamental problem with XA, which is that it provides no way for the coordinator and the
+participants of a transaction to communicate with each other directly. They can only communicate via
+the application code that invoked the transaction, and the database drivers through which it calls
+the participants.
+
+Even if the coordinator were replicated, the application code would therefore be a single point of
+failure. Solving this problem would require totally redesigning how application code is run to make
+it replicated or restartable, which could perhaps look similar to durable execution (see
+[“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows)). However, there don’t seem to be any tools that actually take
+this approach in practice.
+
+Another problem is that since XA needs to be compatible with a wide range of data systems, it is
+necessarily a lowest common denominator. For example, it cannot detect deadlocks across different
+systems (since that would require a standardized protocol for systems to exchange information on the
+locks that each transaction is waiting for), and it does not work with SSI (see
+[“Serializable Snapshot Isolation (SSI)”](/en/ch8#sec_transactions_ssi)), since that would require a protocol for identifying conflicts across
+different systems.
+
+These problems are somewhat inherent in performing transactions across heterogeneous technologies.
+However, keeping several heterogeneous data systems consistent with each other is still a real and
+important problem, so we need to find a different solution to it. This can be done, as we will see
+in the next section and in [Link to Come].
+
+### 数据库内部的分布式事务 {#sec_transactions_internal}
+
+As explained previously, there is a big difference between distributed transactions that span
+multiple heterogeneous storage technologies, and those that are internal to a system—i.e., where all
+the participating nodes are shards of the same database running the same software. Such internal
+distributed transactions are a defining feature of “NewSQL” databases such as
+CockroachDB [^5], TiDB [^6], Spanner [^7], FoundationDB [^8], and YugabyteDB, for example. 
+Some message brokers such as Kafka also support internal distributed transactions [^85].
+
+Many of these systems use 2-phase commit to ensure atomicity of transactions that write to multiple
+shards, and yet they don’t suffer the same problems as XA transactions. The reason is that because
+their distributed transactions don’t need to interface with any other technologies, they avoid the
+lowest-common-denominator trap—the designers of these systems are free to use better protocols that
+are more reliable and faster.
+
+The biggest problems with XA can be fixed by:
+
+* Replicating the coordinator, with automatic failover to another coordinator node if the primary one crashes;
+* Allowing the coordinator and data shards to communicate directly without going via application code;
+* Replicating the participating shards, so that the risk of having to abort a transaction because of a fault in one of the shards is reduced; and
+* Coupling the atomic commitment protocol with a distributed concurrency control protocol that supports deadlock detection and consistent reads across shards.
+
+Consensus algorithms are commonly used to replicate the coordinator and the database shards. We will
+see in [Chapter 10](/en/ch10#ch_consistency) how atomic commitment for distributed transactions can be implemented
+using a consensus algorithm. These algorithms tolerate faults by automatically failing over from one
+node to another without any human intervention, and while continuing to guarantee strong consistency
+properties.
+
+The isolation levels offered for distributed transactions depend on the system, but snapshot
+isolation and serializable snapshot isolation are both possible across shards. The details of how
+this works can be found in the papers referenced at the end of this chapter.
+
+#### 再谈精确一次消息处理 {#exactly-once-message-processing-revisited}
+
+We saw in [“Exactly-once message processing”](/en/ch8#sec_transactions_exactly_once) that an important use case for distributed transactions
+is to ensure that some operation takes effect exactly once, even if a crash occurs while it is being
+processed and the processing needs to be retried. If you can atomically commit a transaction across
+a message broker and a database, you can acknowledge the message to the broker if and only if it was
+successfully processed and the database writes resulting from the process were committed.
+
+However, you don’t actually need such distributed transactions to achieve exactly-once semantics. An
+alternative approach is as follows, which only requires transactions within the database:
+
+1. Assume every message has a unique ID, and in the database you have a table of message IDs that
+ have been processed. When you start processing a message from the broker, you begin a new
+ transaction on the database, and check the message ID. If the same message ID is already present
+ in the database, you know that it has already been processed, so you can acknowledge the message
+ to the broker and drop it.
+2. If the message ID is not already in the database, you add it to the table. You then process the
+ message, which may result in additional writes to the database within the same transaction. When
+ you finish processing the message, you commit the transaction on the database.
+3. Once the database transaction is successfully committed, you can acknowledge the message to the
+ broker.
+4. Once the message has successfully been acknowledged to the broker, you know that it won’t try
+ processing the same message again, so you can delete the message ID from the database (in a
+ separate transaction).
+
+If the message processor crashes before committing the database transaction, the transaction is
+aborted and the message broker will retry processing. If it crashes after committing but before
+acknowledging the message to the broker, it will also retry processing, but the retry will see the
+message ID in the database and drop it. If it crashes after acknowledging the message but before
+deleting the message ID from the database, you will have an old message ID lying around, which
+doesn’t do any harm besides taking a little bit of storage space. If a retry happens before the
+database transaction is aborted (which could happen if communication between the message processor
+and the database is interrupted), a uniqueness constraint on the table of message IDs should prevent
+the same message ID from being inserted by two concurrent transactions.
+
+Thus, achieving exactly-once processing only requires transactions within the database—atomicity
+across database and message broker is not necessary for this use case. Recording the message ID in
+the database makes the message processing *idempotent*, so that message processing can be safely
+retried without duplicating its side-effects. A similar approach is used in stream processing
+frameworks such as Kafka Streams to achieve exactly-once semantics, as we shall see in [Link to Come].
+
+However, internal distributed transactions within the database are still useful for the scalability
+of patterns such as these: for example, they would allow the message IDs to be stored on one shard
+and the main data updated by the message processing to be stored on other shards, and to ensure
+atomicity of the transaction commit across those shards.
+
+
+
+## 总结 {#summary}
+
+Transactions are an abstraction layer that allows an application to pretend that certain concurrency
+problems and certain kinds of hardware and software faults don’t exist. A large class of errors is
+reduced down to a simple *transaction abort*, and the application just needs to try again.
+
+In this chapter we saw many examples of problems that transactions help prevent. Not all
+applications are susceptible to all those problems: an application with very simple access patterns,
+such as reading and writing only a single record, can probably manage without transactions. However,
+for more complex access patterns, transactions can hugely reduce the number of potential error cases
+you need to think about.
+
+Without transactions, various error scenarios (processes crashing, network interruptions, power
+outages, disk full, unexpected concurrency, etc.) mean that data can become inconsistent in various
+ways. For example, denormalized data can easily go out of sync with the source data. Without
+transactions, it becomes very difficult to reason about the effects that complex interacting accesses
+can have on the database.
+
+In this chapter, we went particularly deep into the topic of concurrency control. We discussed
+several widely used isolation levels, in particular *read committed*, *snapshot isolation*
+(sometimes called *repeatable read*), and *serializable*. We characterized those isolation levels by
+discussing various examples of race conditions, summarized in [Table 8-1](/en/ch8#ch_transactions_isolation_levels):
+
+Table 8-1. Summary of anomalies that can occur at various isolation levels
+
+| Isolation level    | Dirty reads | Read skew   | Phantom reads | Lost updates | Write skew  |
+|--------------------|-------------|-------------|---------------|--------------|-------------|
+| Read uncommitted   | ✗ Possible  | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
+| Read committed     | ✓ Prevented | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
+| Snapshot isolation | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ? Depends    | ✗ Possible  |
+| Serializable       | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ✓ Prevented  | ✓ Prevented |
+
+Dirty reads
+: One client reads another client’s writes before they have been committed. The read committed
+ isolation level and stronger levels prevent dirty reads.
+
+Dirty writes
+: One client overwrites data that another client has written, but not yet committed. Almost all
+ transaction implementations prevent dirty writes.
+
+Read skew
+: A client sees different parts of the database at different points in time. Some cases of read
+ skew are also known as *nonrepeatable reads*. This issue is most commonly prevented with snapshot
+ isolation, which allows a transaction to read from a consistent snapshot corresponding to one
+ particular point in time. It is usually implemented with *multi-version concurrency control*
+ (MVCC).
+
+Lost updates
+: Two clients concurrently perform a read-modify-write cycle. One overwrites the other’s write
+ without incorporating its changes, so data is lost. Some implementations of snapshot isolation
+ prevent this anomaly automatically, while others require a manual lock (`SELECT FOR UPDATE`).
+
+Write skew
+: A transaction reads something, makes a decision based on the value it saw, and writes the decision
+ to the database. However, by the time the write is made, the premise of the decision is no longer
+ true. Only serializable isolation prevents this anomaly.
+
+Phantom reads
+: A transaction reads objects that match some search condition. Another client makes a write that
+ affects the results of that search. Snapshot isolation prevents straightforward phantom reads, but
+ phantoms in the context of write skew require special treatment, such as index-range locks.
+
+Weak isolation levels protect against some of those anomalies but leave you, the application
+developer, to handle others manually (e.g., using explicit locking). Only serializable isolation
+protects against all of these issues. We discussed three different approaches to implementing
+serializable transactions:
+
+Literally executing transactions in a serial order
+: If you can make each transaction very fast to execute (typically by using stored procedures), and
+ the transaction throughput is low enough to process on a single CPU core or can be sharded, this
+ is a simple and effective option.
+
+Two-phase locking
+: For decades this has been the standard way of implementing serializability, but many applications
+ avoid using it because of its poor performance.
+
+Serializable snapshot isolation (SSI)
+: A comparatively new algorithm that avoids most of the downsides of the previous approaches. It
+ uses an optimistic approach, allowing transactions to proceed without blocking. When a transaction
+ wants to commit, it is checked, and it is aborted if the execution was not serializable.
+
+Finally, we examined how to achieve atomicity when a transaction is distributed across multiple
+nodes, using two-phase commit. If those nodes are all running the same database software,
+distributed transactions can work quite well, but across different storage technologies (using XA
+transactions), 2PC is problematic: it is very sensitive to faults in the coordinator and the
+application code driving the transaction, and it interacts poorly with concurrency control
+mechanisms. Fortunately, idempotence can ensure exactly-once semantics without requiring atomic
+commit across different storage technologies, and we will see more on this in later chapters.
+
+The examples in this chapter used a relational data model. However, as discussed in
+[“The need for multi-object transactions”](/en/ch8#sec_transactions_need), transactions are a valuable database feature, no matter which data model is used.
+
+
+
+### 参考
+
+[^1]: Steven J. Murdoch. [What went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021. Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F) 
+[^2]: Donald D. Chamberlin, Morton M. Astrahan, Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl, Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz, Irving L. Traiger, Bradford W. Wade, and Robert A. Yost. [A History and Evaluation of System R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981. [doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784) 
+[^3]: Jim N. Gray, Raymond A. Lorie, Gianfranco R. Putzolu, and Irving L. Traiger. [Granularity of Locks and Degrees of Consistency in a Shared Data Base](https://citeseerx.ist.psu.edu/pdf/e127f0a6a912bb9150ecfe03c0ebf7fbc289a023). in *Modelling in Data Base Management Systems: Proceedings of the IFIP Working Conference on Modelling in Data Base Management Systems*, edited by G. M. Nijssen, pages 364–394, Elsevier/North Holland Publishing, 1976. Also in *Readings in Database Systems*, 4th edition, edited by Joseph M. Hellerstein and Michael Stonebraker, MIT Press, 2005. ISBN: 978-0-262-69314-1 
+[^4]: Kapali P. Eswaran, Jim N. Gray, Raymond A. Lorie, and Irving L. Traiger. [The Notions of Consistency and Predicate Locks in a Database System](https://jimgray.azurewebsites.net/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf?from=https://research.microsoft.com/en-us/um/people/gray/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf). *Communications of the ACM*, volume 19, issue 11, pages 624–633, November 1976. [doi:10.1145/360363.360369](https://doi.org/10.1145/360363.360369) 
+[^5]: Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis. [CockroachDB: The Resilient Geo-Distributed SQL Database](https://dl.acm.org/doi/pdf/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1493–1509, June 2020. [doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134) 
+[^6]: Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang, Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang, Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan Pei, and Xin Tang. [TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084. [doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535) 
+[^7]: James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012. 
+[^8]: Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. [FoundationDB: A Distributed Unbundled Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559) 
+[^9]: Theo Härder and Andreas Reuter. [Principles of Transaction-Oriented Database Recovery](https://citeseerx.ist.psu.edu/pdf/11ef7c142295aeb1a28a0e714c91fc8d610c3047). *ACM Computing Surveys*, volume 15, issue 4, pages 287–317, December 1983. [doi:10.1145/289.291](https://doi.org/10.1145/289.291) 
+[^10]: Peter Bailis, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [HAT, not CAP: Towards Highly Available Transactions](https://www.usenix.org/system/files/conference/hotos13/hotos13-final80.pdf). At *14th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2013. 
+[^11]: Armando Fox, Steven D. Gribble, Yatin Chawathe, Eric A. Brewer, and Paul Gauthier. [Cluster-Based Scalable Network Services](https://people.eecs.berkeley.edu/~brewer/cs262b/TACC.pdf). At *16th ACM Symposium on Operating Systems Principles* (SOSP), October 1997. [doi:10.1145/268998.266662](https://doi.org/10.1145/268998.266662) 
+[^12]: Tony Andrews. [Enforcing Complex Constraints in Oracle](https://tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html). *tonyandrews.blogspot.co.uk*, October 2004. Archived at [archive.org](https://web.archive.org/web/20220201190625/https%3A//tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html) 
+[^13]: Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman. [*Concurrency Control and Recovery in Database Systems*](https://www.microsoft.com/en-us/research/people/philbe/book/). Addison-Wesley, 1987. ISBN: 978-0-201-10715-9, available online at [*microsoft.com*](https://www.microsoft.com/en-us/research/people/philbe/book/). 
+[^14]: Alan Fekete, Dimitrios Liarokapis, Elizabeth O’Neil, Patrick O’Neil, and Dennis Shasha. [Making Snapshot Isolation Serializable](https://www.cse.iitb.ac.in/infolab/Data/Courses/CS632/2009/Papers/p492-fekete.pdf). *ACM Transactions on Database Systems*, volume 30, issue 2, pages 492–528, June 2005. [doi:10.1145/1071610.1071615](https://doi.org/10.1145/1071610.1071615) 
+[^15]: Mai Zheng, Joseph Tucek, Feng Qin, and Mark Lillibridge. [Understanding the Robustness of SSDs Under Power Fault](https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf). At *11th USENIX Conference on File and Storage Technologies* (FAST), February 2013. 
+[^16]: Laurie Denness. [SSDs: A Gift and a Curse](https://laur.ie/blog/2015/06/ssds-a-gift-and-a-curse/). *laur.ie*, June 2015. Archived at [perma.cc/6GLP-BX3T](https://perma.cc/6GLP-BX3T) 
+[^17]: Adam Surak. [When Solid State Drives Are Not That Solid](https://www.algolia.com/blog/engineering/when-solid-state-drives-are-not-that-solid). *blog.algolia.com*, June 2015. Archived at [perma.cc/CBR9-QZEE](https://perma.cc/CBR9-QZEE) 
+[^18]: Hewlett Packard Enterprise. [Bulletin: (Revision) HPE SAS Solid State Drives - Critical Firmware Upgrade Required for Certain HPE SAS Solid State Drive Models to Prevent Drive Failure at 32,768 Hours of Operation](https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00092491en_us). *support.hpe.com*, November 2019. Archived at [perma.cc/CZR4-AQBS](https://perma.cc/CZR4-AQBS) 
+[^19]: Craig Ringer et al. [PostgreSQL’s handling of fsync() errors is unsafe and risks data loss at least on XFS](https://www.postgresql.org/message-id/flat/CAMsr%2BYHh%2B5Oq4xziwwoEfhoTZgr07vdGG%2Bhu%3D1adXx59aTeaoQ%40mail.gmail.com). Email thread on pgsql-hackers mailing list, *postgresql.org*, March 2018. Archived at [perma.cc/5RKU-57FL](https://perma.cc/5RKU-57FL) 
+[^20]: Anthony Rebello, Yuvraj Patel, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Can Applications Recover from fsync Failures?](https://www.usenix.org/conference/atc20/presentation/rebello) At *USENIX Annual Technical Conference* (ATC), July 2020. 
+[^21]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Crash Consistency: Rethinking the Fundamental Abstractions of the File System](https://dl.acm.org/doi/pdf/10.1145/2800695.2801719). *ACM Queue*, volume 13, issue 7, pages 20–28, July 2015. [doi:10.1145/2800695.2801719](https://doi.org/10.1145/2800695.2801719) 
+[^22]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [All File Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf). At *11th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2014. 
+[^23]: Chris Siebenmann. [Unix’s File Durability Problem](https://utcc.utoronto.ca/~cks/space/blog/unix/FileSyncProblem). *utcc.utoronto.ca*, April 2016. Archived at [perma.cc/VSS8-5MC4](https://perma.cc/VSS8-5MC4) 
+[^24]: Aishwarya Ganesan, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Redundancy Does Not Imply Fault Tolerance: Analysis of Distributed Storage Reactions to Single Errors and Corruptions](https://www.usenix.org/conference/fast17/technical-sessions/presentation/ganesan). At *15th USENIX Conference on File and Storage Technologies* (FAST), February 2017. 
+[^25]: Lakshmi N. Bairavasundaram, Garth R. Goodson, Bianca Schroeder, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [An Analysis of Data Corruption in the Storage Stack](https://www.usenix.org/legacy/event/fast08/tech/full_papers/bairavasundaram/bairavasundaram.pdf). At *6th USENIX Conference on File and Storage Technologies* (FAST), February 2008. 
+[^26]: Bianca Schroeder, Raghav Lagisetty, and Arif Merchant. [Flash Reliability in Production: The Expected and the Unexpected](https://www.usenix.org/conference/fast16/technical-sessions/presentation/schroeder). At *14th USENIX Conference on File and Storage Technologies* (FAST), February 2016. 
+[^27]: Don Allison. [SSD Storage – Ignorance of Technology Is No Excuse](https://blog.korelogic.com/blog/2015/03/24). *blog.korelogic.com*, March 2015. Archived at [perma.cc/9QN4-9SNJ](https://perma.cc/9QN4-9SNJ) 
+[^28]: Gordon Mah Ung. [Debunked: Your SSD won’t lose data if left unplugged after all](https://www.pcworld.com/article/427602/debunked-your-ssd-wont-lose-data-if-left-unplugged-after-all.html). *pcworld.com*, May 2015. Archived at [perma.cc/S46H-JUDU](https://perma.cc/S46H-JUDU) 
+[^29]: Martin Kleppmann. [Hermitage: Testing the ‘I’ in ACID](https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html). *martin.kleppmann.com*, November 2014. Archived at [perma.cc/KP2Y-AQGK](https://perma.cc/KP2Y-AQGK) 
+[^30]: Todd Warszawski and Peter Bailis. [ACIDRain: Concurrency-Related Attacks on Database-Backed Web Applications](http://www.bailis.org/papers/acidrain-sigmod2017.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 2017. [doi:10.1145/3035918.3064037](https://doi.org/10.1145/3035918.3064037) 
+[^31]: Tristan D’Agosta. [BTC Stolen from Poloniex](https://bitcointalk.org/index.php?topic=499580). *bitcointalk.org*, March 2014. Archived at [perma.cc/YHA6-4C5D](https://perma.cc/YHA6-4C5D) 
+[^32]: bitcointhief2. [How I Stole Roughly 100 BTC from an Exchange and How I Could Have Stolen More!](https://www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) *reddit.com*, February 2014. Archived at [archive.org](https://web.archive.org/web/20250118042610/https%3A//www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) 
+[^33]: Sudhir Jorwekar, Alan Fekete, Krithi Ramamritham, and S. Sudarshan. [Automating the Detection of Snapshot Isolation Anomalies](https://www.vldb.org/conf/2007/papers/industrial/p1263-jorwekar.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007. 
+[^34]: Michael Melanson. [Transactions: The Limits of Isolation](https://www.michaelmelanson.net/posts/transactions-the-limits-of-isolation/). *michaelmelanson.net*, November 2014. Archived at [perma.cc/RG5R-KMYZ](https://perma.cc/RG5R-KMYZ) 
+[^35]: Edward Kim. [How ACH works: A developer perspective — Part 1](https://engineering.gusto.com/how-ach-works-a-developer-perspective-part-1-339d3e7bea1). *engineering.gusto.com*, April 2014. Archived at [perma.cc/7B2H-PU94](https://perma.cc/7B2H-PU94) 
+[^36]: Hal Berenson, Philip A. Bernstein, Jim N. Gray, Jim Melton, Elizabeth O’Neil, and Patrick O’Neil. [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 1995. [doi:10.1145/568271.223785](https://doi.org/10.1145/568271.223785) 
+[^37]: Atul Adya. [Weak Consistency: A Generalized Theory and Optimistic Implementations for Distributed Transactions](https://pmg.csail.mit.edu/papers/adya-phd.pdf). PhD Thesis, Massachusetts Institute of Technology, March 1999. Archived at [perma.cc/E97M-HW5Q](https://perma.cc/E97M-HW5Q) 
+[^38]: Peter Bailis, Aaron Davidson, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Highly Available Transactions: Virtues and Limitations](https://www.vldb.org/pvldb/vol7/p181-bailis.pdf). At *40th International Conference on Very Large Data Bases* (VLDB), September 2014. 
+[^39]: Natacha Crooks, Youer Pu, Lorenzo Alvisi, and Allen Clement. [Seeing is Believing: A Client-Centric Specification of Database Isolation](https://www.cs.cornell.edu/lorenzo/papers/Crooks17Seeing.pdf). At *ACM Symposium on Principles of Distributed Computing* (PODC), pages 73–82, July 2017. [doi:10.1145/3087801.3087802](https://doi.org/10.1145/3087801.3087802) 
+[^40]: Bruce Momjian. [MVCC Unmasked](https://momjian.us/main/writings/pgsql/mvcc.pdf). *momjian.us*, July 2014. Archived at [perma.cc/KQ47-9GYB](https://perma.cc/KQ47-9GYB) 
+[^41]: Peter Alvaro and Kyle Kingsbury. [MySQL 8.0.34](https://jepsen.io/analyses/mysql-8.0.34). *jepsen.io*, December 2023. Archived at [perma.cc/HGE2-Z878](https://perma.cc/HGE2-Z878) 
+[^42]: Egor Rogov. [PostgreSQL 14 Internals](https://postgrespro.com/community/books/internals). *postgrespro.com*, April 2023. Archived at [perma.cc/FRK2-D7WB](https://perma.cc/FRK2-D7WB) 
+[^43]: Hironobu Suzuki. [The Internals of PostgreSQL](https://www.interdb.jp/pg/). *interdb.jp*, 2017. 
+[^44]: Rohan Reddy Alleti. [Internals of MVCC in Postgres: Hidden costs of Updates vs Inserts](https://medium.com/%40rohanjnr44/internals-of-mvcc-in-postgres-hidden-costs-of-updates-vs-inserts-381eadd35844). *medium.com*, March 2025. Archived at [perma.cc/3ACX-DFXT](https://perma.cc/3ACX-DFXT) 
+[^45]: Andy Pavlo and Bohan Zhang. [The Part of PostgreSQL We Hate the Most](https://www.cs.cmu.edu/~pavlo/blog/2023/04/the-part-of-postgresql-we-hate-the-most.html). *cs.cmu.edu*, April 2023. Archived at [perma.cc/XSP6-3JBN](https://perma.cc/XSP6-3JBN) 
+[^46]: Yingjun Wu, Joy Arulraj, Jiexi Lin, Ran Xian, and Andrew Pavlo. [An empirical evaluation of in-memory multi-version concurrency control](https://vldb.org/pvldb/vol10/p781-Wu.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue 7, pages 781–792, March 2017. [doi:10.14778/3067421.3067427](https://doi.org/10.14778/3067421.3067427) 
+[^47]: Nikita Prokopov. [Unofficial Guide to Datomic Internals](https://tonsky.me/blog/unofficial-guide-to-datomic-internals/). *tonsky.me*, May 2014. 
+[^48]: Daniil Svetlov. [A Practical Guide to Taming Postgres Isolation Anomalies](https://dansvetlov.me/postgres-anomalies/). *dansvetlov.me*, March 2025. Archived at [perma.cc/L7LE-TDLS](https://perma.cc/L7LE-TDLS) 
+[^49]: Nate Wiger. [An Atomic Rant](https://nateware.com/2010/02/18/an-atomic-rant/). *nateware.com*, February 2010. Archived at [perma.cc/5ZYB-PE44](https://perma.cc/5ZYB-PE44) 
+[^50]: James Coglan. [Reading and writing, part 3: web applications](https://blog.jcoglan.com/2020/10/12/reading-and-writing-part-3/). *blog.jcoglan.com*, October 2020. Archived at [perma.cc/A7EK-PJVS](https://perma.cc/A7EK-PJVS) 
+[^51]: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Feral Concurrency Control: An Empirical Investigation of Modern Application Integrity](http://www.bailis.org/papers/feral-sigmod2015.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2015. [doi:10.1145/2723372.2737784](https://doi.org/10.1145/2723372.2737784) 
+[^52]: Jaana Dogan. [Things I Wished More Developers Knew About Databases](https://rakyll.medium.com/things-i-wished-more-developers-knew-about-databases-2d0178464f78). *rakyll.medium.com*, April 2020. Archived at [perma.cc/6EFK-P2TD](https://perma.cc/6EFK-P2TD) 
+[^53]: Michael J. Cahill, Uwe Röhm, and Alan Fekete. [Serializable Isolation for Snapshot Databases](https://www.cs.cornell.edu/~sowell/dbpapers/serializable_isolation.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2008. [doi:10.1145/1376616.1376690](https://doi.org/10.1145/1376616.1376690) 
+[^54]: Dan R. K. Ports and Kevin Grittner. [Serializable Snapshot Isolation in PostgreSQL](https://drkp.net/papers/ssi-vldb12.pdf). At *38th International Conference on Very Large Databases* (VLDB), August 2012. 
+[^55]: Douglas B. Terry, Marvin M. Theimer, Karin Petersen, Alan J. Demers, Mike J. Spreitzer and Carl H. Hauser. [Managing Update Conflicts in Bayou, a Weakly Connected Replicated Storage System](https://pdos.csail.mit.edu/6.824/papers/bayou-conflicts.pdf). At *15th ACM Symposium on Operating Systems Principles* (SOSP), December 1995. [doi:10.1145/224056.224070](https://doi.org/10.1145/224056.224070) 
+[^56]: Hans-Jürgen Schönig. [Constraints over multiple rows in PostgreSQL](https://www.cybertec-postgresql.com/en/postgresql-constraints-over-multiple-rows/). *cybertec-postgresql.com*, June 2021. Archived at [perma.cc/2TGH-XUPZ](https://perma.cc/2TGH-XUPZ) 
+[^57]: Michael Stonebraker, Samuel Madden, Daniel J. Abadi, Stavros Harizopoulos, Nabil Hachem, and Pat Helland. [The End of an Architectural Era (It’s Time for a Complete Rewrite)](https://vldb.org/conf/2007/papers/industrial/p1150-stonebraker.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007. 
+[^58]: John Hugg. [H-Store/VoltDB Architecture vs. CEP Systems and Newer Streaming Architectures](https://www.youtube.com/watch?v=hD5M4a1UVz8). At *Data @Scale Boston*, November 2014. 
+[^59]: Robert Kallman, Hideaki Kimura, Jonathan Natkins, Andrew Pavlo, Alexander Rasin, Stanley Zdonik, Evan P. C. Jones, Samuel Madden, Michael Stonebraker, Yang Zhang, John Hugg, and Daniel J. Abadi. [H-Store: A High-Performance, Distributed Main Memory Transaction Processing System](https://www.vldb.org/pvldb/vol1/1454211.pdf). *Proceedings of the VLDB Endowment*, volume 1, issue 2, pages 1496–1499, August 2008. 
+[^60]: Rich Hickey. [The Architecture of Datomic](https://www.infoq.com/articles/Architecture-Datomic/). *infoq.com*, November 2012. Archived at [perma.cc/5YWU-8XJK](https://perma.cc/5YWU-8XJK) 
+[^61]: John Hugg. [Debunking Myths About the VoltDB In-Memory Database](https://dzone.com/articles/debunking-myths-about-voltdb). *dzone.com*, May 2014. Archived at [perma.cc/2Z9N-HPKF](https://perma.cc/2Z9N-HPKF) 
+[^62]: Xinjing Zhou, Viktor Leis, Xiangyao Yu, and Michael Stonebraker. [OLTP Through the Looking Glass 16 Years Later: Communication is the New Bottleneck](https://www.vldb.org/cidrdb/papers/2025/p17-zhou.pdf). At *15th Annual Conference on Innovative Data Systems Research* (CIDR), January 2025. 
+[^63]: Xinjing Zhou, Xiangyao Yu, Goetz Graefe, and Michael Stonebraker. [Lotus: scalable multi-partition transactions on single-threaded partitioned databases](https://www.vldb.org/pvldb/vol15/p2939-zhou.pdf). *Proceedings of the VLDB Endowment* (PVLDB), volume 15, issue 11, pages 2939–2952, July 2022. [doi:10.14778/3551793.3551843](https://doi.org/10.14778/3551793.3551843) 
+[^64]: Joseph M. Hellerstein, Michael Stonebraker, and James Hamilton. [Architecture of a Database System](https://dsf.berkeley.edu/papers/fntdb07-architecture.pdf). *Foundations and Trends in Databases*, volume 1, issue 2, pages 141–259, November 2007. [doi:10.1561/1900000002](https://doi.org/10.1561/1900000002) 
+[^65]: Michael J. Cahill. [Serializable Isolation for Snapshot Databases](https://ses.library.usyd.edu.au/bitstream/handle/2123/5353/michael-cahill-2009-thesis.pdf). PhD Thesis, University of Sydney, July 2009. Archived at [perma.cc/727J-NTMP](https://perma.cc/727J-NTMP) 
+[^66]: Cristian Diaconu, Craig Freedman, Erik Ismert, Per-Åke Larson, Pravin Mittal, Ryan Stonecipher, Nitin Verma, and Mike Zwilling. [Hekaton: SQL Server’s Memory-Optimized OLTP Engine](https://www.microsoft.com/en-us/research/wp-content/uploads/2013/06/Hekaton-Sigmod2013-final.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1243–1254, June 2013. [doi:10.1145/2463676.2463710](https://doi.org/10.1145/2463676.2463710) 
+[^67]: Thomas Neumann, Tobias Mühlbauer, and Alfons Kemper. [Fast Serializable Multi-Version Concurrency Control for Main-Memory Database Systems](https://db.in.tum.de/~muehlbau/papers/mvcc.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 677–689, May 2015. [doi:10.1145/2723372.2749436](https://doi.org/10.1145/2723372.2749436) 
+[^68]: D. Z. Badal. [Correctness of Concurrency Control and Implications in Distributed Databases](https://ieeexplore.ieee.org/abstract/document/762563). At *3rd International IEEE Computer Software and Applications Conference* (COMPSAC), November 1979. [doi:10.1109/CMPSAC.1979.762563](https://doi.org/10.1109/CMPSAC.1979.762563) 
+[^69]: Rakesh Agrawal, Michael J. Carey, and Miron Livny. [Concurrency Control Performance Modeling: Alternatives and Implications](https://people.eecs.berkeley.edu/~brewer/cs262/ConcControl.pdf). *ACM Transactions on Database Systems* (TODS), volume 12, issue 4, pages 609–654, December 1987. [doi:10.1145/32204.32220](https://doi.org/10.1145/32204.32220) 
+[^70]: Marc Brooker. [Snapshot Isolation vs Serializability](https://brooker.co.za/blog/2024/12/17/occ-and-isolation.html). *brooker.co.za*, December 2024. Archived at [perma.cc/5TRC-CR5G](https://perma.cc/5TRC-CR5G) 
+[^71]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD) 
+[^72]: C. Mohan, Bruce G. Lindsay, and Ron Obermarck. [Transaction Management in the R\* Distributed Database Management System](https://cs.brown.edu/courses/csci2270/archives/2012/papers/dtxn/p378-mohan.pdf). *ACM Transactions on Database Systems*, volume 11, issue 4, pages 378–396, December 1986. [doi:10.1145/7239.7266](https://doi.org/10.1145/7239.7266) 
+[^73]: X/Open Company Ltd. [Distributed Transaction Processing: The XA Specification](https://pubs.opengroup.org/onlinepubs/009680699/toc.pdf). Technical Standard XO/CAE/91/300, December 1991. ISBN: 978-1-872-63024-3, archived at [perma.cc/Z96H-29JB](https://perma.cc/Z96H-29JB) 
+[^74]: Ivan Silva Neto and Francisco Reverbel. [Lessons Learned from Implementing WS-Coordination and WS-AtomicTransaction](https://www.ime.usp.br/~reverbel/papers/icis2008.pdf). At *7th IEEE/ACIS International Conference on Computer and Information Science* (ICIS), May 2008. [doi:10.1109/ICIS.2008.75](https://doi.org/10.1109/ICIS.2008.75) 
+[^75]: James E. Johnson, David E. Langworthy, Leslie Lamport, and Friedrich H. Vogt. [Formal Specification of a Web Services Protocol](https://www.microsoft.com/en-us/research/publication/formal-specification-of-a-web-services-protocol/). At *1st International Workshop on Web Services and Formal Methods* (WS-FM), February 2004. [doi:10.1016/j.entcs.2004.02.022](https://doi.org/10.1016/j.entcs.2004.02.022) 
+[^76]: Jim Gray. [The Transaction Concept: Virtues and Limitations](https://jimgray.azurewebsites.net/papers/thetransactionconcept.pdf). At *7th International Conference on Very Large Data Bases* (VLDB), September 1981. 
+[^77]: Dale Skeen. [Nonblocking Commit Protocols](https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/Ske81.pdf). At *ACM International Conference on Management of Data* (SIGMOD), April 1981. [doi:10.1145/582318.582339](https://doi.org/10.1145/582318.582339) 
+[^78]: Gregor Hohpe. [Your Coffee Shop Doesn’t Use Two-Phase Commit](https://www.martinfowler.com/ieeeSoftware/coffeeShop.pdf). *IEEE Software*, volume 22, issue 2, pages 64–66, March 2005. [doi:10.1109/MS.2005.52](https://doi.org/10.1109/MS.2005.52) 
+[^79]: Pat Helland. [Life Beyond Distributed Transactions: An Apostate’s Opinion](https://www.cidrdb.org/cidr2007/papers/cidr07p15.pdf). At *3rd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2007. 
+[^80]: Jonathan Oliver. [My Beef with MSDTC and Two-Phase Commits](https://blog.jonathanoliver.com/my-beef-with-msdtc-and-two-phase-commits/). *blog.jonathanoliver.com*, April 2011. Archived at [perma.cc/K8HF-Z4EN](https://perma.cc/K8HF-Z4EN) 
+[^81]: Oren Eini (Ahende Rahien). [The Fallacy of Distributed Transactions](https://ayende.com/blog/167362/the-fallacy-of-distributed-transactions). *ayende.com*, July 2014. Archived at [perma.cc/VB87-2JEF](https://perma.cc/VB87-2JEF) 
+[^82]: Clemens Vasters. [Transactions in Windows Azure (with Service Bus) – An Email Discussion](https://learn.microsoft.com/en-gb/archive/blogs/clemensv/transactions-in-windows-azure-with-service-bus-an-email-discussion). *learn.microsoft.com*, July 2012. Archived at [perma.cc/4EZ9-5SKW](https://perma.cc/4EZ9-5SKW) 
+[^83]: Ajmer Dhariwal. [Orphaned MSDTC Transactions (-2 spids)](https://www.eraofdata.com/posts/2008/orphaned-msdtc-transactions-2-spids/). *eraofdata.com*, December 2008. Archived at [perma.cc/YG6F-U34C](https://perma.cc/YG6F-U34C) 
+[^84]: Paul Randal. [Real World Story of DBCC PAGE Saving the Day](https://www.sqlskills.com/blogs/paul/real-world-story-of-dbcc-page-saving-the-day/). *sqlskills.com*, June 2013. Archived at [perma.cc/2MJN-A5QH](https://perma.cc/2MJN-A5QH) 
+[^85]: Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva Mehta, Varun Madan, and Jun Rao. [Consistency and Completeness: Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556) 
