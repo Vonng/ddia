@@ -1,4 +1,4 @@
-# 设计数据密集型应用 - 中文翻译版
+# 设计数据密集型应用（第二版） - 中文翻译版
 
 [![Webite: ddia](https://img.shields.io/badge/在线阅读-ddia.vonng.com-slategray?style=flat)](https://ddia.vonng.com)
 [![GitHub Stars](https://img.shields.io/github/stars/Vonng/ddia?style=flat&logo=github&logoColor=black&color=slategray)](https://star-history.com/#Vonng/ddia&Date)
@@ -11,7 +11,8 @@
 
 **阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [hugo](https://gohugo.io/documentation/) / [hextra](https://imfing.github.io/hextra/zh-cn/) 主题自行构建。
 
-**通知**：DDIA [**第二版**](https://ddia.vonng.com/v2) 正在翻译中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main/content/v2) 目录)，欢迎加入并提出您的宝贵意见！
+**通知**：DDIA [**第二版**](https://ddia2.vonng.com) 正在翻译中 ([`v2`](https://github.com/Vonng/ddia/tree/v2) 分支)，欢迎加入并提出您的宝贵意见！
+
 
 ---------
 
@@ -153,9 +154,9 @@
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章语法标点校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
-4. [第一部分](part-i.md)前言，[ch2](ch2.md)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. [词汇表](glossary.md)、[后记](colophon.md)关于野猪的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
-6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本与转换脚本 by [@afunTW](https://github.com/afunTW)
+4. 第一部分前言，ch2 校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
+5. 词汇表、后记关于野猪的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+6. 繁體中文版本与转换脚本 by [@afunTW](https://github.com/afunTW)
 7. 多处翻译修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
 8. 感谢所有作出贡献，提出意见的朋友们：
 

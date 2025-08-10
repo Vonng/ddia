@@ -1,6 +1,6 @@
 baseURL: 'https://ddia.vonng.com/'
 languageCode: 'zh-CN'
-title: '设计数据密集型应用第二版'
+title: '设计数据密集型应用（第二版）'
 
 enableRobotsTXT: true
 # Parse Git commit
@@ -35,12 +35,12 @@ languages:
     contentDir: content/tw
     weight: 3
     title: 設計資料密集型應用（第二版）
-  en:
-    languageName: English
-    languageCode: en
-    contentDir: content/en
-    weight: 4
-    title: Designing Data-Intensive Applications 2nd Edition
+  #en:
+  #  languageName: English
+  #  languageCode: en
+  #  contentDir: content/en
+  #  weight: 4
+  #  title: Designing Data-Intensive Applications 2nd Edition
 
 markup:
   goldmark:
@@ -85,10 +85,10 @@ menu:
       name: "繁體中文 ↗"
       url: "/tw"
       weight: 4
-    - identifier: english
-      name: "English ↗"
-      url: "/en"
-      weight: 5
+    #- identifier: english
+    #  name: "English ↗"
+    #  url: "/en"
+    #  weight: 5
 
     - identifier: more
       name: 参考链接
@@ -108,8 +108,8 @@ menu:
       url: "https://postgres-internals.cn/"
       weight: 9
     - identifier: pigsty
-      name: "Pigsty 文档 ↗"
-      url: "https://doc.pgsty.com/zh"
+      name: "Pigsty Free PG RDS ↗"
+      url: "https://pgsty.com/"
       weight: 10
     - identifier: pgext
       name: "PG 扩展目录 ↗"
@@ -126,7 +126,7 @@ menu:
 
 
 params:
-  description: DDIA 中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，它深入探讨了数据密集型应用的架构和设计原则，涵盖了模型，存储，分区，事务，分布式系统、数据存储、流处理，批处理等各种主题。
+  description: DDIA2，设计数据密集型应用（第二版）中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，它深入探讨了数据密集型应用的架构和设计原则，涵盖了模型，存储，分区，事务，分布式系统、数据存储、流处理，批处理等各种主题。
 
   navbar:
     displayTitle: true
