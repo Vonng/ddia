@@ -4,878 +4,407 @@ weight: 208
 breadcrumbs: false
 ---
 
-> *Some authors have claimed that general two-phase commit is too expensive to support, because of the
-> performance or availability problems that it brings. We believe it is better to have application
-> programmers deal with performance problems due to overuse of transactions as bottlenecks arise,
-> rather than always coding around the lack of transactions.*
+![](/map/ch07.png)
+
+> *有些作者声称，支持通用的两阶段提交代价太大，会带来性能与可用性的问题。我们认为，让程序员来处理过度使用事务导致的性能问题，总比缺少事务编程好得多。*
 >
-> James Corbett et al., *Spanner: Google’s Globally-Distributed Database* (2012)
+> James Corbett 等人，*Spanner：Google 的全球分布式数据库*（2012）
 
-In the harsh reality of data systems, many things can go wrong:
+在数据系统的残酷现实中，很多事情都可能出错：
 
-* The database software or hardware may fail at any time (including in the middle of a write
- operation).
-* The application may crash at any time (including halfway through a series of operations).
-* Interruptions in the network can unexpectedly cut off the application from the database, or one
- database node from another.
-* Several clients may write to the database at the same time, overwriting each other’s changes.
-* A client may read data that doesn’t make sense because it has only partially been updated.
-* Race conditions between clients can cause surprising bugs.
+* 数据库软件或硬件可能在任意时刻发生故障（包括写操作进行到一半时）。
+* 应用程序可能在任意时刻崩溃（包括一系列操作的中间）。
+* 网络中断可能会意外切断应用程序与数据库的连接，或数据库节点之间的连接。
+* 多个客户端可能会同时写入数据库，覆盖彼此的更改。
+* 客户端可能读取到无意义的数据，因为数据只更新了一部分。
+* 客户端之间的竞态条件可能导致令人惊讶的错误。
 
-In order to be reliable, a system has to deal with these faults and ensure that they don’t cause
-catastrophic failure of the entire system. However, implementing fault-tolerance mechanisms is a lot
-of work. It requires a lot of careful thinking about all the things that can go wrong, and a lot of
-testing to ensure that the solution actually works.
+为了实现可靠性，系统必须处理这些故障，确保它们不会导致整个系统的灾难性故障。然而，实现容错机制需要大量工作。它需要仔细考虑所有可能出错的事情，并进行大量测试，以确保解决方案真正有效。
 
-For decades, *transactions* have been the mechanism of choice for simplifying these issues. A
-transaction is a way for an application to group several reads and writes together into a logical
-unit. Conceptually, all the reads and writes in a transaction are executed as one operation: either
-the entire transaction succeeds (*commit*) or it fails (*abort*, *rollback*). If it fails, the
-application can safely retry. With transactions, error handling becomes much simpler for an
-application, because it doesn’t need to worry about partial failure—i.e., the case where some
-operations succeed and some fail (for whatever reason).
+数十年来，*事务*一直是简化这些问题的首选机制。事务是应用程序将多个读写操作组合成一个逻辑单元的一种方式。从概念上讲，事务中的所有读写操作被视作单个操作来执行：整个事务要么成功（*提交*），要么失败（*中止*、*回滚*）。如果失败，应用程序可以安全地重试。对于事务来说，应用程序的错误处理变得简单多了，因为它不用再担心部分失败——即某些操作成功，某些失败（无论出于何种原因）。
 
-If you have spent years working with transactions, they may seem obvious, but we shouldn’t take them
-for granted. Transactions are not a law of nature; they were created with a purpose, namely to
-*simplify the programming model* for applications accessing a database. By using transactions, the
-application is free to ignore certain potential error scenarios and concurrency issues, because the
-database takes care of them instead (we call these *safety guarantees*).
+如果你与事务打交道多年，它们可能看起来显而易见，但我们不应该将其视为理所当然。事务不是自然法则；它们是有目的地创建的，即为了*简化应用程序的编程模型*。通过使用事务，应用程序可以自由地忽略某些潜在的错误场景和并发问题，因为数据库会替应用处理好这些（我们称之为*安全保证*）。
 
-Not every application needs transactions, and sometimes there are advantages to weakening
-transactional guarantees or abandoning them entirely (for example, to achieve higher performance or
-higher availability). Some safety properties can be achieved without transactions. On the other
-hand, transactions can prevent a lot of grief: for example, the technical cause behind the Post
-Office Horizon scandal (see [“How Important Is Reliability?”](/en/ch2#sidebar_reliability_importance)) was probably a lack of ACID
-transactions in the underlying accounting system [^1].
+并非所有应用程序都需要事务，有时弱化事务保证或完全放弃事务也有好处（例如，为了获得更高的性能或更高的可用性）。某些安全属性可以在没有事务的情况下实现。另一方面，事务可以防止很多麻烦：例如，邮局 Horizon 丑闻（参见["可靠性有多重要？"](/ch2#sidebar_reliability_importance)）背后的技术原因可能是底层会计系统缺乏 ACID 事务[^1]。
 
-How do you figure out whether you need transactions? In order to answer that question, we first need
-to understand exactly what safety guarantees transactions can provide, and what costs are associated
-with them. Although transactions seem straightforward at first glance, there are actually many
-subtle but important details that come into play.
+你如何确定是否需要事务？为了回答这个问题，我们首先需要准确理解事务可以提供哪些安全保证，以及相关的成本。尽管事务乍看起来很简单，但实际上有许多细微但重要的细节在起作用。
 
-In this chapter, we will examine many examples of things that can go wrong, and explore the
-algorithms that databases use to guard against those issues. We will go especially deep in the area
-of concurrency control, discussing various kinds of race conditions that can occur and how
-databases implement isolation levels such as *read committed*, *snapshot isolation*, and
-*serializability*.
+在本章中，我们将研究许多可能出错的案例，并探索数据库用于防范这些问题的算法。我们将特别深入并发控制领域，讨论可能发生的各种竞态条件，以及数据库如何实现*读已提交*、*快照隔离*和*可串行化*等隔离级别。
 
-Concurrency control is relevant for both single-node and distributed databases. Later in this
-chapter, in [“Distributed Transactions”](/en/ch8#sec_transactions_distributed), we will examine the *two-phase commit* protocol and
-the challenge of achieving atomicity in a distributed transaction.
+并发控制对单节点和分布式数据库都很重要。在本章后面的["分布式事务"](/ch8#sec_transactions_distributed)部分，我们将研究*两阶段提交*协议和在分布式事务中实现原子性的挑战。
 
 ## 事务到底是什么？ {#sec_transactions_overview}
 
-Almost all relational databases today, and some nonrelational databases, support transactions. Most
-of them follow the style that was introduced in 1975 by IBM System R, the first SQL database [^2] [^3] [^4].
-Although some implementation details have changed, the general idea has remained virtually the same
-for 50 years: the transaction support in MySQL, PostgreSQL, Oracle, SQL Server, etc., is uncannily
-similar to that of System R.
+今天，几乎所有的关系型数据库和一些非关系数据库都支持事务。它们大多遵循 1975 年由 IBM System R（第一个 SQL 数据库）引入的风格[^2] [^3] [^4]。尽管一些实现细节发生了变化，但总体思路在 50 年里几乎保持不变：MySQL、PostgreSQL、Oracle、SQL Server 等的事务支持与 System R 惊人地相似。
 
-In the late 2000s, nonrelational (NoSQL) databases started gaining popularity. They aimed to
-improve upon the relational status quo by offering a choice of new data models (see
-[Chapter 3](/en/ch3#ch_datamodels)), and by including replication ([Chapter 6](/en/ch6#ch_replication)) and sharding
-([Chapter 7](/en/ch7#ch_sharding)) by default. Transactions were the main casualty of this movement: many of this
-generation of databases abandoned transactions entirely, or redefined the word to describe a
-much weaker set of guarantees than had previously been understood.
+在 2000 年代后期，非关系（NoSQL）数据库开始流行起来。它们旨在通过提供新的数据模型选择（参见[第 3 章](/ch3#ch_datamodels)），以及默认包含复制（[第 6 章](/ch6#ch_replication)）和分片（[第 7 章](/ch7#ch_sharding)）来改进关系型数据库的现状。事务是这一运动的主要牺牲品：许多这一代数据库完全放弃了事务，或者重新定义了这个词，用来描述比以前理解的更弱的保证集。
 
-The hype around NoSQL distributed databases led to a popular belief that transactions were
-fundamentally unscalable, and that any large-scale system would have to abandon transactions in
-order to maintain good performance and high availability. More recently, that belief has turned out
-to be wrong. So-called “NewSQL” databases such as CockroachDB [^5], TiDB [^6], Spanner [^7], FoundationDB [^8],
-and Yugabyte have shown that transactional systems can scale to large data volumes and high
-throughput. These systems combine sharding with consensus protocols ([Chapter 10](/en/ch10#ch_consistency)) to provide
-strong ACID guarantees at scale.
+围绕 NoSQL 分布式数据库的炒作导致了一种流行的信念，即事务从根本上是不可扩展的，任何大规模系统都必须放弃事务以保持良好的性能和高可用性。最近，这种信念被证明是错误的。所谓的"NewSQL"数据库，如 CockroachDB[^5]、TiDB[^6]、Spanner[^7]、FoundationDB[^8] 和 Yugabyte 已经证明，事务系统可以扩展到大数据量和高吞吐量。这些系统将分片与共识协议（[第 10 章](/ch10#ch_consistency)）相结合，以大规模提供强 ACID 保证。
 
-However, that doesn’t mean that every system must be transactional either: like every other
-technical design choice, transactions have advantages and limitations. In order to understand those
-trade-offs, let’s go into the details of the guarantees that transactions can provide—both in normal
-operation and in various extreme (but realistic) circumstances.
+然而，这并不意味着每个系统都必须是事务型的：与任何其他技术设计选择一样，事务有优点也有局限性。为了理解这些权衡，让我们深入了解事务可以提供的保证的细节——无论是在正常操作中还是在各种极端（但现实）的情况下。
 
 ### ACID 的含义 {#sec_transactions_acid}
 
-The safety guarantees provided by transactions are often described by the well-known acronym *ACID*,
-which stands for *Atomicity*, *Consistency*, *Isolation*, and *Durability*. It was coined in 1983 by
-Theo Härder and Andreas Reuter [^9] in an effort to establish precise terminology for fault-tolerance mechanisms in databases.
+事务提供的安全保证通常由众所周知的首字母缩略词 *ACID* 来描述，它代表*原子性*（Atomicity）、*一致性*（Consistency）、*隔离性*（Isolation）和*持久性*（Durability）。它由 Theo Härder 和 Andreas Reuter 于 1983 年提出[^9]，旨在为数据库中的容错机制建立精确的术语。
 
-However, in practice, one database’s implementation of ACID does not equal another’s implementation.
-For example, as we shall see, there is a lot of ambiguity around the meaning of *isolation* [^10].
-The high-level idea is sound, but the devil is in the details. Today, when a system claims to be
-“ACID compliant,” it’s unclear what guarantees you can actually expect. ACID has unfortunately
-become mostly a marketing term.
+然而，在实践中，一个数据库的 ACID 实现并不等同于另一个数据库的实现。例如，正如我们将看到的，*隔离性*的含义有很多歧义[^10]。高层次的想法是合理的，但魔鬼在细节中。今天，当一个系统声称自己"符合 ACID"时，实际上你能期待什么保证并不清楚。不幸的是，ACID 基本上已经成为了一个营销术语。
 
-(Systems that do not meet the ACID criteria are sometimes called *BASE*, which stands for
-*Basically Available*, *Soft state*, and *Eventual consistency* [^11].
-This is even more vague than the definition of ACID. It seems that the only sensible definition of
-BASE is “not ACID”; i.e., it can mean almost anything you want.)
+（不符合 ACID 标准的系统有时被称为 *BASE*，它代表*基本可用*（Basically Available）、*软状态*（Soft state）和*最终一致性*（Eventual consistency）[^11]。这比 ACID 的定义更加模糊。似乎 BASE 唯一合理的定义是"非 ACID"；即，它几乎可以代表任何你想要的东西。）
 
-Let’s dig into the definitions of atomicity, consistency, isolation, and durability, as this will let
-us refine our idea of transactions.
+让我们深入了解原子性、一致性、隔离性和持久性的定义，这将让我们提炼出事务的思想。
 
 #### 原子性 {#sec_transactions_acid_atomicity}
 
-In general, *atomic* refers to something that cannot be broken down into smaller parts. The word
-means similar but subtly different things in different branches of computing. For example, in
-multi-threaded programming, if one thread executes an atomic operation, that means there is no way
-that another thread could see the half-finished result of the operation. The system can only be in
-the state it was before the operation or after the operation, not something in between.
+一般来说，*原子*是指不能分解成更小部分的东西。这个词在计算机的不同分支中意味着相似但又微妙不同的东西。例如，在多线程编程中，如果一个线程执行原子操作，这意味着另一个线程无法看到该操作的半完成结果。系统只能处于操作之前或操作之后的状态，而不是介于两者之间。
 
-By contrast, in the context of ACID, atomicity is *not* about concurrency. It does not describe
-what happens if several processes try to access the same data at the same time, because that is
-covered under the letter *I*, for *isolation* (see [“Isolation”](/en/ch8#sec_transactions_acid_isolation)).
+相比之下，在 ACID 的上下文中，原子性*不是*关于并发的。它不描述如果几个进程试图同时访问相同的数据会发生什么，因为这包含在字母 *I*（*隔离性*）中（参见["隔离性"](/ch8#sec_transactions_acid_isolation)）。
 
-Rather, ACID atomicity describes what happens if a client wants to make several writes, but a fault
-occurs after some of the writes have been processed—for example, a process crashes, a network
-connection is interrupted, a disk becomes full, or some integrity constraint is violated.
-If the writes are grouped together into an atomic transaction, and the transaction cannot be
-completed (*committed*) due to a fault, then the transaction is *aborted* and the database must
-discard or undo any writes it has made so far in that transaction.
+相反，ACID 原子性描述了当客户端想要进行多次写入，但在某些写入被处理后发生故障时会发生什么——例如，进程崩溃、网络连接中断、磁盘变满或违反了某些完整性约束。如果这些写入被分组到一个原子事务中，并且由于故障无法完成（*提交*）事务，则事务被*中止*，数据库必须丢弃或撤消该事务中迄今为止所做的任何写入。
 
-Without atomicity, if an error occurs partway through making multiple changes, it’s difficult to
-know which changes have taken effect and which haven’t. The application could try again, but that
-risks making the same change twice, leading to duplicate or incorrect data. Atomicity simplifies
-this problem: if a transaction was aborted, the application can be sure that it didn’t change
-anything, so it can safely be retried.
+如果没有原子性，如果在进行多处更改的中途发生错误，很难知道哪些更改已经生效，哪些没有。应用程序可以重试，但这有进行两次相同更改的风险，导致数据重复或错误。原子性简化了这个问题：如果事务被中止，应用程序可以确定它没有改变任何东西，因此可以安全地重试。
 
-The ability to abort a transaction on error and have all writes from that transaction discarded is
-the defining feature of ACID atomicity. Perhaps *abortability* would have been a better term than
-*atomicity*, but we will stick with *atomicity* since that’s the usual word.
+在错误时中止事务并丢弃该事务的所有写入的能力是 ACID 原子性的定义特征。也许*可中止性*比*原子性*更好，但我们将坚持使用*原子性*，因为这是常用词。
 
 #### 一致性 {#sec_transactions_acid_consistency}
 
-The word *consistency* is terribly overloaded:
+*一致性*这个词被严重滥用：
 
-* In [Chapter 6](/en/ch6#ch_replication) we discussed *replica consistency* and the issue of *eventual consistency*
- that arises in asynchronously replicated systems (see [“Problems with Replication Lag”](/en/ch6#sec_replication_lag)).
-* A *consistent snapshot* of a database, e.g. for a backup, is a snapshot of the entire database as
- it existed at one moment in time. More precisely, it is consistent with the happens-before
- relation (see [“The “happens-before” relation and concurrency”](/en/ch6#sec_replication_happens_before)): that is, if the snapshot contains a value that
- was written at a particular time, then it also reflects all the writes that happened before that
- value was written.
-* *Consistent hashing* is an approach to sharding that some systems use for rebalancing (see
- [“Consistent hashing”](/en/ch7#sec_sharding_consistent_hashing)).
-* In the CAP theorem (see [Chapter 10](/en/ch10#ch_consistency)), the word *consistency* is used to mean
- *linearizability* (see [“Linearizability”](/en/ch10#sec_consistency_linearizability)).
-* In the context of ACID, *consistency* refers to an application-specific notion of the database
- being in a “good state.”
+* 在[第 6 章](/ch6#ch_replication)中，我们讨论了*副本一致性*和异步复制系统中出现的*最终一致性*问题（参见["复制延迟的问题"](/ch6#sec_replication_lag)）。
+* 数据库的*一致快照*（例如，用于备份）是整个数据库在某一时刻存在的快照。更准确地说，它与先发生关系（happens-before relation）一致（参见[""先发生"关系和并发"](/ch6#sec_replication_happens_before)）：也就是说，如果快照包含在特定时间写入的值，那么它也反映了在该值写入之前发生的所有写入。
+* *一致性哈希*是某些系统用于再平衡的分片方法（参见["一致性哈希"](/ch7#sec_sharding_consistent_hashing)）。
+* 在 CAP 定理中（参见[第 10 章](/ch10#ch_consistency)），*一致性*一词用于表示*线性一致性*（参见["线性一致性"](/ch10#sec_consistency_linearizability)）。
+* 在 ACID 的上下文中，*一致性*是指应用程序特定的数据库处于"良好状态"的概念。
 
-It’s unfortunate that the same word is used with at least five different meanings.
+不幸的是，同一个词至少有五种不同的含义。
 
-The idea of ACID consistency is that you have certain statements about your data (*invariants*) that
-must always be true—for example, in an accounting system, credits and debits across all accounts
-must always be balanced. If a transaction starts with a database that is valid according to these
-invariants, and any writes during the transaction preserve the validity, then you can be sure that
-the invariants are always satisfied. (An invariant may be temporarily violated during transaction
-execution, but it should be satisfied again at transaction commit.)
+ACID 一致性的思想是，你对数据有某些陈述（*不变式*）必须始终为真——例如，在会计系统中，所有账户的贷方和借方必须始终平衡。如果事务从满足这些不变式的有效数据库开始，并且事务期间的任何写入都保持有效性，那么你可以确定不变式始终得到满足。（不变式可能在事务执行期间暂时违反，但在事务提交时应该再次满足。）
 
-If you want the database to enforce your invariants, you need to declare them as *constraints* as
-part of the schema. For example, foreign key constraints, uniqueness constraints, or check
-constraints (which restrict the values that can appear in an individual row) are often used to
-model specific types of invariants. More complex consistency requirements can sometimes be modeled
-using triggers or materialized views [^12].
+如果你希望数据库强制执行你的不变式，你需要将它们声明为模式的一部分的*约束*。例如，外键约束、唯一性约束或检查约束（限制单个行中可以出现的值）通常用于对特定类型的不变式建模。更复杂的一致性要求有时可以使用触发器或物化视图建模[^12]。
 
-However, complex invariants can be difficult or impossible to model using the constraints that
-databases usually provide. In that case, it’s the application’s responsibility to define its
-transactions correctly so that they preserve consistency. If you write bad data that violates your
-invariants, but you haven’t declared those invariants, the database can’t stop you. As such, the C
-in ACID often depends on how the application uses the database, and it’s not a property of the
-database alone.
+然而，复杂的不变式可能很难或不可能使用数据库通常提供的约束来建模。在这种情况下，应用程序有责任正确定义其事务，以便它们保持一致性。如果你写入违反不变式的错误数据，但你没有声明这些不变式，数据库无法阻止你。因此，ACID 中的 C 通常取决于应用程序如何使用数据库，而不仅仅是数据库的属性。
 
 #### 隔离性 {#sec_transactions_acid_isolation}
 
-Most databases are accessed by several clients at the same time. That is no problem if they are
-reading and writing different parts of the database, but if they are accessing the same database
-records, you can run into concurrency problems (race conditions).
+大多数数据库都会同时被多个客户端访问。如果它们读写数据库的不同部分，这没有问题，但如果它们访问相同的数据库记录，你可能会遇到并发问题（竞态条件）。
 
-[Figure 8-1](/en/ch8#fig_transactions_increment) is a simple example of this kind of problem. Say you have two clients
-simultaneously incrementing a counter that is stored in a database. Each client needs to read the
-current value, add 1, and write the new value back (assuming there is no increment operation built
-into the database). In [Figure 8-1](/en/ch8#fig_transactions_increment) the counter should have increased from 42 to
-44, because two increments happened, but it actually only went to 43 because of the race condition.
+[图 8-1](/ch8#fig_transactions_increment) 是这种问题的一个简单例子。假设你有两个客户端同时递增存储在数据库中的计数器。每个客户端需要读取当前值，加 1，然后写回新值（假设数据库中没有内置的递增操作）。在[图 8-1](/ch8#fig_transactions_increment) 中，计数器应该从 42 增加到 44，因为发生了两次递增，但实际上由于竞态条件只增加到 43。
 
-{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" caption="Figure 8-1. A race condition between two clients concurrently incrementing a counter." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" caption="图 8-1. 两个客户端并发递增计数器之间的竞态条件。" class="w-full my-4" >}}
 
 
-*Isolation* in the sense of ACID means that concurrently executing transactions are isolated from
-each other: they cannot step on each other’s toes. The classic database textbooks formalize
-isolation as *serializability*, which means that each transaction can pretend that it is the only
-transaction running on the entire database. The database ensures that when the transactions have
-committed, the result is the same as if they had run *serially* (one after another), even though in
-reality they may have run concurrently [^13].
+ACID 意义上的*隔离性*意味着同时执行的事务彼此隔离：它们不能相互干扰。经典的数据库教科书将隔离性形式化为*可串行化*，这意味着每个事务可以假装它是唯一在整个数据库上运行的事务。数据库确保当事务已经提交时，结果与它们*串行*运行（一个接一个）相同，即使实际上它们可能是并发运行的[^13]。
 
-However, serializability has a performance cost. In practice, many databases use forms of isolation
-that are weaker than serializability: that is, they allow concurrent transactions to interfere with
-each other in limited ways. Some popular databases, such as Oracle, don’t even implement it (Oracle
-has an isolation level called “serializable,” but it actually implements *snapshot isolation*, which
-is a weaker guarantee than serializability [^10] [^14]).
-This means that some kinds of race conditions can still occur. We will explore snapshot isolation
-and other forms of isolation in [“Weak Isolation Levels”](/en/ch8#sec_transactions_isolation_levels).
+然而，可串行化有性能成本。在实践中，许多数据库使用比可串行化更弱的隔离形式：也就是说，它们允许并发事务以有限的方式相互干扰。一些流行的数据库，如 Oracle，甚至没有实现它（Oracle 有一个称为"可串行化"的隔离级别，但它实际上实现了*快照隔离*，这是比可串行化更弱的保证[^10] [^14]）。这意味着某些类型的竞态条件仍然可能发生。我们将在["弱隔离级别"](/ch8#sec_transactions_isolation_levels)中探讨快照隔离和其他形式的隔离。
 
 #### 持久性 {#durability}
 
-The purpose of a database system is to provide a safe place where data can be stored without fear of
-losing it. *Durability* is the promise that once a transaction has committed successfully, any data it
-has written will not be forgotten, even if there is a hardware fault or the database crashes.
+数据库系统的目的是提供一个安全的地方来存储数据，而不用担心丢失它。*持久性*是一个承诺，即一旦事务成功提交，它写入的任何数据都不会被遗忘，即使发生硬件故障或数据库崩溃。
 
-In a single-node database, durability typically means that the data has been written to nonvolatile
-storage such as a hard drive or SSD. Regular file writes are usually buffered in memory before being
-sent to the disk sometime later, which means they would be lost if there is a sudden power failure;
-many databases therefore use the `fsync()` system call to ensure the data really has been written to
-disk. Databases usually also have a write-ahead log or similar (see [“Making B-trees reliable”](/en/ch4#sec_storage_btree_wal)),
-which allows them to recover in the event that a crash occurs part way through a write.
+在单节点数据库中，持久性通常意味着数据已经写入非易失性存储，如硬盘或 SSD。定期文件写入通常在发送到磁盘之前在内存中缓冲，这意味着如果突然断电它们将丢失；因此，许多数据库使用 `fsync()` 系统调用来确保数据真正写入磁盘。数据库通常还有预写日志或类似的（参见["使 B 树可靠"](/ch4#sec_storage_btree_wal)），这允许它们在写入过程中发生崩溃时恢复。
 
-In a replicated database, durability may mean that the data has been successfully copied to some
-number of nodes. In order to provide a durability guarantee, a database must wait until these writes
-or replications are complete before reporting a transaction as successfully committed. However,
-as discussed in [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability), perfect durability does not exist: if all your
-hard disks and all your backups are destroyed at the same time, there’s obviously nothing your
-database can do to save you.
+在复制数据库中，持久性可能意味着数据已成功复制到某些节点。为了提供持久性保证，数据库必须等到这些写入或复制完成，然后才报告事务成功提交。然而，如["可靠性和容错"](/ch2#sec_introduction_reliability)中所讨论的，完美的持久性不存在：如果所有硬盘和所有备份同时被销毁，显然你的数据库无法挽救你。
 
 --------
 
 > [!TIP] 复制与持久性
 
-Historically, durability meant writing to an archive tape. Then it was understood as writing to a disk
-or SSD. More recently, it has been adapted to mean replication. Which implementation is better?
+历史上，持久性意味着写入归档磁带。然后它被理解为写入磁盘或 SSD。最近，它已经适应为意味着复制。哪种实现更好？
 
-The truth is, nothing is perfect:
+事实是，没有什么是完美的：
 
-* If you write to disk and the machine dies, even though your data isn’t lost, it is inaccessible
- until you either fix the machine or transfer the disk to another machine. Replicated systems can
- remain available.
-* A correlated fault—a power outage or a bug that crashes every node on a particular input—​can
- knock out all replicas at once (see [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability)), losing any data that is
- only in memory. Writing to disk is therefore still relevant for replicated databases.
-* In an asynchronously replicated system, recent writes may be lost when the leader becomes
- unavailable (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
-* When the power is suddenly cut, SSDs in particular have been shown to sometimes violate the
- guarantees they are supposed to provide: even `fsync` isn’t guaranteed to work correctly [^15].
- Disk firmware can have bugs, just like any other kind of software [^16] [^17],
- e.g. causing drives to fail after exactly 32,768 hours of operation [^18].
- And `fsync` is hard to use; even PostgreSQL used it incorrectly for over 20 years [^19] [^20] [^21].
-* Subtle interactions between the storage engine and the filesystem implementation can lead to bugs
- that are hard to track down, and may cause files on disk to be corrupted after a crash [^22] [^23].
- Filesystem errors on one replica can sometimes spread to other replicas as well [^24].
-* Data on disk can gradually become corrupted without this being detected [^25].
- If data has been corrupted for some time, replicas and recent backups may also be corrupted. In
- this case, you will need to try to restore the data from a historical backup.
-* One study of SSDs found that between 30% and 80% of drives develop at least one bad block during
- the first four years of operation, and only some of these can be corrected by the firmware [^26].
- Magnetic hard drives have a lower rate of bad sectors, but a higher rate of complete failure than SSDs.
-* When a worn-out SSD (that has gone through many write/erase cycles) is disconnected from power,
- it can start losing data within a timescale of weeks to months, depending on the temperature [^27].
- This is less of a problem for drives with lower wear levels [^28].
+* 如果你写入磁盘而机器死机，即使你的数据没有丢失，在你修复机器或将磁盘转移到另一台机器之前，它也是不可访问的。复制系统可以保持可用。
+* 相关故障——停电或导致每个节点在特定输入上崩溃的错误——可以一次性摧毁所有副本（参见["可靠性和容错"](/ch2#sec_introduction_reliability)），失去任何仅在内存中的数据。因此，写入磁盘对于复制数据库仍然相关。
+* 在异步复制系统中，当领导者变得不可用时，最近的写入可能会丢失（参见["处理节点故障"](/ch6#sec_replication_failover)）。
+* 当电源突然切断时，SSD 特别被证明有时会违反它们应该提供的保证：即使 `fsync` 也不能保证正常工作[^15]。磁盘固件可能有错误，就像任何其他类型的软件一样[^16] [^17]，例如，导致驱动器在正好 32,768 小时操作后失败[^18]。而且 `fsync` 很难使用；即使 PostgreSQL 使用它不正确超过 20 年[^19] [^20] [^21]。
+* 存储引擎和文件系统实现之间的微妙交互可能导致难以追踪的错误，并可能导致磁盘上的文件在崩溃后损坏[^22] [^23]。一个副本上的文件系统错误有时也会传播到其他副本[^24]。
+* 磁盘上的数据可能在未被检测到的情况下逐渐损坏[^25]。如果数据已经损坏了一段时间，副本和最近的备份也可能损坏。在这种情况下，你需要尝试从历史备份中恢复数据。
+* 一项关于 SSD 的研究发现，在前四年的运行中，30% 到 80% 的驱动器会开发至少一个坏块，其中只有一些可以通过固件纠正[^26]。磁盘驱动器的坏扇区率较低，但完全故障率高于 SSD。
+* 当磨损的 SSD（经历了许多写/擦除周期）断电时，它可能在几周到几个月的时间尺度上开始丢失数据，具体取决于温度[^27]。对于磨损水平较低的驱动器，这不是问题[^28]。
 
-In practice, there is no one technique that can provide absolute guarantees. There are only various
-risk-reduction techniques, including writing to disk, replicating to remote machines, and
-backups—​and they can and should be used together. As always, it’s wise to take any theoretical
-“guarantees” with a healthy grain of salt.
+在实践中，没有一种技术可以提供绝对保证。只有各种降低风险的技术，包括写入磁盘、复制到远程机器和备份——它们可以而且应该一起使用。一如既往，明智的做法是对任何理论上的"保证"持健康的怀疑态度。
 
 --------
 
 ### 单对象与多对象操作 {#sec_transactions_multi_object}
 
-To recap, in ACID, atomicity and isolation describe what the database should do if a client makes
-several writes within the same transaction:
+回顾一下，在 ACID 中，原子性和隔离性描述了如果客户端在同一事务中进行多次写入，数据库应该做什么：
 
-Atomicity
-: If an error occurs halfway through a sequence of writes, the transaction should be aborted, and
- the writes made up to that point should be discarded. In other words, the database saves you from
- having to worry about partial failure, by giving an all-or-nothing guarantee.
+原子性
+: 如果在写入序列的中途发生错误，事务应该被中止，并且到该点为止所做的写入应该被丢弃。换句话说，数据库让你免于担心部分失败，通过提供全有或全无的保证。
 
-Isolation
-: Concurrently running transactions shouldn’t interfere with each other. For example, if one
- transaction makes several writes, then another transaction should see either all or none of those
- writes, but not some subset.
+隔离性
+: 并发运行的事务不应该相互干扰。例如，如果一个事务进行多次写入，那么另一个事务应该看到所有或不看到这些写入，但不是某些子集。
 
-These definitions assume that you want to modify several objects (rows, documents, records) at once.
-Such *multi-object transactions* are often needed if several pieces of data need to be kept in sync.
-[Figure 8-2](/en/ch8#fig_transactions_read_uncommitted) shows an example from an email application. To display the
-number of unread messages for a user, you could query something like:
+这些定义假设你想要同时修改多个对象（行、文档、记录）。这种*多对象事务*通常需要保持多块数据同步。[图 8-2](/ch8#fig_transactions_read_uncommitted) 显示了一个来自电子邮件应用程序的示例。要显示用户的未读消息数，你可以查询类似这样的内容：
 
 ```
 SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 ```
 
-{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" caption="Figure 8-2. Violating isolation: one transaction reads another transaction's uncommitted writes (a \"dirty read\")." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" caption="图 8-2. 违反隔离性：一个事务读取另一个事务的未提交写入（“脏读”）。" class="w-full my-4" >}}
 
 
-However, you might find this query to be too slow if there are many emails, and decide to store the
-number of unread messages in a separate field (a kind of denormalization, which we discuss in
-[“Normalization, Denormalization, and Joins”](/en/ch3#sec_datamodels_normalization)). Now, whenever a new message comes in, you have to increment the
-unread counter as well, and whenever a message is marked as read, you also have to decrement the
-unread counter.
+然而，如果有很多电子邮件，你可能会发现这个查询太慢，并决定将未读消息的数量存储在一个单独的字段中（一种反规范化，我们在["规范化、反规范化和连接"](/ch3#sec_datamodels_normalization)中讨论）。现在，每当有新消息进来时，你必须增加未读计数器，每当消息被标记为已读时，你也必须减少未读计数器。
 
-In [Figure 8-2](/en/ch8#fig_transactions_read_uncommitted), user 2 experiences an anomaly: the mailbox listing shows
-an unread message, but the counter shows zero unread messages because the counter increment has not
-yet happened. (If an incorrect counter in an email application seems too insignificant, think of a
-customer account balance instead of an unread counter, and a payment transaction instead of an
-email.) Isolation would have prevented this issue by ensuring that user 2 sees either both the
-inserted email and the updated counter, or neither, but not an inconsistent halfway point.
+在[图 8-2](/ch8#fig_transactions_read_uncommitted) 中，用户 2 遇到了异常：邮箱列表显示有未读消息，但计数器显示零未读消息，因为计数器增量尚未发生。（如果电子邮件应用程序中的错误计数器看起来太微不足道，请考虑客户账户余额而不是未读计数器，以及支付事务而不是电子邮件。）隔离本可以通过确保用户 2 看到插入的电子邮件和更新的计数器，或者两者都不看到，但不是不一致的中间点，来防止这个问题。
 
-[Figure 8-3](/en/ch8#fig_transactions_atomicity) illustrates the need for atomicity: if an error occurs somewhere
-over the course of the transaction, the contents of the mailbox and the unread counter might become out
-of sync. In an atomic transaction, if the update to the counter fails, the transaction is aborted
-and the inserted email is rolled back.
+[图 8-3](/ch8#fig_transactions_atomicity) 说明了对原子性的需求：如果在事务过程中某处发生错误，邮箱的内容和未读计数器可能会失去同步。在原子事务中，如果对计数器的更新失败，事务将被中止，插入的电子邮件将被回滚。
 
-{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" caption="Figure 8-3. Atomicity ensures that if an error occurs any prior writes from that transaction are undone, to avoid an inconsistent state." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" caption="图 8-3. 原子性确保如果发生错误，该事务的任何先前写入都会被撤消，以避免不一致的状态。" class="w-full my-4" >}}
 
 
-Multi-object transactions require some way of determining which read and write operations belong to
-the same transaction. In relational databases, that is typically done based on the client’s TCP
-connection to the database server: on any particular connection, everything between a `BEGIN
-TRANSACTION` and a `COMMIT` statement is considered to be part of the same transaction. If the TCP
-connection is interrupted, the transaction must be aborted.
+多对象事务需要某种方式来确定哪些读写操作属于同一事务。在关系数据库中，这通常基于客户端与数据库服务器的 TCP 连接：在任何特定连接上，`BEGIN TRANSACTION` 和 `COMMIT` 语句之间的所有内容都被认为是同一事务的一部分。如果 TCP 连接中断，事务必须被中止。
 
-On the other hand, many nonrelational databases don’t have such a way of grouping operations
-together. Even if there is a multi-object API (for example, a key-value store may have a *multi-put*
-operation that updates several keys in one operation), that doesn’t necessarily mean it has
-transaction semantics: the command may succeed for some keys and fail for others, leaving the
-database in a partially updated state.
+另一方面，许多非关系数据库没有这样的方式来将操作组合在一起。即使有多对象 API（例如，键值存储可能有一个*多重放置*操作，在一个操作中更新多个键），这并不一定意味着它具有事务语义：该命令可能在某些键上成功而在其他键上失败，使数据库处于部分更新状态。
 
 #### 单对象写入 {#sec_transactions_single_object}
 
-Atomicity and isolation also apply when a single object is being changed. For example, imagine you
-are writing a 20 KB JSON document to a database:
+当单个对象被更改时，原子性和隔离性也适用。例如，假设你正在向数据库写入 20 KB 的 JSON 文档：
 
-* If the network connection is interrupted after the first 10 KB have been sent, does the
- database store that unparseable 10 KB fragment of JSON?
-* If the power fails while the database is in the middle of overwriting the previous value on disk,
- do you end up with the old and new values spliced together?
-* If another client reads that document while the write is in progress, will it see a partially
- updated value?
+* 如果在发送了前 10 KB 后网络连接中断，数据库是否存储了无法解析的 10 KB JSON 片段？
+* 如果数据库正在覆盖磁盘上的先前值的过程中电源失败，你是否最终会将新旧值拼接在一起？
+* 如果另一个客户端在写入过程中读取该文档，它会看到部分更新的值吗？
 
-Those issues would be incredibly confusing, so storage engines almost universally aim to provide
-atomicity and isolation on the level of a single object (such as a key-value pair) on one node.
-Atomicity can be implemented using a log for crash recovery (see [“Making B-trees reliable”](/en/ch4#sec_storage_btree_wal)), and
-isolation can be implemented using a lock on each object (allowing only one thread to access an
-object at any one time).
+这些问题会令人非常困惑，因此存储引擎几乎普遍的目标是在一个节点上的单个对象（如键值对）上提供原子性和隔离性。原子性可以使用日志实现崩溃恢复（参见["使 B 树可靠"](/ch4#sec_storage_btree_wal)），隔离性可以使用每个对象上的锁来实现（一次只允许一个线程访问对象）。
 
-Some databases also provide more complex atomic operations, such as an increment operation, which
-removes the need for a read-modify-write cycle like that in [Figure 8-1](/en/ch8#fig_transactions_increment).
-Similarly popular is a *conditional write* operation, which allows a write to happen only if the value
-has not been concurrently changed by someone else (see [“Conditional writes (compare-and-set)”](/en/ch8#sec_transactions_compare_and_set)),
-similarly to a compare-and-set or compare-and-swap (CAS) operation in shared-memory concurrency.
+某些数据库还提供更复杂的原子操作，例如递增操作，它消除了像[图 8-1](/ch8#fig_transactions_increment) 中那样的读-修改-写循环的需求。类似流行的是*条件写入*操作，它允许仅在值未被其他人并发更改时才进行写入（参见["条件写入（比较并设置）"](/ch8#sec_transactions_compare_and_set)），类似于共享内存并发中的比较并设置或比较并交换（CAS）操作。
 
 --------
 
 > [!NOTE]
-> Strictly speaking, the term *atomic increment* uses the word *atomic* in the sense of multi-threaded
-> programming. In the context of ACID, it should actually be called an *isolated* or *serializable*
-> increment, but that’s not the usual term.
+> 严格来说，术语*原子递增*在多线程编程的意义上使用了*原子*这个词。在 ACID 的上下文中，它实际上应该被称为*隔离*或*可串行化*递增，但这不是通常的术语。
 
 --------
 
-These single-object operations are useful, as they can prevent lost updates when several clients try
-to write to the same object concurrently (see [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update)). However, they are
-not transactions in the usual sense of the word. For example, the “lightweight transactions” feature
-of Cassandra and ScyllaDB, and Aerospike’s “strong consistency” mode offer linearizable (see
-[“Linearizability”](/en/ch10#sec_consistency_linearizability)) reads and conditional writes on a single object, but no
-guarantees across multiple objects.
+这些单对象操作很有用，因为它们可以防止多个客户端尝试同时写入同一对象时的丢失更新（参见["防止丢失更新"](/ch8#sec_transactions_lost_update)）。然而，它们不是通常意义上的事务。例如，Cassandra 和 ScyllaDB 的"轻量级事务"功能以及 Aerospike 的"强一致性"模式在单个对象上提供线性一致（参见["线性一致性"](/ch10#sec_consistency_linearizability)）读取和条件写入，但不保证跨多个对象。
 
 #### 多对象事务的需求 {#sec_transactions_need}
 
-Do we need multi-object transactions at all? Would it be possible to implement any application with
-only a key-value data model and single-object operations?
+我们是否需要多对象事务？是否可能仅使用键值数据模型和单对象操作来实现任何应用程序？
 
-There are some use cases in which single-object inserts, updates, and deletes are sufficient.
-However, in many other cases writes to several different objects need to be coordinated:
+在某些用例中，单对象插入、更新和删除就足够了。然而，在许多其他情况下，需要协调对多个不同对象的写入：
 
-* In a relational data model, a row in one table often has a foreign key reference to a row in
- another table. Similarly, in a graph-like data model, a vertex has edges to other vertices.
- Multi-object transactions allow you to ensure that these references remain valid: when inserting
- several records that refer to one another, the foreign keys have to be correct and up to date,
- or the data becomes nonsensical.
-* In a document data model, the fields that need to be updated together are often within the same
- document, which is treated as a single object—no multi-object transactions are needed when
- updating a single document. However, document databases lacking join functionality also encourage
- denormalization (see [“When to Use Which Model”](/en/ch3#sec_datamodels_document_summary)). When denormalized information needs to
- be updated, like in the example of [Figure 8-2](/en/ch8#fig_transactions_read_uncommitted), you need to update
- several documents in one go. Transactions are very useful in this situation to prevent
- denormalized data from going out of sync.
-* In databases with secondary indexes (almost everything except pure key-value stores), the indexes
- also need to be updated every time you change a value. These indexes are different database
- objects from a transaction point of view: for example, without transaction isolation, it’s
- possible for a record to appear in one index but not another, because the update to the second
- index hasn’t happened yet (see [“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes)).
+* 在关系数据模型中，一个表中的行通常具有对另一个表中行的外键引用。类似地，在类似图的数据模型中，顶点具有指向其他顶点的边。多对象事务允许你确保这些引用保持有效：插入引用彼此的多个记录时，外键必须正确且最新，否则数据变得毫无意义。
+* 在文档数据模型中，需要一起更新的字段通常在同一文档内，它被视为单个对象——更新单个文档时不需要多对象事务。然而，缺乏连接功能的文档数据库也鼓励反规范化（参见["何时使用哪种模型"](/ch3#sec_datamodels_document_summary)）。当需要更新反规范化信息时，如[图 8-2](/ch8#fig_transactions_read_uncommitted) 的示例，你需要一次更新多个文档。事务在这种情况下非常有用，可以防止反规范化数据失去同步。
+* 在具有二级索引的数据库中（几乎除了纯键值存储之外的所有数据库），每次更改值时都需要更新索引。从事务的角度来看，这些索引是不同的数据库对象：例如，如果没有事务隔离，记录可能出现在一个索引中但不在另一个索引中，因为对第二个索引的更新尚未发生（参见["分片和二级索引"](/ch7#sec_sharding_secondary_indexes)）。
 
-Such applications can still be implemented without transactions. However, error handling becomes
-much more complicated without atomicity, and the lack of isolation can cause concurrency problems.
-We will discuss those in [“Weak Isolation Levels”](/en/ch8#sec_transactions_isolation_levels), and explore alternative approaches
-in [Link to Come].
+这些应用程序仍然可以在没有事务的情况下实现。然而，没有原子性的错误处理变得更加复杂，缺乏隔离性可能导致并发问题。我们将在["弱隔离级别"](/ch8#sec_transactions_isolation_levels)中讨论这些问题，并在[待补充链接]中探索替代方法。
 
 #### 处理错误和中止 {#handling-errors-and-aborts}
 
-A key feature of a transaction is that it can be aborted and safely retried if an error occurred.
-ACID databases are based on this philosophy: if the database is in danger of violating its guarantee
-of atomicity, isolation, or durability, it would rather abandon the transaction entirely than allow
-it to remain half-finished.
+事务的一个关键特性是，如果发生错误，它可以被中止并安全地重试。ACID 数据库基于这样的哲学：如果数据库有违反其原子性、隔离性或持久性保证的危险，它宁愿完全放弃事务，也不允许它保持半完成状态。
 
-Not all systems follow that philosophy, though. In particular, datastores with leaderless
-replication (see [“Leaderless Replication”](/en/ch6#sec_replication_leaderless)) work much more on a “best effort” basis, which
-could be summarized as “the database will do as much as it can, and if it runs into an error, it
-won’t undo something it has already done”—so it’s the application’s responsibility to recover from
-errors.
+然而，并非所有系统都遵循这种哲学。特别是，具有无领导者复制的数据存储（参见["无领导者复制"](/ch6#sec_replication_leaderless)）更多地基于"尽力而为"的基础工作，可以总结为"数据库将尽其所能，如果遇到错误，它不会撤消已经完成的操作"——因此，从错误中恢复是应用程序的责任。
 
-Errors will inevitably happen, but many software developers prefer to think only about the happy
-path rather than the intricacies of error handling. For example, popular object-relational mapping
-(ORM) frameworks such as Rails’s ActiveRecord and Django don’t retry aborted transactions—the
-error usually results in an exception bubbling up the stack, so any user input is thrown away and
-the user gets an error message. This is a shame, because the whole point of aborts is to enable safe
-retries.
+错误不可避免地会发生，但许多软件开发人员更愿意只考虑快乐路径，而不是错误处理的复杂性。例如，流行的对象关系映射（ORM）框架，如 Rails 的 ActiveRecord 和 Django，不会重试中止的事务——错误通常导致异常冒泡到堆栈中，因此任何用户输入都被丢弃，用户收到错误消息。这是一种遗憾，因为中止的全部意义是启用安全重试。
 
-Although retrying an aborted transaction is a simple and effective error handling mechanism, it
-isn’t perfect:
+尽管重试中止的事务是一种简单有效的错误处理机制，但它并不完美：
 
-* If the transaction actually succeeded, but the network was interrupted while the server tried to
- acknowledge the successful commit to the client (so it timed out from the client’s point of view),
- then retrying the transaction causes it to be performed twice—unless you have an additional
- application-level deduplication mechanism in place.
-* If the error is due to overload or high contention between concurrent transactions, retrying the
- transaction will make the problem worse, not better. To avoid such feedback cycles, you can limit
- the number of retries, use exponential backoff, and handle overload-related errors differently
- from other errors (see [“When an overloaded system won’t recover”](/en/ch2#sidebar_metastable)).
-* It is only worth retrying after transient errors (for example due to deadlock, isolation
- violation, temporary network interruptions, and failover); after a permanent error (e.g.,
- constraint violation) a retry would be pointless.
-* If the transaction also has side effects outside of the database, those side effects may happen
- even if the transaction is aborted. For example, if you’re sending an email, you wouldn’t want to
- send the email again every time you retry the transaction. If you want to make sure that several
- different systems either commit or abort together, two-phase commit can help (we will discuss this
- in [“Two-Phase Commit (2PC)”](/en/ch8#sec_transactions_2pc)).
-* If the client process crashes while retrying, any data it was trying to write to the database is lost.
+* 如果事务实际上成功了，但在服务器尝试向客户端确认成功提交时网络中断（因此从客户端的角度来看超时），那么重试事务会导致它被执行两次——除非你有额外的应用程序级去重机制。
+* 如果错误是由于过载或并发事务之间的高争用，重试事务会使问题变得更糟，而不是更好。为了避免这种反馈循环，你可以限制重试次数，使用指数退避，并以不同的方式处理与过载相关的错误与其他错误（参见["当过载系统无法恢复时"](/ch2#sidebar_metastable)）。
+* 仅在瞬态错误后重试才值得（例如，由于死锁、隔离违规、临时网络中断和故障转移）；在永久错误后（例如，约束违规）重试将毫无意义。
+* 如果事务在数据库之外也有副作用，即使事务被中止，这些副作用也可能发生。例如，如果你正在发送电子邮件，你不会希望每次重试事务时都再次发送电子邮件。如果你想确保几个不同的系统一起提交或中止，两阶段提交可以提供帮助（我们将在["两阶段提交（2PC）"](/ch8#sec_transactions_2pc)中讨论这个问题）。
+* 如果客户端进程在重试时崩溃，它试图写入数据库的任何数据都会丢失。
 
 
 
 ## 弱隔离级别 {#sec_transactions_isolation_levels}
 
-If two transactions don’t access the same data, or if both are read-only, they can safely be run in
-parallel, because neither depends on the other. Concurrency issues (race conditions) only come into
-play when one transaction reads data that is concurrently modified by another transaction, or when
-the two transactions try to modify the same data.
+如果两个事务不访问相同的数据，或者都是只读的，它们可以安全地并行运行，因为它们互不依赖。仅当一个事务读取另一个事务并发修改的数据时，或者当两个事务尝试同时修改相同的数据时，才会出现并发问题（竞态条件）。
 
-Concurrency bugs are hard to find by testing, because such bugs are only triggered when you get
-unlucky with the timing. Such timing issues might occur very rarely, and are usually difficult to
-reproduce. Concurrency is also very difficult to reason about, especially in a large application
-where you don’t necessarily know which other pieces of code are accessing the database. Application
-development is difficult enough if you just have one user at a time; having many concurrent users
-makes it much harder still, because any piece of data could unexpectedly change at any time.
+并发错误很难通过测试发现，因为这些错误只有在时机不巧时才会触发。这种时机问题可能非常罕见，通常难以重现。并发也很难推理，特别是在大型应用程序中，你不一定知道代码的其他部分正在访问数据库。如果只有一个用户，应用程序开发就已经够困难了；有许多并发用户会让情况变得更加困难，因为任何数据都可能在任何时候意外地发生变化。
 
-For that reason, databases have long tried to hide concurrency issues from application developers by
-providing *transaction isolation*. In theory, isolation should make your life easier by letting you
-pretend that no concurrency is happening: *serializable* isolation means that the database
-guarantees that transactions have the same effect as if they ran *serially* (i.e., one at a time,
-without any concurrency).
+出于这个原因，数据库长期以来一直试图通过提供*事务隔离*来向应用程序开发人员隐藏并发问题。理论上，隔离应该让你的生活更轻松，让你假装没有并发发生：*可串行化*隔离意味着数据库保证事务具有与*串行*运行（即一次一个，没有任何并发）相同的效果。
 
-In practice, isolation is unfortunately not that simple. Serializable isolation has a performance
-cost, and many databases don’t want to pay that price [^10]. It’s therefore common for systems to use
-weaker levels of isolation, which protect against *some* concurrency issues, but not all. Those
-levels of isolation are much harder to understand, and they can lead to subtle bugs, but they are
-nevertheless used in practice [^29].
+在实践中，隔离不幸并不那么简单。可串行化隔离有性能成本，许多数据库不愿意支付这个代价[^10]。因此，系统通常使用较弱的隔离级别，这些级别可以防止*某些*并发问题，但不是全部。这些隔离级别更难理解，它们可能导致微妙的错误，但它们在实践中仍然被使用[^29]。
 
-Concurrency bugs caused by weak transaction isolation are not just a theoretical problem. They have
-caused substantial loss of money [^30] [^31] [^32], led to investigation by financial auditors [^33],
-and caused customer data to be corrupted [^34]. A popular comment on revelations of such problems is “Use an ACID database if you’re handling
-financial data!”—but that misses the point. Even many popular relational database systems (which
-are usually considered “ACID”) use weak isolation, so they wouldn’t necessarily have prevented these
-bugs from occurring.
+由弱事务隔离引起的并发错误不仅仅是理论问题。它们已经导致了巨额资金损失[^30] [^31] [^32]，引发了金融审计师的调查[^33]，并导致客户数据损坏[^34]。对此类问题披露的一个流行评论是"如果你正在处理金融数据，请使用 ACID 数据库！"——但这没有抓住重点。即使许多流行的关系数据库系统（通常被认为是"ACID"）使用弱隔离，因此它们不一定能防止这些错误发生。
 
 --------
 
 > [!NOTE]
-> Incidentally, much of the banking system relies on text files that are exchanged via secure FTP [^35].
-> In this context, having an audit trail and some human-level fraud prevention measures is actually
-> more important than ACID properties.
+> 顺便说一句，银行系统的大部分依赖于通过安全 FTP 交换的文本文件[^35]。在这种情况下，拥有审计跟踪和一些人为级别的欺诈预防措施实际上比 ACID 属性更重要。
 
 --------
 
-Those examples also highlight an important point: even if concurrency issues are rare in normal
-operation, you have to consider the possibility that an attacker deliberately sends a burst of
-highly concurrent requests to your API in an attempt to deliberately exploit concurrency bugs [^30]. Therefore, in order to build
-applications that are reliable and secure, you have to ensure that such bugs are systematically
-prevented.
+这些例子还强调了一个重要观点：即使并发问题在正常操作中很少见，你也必须考虑攻击者故意向你的 API 发送大量高度并发请求以故意利用并发错误的可能性[^30]。因此，为了构建可靠和安全的应用程序，你必须确保系统地防止此类错误。
 
-In this section we will look at several weak (nonserializable) isolation levels that are used in
-practice, and discuss in detail what kinds of race conditions can and cannot occur, so that you can
-decide what level is appropriate to your application. Once we’ve done that, we will discuss
-serializability in detail (see [“Serializability”](/en/ch8#sec_transactions_serializability)). Our discussion of isolation
-levels will be informal, using examples. If you want rigorous definitions and analyses of their
-properties, you can find them in the academic literature [^36] [^37] [^38] [^39].
+在本节中，我们将研究实践中使用的几种弱（非可串行化）隔离级别，并详细讨论哪些竞态条件可以发生和不能发生，以便你可以决定哪个级别适合你的应用程序。完成后，我们将详细讨论可串行化（参见["可串行化"](/ch8#sec_transactions_serializability)）。我们对隔离级别的讨论将是非正式的，使用示例。如果你想要严格的定义和对其属性的分析，你可以在学术文献中找到它们[^36] [^37] [^38] [^39]。
 
 ### 读已提交 {#sec_transactions_read_committed}
 
-The most basic level of transaction isolation is *read committed*. It makes two guarantees:
+最基本的事务隔离级别是*读已提交*。它提供两个保证：
 
-1. When reading from the database, you will only see data that has been committed (no *dirty reads*).
-2. When writing to the database, you will only overwrite data that has been committed (no *dirty writes*).
+1. 从数据库读取时，你只会看到已经提交的数据（没有*脏读*）。
+2. 写入数据库时，你只会覆盖已经提交的数据（没有*脏写*）。
 
-Some databases support an even weaker isolation level called *read uncommitted*. It prevents dirty
-writes, but does not prevent dirty reads. Let’s discuss these two guarantees in more detail.
+某些数据库支持更弱的隔离级别，称为*读未提交*。它防止脏写，但不防止脏读。让我们更详细地讨论这两个保证。
 
 #### 没有脏读 {#no-dirty-reads}
 
-Imagine a transaction has written some data to the database, but the transaction has not yet committed or aborted.
-Can another transaction see that uncommitted data? If yes, that is called a
-*dirty read* [^3].
+想象一个事务已经向数据库写入了一些数据，但事务尚未提交或中止。另一个事务能看到那个未提交的数据吗？如果能，这称为*脏读*[^3]。
 
-Transactions running at the read committed isolation level must prevent dirty reads. This means that
-any writes by a transaction only become visible to others when that transaction commits (and then
-all of its writes become visible at once). This is illustrated in [Figure 8-4](/en/ch8#fig_transactions_read_committed), where user 1 has set *x* = 3, but user 2’s *get x* still
-returns the old value, 2, while user 1 has not yet committed.
+在读已提交隔离级别下运行的事务必须防止脏读。这意味着事务的任何写入只有在该事务提交时才对其他人可见（然后它的所有写入立即变得可见）。这在[图 8-4](/ch8#fig_transactions_read_committed) 中说明，其中用户 1 已设置 *x* = 3，但用户 2 的 *get x* 仍返回旧值 2，因为用户 1 尚未提交。
 
-{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" caption="Figure 8-4. No dirty reads: user 2 sees the new value for x only after user 1's transaction has committed." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" caption="图 8-4. 没有脏读：用户 2 只有在用户 1 的事务提交后才能看到 x 的新值。" class="w-full my-4" >}}
 
-There are a few reasons why it’s useful to prevent dirty reads:
+有几个原因说明为什么防止脏读是有用的：
 
-* If a transaction needs to update several rows, a dirty read means that another transaction may
- see some of the updates but not others. For example, in [Figure 8-2](/en/ch8#fig_transactions_read_uncommitted), the
- user sees the new unread email but not the updated counter. This is a dirty read of the email.
- Seeing the database in a partially updated state is confusing to users and may cause other
- transactions to take incorrect decisions.
-* If a transaction aborts, any writes it has made need to be rolled back (like in
- [Figure 8-3](/en/ch8#fig_transactions_atomicity)). If the database allows dirty reads, that means a transaction may
- see data that is later rolled back—i.e., which is never actually committed to the database. Any
- transaction that read uncommitted data would also need to be aborted, leading to a problem called
- *cascading aborts*.
+* 如果事务需要更新多行，脏读意味着另一个事务可能看到某些更新但不是其他更新。例如，在[图 8-2](/ch8#fig_transactions_read_uncommitted) 中，用户看到新的未读电子邮件但没有看到更新的计数器。这是电子邮件的脏读。看到数据库处于部分更新状态会让用户感到困惑，并可能导致其他事务做出错误的决定。
+* 如果事务中止，它所做的任何写入都需要回滚（如[图 8-3](/ch8#fig_transactions_atomicity)）。如果数据库允许脏读，这意味着事务可能看到后来被回滚的数据——即从未实际提交到数据库的数据。任何读取未提交数据的事务也需要被中止，导致称为*级联中止*的问题。
 
 #### 没有脏写 {#sec_transactions_dirty_write}
 
-What happens if two transactions concurrently try to update the same row in a database? We don’t
-know in which order the writes will happen, but we normally assume that the later write overwrites
-the earlier write.
+如果两个事务并发尝试更新数据库中的同一行会发生什么？我们不知道写入将以什么顺序发生，但我们通常假设后面的写入会覆盖前面的写入。
 
-However, what happens if the earlier write is part of a transaction that has not yet committed, so
-the later write overwrites an uncommitted value? This is called a *dirty write* [^36]. Transactions running at the read
-committed isolation level must prevent dirty writes, usually by delaying the second write until the
-first write’s transaction has committed or aborted.
+然而，如果前面的写入是尚未提交的事务的一部分，因此后面的写入覆盖了一个未提交的值，会发生什么？这称为*脏写*[^36]。在读已提交隔离级别下运行的事务必须防止脏写，通常通过延迟第二个写入直到第一个写入的事务已提交或中止。
 
-By preventing dirty writes, this isolation level avoids some kinds of concurrency problems:
+通过防止脏写，这个隔离级别避免了某些类型的并发问题：
 
-* If transactions update multiple rows, dirty writes can lead to a bad outcome. For example,
- consider [Figure 8-5](/en/ch8#fig_transactions_dirty_writes), which illustrates a used car sales website on which
- two people, Aaliyah and Bryce, are simultaneously trying to buy the same car. Buying a car requires
- two database writes: the listing on the website needs to be updated to reflect the buyer, and the
- sales invoice needs to be sent to the buyer. In the case of [Figure 8-5](/en/ch8#fig_transactions_dirty_writes), the
- sale is awarded to Bryce (because he performs the winning update to the `listings` table), but the
- invoice is sent to Aaliyah (because she performs the winning update to the `invoices` table). Read
- committed prevents such mishaps.
-* However, read committed does *not* prevent the race condition between two counter increments in
- [Figure 8-1](/en/ch8#fig_transactions_increment). In this case, the second write happens after the first transaction
- has committed, so it’s not a dirty write. It’s still incorrect, but for a different reason—in
- [“Preventing Lost Updates”](/en/ch8#sec_transactions_lost_update) we will discuss how to make such counter increments safe.
+* 如果事务更新多行，脏写可能导致糟糕的结果。例如，考虑[图 8-5](/ch8#fig_transactions_dirty_writes)，它说明了一个二手车销售网站，两个人 Aaliyah 和 Bryce 同时尝试购买同一辆车。购买汽车需要两次数据库写入：网站上的列表需要更新以反映买家，销售发票需要发送给买家。在[图 8-5](/ch8#fig_transactions_dirty_writes) 的情况下，销售被授予 Bryce（因为他对 `listings` 表执行了获胜的更新），但发票被发送给 Aaliyah（因为她对 `invoices` 表执行了获胜的更新）。读已提交防止了这种事故。
+* 然而，读已提交*不*防止[图 8-1](/ch8#fig_transactions_increment) 中两个计数器递增之间的竞态条件。在这种情况下，第二个写入发生在第一个事务提交之后，所以它不是脏写。它仍然是不正确的，但原因不同——在["防止丢失更新"](/ch8#sec_transactions_lost_update)中，我们将讨论如何使此类计数器递增安全。
 
-{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" caption="Figure 8-5. With dirty writes, conflicting writes from different transactions can be mixed up." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" caption="图 8-5. 有了脏写，来自不同事务的冲突写入可能会混在一起。" class="w-full my-4" >}}
 
 
 #### 实现读已提交 {#sec_transactions_read_committed_impl}
 
-Read committed is a very popular isolation level. It is the default setting in Oracle Database,
-PostgreSQL, SQL Server, and many other databases [^10].
+读已提交是一个非常流行的隔离级别。它是 Oracle Database、PostgreSQL、SQL Server 和许多其他数据库中的默认设置[^10]。
 
-Most commonly, databases prevent dirty writes by using row-level locks: when a transaction wants to
-modify a particular row (or document or some other object), it must first acquire a lock on that
-row. It must then hold that lock until the transaction is committed or aborted. Only one transaction
-can hold the lock for any given row; if another transaction wants to write to the same row, it must
-wait until the first transaction is committed or aborted before it can acquire the lock and
-continue. This locking is done automatically by databases in read committed mode (or stronger
-isolation levels).
+最常见的是，数据库通过使用行级锁来防止脏写：当事务想要修改特定行（或文档或其他对象）时，它必须首先获取该行的锁。然后它必须持有该锁直到事务提交或中止。任何给定行只能有一个事务持有锁；如果另一个事务想要写入同一行，它必须等到第一个事务提交或中止后才能获取锁并继续。这种锁定由数据库在读已提交模式（或更强的隔离级别）下自动完成。
 
-How do we prevent dirty reads? One option would be to use the same lock, and to require any
-transaction that wants to read a row to briefly acquire the lock and then release it again
-immediately after reading. This would ensure that a read couldn’t happen while a row has a
-dirty, uncommitted value (because during that time the lock would be held by the transaction that
-has made the write).
+我们如何防止脏读？一种选择是使用相同的锁，并要求任何想要读取行的事务短暂地获取锁，然后在读取后立即再次释放它。这将确保在行具有脏的、未提交的值时无法进行读取（因为在此期间锁将由进行写入的事务持有）。
 
-However, the approach of requiring read locks does not work well in practice, because one
-long-running write transaction can force many other transactions to wait until the long-running
-transaction has completed, even if the other transactions only read and do not write anything to the
-database. This harms the response time of read-only transactions and is bad for
-operability: a slowdown in one part of an application can have a knock-on effect in a completely
-different part of the application, due to waiting for locks.
+然而，要求读锁的方法在实践中效果不佳，因为一个长时间运行的写事务可以强制许多其他事务等待，直到长时间运行的事务完成，即使其他事务只读取并且不向数据库写入任何内容。这会损害只读事务的响应时间，并且对可操作性不利：应用程序一个部分的减速可能会由于等待锁而在应用程序的完全不同部分产生连锁效应。
 
-Nevertheless, locks are used to prevent dirty reads in some databases, such as IBM
-Db2 and Microsoft SQL Server in the `read_committed_snapshot=off` setting [^29].
+尽管如此，在某些数据库中使用锁来防止脏读，例如 IBM Db2 和 Microsoft SQL Server 在 `read_committed_snapshot=off` 设置中[^29]。
 
-A more commonly used approach to preventing dirty reads is the one illustrated in [Figure 8-4](/en/ch8#fig_transactions_read_committed): for every
-row that is written, the database remembers both the old committed value and the new value
-set by the transaction that currently holds the write lock. While the transaction is ongoing, any
-other transactions that read the row are simply given the old value. Only when the new value is
-committed do transactions switch over to reading the new value (see
-[“Multi-version concurrency control (MVCC)”](/en/ch8#sec_transactions_snapshot_impl) for more detail).
+防止脏读的更常用方法是[图 8-4](/ch8#fig_transactions_read_committed) 中说明的方法：对于每个被写入的行，数据库记住旧的已提交值和当前持有写锁的事务设置的新值。当事务正在进行时，任何其他读取该行的事务都只是被给予旧值。只有当新值被提交时，事务才会切换到读取新值（有关更多详细信息，请参见["多版本并发控制（MVCC）"](/ch8#sec_transactions_snapshot_impl)）。
 
 ### 快照隔离与可重复读 {#sec_transactions_snapshot_isolation}
 
-If you look superficially at read committed isolation, you could be forgiven for thinking that it
-does everything that a transaction needs to do: it allows aborts (required for atomicity), it
-prevents reading the incomplete results of transactions, and it prevents concurrent writes from
-getting intermingled. Indeed, those are useful features, and much stronger guarantees than you can
-get from a system that has no transactions.
+如果你肤浅地看待读已提交隔离，你可能会被原谅认为它做了事务需要做的一切：它允许中止（原子性所需），它防止读取事务的不完整结果，并且它防止并发写入混淆。确实，这些是有用的功能，比没有事务的系统能获得的保证要强得多。
 
-However, there are still plenty of ways in which you can have concurrency bugs when using this
-isolation level. For example, [Figure 8-6](/en/ch8#fig_transactions_item_many_preceders) illustrates a problem that
-can occur with read committed.
+然而，使用这个隔离级别时，仍然有很多方式可能出现并发错误。例如，[图 8-6](/ch8#fig_transactions_item_many_preceders) 说明了读已提交可能发生的问题。
 
-{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" caption="Figure 8-6. Read skew: Aaliyah observes the database in an inconsistent state." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" caption="图 8-6. 读偏斜：Aaliyah 观察到数据库处于不一致状态。" class="w-full my-4" >}}
 
 
-Say Aaliyah has $1,000 of savings at a bank, split across two accounts with $500 each. Now a
-transaction transfers $100 from one of her accounts to the other. If she is unlucky enough to look at her
-list of account balances in the same moment as that transaction is being processed, she may see one
-account balance at a time before the incoming payment has arrived (with a balance of $500), and the
-other account after the outgoing transfer has been made (the new balance being $400). To Aaliyah it
-now appears as though she only has a total of $900 in her accounts—it seems that $100 has
-vanished into thin air.
+假设 Aaliyah 在银行有 1,000 美元的储蓄，分成两个账户，每个 500 美元。现在一笔事务从她的一个账户转账 100 美元到另一个账户。如果她不幸在该事务处理的同时查看她的账户余额列表，她可能会看到一个账户余额在收款到达之前（余额为 500 美元），另一个账户在转出之后（新余额为 400 美元）。对 Aaliyah 来说，现在她的账户总共只有 900 美元——似乎 100 美元凭空消失了。
 
-This anomaly is called *read skew*, and it is an example of a *nonrepeatable read*:
-if Aaliyah were to read the balance of account 1 again at the end of the transaction, she would see a different value ($600) than she saw
-in her previous query. Read skew is considered acceptable under read committed isolation: the
-account balances that Aaliyah saw were indeed committed at the time when she read them.
+这种异常称为*读偏斜*，它是*不可重复读*的一个例子：如果 Aaliyah 在事务结束时再次读取账户 1 的余额，她会看到与之前查询中看到的不同的值（600 美元）。读偏斜在读已提交隔离下被认为是可接受的：Aaliyah 看到的账户余额确实是在她读取它们时已提交的。
 
 --------
 
 > [!NOTE]
-> The term *skew* is unfortunately overloaded: we previously used it in the sense of an *unbalanced
-> workload with hot spots* (see [“Skewed Workloads and Relieving Hot Spots”](/en/ch7#sec_sharding_skew)), whereas here it means *timing anomaly*.
+> 术语*偏斜*不幸地被重载了：我们之前在*具有热点的不平衡工作负载*的意义上使用它（参见["倾斜负载和缓解热点"](/ch7#sec_sharding_skew)），而这里它意味着*时序异常*。
 
 --------
 
-In Aaliyah’s case, this is not a lasting problem, because she will most likely see consistent account
-balances if she reloads the online banking website a few seconds later. However, some situations
-cannot tolerate such temporary inconsistency:
+在 Aaliyah 的情况下，这不是一个持久的问题，因为如果她几秒钟后重新加载在线银行网站，她很可能会看到一致的账户余额。然而，某些情况不能容忍这种临时的不一致性：
 
-Backups
-: Taking a backup requires making a copy of the entire database, which may take hours on a large
- database. During the time that the backup process is running, writes will continue to be made to
- the database. Thus, you could end up with some parts of the backup containing an older version of
- the data, and other parts containing a newer version. If you need to restore from such a backup,
- the inconsistencies (such as disappearing money) become permanent.
+备份
+: 进行备份需要复制整个数据库，对于大型数据库可能需要几个小时。在备份过程运行期间，写入将继续对数据库进行。因此，你最终可能会得到备份的某些部分包含较旧版本的数据，而其他部分包含较新版本。如果你需要从这样的备份恢复，不一致性（如消失的钱）将变成永久性的。
 
-Analytic queries and integrity checks
-: Sometimes, you may want to run a query that scans over large parts of the database. Such queries
- are common in analytics (see [“Analytical versus Operational Systems”](/en/ch1#sec_introduction_analytics)), or may be part of a periodic integrity
- check that everything is in order (monitoring for data corruption). These queries are likely to
- return nonsensical results if they observe parts of the database at different points in time.
+分析查询和完整性检查
+: 有时，你可能想要运行扫描数据库大部分的查询。此类查询在分析中很常见（参见["分析与运营系统"](/ch1#sec_introduction_analytics)），或者可能是定期完整性检查的一部分，以确保一切正常（监控数据损坏）。如果这些查询在不同时间点观察数据库的不同部分，它们很可能返回无意义的结果。
 
-*Snapshot isolation* [^36] is the most common
-solution to this problem. The idea is that each transaction reads from a *consistent snapshot* of
-the database—that is, the transaction sees all the data that was committed in the database at the
-start of the transaction. Even if the data is subsequently changed by another transaction, each
-transaction sees only the old data from that particular point in time.
+*快照隔离*[^36] 是解决这个问题的最常见方法。其思想是每个事务从数据库的*一致快照*读取——也就是说，事务看到事务开始时数据库中已提交的所有数据。即使数据随后被另一个事务更改，每个事务也只能看到该特定时间点的旧数据。
 
-Snapshot isolation is a boon for long-running, read-only queries such as backups and analytics. It
-is very hard to reason about the meaning of a query if the data on which it operates is changing at
-the same time as the query is executing. When a transaction can see a consistent snapshot of the
-database, frozen at a particular point in time, it is much easier to understand.
+快照隔离对于长时间运行的只读查询（如备份和分析）来说是一个福音。如果查询操作的数据在查询执行的同时发生变化，很难推理查询的含义。当事务可以看到数据库的一致快照（冻结在特定时间点）时，理解起来就容易得多。
 
-Snapshot isolation is a popular feature: variants of it are supported by PostgreSQL, MySQL with the
-InnoDB storage engine, Oracle, SQL Server, and others, although the detailed behavior varies from
-one system to the next [^29] [^40] [^41].
-Some databases, such as Oracle, TiDB, and Aurora DSQL, even choose snapshot isolation as their
-highest isolation level.
+快照隔离是一个流行的功能：它的变体受到 PostgreSQL、使用 InnoDB 存储引擎的 MySQL、Oracle、SQL Server 等的支持，尽管详细行为因系统而异[^29] [^40] [^41]。某些数据库，如 Oracle、TiDB 和 Aurora DSQL，甚至选择快照隔离作为它们的最高隔离级别。
 
 #### 多版本并发控制（MVCC） {#sec_transactions_snapshot_impl}
 
-Like read committed isolation, implementations of snapshot isolation typically use write locks to
-prevent dirty writes (see [“Implementing read committed”](/en/ch8#sec_transactions_read_committed_impl)), which means that a transaction
-that makes a write can block the progress of another transaction that writes to the same row.
-However, reads do not require any locks. From a performance point of view, a key principle of
-snapshot isolation is *readers never block writers, and writers never block readers*. This allows a
-database to handle long-running read queries on a consistent snapshot at the same time as processing
-writes normally, without any lock contention between the two.
+与读已提交隔离一样，快照隔离的实现通常使用写锁来防止脏写（参见["实现读已提交"](/ch8#sec_transactions_read_committed_impl)），这意味着进行写入的事务可以阻止写入同一行的另一个事务的进度。但是，读取不需要任何锁。从性能的角度来看，快照隔离的一个关键原则是*读者永远不会阻塞写者，写者永远不会阻塞读者*。这允许数据库在一致快照上处理长时间运行的读查询，同时正常处理写入，两者之间没有任何锁争用。
 
-To implement snapshot isolation, databases use a generalization of the mechanism we saw for
-preventing dirty reads in [Figure 8-4](/en/ch8#fig_transactions_read_committed). Instead of two versions of each row
-(the committed version and the overwritten-but-not-yet-committed version), the database must
-potentially keep several different committed versions of a row, because various in-progress
-transactions may need to see the state of the database at different points in time. Because it
-maintains several versions of a row side by side, this technique is known as *multi-version
-concurrency control* (MVCC).
+为了实现快照隔离，数据库使用了我们在[图 8-4](/ch8#fig_transactions_read_committed) 中看到的防止脏读机制的泛化。数据库必须潜在地保留每行的几个不同的已提交版本，而不是每行的两个版本（已提交版本和被覆盖但尚未提交的版本），因为各种正在进行的事务可能需要在不同时间点看到数据库的状态。因为它并排维护一行的多个版本，所以这种技术被称为*多版本并发控制*（MVCC）。
 
-[Figure 8-7](/en/ch8#fig_transactions_mvcc) illustrates how MVCC-based snapshot isolation is implemented in PostgreSQL
-[^40] [^42] [^43] (other implementations are similar).
-When a transaction is started, it is given a unique, always-increasing transaction ID (`txid`).
-Whenever a transaction writes anything to the database, the data it writes is tagged with the
-transaction ID of the writer. (To be precise, transaction IDs in PostgreSQL are 32-bit integers, so
-they overflow after approximately 4 billion transactions. The vacuum process performs cleanup to
-ensure that overflow does not affect the data.)
+[图 8-7](/ch8#fig_transactions_mvcc) 说明了 PostgreSQL 中如何实现基于 MVCC 的快照隔离[^40] [^42] [^43]（其他实现类似）。当事务启动时，它被赋予一个唯一的、始终递增的事务 ID（`txid`）。每当事务向数据库写入任何内容时，它写入的数据都用写入者的事务 ID 标记。（准确地说，PostgreSQL 中的事务 ID 是 32 位整数，因此它们在大约 40 亿个事务后溢出。清理过程执行清理以确保溢出不会影响数据。）
 
-{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" caption="Figure 8-7. Implementing snapshot isolation using multi-version concurrency control." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" caption="图 8-7. 使用多版本并发控制实现快照隔离。" class="w-full my-4" >}}
 
 
-Each row in a table has a `inserted_by` field, containing the ID of the transaction that inserted
-this row into the table. Moreover, each row has a `deleted_by` field, which is initially empty. If a
-transaction deletes a row, the row isn’t actually removed from the database, but it is marked for
-deletion by setting the `deleted_by` field to the ID of the transaction that requested the deletion.
-At some later time, when it is certain that no transaction can any longer access the deleted data, a
-garbage collection process in the database removes any rows marked for deletion and frees their
-space.
+表中的每一行都有一个 `inserted_by` 字段，包含将此行插入表中的事务的 ID。此外，每行都有一个 `deleted_by` 字段，最初为空。如果事务删除一行，该行实际上不会从数据库中删除，而是通过将 `deleted_by` 字段设置为请求删除的事务的 ID 来标记为删除。在稍后的某个时间，当确定没有事务可以再访问已删除的数据时，数据库中的垃圾收集过程会删除任何标记为删除的行并释放它们的空间。
 
-An update is internally translated into a delete and a insert [^44].
-For example, in [Figure 8-7](/en/ch8#fig_transactions_mvcc), transaction 13 deducts $100 from account 2, changing the
-balance from $500 to $400. The `accounts` table now actually contains two rows for account 2: a row
-with a balance of $500 which was marked as deleted by transaction 13, and a row with a balance of
-$400 which was inserted by transaction 13.
+更新在内部被转换为删除和插入[^44]。例如，在[图 8-7](/ch8#fig_transactions_mvcc) 中，事务 13 从账户 2 中扣除 100 美元，将余额从 500 美元更改为 400 美元。`accounts` 表现在实际上包含账户 2 的两行：余额为 500 美元的行被事务 13 标记为已删除，余额为 400 美元的行由事务 13 插入。
 
-All of the versions of a row are stored within the same database heap (see
-[“Storing values within the index”](/en/ch4#sec_storage_index_heap)), regardless of whether the transactions that wrote them have committed
-or not. The versions of the same row form a linked list, going either from newest version to oldest
-version or the other way round, so that queries can internally iterate over all versions of a row [^45] [^46].
+行的所有版本都存储在同一个数据库堆中（参见["在索引中存储值"](/ch4#sec_storage_index_heap)），无论写入它们的事务是否已提交。同一行的版本形成一个链表，从最新版本到最旧版本或相反，以便查询可以在内部迭代行的所有版本[^45] [^46]。
 
 #### 观察一致快照的可见性规则 {#sec_transactions_mvcc_visibility}
 
-When a transaction reads from the database, transaction IDs are used to decide which row versions it
-can see and which are invisible. By carefully defining visibility rules, the database can present a
-consistent snapshot of the database to the application. This works roughly as follows [^43]:
+当事务从数据库读取时，事务 ID 用于决定它可以看到哪些行版本以及哪些是不可见的。通过仔细定义可见性规则，数据库可以向应用程序呈现数据库的一致快照。这大致如下工作[^43]：
 
-1. At the start of each transaction, the database makes a list of all the other transactions that
- are in progress (not yet committed or aborted) at that time. Any writes that those
- transactions have made are ignored, even if the transactions subsequently commit. This ensures
- that we see a consistent snapshot that is not affected by another transaction committing.
-2. Any writes made by transactions with a later transaction ID (i.e., which started after the current
- transaction started, and which are therefore not included in the list of in-progress
- transactions) are ignored, regardless of whether those transactions have committed.
-3. Any writes made by aborted transactions are ignored, regardless of when that abort happened.
- This has the advantage that when a transaction aborts, we don’t need to immediately remove the
- rows it wrote from storage, since the visibility rule filters them out. The garbage collection
- process can remove them later.
-4. All other writes are visible to the application’s queries.
+1. 在每个事务开始时，数据库列出当时正在进行（尚未提交或中止）的所有其他事务。这些事务所做的任何写入都被忽略，即使事务随后提交。这确保我们看到一个不受另一个事务提交影响的一致快照。
+2. 具有较晚事务 ID（即在当前事务开始后开始，因此不包括在正在进行的事务列表中）的事务所做的任何写入都被忽略，无论这些事务是否已提交。
+3. 中止事务所做的任何写入都被忽略，无论该中止何时发生。这样做的好处是，当事务中止时，我们不需要立即从存储中删除它写入的行，因为可见性规则会将它们过滤掉。垃圾收集过程可以稍后删除它们。
+4. 所有其他写入对应用程序的查询可见。
 
-These rules apply to both insertion and deletion of rows. In [Figure 8-7](/en/ch8#fig_transactions_mvcc), when
-transaction 12 reads from account 2, it sees a balance of $500 because the deletion of the $500
-balance was made by transaction 13 (according to rule 2, transaction 12 cannot see a deletion made
-by transaction 13), and the insertion of the $400 balance is not yet visible (by the same rule).
+这些规则适用于行的插入和删除。在[图 8-7](/ch8#fig_transactions_mvcc) 中，当事务 12 从账户 2 读取时，它看到 500 美元的余额，因为 500 美元余额的删除是由事务 13 进行的（根据规则 2，事务 12 无法看到事务 13 进行的删除），而 400 美元余额的插入尚不可见（根据相同的规则）。
 
-Put another way, a row is visible if both of the following conditions are true:
+换句话说，如果以下两个条件都为真，则行是可见的：
 
-* At the time when the reader’s transaction started, the transaction that inserted the row had
- already committed.
-* The row is not marked for deletion, or if it is, the transaction that requested deletion had
- not yet committed at the time when the reader’s transaction started.
+* 在读者事务开始时，插入该行的事务已经提交。
+* 该行未标记为删除，或者如果是，请求删除的事务在读者事务开始时尚未提交。
 
-A long-running transaction may continue using a snapshot for a long time, continuing to read values
-that (from other transactions’ point of view) have long been overwritten or deleted. By never
-updating values in place but instead inserting a new version every time a value is changed, the
-database can provide a consistent snapshot while incurring only a small overhead.
+长时间运行的事务可能会长时间继续使用快照，继续读取（从其他事务的角度来看）早已被覆盖或删除的值。通过永远不更新原地的值，而是在每次更改值时插入新版本，数据库可以提供一致的快照，同时只产生很小的开销。
 
 #### 索引与快照隔离 {#indexes-and-snapshot-isolation}
 
-How do indexes work in a multi-version database? The most common approach is that each index entry
-points at one of the versions of a row that matches the entry (either the oldest or the newest
-version). Each row version may contain a reference to the next-oldest or next-newest version. A
-query that uses the index must then iterate over the rows to find one that is visible, and where the
-value matches what the query is looking for. When garbage collection removes old row versions that
-are no longer visible to any transaction, the corresponding index entries can also be removed.
+索引如何在多版本数据库中工作？最常见的方法是每个索引条目指向与该条目匹配的行的一个版本（最旧或最新版本）。每个行版本可能包含对下一个最旧或下一个最新版本的引用。使用索引的查询必须迭代行以找到可见的行，并且值与查询要查找的内容匹配。当垃圾收集删除不再对任何事务可见的旧行版本时，相应的索引条目也可以被删除。
 
-Many implementation details affect the performance of multi-version concurrency control [^45] [^46].
-For example, PostgreSQL has optimizations for avoiding index updates if different versions of the
-same row can fit on the same page [^40]. Some other databases avoid storing full copies of modified rows, 
-and only store differences between versions to save space.
+许多实现细节影响多版本并发控制的性能[^45] [^46]。例如，如果同一行的不同版本可以适合同一页面，PostgreSQL 有避免索引更新的优化[^40]。其他一些数据库避免存储修改行的完整副本，而只存储版本之间的差异以节省空间。
 
-Another approach is used in CouchDB, Datomic, and LMDB. Although they also use B-trees (see
-[“B-Trees”](/en/ch4#sec_storage_b_trees)), they use an *immutable* (copy-on-write) variant that does not overwrite
-pages of the tree when they are updated, but instead creates a new copy of each modified page.
-Parent pages, up to the root of the tree, are copied and updated to point to the new versions of
-their child pages. Any pages that are not affected by a write do not need to be copied, and can be
-shared with the new tree [^47].
+CouchDB、Datomic 和 LMDB 使用另一种方法。尽管它们也使用 B 树（参见["B 树"](/ch4#sec_storage_b_trees)），但它们使用*不可变*（写时复制）变体，在更新时不会覆盖树的页面，而是创建每个修改页面的新副本。父页面，直到树的根，被复制并更新以指向其子页面的新版本。任何不受写入影响的页面都不需要复制，并且可以与新树共享[^47]。
 
-With immutable B-trees, every write transaction (or batch of transactions) creates a new B-tree
-root, and a particular root is a consistent snapshot of the database at the point in time when it
-was created. There is no need to filter out rows based on transaction IDs because subsequent
-writes cannot modify an existing B-tree; they can only create new tree roots. This approach also
-requires a background process for compaction and garbage collection.
+使用不可变 B 树，每个写事务（或事务批次）都会创建一个新的 B 树根，特定的根是创建时数据库的一致快照。不需要基于事务 ID 过滤行，因为后续写入无法修改现有的 B 树；它们只能创建新的树根。这种方法还需要后台进程进行压缩和垃圾收集。
 
 #### 快照隔离、可重复读和命名混淆 {#snapshot-isolation-repeatable-read-and-naming-confusion}
 
-MVCC is a commonly used implementation technique for databases, and often it is used to implement
-snapshot isolation. However, different databases sometimes use different terms to refer to the same
-thing: for example, snapshot isolation is called “repeatable read” in PostgreSQL, and “serializable”
-in Oracle [^29]. Sometimes different systems
-use the same term to mean different things: for example, while in PostgreSQL “repeatable read” means
-snapshot isolation, in MySQL it means an implementation of MVCC with weaker consistency than
-snapshot isolation [^41].
+MVCC 是数据库常用的实现技术，通常用于实现快照隔离。然而，不同的数据库有时使用不同的术语来指代同一件事：例如，快照隔离在 PostgreSQL 中称为"可重复读"，在 Oracle 中称为"可串行化"[^29]。有时不同的系统使用相同的术语来表示不同的东西：例如，虽然在 PostgreSQL 中"可重复读"意味着快照隔离，但在 MySQL 中它意味着比快照隔离更弱一致性的 MVCC 实现[^41]。
 
-The reason for this naming confusion is that the SQL standard doesn’t have the concept of snapshot
-isolation, because the standard is based on System R’s 1975 definition of isolation levels [^3] and snapshot isolation hadn’t yet been
-invented then. Instead, it defines repeatable read, which looks superficially similar to snapshot
-isolation. PostgreSQL calls its snapshot isolation level “repeatable read” because it meets the
-requirements of the standard, and so they can claim standards compliance.
+这种命名混淆的原因是 SQL 标准没有快照隔离的概念，因为该标准基于 System R 1975 年的隔离级别定义[^3]，而快照隔离当时还没有被发明。相反，它定义了可重复读，表面上看起来类似于快照隔离。PostgreSQL 将其快照隔离级别称为"可重复读"，因为它符合标准的要求，因此他们可以声称符合标准。
 
-Unfortunately, the SQL standard’s definition of isolation levels is flawed—it is ambiguous,
-imprecise, and not as implementation-independent as a standard should be [^36]. Even though several databases
-implement repeatable read, there are big differences in the guarantees they actually provide,
-despite being ostensibly standardized [^29]. There has been a formal definition of
-repeatable read in the research literature [^37] [^38], but most implementations don’t satisfy that
-formal definition. And to top it off, IBM Db2 uses “repeatable read” to refer to serializability [^10].
+不幸的是，SQL 标准对隔离级别的定义是有缺陷的——它是模糊的、不精确的，并且不像标准应该的那样独立于实现[^36]。即使几个数据库实现了可重复读，它们实际提供的保证也有很大差异，尽管表面上是标准化的[^29]。研究文献中有可重复读的正式定义[^37] [^38]，但大多数实现不满足该正式定义。最重要的是，IBM Db2 使用"可重复读"来指代可串行化[^10]。
 
-As a result, nobody really knows what repeatable read means.
+因此，没有人真正知道可重复读意味着什么。
 
 ### 防止丢失更新 {#sec_transactions_lost_update}
 
-The read committed and snapshot isolation levels we’ve discussed so far have been primarily about the guarantees
-of what a read-only transaction can see in the presence of concurrent writes. We have mostly ignored
-the issue of two transactions writing concurrently—we have only discussed dirty writes (see
-[“No dirty writes”](/en/ch8#sec_transactions_dirty_write)), one particular type of write-write conflict that can occur.
+到目前为止，我们讨论的读已提交和快照隔离级别主要是关于只读事务在并发写入存在的情况下可以看到什么的保证。我们大多忽略了两个事务并发写入的问题——我们只讨论了脏写（参见["没有脏写"](/ch8#sec_transactions_dirty_write)），这是可能发生的一种特定类型的写-写冲突。
 
-There are several other interesting kinds of conflicts that can occur between concurrently writing
-transactions. The best known of these is the *lost update* problem, illustrated in
-[Figure 8-1](/en/ch8#fig_transactions_increment) with the example of two concurrent counter increments.
+并发写入事务之间还可能发生其他几种有趣的冲突。其中最著名的是*丢失更新*问题，在[图 8-1](/ch8#fig_transactions_increment) 中以两个并发计数器递增的例子说明。
 
-The lost update problem can occur if an application reads some value from the database, modifies it,
-and writes back the modified value (a *read-modify-write cycle*). If two transactions do this
-concurrently, one of the modifications can be lost, because the second write does not include the
-first modification. (We sometimes say that the later write *clobbers* the earlier write.) This
-pattern occurs in various different scenarios:
+如果应用程序从数据库读取某个值，修改它，然后写回修改后的值（*读-修改-写循环*），就会出现丢失更新问题。如果两个事务并发执行此操作，其中一个修改可能会丢失，因为第二个写入不包括第一个修改。（我们有时说后面的写入*覆盖*了前面的写入。）这种模式出现在各种不同的场景中：
 
-* Incrementing a counter or updating an account balance (requires reading the current value,
- calculating the new value, and writing back the updated value)
-* Making a local change to a complex value, e.g., adding an element to a list within a JSON document
- (requires parsing the document, making the change, and writing back the modified document)
-* Two users editing a wiki page at the same time, where each user saves their changes by sending the
- entire page contents to the server, overwriting whatever is currently in the database
+* 递增计数器或更新账户余额（需要读取当前值，计算新值，并写回更新的值）
+* 对复杂值进行本地更改，例如，向 JSON 文档中的列表添加元素（需要解析文档，进行更改，并写回修改后的文档）
+* 两个用户同时编辑 wiki 页面，每个用户通过将整个页面内容发送到服务器来保存他们的更改，覆盖数据库中当前的任何内容
 
-Because this is such a common problem, a variety of solutions have been developed [^48].
+因为这是一个如此常见的问题，已经开发了各种解决方案[^48]。
 
 #### 原子写操作 {#atomic-write-operations}
 
-Many databases provide atomic update operations, which remove the need to implement
-read-modify-write cycles in application code. They are usually the best solution if your code can be
-expressed in terms of those operations. For example, the following instruction is concurrency-safe
-in most relational databases:
+许多数据库提供原子更新操作，消除了在应用程序代码中实现读-修改-写循环的需要。如果你的代码可以用这些操作来表达，它们通常是最好的解决方案。例如，以下指令在大多数关系数据库中是并发安全的：
 
 ```sql
 UPDATE counters SET value = value + 1 WHERE key = 'foo';
 ```
 
-Similarly, document databases such as MongoDB provide atomic operations for making local
-modifications to a part of a JSON document, and Redis provides atomic operations for modifying data
-structures such as priority queues. Not all writes can easily be expressed in terms of atomic
-operations—for example, updates to a wiki page involve arbitrary text editing, which can be handled
-using algorithms discussed in [“CRDTs and Operational Transformation”](/en/ch6#sec_replication_crdts)—but in situations where atomic operations
-can be used, they are usually the best choice.
+类似地，文档数据库（如 MongoDB）提供原子操作来对 JSON 文档的一部分进行本地修改，Redis 提供原子操作来修改数据结构（如优先级队列）。并非所有写入都可以轻松地用原子操作来表达——例如，对 wiki 页面的更新涉及任意文本编辑，可以使用["CRDT 和操作转换"](/ch6#sec_replication_crdts)中讨论的算法来处理——但在可以使用原子操作的情况下，它们通常是最佳选择。
 
-Atomic operations are usually implemented by taking an exclusive lock on the object when it is read
-so that no other transaction can read it until the update has been applied.
-Another option is to simply force all atomic operations to be executed on a single thread.
+原子操作通常通过在读取对象时对其进行独占锁来实现，以便在应用更新之前没有其他事务可以读取它。另一种选择是简单地强制所有原子操作在单个线程上执行。
 
-Unfortunately, object-relational mapping (ORM) frameworks make it easy to accidentally write code
-that performs unsafe read-modify-write cycles instead of using atomic operations provided by the
-database [^49] [^50] [^51].
-This can be a source of subtle bugs that are difficult to find by testing.
+不幸的是，对象关系映射（ORM）框架很容易意外地编写执行不安全的读-修改-写循环的代码，而不是使用数据库提供的原子操作[^49] [^50] [^51]。这可能是难以通过测试发现的微妙错误的来源。
 
 #### 显式锁定 {#explicit-locking}
 
-Another option for preventing lost updates, if the database’s built-in atomic operations don’t
-provide the necessary functionality, is for the application to explicitly lock objects that are
-going to be updated. Then the application can perform a read-modify-write cycle, and if any other
-transaction tries to concurrently update or lock the same object, it is forced to wait until the
-first read-modify-write cycle has completed.
+如果数据库的内置原子操作不提供必要的功能，另一个防止丢失更新的选项是应用程序显式锁定要更新的对象。然后应用程序可以执行读-修改-写循环，如果任何其他事务尝试并发更新或锁定同一对象，它将被迫等到第一个读-修改-写循环完成。
 
-For example, consider a multiplayer game in which several players can move the same figure
-concurrently. In this case, an atomic operation may not be sufficient, because the application also
-needs to ensure that a player’s move abides by the rules of the game, which involves some logic that
-you cannot sensibly implement as a database query. Instead, you may use a lock to prevent two
-players from concurrently moving the same piece, as illustrated in [Example 8-1](/en/ch8#fig_transactions_select_for_update).
+例如，考虑一个多人游戏，其中几个玩家可以同时移动同一个棋子。在这种情况下，原子操作可能不够，因为应用程序还需要确保玩家的移动遵守游戏规则，这涉及一些你无法合理地作为数据库查询实现的逻辑。相反，你可以使用锁来防止两个玩家同时移动同一个棋子，如[例 8-1](/ch8#fig_transactions_select_for_update) 所示。
 
-{{< figure id="fig_transactions_select_for_update" title="Example 8-1. Explicitly locking rows to prevent lost updates" class="w-full my-4" >}}
+{{< figure id="fig_transactions_select_for_update" title="例 8-1. 显式锁定行以防止丢失更新" class="w-full my-4" >}}
 
 ```sql
 BEGIN TRANSACTION;
@@ -884,163 +413,82 @@ SELECT * FROM figures
     WHERE name = 'robot' AND game_id = 222
     FOR UPDATE; ❶
 
--- Check whether move is valid, then update the position
--- of the piece that was returned by the previous SELECT.
+-- 检查移动是否有效，然后更新
+-- 前一个 SELECT 返回的棋子的位置。
 UPDATE figures SET position = 'c4' WHERE id = 1234;
 
 COMMIT;
 ```
 
-❶: The `FOR UPDATE` clause indicates that the database should take a lock on all rows returned by this query.
+❶：`FOR UPDATE` 子句表示数据库应该对此查询返回的所有行进行锁定。
 
-This works, but to get it right, you need to carefully think about your application logic. It’s easy
-to forget to add a necessary lock somewhere in the code, and thus introduce a race condition.
+这是有效的，但要正确执行，你需要仔细考虑你的应用程序逻辑。很容易忘记在代码中的某个地方添加必要的锁，从而引入竞态条件。
 
-Moreover, if you lock multiple objects there is a risk of deadlock, where two or more transactions
-are waiting for each other to release their locks. Many databases automatically detect deadlocks,
-and abort one of the involved transactions so that the system can make progress. You can handle this
-situation at the application level by retrying the aborted transaction.
+此外，如果你锁定多个对象，则存在死锁的风险，其中两个或多个事务正在等待彼此释放锁。许多数据库会自动检测死锁，并中止涉及的事务之一，以便系统可以取得进展。你可以在应用程序级别通过重试中止的事务来处理这种情况。
 
 #### 自动检测丢失的更新 {#automatically-detecting-lost-updates}
 
-Atomic operations and locks are ways of preventing lost updates by forcing the read-modify-write
-cycles to happen sequentially. An alternative is to allow them to execute in parallel and, if the
-transaction manager detects a lost update, abort the transaction and force it to retry
-its read-modify-write cycle.
+原子操作和锁是通过强制读-修改-写循环按顺序发生来防止丢失更新的方法。另一种选择是允许它们并行执行，如果事务管理器检测到丢失的更新，则中止事务并强制它重试其读-修改-写循环。
 
-An advantage of this approach is that databases can perform this check efficiently in conjunction
-with snapshot isolation. Indeed, PostgreSQL’s repeatable read, Oracle’s serializable, and SQL
-Server’s snapshot isolation levels automatically detect when a lost update has occurred and abort
-the offending transaction. However, MySQL/InnoDB’s repeatable read does not detect lost updates [^29] [^41].
-Some authors [^36] [^38] argue that a database must prevent lost
-updates in order to qualify as providing snapshot isolation, so MySQL does not provide snapshot
-isolation under this definition.
+这种方法的一个优点是数据库可以与快照隔离一起有效地执行此检查。实际上，PostgreSQL 的可重复读、Oracle 的可串行化和 SQL Server 的快照隔离级别会自动检测何时发生丢失的更新并中止有问题的事务。然而，MySQL/InnoDB 的可重复读不检测丢失的更新[^29] [^41]。一些作者[^36] [^38] 认为数据库必须防止丢失的更新才能提供快照隔离，因此根据这个定义，MySQL 不提供快照隔离。
 
-Lost update detection is a great feature, because it doesn’t require application code to use any
-special database features—you may forget to use a lock or an atomic operation and thus introduce
-a bug, but lost update detection happens automatically and is thus less error-prone. However, you
-also have to retry aborted transactions at the application level.
+丢失更新检测是一个很好的功能，因为它不需要应用程序代码使用任何特殊的数据库功能——你可能忘记使用锁或原子操作从而引入错误，但丢失更新检测会自动发生，因此不太容易出错。但是，你还必须在应用程序级别重试中止的事务。
 
 #### 条件写入（比较并设置） {#sec_transactions_compare_and_set}
 
-In databases that don’t provide transactions, you sometimes find a *conditional write* operation
-that can prevent lost updates by allowing an update to happen only if the value has not changed
-since you last read it (previously mentioned in [“Single-object writes”](/en/ch8#sec_transactions_single_object)). If the current
-value does not match what you previously read, the update has no effect, and the read-modify-write
-cycle must be retried. It is the database equivalent of an atomic *compare-and-set* or
-*compare-and-swap* (CAS) instruction that is supported by many CPUs.
+在不提供事务的数据库中，你有时会发现一个*条件写入*操作，它可以通过仅在值自你上次读取以来未更改时才允许更新来防止丢失的更新（之前在["单对象写入"](/ch8#sec_transactions_single_object)中提到）。如果当前值与你之前读取的不匹配，则更新无效，必须重试读-修改-写循环。它是许多 CPU 支持的原子*比较并设置*或*比较并交换*（CAS）指令的数据库等价物。
 
-For example, to prevent two users concurrently updating the same wiki page, you might try something
-like this, expecting the update to occur only if the content of the page hasn’t changed since the
-user started editing it:
+例如，为了防止两个用户同时更新同一个 wiki 页面，你可以尝试类似这样的操作，期望仅当页面内容自用户开始编辑以来没有更改时才进行更新：
 
 ```sql
--- This may or may not be safe, depending on the database implementation
+-- 这可能安全也可能不安全，取决于数据库实现
 UPDATE wiki_pages SET content = 'new content'
     WHERE id = 1234 AND content = 'old content';
 ```
 
-If the content has changed and no longer matches `'old content'`, this update will have no effect,
-so you need to check whether the update took effect and retry if necessary. Instead of comparing the
-full content, you could also use a version number column that you increment on every update, and
-apply the update only if the current version number hasn’t changed. This approach is sometimes
-called *optimistic locking* [^52].
+如果内容已更改并且不再匹配 `'old content'`，则此更新将无效，因此你需要检查更新是否生效并在必要时重试。你也可以使用在每次更新时递增的版本号列，并且仅在当前版本号未更改时才应用更新，而不是比较完整内容。这种方法有时称为*乐观锁定*[^52]。
 
-Note that if another transaction has concurrently modified `content`, the new content may not be
-visible under the MVCC visibility rules (see [“Visibility rules for observing a consistent snapshot”](/en/ch8#sec_transactions_mvcc_visibility)). Many
-implementations of MVCC have an exception to the visibility rules for this scenario, where values
-written by other transactions are visible to the evaluation of the `WHERE` clause of `UPDATE` and
-`DELETE` queries, even though those writes are not otherwise visible in the snapshot.
+请注意，如果另一个事务并发修改了 `content`，则根据 MVCC 可见性规则，新内容可能不可见（参见["观察一致快照的可见性规则"](/ch8#sec_transactions_mvcc_visibility)）。MVCC 的许多实现对此场景有可见性规则的例外，其中其他事务写入的值对 `UPDATE` 和 `DELETE` 查询的 `WHERE` 子句的评估可见，即使这些写入在快照中不可见。
 
 #### 冲突解决与复制 {#conflict-resolution-and-replication}
 
-In replicated databases (see [Chapter 6](/en/ch6#ch_replication)), preventing lost updates takes on another
-dimension: since they have copies of the data on multiple nodes, and the data can potentially be
-modified concurrently on different nodes, some additional steps need to be taken to prevent lost
-updates.
+在复制数据库中（参见[第 6 章](/ch6#ch_replication)），防止丢失的更新具有另一个维度：由于它们在多个节点上有数据副本，并且数据可能在不同节点上并发修改，因此需要采取一些额外的步骤来防止丢失的更新。
 
-Locks and conditional write operations assume that there is a single up-to-date copy of the data.
-However, databases with multi-leader or leaderless replication usually allow several writes to
-happen concurrently and replicate them asynchronously, so they cannot guarantee that there is a
-single up-to-date copy of the data. Thus, techniques based on locks or conditional writes do not apply
-in this context. (We will revisit this issue in more detail in [“Linearizability”](/en/ch10#sec_consistency_linearizability).)
+锁和条件写入操作假设有一个最新的数据副本。然而，具有多领导者或无领导者复制的数据库通常允许多个写入并发发生并异步复制它们，因此它们不能保证有一个最新的数据副本。因此，基于锁或条件写入的技术在此上下文中不适用。（我们将在["线性一致性"](/ch10#sec_consistency_linearizability)中更详细地重新讨论这个问题。）
 
-Instead, as discussed in [“Dealing with Conflicting Writes”](/en/ch6#sec_replication_write_conflicts), a common approach in such replicated
-databases is to allow concurrent writes to create several conflicting versions of a value (also
-known as *siblings*), and to use application code or special data structures to resolve and merge
-these versions after the fact.
+相反，如["处理冲突写入"](/ch6#sec_replication_write_conflicts)中所讨论的，此类复制数据库中的常见方法是允许并发写入创建值的多个冲突版本（也称为*兄弟节点*），并使用应用程序代码或特殊数据结构在事后解决和合并这些版本。
 
-Merging conflicting values can prevent lost updates if the updates are commutative (i.e., you can
-apply them in a different order on different replicas, and still get the same result). For example,
-incrementing a counter or adding an element to a set are commutative operations. That is the idea
-behind CRDTs, which we encountered in [“CRDTs and Operational Transformation”](/en/ch6#sec_replication_crdts). However, some operations such as
-conditional writes cannot be made commutative.
+如果更新是可交换的（即，你可以在不同副本上以不同顺序应用它们，仍然得到相同的结果），合并冲突值可以防止丢失的更新。例如，递增计数器或向集合添加元素是可交换操作。这就是 CRDT 背后的想法，我们在["CRDT 和操作转换"](/ch6#sec_replication_crdts)中遇到过。然而，某些操作（如条件写入）不能成为可交换的。
 
-On the other hand, the *last write wins* (LWW) conflict resolution method is prone to lost updates,
-as discussed in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww). 
-Unfortunately, LWW is the default in many replicated databases.
+另一方面，*最后写入获胜*（LWW）冲突解决方法容易丢失更新，如["最后写入获胜（丢弃并发写入）"](/ch6#sec_replication_lww)中所讨论的。不幸的是，LWW 是许多复制数据库中的默认值。
 
 ### 写偏斜与幻读 {#sec_transactions_write_skew}
 
-In the previous sections we saw *dirty writes* and *lost updates*, two kinds of race conditions that
-can occur when different transactions concurrently try to write to the same objects. In order to
-avoid data corruption, those race conditions need to be prevented—either automatically by the
-database, or by manual safeguards such as using locks or atomic write operations.
+在前面的部分中，我们看到了*脏写*和*丢失更新*，这是当不同事务并发尝试写入相同对象时可能发生的两种竞态条件。为了避免数据损坏，需要防止这些竞态条件——要么由数据库自动防止，要么通过使用锁或原子写操作等手动保护措施。
 
-However, that is not the end of the list of potential race conditions that can occur between
-concurrent writes. In this section we will see some subtler examples of conflicts.
+然而，这并不是并发写入之间可能发生的潜在竞态条件列表的结尾。在本节中，我们将看到一些更微妙的冲突示例。
 
-To begin, imagine this example: you are writing an application for doctors to manage their on-call
-shifts at a hospital. The hospital usually tries to have several doctors on call at any one time,
-but it absolutely must have at least one doctor on call. Doctors can give up their shifts (e.g., if
-they are sick themselves), provided that at least one colleague remains on call in that shift [^53] [^54].
+首先，想象这个例子：你正在为医生编写一个应用程序来管理他们在医院的值班班次。医院通常试图在任何时候都有几位医生值班，但绝对必须至少有一位医生值班。医生可以放弃他们的班次（例如，如果他们自己生病了），前提是该班次中至少有一位同事留在值班[^53] [^54]。
 
-Now imagine that Aaliyah and Bryce are the two on-call doctors for a particular shift. Both are
-feeling unwell, so they both decide to request leave. Unfortunately, they happen to click the button
-to go off call at approximately the same time. What happens next is illustrated in
-[Figure 8-8](/en/ch8#fig_transactions_write_skew).
+现在想象 Aaliyah 和 Bryce 是特定班次的两位值班医生。两人都感觉不舒服，所以他们都决定请假。不幸的是，他们碰巧大约在同一时间点击了下班的按钮。接下来发生的事情如[图 8-8](/ch8#fig_transactions_write_skew) 所示。
 
-{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" caption="Figure 8-8. Example of write skew causing an application bug." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" caption="图 8-8. 写偏斜导致应用程序错误的示例。" class="w-full my-4" >}}
 
 
-In each transaction, your application first checks that two or more doctors are currently on call;
-if yes, it assumes it’s safe for one doctor to go off call. Since the database is using snapshot
-isolation, both checks return `2`, so both transactions proceed to the next stage. Aaliyah updates her
-own record to take herself off call, and Bryce updates his own record likewise. Both transactions
-commit, and now no doctor is on call. Your requirement of having at least one doctor on call has been violated.
+在每个事务中，你的应用程序首先检查当前是否有两个或更多医生在值班；如果是，它假设一个医生下班是安全的。由于数据库使用快照隔离，两个检查都返回 `2`，因此两个事务都继续到下一阶段。Aaliyah 更新她自己的记录让自己下班，Bryce 同样更新他自己的记录。两个事务都提交，现在没有医生值班。你至少有一个医生值班的要求被违反了。
 
 #### 描述写偏斜 {#characterizing-write-skew}
 
-This anomaly is called *write skew* [^36]. It
-is neither a dirty write nor a lost update, because the two transactions are updating two different
-objects (Aaliyah’s and Bryce’s on-call records, respectively). It is less obvious that a conflict occurred
-here, but it’s definitely a race condition: if the two transactions had run one after another, the
-second doctor would have been prevented from going off call. The anomalous behavior was only
-possible because the transactions ran concurrently.
+这种异常称为*写偏斜*[^36]。它既不是脏写也不是丢失的更新，因为两个事务正在更新两个不同的对象（分别是 Aaliyah 和 Bryce 的值班记录）。这里发生冲突不太明显，但这绝对是一个竞态条件：如果两个事务一个接一个地运行，第二个医生将被阻止下班。异常行为只有在事务并发运行时才可能。
 
-You can think of write skew as a generalization of the lost update problem. Write skew can occur if two
-transactions read the same objects, and then update some of those objects (different transactions
-may update different objects). In the special case where different transactions update the same
-object, you get a dirty write or lost update anomaly (depending on the timing).
+你可以将写偏斜视为丢失更新问题的概括。如果两个事务读取相同的对象，然后更新其中一些对象（不同的事务可能更新不同的对象），就会发生写偏斜。在不同事务更新同一对象的特殊情况下，你会得到脏写或丢失更新异常（取决于时机）。
 
-We saw that there are various different ways of preventing lost updates. With write skew, our
-options are more restricted:
+我们看到有各种不同的方法可以防止丢失的更新。对于写偏斜，我们的选择更受限制：
 
-* Atomic single-object operations don’t help, as multiple objects are involved.
-* The automatic detection of lost updates that you find in some implementations of snapshot
- isolation unfortunately doesn’t help either: write skew is not automatically detected in
- PostgreSQL’s repeatable read, MySQL/InnoDB’s repeatable read, Oracle’s serializable, or SQL
- Server’s snapshot isolation level [^29]. 
- Automatically preventing write skew requires true serializable isolation (see [“Serializability”](/en/ch8#sec_transactions_serializability)).
-* Some databases allow you to configure constraints, which are then enforced by the database (e.g.,
- uniqueness, foreign key constraints, or restrictions on a particular value). However, in order to
- specify that at least one doctor must be on call, you would need a constraint that involves
- multiple objects. Most databases do not have built-in support for such constraints, but you may be
- able to implement them with triggers or materialized views, as discussed in
- [“Consistency”](/en/ch8#sec_transactions_acid_consistency) [^12].
-* If you can’t use a serializable isolation level, the second-best option in this case is probably
- to explicitly lock the rows that the transaction depends on. In the doctors example, you could
- write something like the following:
+* 原子单对象操作没有帮助，因为涉及多个对象。
+* 不幸的是，你在某些快照隔离实现中发现的丢失更新的自动检测也没有帮助：写偏斜在 PostgreSQL 的可重复读、MySQL/InnoDB 的可重复读、Oracle 的可串行化或 SQL Server 的快照隔离级别中不会自动检测到[^29]。自动防止写偏斜需要真正的可串行化隔离（参见["可串行化"](/ch8#sec_transactions_serializability)）。
+* 某些数据库允许你配置约束，然后由数据库强制执行（例如，唯一性、外键约束或对特定值的限制）。但是，为了指定至少有一个医生必须值班，你需要一个涉及多个对象的约束。大多数数据库没有对此类约束的内置支持，但你可能能够使用触发器或物化视图实现它们，如["一致性"](/ch8#sec_transactions_acid_consistency)中所讨论的[^12]。
+* 如果你不能使用可串行化隔离级别，在这种情况下，第二好的选择可能是显式锁定事务所依赖的行。在医生示例中，你可以编写如下内容：
 
  ```sql
  BEGIN TRANSACTION;
@@ -1057,425 +505,210 @@ options are more restricted:
  COMMIT;
  ```
 
-❶: As before, `FOR UPDATE` tells the database to lock all rows returned by this query.
+❶：和以前一样，`FOR UPDATE` 告诉数据库锁定此查询返回的所有行。
 
 #### 更多写偏斜的例子 {#more-examples-of-write-skew}
 
-Write skew may seem like an esoteric issue at first, but once you’re aware of it, you may notice
-more situations in which it can occur. Here are some more examples:
+写偏斜起初可能看起来是一个深奥的问题，但一旦你意识到它，你可能会注意到更多可能发生的情况。以下是更多示例：
 
-Meeting room booking system
-: Say you want to enforce that there cannot be two bookings for the same meeting room at the same time [^55].
-    When someone wants to make a booking, you first check for any conflicting bookings (i.e.,
-    bookings for the same room with an overlapping time range), and if none are found, you create the
-    meeting (see [Example 8-2](/en/ch8#fig_transactions_meeting_rooms)).
+会议室预订系统
+: 假设你想强制同一会议室在同一时间不能有两个预订[^55]。当有人想要预订时，你首先检查是否有任何冲突的预订（即，具有重叠时间范围的同一房间的预订），如果没有找到，你就创建会议（参见[例 8-2](/ch8#fig_transactions_meeting_rooms)）。
     
-    {{< figure id="fig_transactions_meeting_rooms" title="Example 8-2. A meeting room booking system tries to avoid double-booking (not safe under snapshot isolation)" class="w-full my-4" >}}
+    {{< figure id="fig_transactions_meeting_rooms" title="例 8-2. 会议室预订系统试图避免重复预订（在快照隔离下不安全）" class="w-full my-4" >}}
     
     ```sql
     BEGIN TRANSACTION;
     
-    -- Check for any existing bookings that overlap with the period of noon-1pm
+    -- 检查是否有任何现有预订与中午 12 点到 1 点的时间段重叠
     SELECT COUNT(*) FROM bookings
     WHERE room_id = 123 AND
     end_time > '2025-01-01 12:00' AND start_time < '2025-01-01 13:00';
     
-    -- If the previous query returned zero:
+    -- 如果前一个查询返回零：
     INSERT INTO bookings (room_id, start_time, end_time, user_id)
     VALUES (123, '2025-01-01 12:00', '2025-01-01 13:00', 666);
     
     COMMIT;
     ```
 
-     Unfortunately, snapshot isolation does not prevent another user from concurrently inserting a conflicting
-     meeting. In order to guarantee you won’t get scheduling conflicts, you once again need serializable
-     isolation.
+     不幸的是，快照隔离不会阻止另一个用户并发插入冲突的会议。为了保证你不会出现调度冲突，你再次需要可串行化隔离。
 
-Multiplayer game
-: In [Example 8-1](/en/ch8#fig_transactions_select_for_update), we used a lock to prevent lost updates (that is, making
- sure that two players can’t move the same figure at the same time). However, the lock doesn’t
- prevent players from moving two different figures to the same position on the board or potentially
- making some other move that violates the rules of the game. Depending on the kind of rule you are
- enforcing, you might be able to use a unique constraint, but otherwise you’re vulnerable to write
- skew.
+多人游戏
+: 在[例 8-1](/ch8#fig_transactions_select_for_update) 中，我们使用锁来防止丢失的更新（即，确保两个玩家不能同时移动同一个棋子）。但是，锁不会阻止玩家将两个不同的棋子移动到棋盘上的同一位置，或者可能做出违反游戏规则的其他移动。根据你要执行的规则类型，你可能能够使用唯一约束，但否则你很容易受到写偏斜的影响。
 
-Claiming a username
-: On a website where each user has a unique username, two users may try to create accounts with the
- same username at the same time. You may use a transaction to check whether a name is taken and, if
- not, create an account with that name. However, like in the previous examples, that is not safe
- under snapshot isolation. Fortunately, a unique constraint is a simple solution here (the second
- transaction that tries to register the username will be aborted due to violating the constraint).
+声明用户名
+: 在每个用户都有唯一用户名的网站上，两个用户可能同时尝试使用相同的用户名创建账户。你可以使用事务来检查名称是否被占用，如果没有，使用该名称创建账户。但是，就像前面的例子一样，这在快照隔离下是不安全的。幸运的是，唯一约束在这里是一个简单的解决方案（尝试注册用户名的第二个事务将由于违反约束而被中止）。
 
-Preventing double-spending
-: A service that allows users to spend money or points needs to check that a user doesn’t spend more
- than they have. You might implement this by inserting a tentative spending item into a user’s
- account, listing all the items in the account, and checking that the sum is positive.
- With write skew, it could happen that two spending items are inserted concurrently that together
- cause the balance to go negative, but that neither transaction notices the other.
+防止重复消费
+: 允许用户花钱或积分的服务需要检查用户不会花费超过他们拥有的。你可以通过在用户账户中插入暂定支出项目，列出账户中的所有项目，并检查总和是否为正来实现这一点。有了写偏斜，可能会发生两个支出项目并发插入，它们一起导致余额变为负数，但没有任何事务注意到另一个。
 
 #### 导致写偏斜的幻读 {#sec_transactions_phantom}
 
-All of these examples follow a similar pattern:
+所有这些例子都遵循类似的模式：
 
-1. A `SELECT` query checks whether some requirement is satisfied by searching for rows that
- match some search condition (there are at least two doctors on call, there are no existing
- bookings for that room at that time, the position on the board doesn’t already have another
- figure on it, the username isn’t already taken, there is still money in the account).
-2. Depending on the result of the first query, the application code decides how to continue (perhaps
- to go ahead with the operation, or perhaps to report an error to the user and abort).
-3. If the application decides to go ahead, it makes a write (`INSERT`, `UPDATE`, or `DELETE`) to the
- database and commits the transaction.
+1. `SELECT` 查询通过搜索匹配某些搜索条件的行来检查是否满足某些要求（至少有两个医生值班，该房间在该时间没有现有预订，棋盘上的位置还没有另一个棋子，用户名尚未被占用，账户中仍有钱）。
+2. 根据第一个查询的结果，应用程序代码决定如何继续（也许继续操作，或者向用户报告错误并中止）。
+3. 如果应用程序决定继续，它会向数据库进行写入（`INSERT`、`UPDATE` 或 `DELETE`）并提交事务。
 
- The effect of this write changes the precondition of the decision of step 2. In other words, if you
- were to repeat the `SELECT` query from step 1 after committing the write, you would get a different
- result, because the write changed the set of rows matching the search condition (there is now one
- fewer doctor on call, the meeting room is now booked for that time, the position on the board is now
- taken by the figure that was moved, the username is now taken, there is now less money in the
- account).
+ 此写入的效果改变了步骤 2 决策的前提条件。换句话说，如果你在提交写入后重复步骤 1 的 `SELECT` 查询，你会得到不同的结果，因为写入改变了匹配搜索条件的行集（现在少了一个医生值班，会议室现在已为该时间预订，棋盘上的位置现在被移动的棋子占据，用户名现在被占用，账户中的钱现在更少）。
 
-The steps may occur in a different order. For example, you could first make the write, then the
-`SELECT` query, and finally decide whether to abort or commit based on the result of the query.
+步骤可能以不同的顺序发生。例如，你可以先进行写入，然后进行 `SELECT` 查询，最后根据查询结果决定是中止还是提交。
 
-In the case of the doctor on call example, the row being modified in step 3 was one of the rows
-returned in step 1, so we could make the transaction safe and avoid write skew by locking the rows
-in step 1 (`SELECT FOR UPDATE`). However, the other four examples are different: they check for the
-*absence* of rows matching some search condition, and the write *adds* a row matching the same
-condition. If the query in step 1 doesn’t return any rows, `SELECT FOR UPDATE` can’t attach locks to
-anything [^56].
+在医生值班示例的情况下，步骤 3 中被修改的行是步骤 1 中返回的行之一，因此我们可以通过锁定步骤 1 中的行（`SELECT FOR UPDATE`）来使事务安全并避免写偏斜。但是，其他四个示例是不同的：它们检查*不存在*匹配某些搜索条件的行，而写入*添加*了匹配相同条件的行。如果步骤 1 中的查询不返回任何行，`SELECT FOR UPDATE` 就无法附加锁[^56]。
 
-This effect, where a write in one transaction changes the result of a search query in another
-transaction, is called a *phantom* [^4].
-Snapshot isolation avoids phantoms in read-only queries, but in read-write transactions like the
-examples we discussed, phantoms can lead to particularly tricky cases of write skew. The SQL
-generated by ORMs is also prone to write skew [^50] [^51].
+这种效果，其中一个事务中的写入改变另一个事务中搜索查询的结果，称为*幻读*[^4]。快照隔离避免了只读查询中的幻读，但在我们讨论的读写事务中，幻读可能导致特别棘手的写偏斜情况。ORM 生成的 SQL 也容易出现写偏斜[^50] [^51]。
 
 #### 物化冲突 {#materializing-conflicts}
 
-If the problem of phantoms is that there is no object to which we can attach the locks, perhaps we
-can artificially introduce a lock object into the database?
+如果幻读的问题是没有对象可以附加锁，也许我们可以在数据库中人为地引入一个锁对象？
 
-For example, in the meeting room booking case you could imagine creating a table of time slots and
-rooms. Each row in this table corresponds to a particular room for a particular time period (say, 15
-minutes). You create rows for all possible combinations of rooms and time periods ahead of time,
-e.g. for the next six months.
+例如，在会议室预订情况下，你可以想象创建一个时间段和房间的表。此表中的每一行对应于特定时间段（例如，15 分钟）的特定房间。你提前为所有可能的房间和时间段组合创建行，例如，接下来的六个月。
 
-Now a transaction that wants to create a booking can lock (`SELECT FOR UPDATE`) the rows in the
-table that correspond to the desired room and time period. After it has acquired the locks, it can
-check for overlapping bookings and insert a new booking as before. Note that the additional table
-isn’t used to store information about the booking—it’s purely a collection of locks which is used
-to prevent bookings on the same room and time range from being modified concurrently.
+现在，想要创建预订的事务可以锁定（`SELECT FOR UPDATE`）表中对应于所需房间和时间段的行。获取锁后，它可以像以前一样检查重叠的预订并插入新的预订。请注意，附加表不用于存储有关预订的信息——它纯粹是一组锁，用于防止同一房间和时间范围的预订被并发修改。
 
-This approach is called *materializing conflicts*, because it takes a phantom and turns it into a
-lock conflict on a concrete set of rows that exist in the database [^14]. Unfortunately, it can be hard and
-error-prone to figure out how to materialize conflicts, and it’s ugly to let a concurrency control
-mechanism leak into the application data model. For those reasons, materializing conflicts should be
-considered a last resort if no alternative is possible. A serializable isolation level is much
-preferable in most cases.
+这种方法称为*物化冲突*，因为它采用了幻读并将其转化为存在于数据库中的具体行集上的锁冲突[^14]。不幸的是，很难且容易出错地弄清楚如何物化冲突，并且让并发控制机制泄漏到应用程序数据模型中是丑陋的。出于这些原因，如果没有其他选择，物化冲突应被视为最后的手段。在大多数情况下，可串行化隔离级别要好得多。
 
 
 
 ## 可串行化 {#sec_transactions_serializability}
 
-In this chapter we have seen several examples of transactions that are prone to race conditions.
-Some race conditions are prevented by the read committed and snapshot isolation levels, but
-others are not. We encountered some particularly tricky examples with write skew and phantoms. It’s
-a sad situation:
+在本章中，我们已经看到了几个容易出现竞态条件的事务示例。某些竞态条件被读已提交和快照隔离级别所防止，但其他的则没有。我们遇到了一些特别棘手的写偏斜和幻读示例。这是一个令人沮丧的情况：
 
-* Isolation levels are hard to understand, and inconsistently implemented in different databases
- (e.g., the meaning of “repeatable read” varies significantly).
-* If you look at your application code, it’s difficult to tell whether it is safe to run at a
- particular isolation level—especially in a large application, where you might not be aware of
- all the things that may be happening concurrently.
-* There are no good tools to help us detect race conditions. In principle, static analysis may
- help [^33], but research techniques have not
- yet found their way into practical use. Testing for concurrency issues is hard, because they are
- usually nondeterministic—problems only occur if you get unlucky with the timing.
+* 隔离级别很难理解，并且在不同数据库中的实现不一致（例如，"可重复读"的含义差异很大）。
+* 如果你查看你的应用程序代码，很难判断在特定隔离级别下运行是否安全——特别是在大型应用程序中，你可能不知道所有可能并发发生的事情。
+* 没有好的工具来帮助我们检测竞态条件。原则上，静态分析可能有所帮助[^33]，但研究技术尚未进入实际使用。测试并发问题很困难，因为它们通常是非确定性的——只有在时机不巧时才会出现问题。
 
-This is not a new problem—it has been like this since the 1970s, when weak isolation levels were
-first introduced [^3]. All along, the answer
-from researchers has been simple: use *serializable* isolation!
+这不是一个新问题——自 1970 年代引入弱隔离级别以来一直如此[^3]。一直以来，研究人员的答案都很简单：使用*可串行化*隔离！
 
-Serializable isolation is the strongest isolation level. It guarantees that even
-though transactions may execute in parallel, the end result is the same as if they had executed one
-at a time, *serially*, without any concurrency. Thus, the database guarantees that if the
-transactions behave correctly when run individually, they continue to be correct when run
-concurrently—in other words, the database prevents *all* possible race conditions.
+可串行化隔离是最强的隔离级别。它保证即使事务可能并行执行，最终结果与它们*串行*执行（一次一个，没有任何并发）相同。因此，数据库保证如果事务在单独运行时行为正确，那么在并发运行时它们继续保持正确——换句话说，数据库防止了*所有*可能的竞态条件。
 
-But if serializable isolation is so much better than the mess of weak isolation levels, then why
-isn’t everyone using it? To answer this question, we need to look at the options for implementing
-serializability, and how they perform. Most databases that provide serializability today use one of
-three techniques, which we will explore in the rest of this chapter:
+但如果可串行化隔离比弱隔离级别的混乱要好得多，那为什么不是每个人都在使用它？要回答这个问题，我们需要查看实现可串行化的选项，以及它们的性能如何。今天提供可串行化的大多数数据库使用以下三种技术之一，我们将在本章的其余部分探讨：
 
-* Literally executing transactions in a serial order (see [“Actual Serial Execution”](/en/ch8#sec_transactions_serial))
-* Two-phase locking (see [“Two-Phase Locking (2PL)”](/en/ch8#sec_transactions_2pl)), which for several decades was the only viable option
-* Optimistic concurrency control techniques such as serializable snapshot isolation (see
- [“Serializable Snapshot Isolation (SSI)”](/en/ch8#sec_transactions_ssi))
+* 字面上串行执行事务（参见["实际串行执行"](/ch8#sec_transactions_serial)）
+* 两阶段锁定（参见["两阶段锁定（2PL）"](/ch8#sec_transactions_2pl)），几十年来这是唯一可行的选择
+* 乐观并发控制技术，如可串行化快照隔离（参见["可串行化快照隔离（SSI）"](/ch8#sec_transactions_ssi)）
 
 ### 实际串行执行 {#sec_transactions_serial}
 
-The simplest way of avoiding concurrency problems is to remove the concurrency entirely: to
-execute only one transaction at a time, in serial order, on a single thread. By doing so, we completely
-sidestep the problem of detecting and preventing conflicts between transactions: the resulting
-isolation is by definition serializable.
+避免并发问题的最简单方法是完全消除并发：在单个线程上按串行顺序一次执行一个事务。通过这样做，我们完全回避了检测和防止事务之间冲突的问题：所产生的隔离根据定义是可串行化的。
 
-Even though this seems like an obvious idea, it was only in the 2000s that database designers
-decided that a single-threaded loop for executing transactions was feasible [^57].
-If multi-threaded concurrency was considered essential for getting good performance during the
-previous 30 years, what changed to make single-threaded execution possible?
+尽管这似乎是一个显而易见的想法，但直到 2000 年代，数据库设计者才决定执行事务的单线程循环是可行的[^57]。如果在过去 30 年中多线程并发被认为是获得良好性能的必要条件，那是什么改变使得单线程执行成为可能？
 
-Two developments caused this rethink:
+两个发展导致了这种重新思考：
 
-* RAM became cheap enough that for many use cases it is now feasible to keep the entire
- active dataset in memory (see [“Keeping everything in memory”](/en/ch4#sec_storage_inmemory)). When all data that a transaction needs to
- access is in memory, transactions can execute much faster than if they have to wait for data to be
- loaded from disk.
-* Database designers realized that OLTP transactions are usually short and only make a small number
- of reads and writes (see [“Analytical versus Operational Systems”](/en/ch1#sec_introduction_analytics)). By contrast, long-running analytic queries
- are typically read-only, so they can be run on a consistent snapshot (using snapshot isolation)
- outside of the serial execution loop.
+* RAM 变得足够便宜，对于许多用例，现在可以将整个活动数据集保存在内存中（参见["将所有内容保存在内存中"](/ch4#sec_storage_inmemory)）。当事务需要访问的所有数据都在内存中时，事务的执行速度比必须等待从磁盘加载数据要快得多。
+* 数据库设计者意识到 OLTP 事务通常很短，只进行少量读写（参见["分析与运营系统"](/ch1#sec_introduction_analytics)）。相比之下，长时间运行的分析查询通常是只读的，因此它们可以在串行执行循环之外的一致快照上运行（使用快照隔离）。
 
-The approach of executing transactions serially is implemented in VoltDB/H-Store, Redis, and Datomic,
-for example [^58] [^59] [^60].
-A system designed for single-threaded execution can sometimes perform better than a system that
-supports concurrency, because it can avoid the coordination overhead of locking. However, its
-throughput is limited to that of a single CPU core. In order to make the most of that single thread,
-transactions need to be structured differently from their traditional form.
+串行执行事务的方法在 VoltDB/H-Store、Redis 和 Datomic 等中实现[^58] [^59] [^60]。为单线程执行设计的系统有时可以比支持并发的系统性能更好，因为它可以避免锁定的协调开销。但是，其吞吐量限于单个 CPU 核心。为了充分利用该单线程，事务需要以不同于传统形式的方式构建。
 
 #### 将事务封装在存储过程中 {#encapsulating-transactions-in-stored-procedures}
 
-In the early days of databases, the intention was that a database transaction could encompass an
-entire flow of user activity. For example, booking an airline ticket is a multi-stage process
-(searching for routes, fares, and available seats; deciding on an itinerary; booking seats on
-each of the flights of the itinerary; entering passenger details; making payment). Database
-designers thought that it would be neat if that entire process was one transaction so that it could
-be committed atomically.
+在数据库的早期，意图是数据库事务可以包含整个用户活动流程。例如，预订机票是一个多阶段过程（搜索路线、票价和可用座位；决定行程；预订行程中每个航班的座位；输入乘客详细信息；付款）。数据库设计者认为，如果整个过程是一个事务，以便可以原子地提交，那将是很好的。
 
-Unfortunately, humans are very slow to make up their minds and respond. If a database transaction
-needs to wait for input from a user, the database needs to support a potentially huge number of
-concurrent transactions, most of them idle. Most databases cannot do that efficiently, and so almost
-all OLTP applications keep transactions short by avoiding interactively waiting for a user within a
-transaction. On the web, this means that a transaction is committed within the same HTTP request—​a
-transaction does not span multiple requests. A new HTTP request starts a new transaction.
+不幸的是，人类做决定和响应的速度非常慢。如果数据库事务需要等待用户的输入，数据库需要支持潜在的大量并发事务，其中大多数是空闲的。大多数数据库无法有效地做到这一点，因此几乎所有 OLTP 应用程序都通过避免在事务中交互式地等待用户来保持事务简短。在 Web 上，这意味着事务在同一 HTTP 请求中提交——事务不跨越多个请求。新的 HTTP 请求开始新的事务。
 
-Even though the human has been taken out of the critical path, transactions have continued to be
-executed in an interactive client/server style, one statement at a time. An application makes a
-query, reads the result, perhaps makes another query depending on the result of the first query, and
-so on. The queries and results are sent back and forth between the application code (running on one
-machine) and the database server (on another machine).
+即使人类已经从关键路径中移除，事务仍然以交互式客户端/服务器风格执行，一次一个语句。应用程序进行查询，读取结果，可能根据第一个查询的结果进行另一个查询，依此类推。查询和结果在应用程序代码（在一台机器上运行）和数据库服务器（在另一台机器上）之间来回发送。
 
-In this interactive style of transaction, a lot of time is spent in network communication between
-the application and the database. If you were to disallow concurrency in the database and only
-process one transaction at a time, the throughput would be dreadful because the database would
-spend most of its time waiting for the application to issue the next query for the current
-transaction. In this kind of database, it’s necessary to process multiple transactions concurrently
-in order to get reasonable performance.
+在这种交互式事务风格中，大量时间花在应用程序和数据库之间的网络通信上。如果你要在数据库中禁止并发并一次只处理一个事务，吞吐量将是可怕的，因为数据库将大部分时间都在等待应用程序为当前事务发出下一个查询。在这种数据库中，为了获得合理的性能，必须并发处理多个事务。
 
-For this reason, systems with single-threaded serial transaction processing don’t allow interactive
-multi-statement transactions. Instead, the application must either limit itself to transactions
-containing a single statement, or submit the entire transaction code to the database ahead of time,
-as a *stored procedure* [^61].
+因此，具有单线程串行事务处理的系统不允许交互式多语句事务。相反，应用程序必须将自己限制为包含单个语句的事务，或者提前将整个事务代码作为*存储过程*提交给数据库[^61]。
 
-The differences between interactive transactions and stored procedures is illustrated in
-[Figure 8-9](/en/ch8#fig_transactions_stored_proc). Provided that all data required by a transaction is in memory, the
-stored procedure can execute very quickly, without waiting for any network or disk I/O.
+交互式事务和存储过程之间的差异如[图 8-9](/ch8#fig_transactions_stored_proc) 所示。前提是事务所需的所有数据都在内存中，存储过程可以非常快速地执行，而无需等待任何网络或磁盘 I/O。
 
-{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" caption="Figure 8-9. The difference between an interactive transaction and a stored procedure (using the example transaction of [Figure 8-8](/en/ch8#fig_transactions_write_skew))." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" caption="图 8-9. 交互式事务和存储过程之间的差异（使用[图 8-8](/ch8#fig_transactions_write_skew)的示例事务）。" class="w-full my-4" >}}
 
 #### 存储过程的利弊 {#sec_transactions_stored_proc_tradeoffs}
 
-Stored procedures have existed for some time in relational databases, and they have been part of the
-SQL standard (SQL/PSM) since 1999. They have gained a somewhat bad reputation, for various reasons:
+存储过程在关系数据库中已经存在了一段时间，自 1999 年以来一直是 SQL 标准（SQL/PSM）的一部分。它们因各种原因获得了一些不好的声誉：
 
-* Traditionally, each database vendor had its own language for stored procedures (Oracle has PL/SQL, SQL Server
- has T-SQL, PostgreSQL has PL/pgSQL, etc.). These languages haven’t kept up with developments in
- general-purpose programming languages, so they look quite ugly and archaic from today’s point of
- view, and they lack the ecosystem of libraries that you find with most programming languages.
-* Code running in a database is difficult to manage: compared to an application server, it’s harder
- to debug, more awkward to keep in version control and deploy, trickier to test, and difficult to
- integrate with a metrics collection system for monitoring.
-* A database is often much more performance-sensitive than an application server, because a single
- database instance is often shared by many application servers. A badly written stored procedure
- (e.g., using a lot of memory or CPU time) in a database can cause much more trouble than equivalent
- badly written code in an application server.
-* In a multitenant system that allows tenants to write their own stored procedures, it’s a security
- risk to execute untrusted code in the same process as the database kernel [^62].
+* 传统上，每个数据库供应商都有自己的存储过程语言（Oracle 有 PL/SQL，SQL Server 有 T-SQL，PostgreSQL 有 PL/pgSQL 等）。这些语言没有跟上通用编程语言的发展，因此从今天的角度来看，它们看起来相当丑陋和过时，并且缺乏大多数编程语言中的库生态系统。
+* 在数据库中运行的代码很难管理：与应用程序服务器相比，调试更困难，版本控制和部署更尴尬，测试更棘手，并且难以与监控的指标收集系统集成。
+* 数据库通常比应用程序服务器对性能更敏感，因为单个数据库实例通常由许多应用程序服务器共享。数据库中编写不当的存储过程（例如，使用大量内存或 CPU 时间）可能比应用程序服务器中等效的编写不当的代码造成更多麻烦。
+* 在允许租户编写自己的存储过程的多租户系统中，在与数据库内核相同的进程中执行不受信任的代码是一个安全风险[^62]。
 
-However, those issues can be overcome. Modern implementations of stored procedures have abandoned
-PL/SQL and use existing general-purpose programming languages instead: VoltDB uses Java or Groovy,
-Datomic uses Java or Clojure, Redis uses Lua, and MongoDB uses Javascript.
+然而，这些问题可以克服。存储过程的现代实现已经放弃了 PL/SQL，而是使用现有的通用编程语言：VoltDB 使用 Java 或 Groovy，Datomic 使用 Java 或 Clojure，Redis 使用 Lua，MongoDB 使用 Javascript。
 
-Stored procedures are also useful in cases where application logic can’t easily be embedded
-elsewhere. Applications that use GraphQL, for example, might directly expose their database through
-a GraphQL proxy. If the proxy doesn’t support complex validation logic, you can embed such logic
-directly in the database using a stored procedure. If the database doesn’t support stored
-procedures, you would have to deploy a validation service between the proxy and the database to do validation.
+存储过程在应用程序逻辑无法轻松嵌入其他地方的情况下也很有用。例如，使用 GraphQL 的应用程序可能通过 GraphQL 代理直接公开其数据库。如果代理不支持复杂的验证逻辑，你可以使用存储过程将此类逻辑直接嵌入数据库中。如果数据库不支持存储过程，你必须在代理和数据库之间部署验证服务来进行验证。
 
-With stored procedures and in-memory data, executing all transactions on a single thread becomes
-feasible. When stored procedures don’t need to wait for I/O and avoid the overhead of other
-concurrency control mechanisms, they can achieve quite good throughput on a single thread.
+使用存储过程和内存数据，在单个线程上执行所有事务变得可行。当存储过程不需要等待 I/O 并避免其他并发控制机制的开销时，它们可以在单个线程上实现相当好的吞吐量。
 
-VoltDB also uses stored procedures for replication: instead of copying a transaction’s writes from
-one node to another, it executes the same stored procedure on each replica. VoltDB therefore
-requires that stored procedures are *deterministic* (when run on different nodes, they must produce
-the same result). If a transaction needs to use the current date and time, for example, it must do
-so through special deterministic APIs (see [“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows) for more details on
-deterministic operations). This approach is called *state machine replication*, and we will return
-to it in [Chapter 10](/en/ch10#ch_consistency).
+VoltDB 还使用存储过程进行复制：它不是将事务的写入从一个节点复制到另一个节点，而是在每个副本上执行相同的存储过程。因此，VoltDB 要求存储过程是*确定性的*（在不同节点上运行时，它们必须产生相同的结果）。例如，如果事务需要使用当前日期和时间，它必须通过特殊的确定性 API 来实现（有关确定性操作的更多详细信息，请参见["持久执行和工作流"](/ch5#sec_encoding_dataflow_workflows)）。这种方法称为*状态机复制*，我们将在[第 10 章](/ch10#ch_consistency)中回到它。
 
 #### 分片 {#sharding}
 
-Executing all transactions serially makes concurrency control much simpler, but limits the
-transaction throughput of the database to the speed of a single CPU core on a single machine.
-Read-only transactions may execute elsewhere, using snapshot isolation, but for applications with
-high write throughput, the single-threaded transaction processor can become a serious bottleneck.
+串行执行所有事务使并发控制变得简单得多，但将数据库的事务吞吐量限制为单台机器上单个 CPU 核心的速度。只读事务可以使用快照隔离在其他地方执行，但对于具有高写入吞吐量的应用程序，单线程事务处理器可能成为严重的瓶颈。
 
-In order to scale to multiple CPU cores, and multiple nodes, you can shard your data
-(see [Chapter 7](/en/ch7#ch_sharding)), which is supported in VoltDB. If you can find a way of sharding your dataset
-so that each transaction only needs to read and write data within a single shard, then each shard
-can have its own transaction processing thread running independently from the others. In this case,
-you can give each CPU core its own shard, which allows your transaction throughput to scale linearly
-with the number of CPU cores [^59].
+为了扩展到多个 CPU 核心和多个节点，你可以对数据进行分片（参见[第 7 章](/ch7#ch_sharding)），VoltDB 支持这一点。如果你可以找到一种对数据集进行分片的方法，使每个事务只需要读取和写入单个分片内的数据，那么每个分片可以有自己的事务处理线程，独立于其他分片运行。在这种情况下，你可以给每个 CPU 核心分配自己的分片，这允许你的事务吞吐量与 CPU 核心数量线性扩展[^59]。
 
-However, for any transaction that needs to access multiple shards, the database must coordinate the
-transaction across all the shards that it touches. The stored procedure needs to be performed in
-lock-step across all shards to ensure serializability across the whole system.
+但是，对于需要访问多个分片的任何事务，数据库必须协调它所涉及的所有分片之间的事务。存储过程需要在所有分片上同步执行，以确保整个系统的可串行化。
 
-Since cross-shard transactions have additional coordination overhead, they are vastly slower than
-single-shard transactions. VoltDB reports a throughput of about 1,000 cross-shard writes per second,
-which is orders of magnitude below its single-shard throughput and cannot be increased by adding
-more machines [^61]. More recent research
-has explored ways of making multi-shard transactions more scalable [^63].
+由于跨分片事务具有额外的协调开销，因此它们比单分片事务慢得多。VoltDB 报告的跨分片写入吞吐量约为每秒 1,000 次，这比其单分片吞吐量低几个数量级，并且无法通过添加更多机器来增加[^61]。最近的研究探索了使多分片事务更具可扩展性的方法[^63]。
 
-Whether transactions can be single-shard depends very much on the structure of the data used by the
-application. Simple key-value data can often be sharded very easily, but data with multiple
-secondary indexes is likely to require a lot of cross-shard coordination (see
-[“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes)).
+事务是否可以是单分片的很大程度上取决于应用程序使用的数据结构。简单的键值数据通常可以很容易地分片，但具有多个二级索引的数据可能需要大量的跨分片协调（参见["分片和二级索引"](/ch7#sec_sharding_secondary_indexes)）。
 
 #### 串行执行总结 {#summary-of-serial-execution}
 
-Serial execution of transactions has become a viable way of achieving serializable isolation within
-certain constraints:
+串行执行事务已成为在某些约束条件下实现可串行化隔离的可行方法：
 
-* Every transaction must be small and fast, because it takes only one slow transaction to stall all transaction processing.
-* It is most appropriate in situations where the active dataset can fit in memory. Rarely accessed
- data could potentially be moved to disk, but if it needed to be accessed in a single-threaded
- transaction, the system would get very slow.
-* Write throughput must be low enough to be handled on a single CPU core, or else transactions need
- to be sharded without requiring cross-shard coordination.
-* Cross-shard transactions are possible, but their throughput is hard to scale.
+* 每个事务必须小而快，因为只需要一个缓慢的事务就可以阻止所有事务处理。
+* 它最适合活动数据集可以适合内存的情况。很少访问的数据可能会移到磁盘，但如果需要在单线程事务中访问，系统会变得非常慢。
+* 写入吞吐量必须足够低，可以在单个 CPU 核心上处理，否则事务需要分片而不需要跨分片协调。
+* 跨分片事务是可能的，但它们的吞吐量很难扩展。
 
 ### 两阶段锁定（2PL） {#sec_transactions_2pl}
 
-For around 30 years, there was only one widely used algorithm for serializability in databases:
-*two-phase locking* (2PL), sometimes called *strong strict two-phase locking* (SS2PL) to distinguish
-it from other variants of 2PL.
+大约 30 年来，数据库中只有一种广泛使用的可串行化算法：*两阶段锁定*（2PL），有时称为*强严格两阶段锁定*（SS2PL），以区别于 2PL 的其他变体。
 
 
 --------
 
 > [!TIP] 2PL 不是 2PC
 
-Two-phase *locking* (2PL) and two-phase *commit* (2PC) are two very different things. 2PL provides
-serializable isolation, whereas 2PC provides atomic commit in a distributed database (see
-[“Two-Phase Commit (2PC)”](/en/ch8#sec_transactions_2pc)). To avoid confusion, it’s best to think of them as entirely separate
-concepts and to ignore the unfortunate similarity in the names.
+两阶段*锁定*（2PL）和两阶段*提交*（2PC）是两个非常不同的东西。2PL 提供可串行化隔离，而 2PC 在分布式数据库中提供原子提交（参见["两阶段提交（2PC）"](/ch8#sec_transactions_2pc)）。为避免混淆，最好将它们视为完全独立的概念，并忽略名称中不幸的相似性。
 
 --------
 
-We saw previously that locks are often used to prevent dirty writes (see
-[“No dirty writes”](/en/ch8#sec_transactions_dirty_write)): if two transactions concurrently try to write to the same object,
-the lock ensures that the second writer must wait until the first one has finished its transaction
-(aborted or committed) before it may continue.
+我们之前看到锁通常用于防止脏写（参见["没有脏写"](/ch8#sec_transactions_dirty_write)）：如果两个事务并发尝试写入同一对象，锁确保第二个写入者必须等到第一个完成其事务（中止或提交）后才能继续。
 
-Two-phase locking is similar, but makes the lock requirements much stronger. Several transactions
-are allowed to concurrently read the same object as long as nobody is writing to it. But as soon as
-anyone wants to write (modify or delete) an object, exclusive access is required:
+两阶段锁定类似，但使锁要求更强。只要没有人写入，多个事务就可以并发读取同一对象。但是一旦有人想要写入（修改或删除）对象，就需要独占访问：
 
-* If transaction A has read an object and transaction B wants to write to that object, B must wait
- until A commits or aborts before it can continue. (This ensures that B can’t change the object
- unexpectedly behind A’s back.)
-* If transaction A has written an object and transaction B wants to read that object, B must wait
- until A commits or aborts before it can continue. (Reading an old version of the object, like in
- [Figure 8-4](/en/ch8#fig_transactions_read_committed), is not acceptable under 2PL.)
+* 如果事务 A 已读取对象而事务 B 想要写入该对象，B 必须等到 A 提交或中止后才能继续。（这确保 B 不能在 A 背后意外地更改对象。）
+* 如果事务 A 已写入对象而事务 B 想要读取该对象，B 必须等到 A 提交或中止后才能继续。（像[图 8-4](/ch8#fig_transactions_read_committed) 中那样读取对象的旧版本在 2PL 下是不可接受的。）
 
-In 2PL, writers don’t just block other writers; they also block readers and vice
-versa. Snapshot isolation has the mantra *readers never block writers, and writers never block
-readers* (see [“Multi-version concurrency control (MVCC)”](/en/ch8#sec_transactions_snapshot_impl)), which captures this key difference between
-snapshot isolation and two-phase locking. On the other hand, because 2PL provides serializability,
-it protects against all the race conditions discussed earlier, including lost updates and write skew.
+在 2PL 中，写入者不仅阻塞其他写入者；它们还阻塞读者，反之亦然。快照隔离有这样的口号：*读者永远不会阻塞写者，写者永远不会阻塞读者*（参见["多版本并发控制（MVCC）"](/ch8#sec_transactions_snapshot_impl)），这捕捉了快照隔离和两阶段锁定之间的关键区别。另一方面，因为 2PL 提供可串行化，它可以防止早期讨论的所有竞态条件，包括丢失的更新和写偏斜。
 
 #### 两阶段锁定的实现 {#implementation-of-two-phase-locking}
 
-2PL is used by the serializable isolation level in MySQL (InnoDB) and SQL Server, and the
-repeatable read isolation level in Db2 [^29].
+2PL 由 MySQL（InnoDB）和 SQL Server 中的可串行化隔离级别以及 Db2 中的可重复读隔离级别使用[^29]。
 
-The blocking of readers and writers is implemented by having a lock on each object in the
-database. The lock can either be in *shared mode* or in *exclusive mode* (also known as a
-*multi-reader single-writer* lock). The lock is used as follows:
+读者和写者的阻塞是通过在数据库中的每个对象上有一个锁来实现的。锁可以处于*共享模式*或*独占模式*（也称为*多读者单写者*锁）。锁的使用如下：
 
-* If a transaction wants to read an object, it must first acquire the lock in shared mode. Several
- transactions are allowed to hold the lock in shared mode simultaneously, but if another
- transaction already has an exclusive lock on the object, these transactions must wait.
-* If a transaction wants to write to an object, it must first acquire the lock in exclusive mode. No
- other transaction may hold the lock at the same time (either in shared or in exclusive mode), so
- if there is any existing lock on the object, the transaction must wait.
-* If a transaction first reads and then writes an object, it may upgrade its shared lock to an
- exclusive lock. The upgrade works the same as getting an exclusive lock directly.
-* After a transaction has acquired the lock, it must continue to hold the lock until the end of the
- transaction (commit or abort). This is where the name “two-phase” comes from: the first phase
- (while the transaction is executing) is when the locks are acquired, and the second phase (at the
- end of the transaction) is when all the locks are released.
+* 如果事务想要读取对象，它必须首先以共享模式获取锁。多个事务可以同时以共享模式持有锁，但如果另一个事务已经对该对象具有独占锁，则这些事务必须等待。
+* 如果事务想要写入对象，它必须首先以独占模式获取锁。没有其他事务可以同时持有锁（无论是共享模式还是独占模式），因此如果对象上有任何现有锁，事务必须等待。
+* 如果事务首先读取然后写入对象，它可以将其共享锁升级为独占锁。升级的工作方式与直接获取独占锁相同。
+* 获取锁后，事务必须继续持有锁直到事务结束（提交或中止）。这就是"两阶段"名称的来源：第一阶段（事务执行时）是获取锁，第二阶段（事务结束时）是释放所有锁。
 
-Since so many locks are in use, it can happen quite easily that transaction A is stuck waiting for
-transaction B to release its lock, and vice versa. This situation is called *deadlock*. The database
-automatically detects deadlocks between transactions and aborts one of them so that the others can
-make progress. The aborted transaction needs to be retried by the application.
+由于使用了如此多的锁，很容易发生事务 A 等待事务 B 释放其锁，反之亦然的情况。这种情况称为*死锁*。数据库自动检测事务之间的死锁并中止其中一个，以便其他事务可以取得进展。中止的事务需要由应用程序重试。
 
 #### 两阶段锁定的性能 {#performance-of-two-phase-locking}
 
-The big downside of two-phase locking, and the reason why it hasn’t been used by everybody since the
-1970s, is performance: transaction throughput and response times of queries are significantly worse
-under two-phase locking than under weak isolation.
+两阶段锁定的主要缺点，以及自 1970 年代以来并非每个人都使用它的原因，是性能：在两阶段锁定下，事务吞吐量和查询响应时间明显比弱隔离下差。
 
-This is partly due to the overhead of acquiring and releasing all those locks, but more importantly
-due to reduced concurrency. By design, if two concurrent transactions try to do anything that may
-in any way result in a race condition, one has to wait for the other to complete.
+这部分是由于获取和释放所有这些锁的开销，但更重要的是由于并发性降低。按设计，如果两个并发事务尝试执行任何可能以任何方式导致竞态条件的操作，其中一个必须等待另一个完成。
 
-For example, if you have a transaction that needs to read an entire table (e.g. a backup, analytics
-query, or integrity check, as discussed in [“Snapshot Isolation and Repeatable Read”](/en/ch8#sec_transactions_snapshot_isolation)), that
-transaction has to take a shared lock on the entire table. Therefore, the reading transaction first
-has to wait until all in-progress transactions writing to that table have completed; then, while the
-whole table is being read (which may take a long time on a large table), all other transactions that
-want to write to that table are blocked until the big read-only transaction commits. In effect, the
-database becomes unavailable for writes for an extended time.
+例如，如果你有一个需要读取整个表的事务（例如，备份、分析查询或完整性检查，如["快照隔离与可重复读"](/ch8#sec_transactions_snapshot_isolation)中所讨论的），该事务必须对整个表进行共享锁。因此，读取事务首先必须等到所有正在写入该表的进行中事务完成；然后，在读取整个表时（对于大表可能需要很长时间），所有想要写入该表的其他事务都被阻塞，直到大型只读事务提交。实际上，数据库在很长一段时间内无法进行写入。
 
-For this reason, databases running 2PL can have quite unstable latencies, and they can be very slow at
-high percentiles (see [“Describing Performance”](/en/ch2#sec_introduction_percentiles)) if there is contention in the workload. It
-may take just one slow transaction, or one transaction that accesses a lot of data and acquires many
-locks, to cause the rest of the system to grind to a halt.
+因此，运行 2PL 的数据库可能具有相当不稳定的延迟，如果工作负载中存在争用，它们在高百分位数可能非常慢（参见["描述性能"](/ch2#sec_introduction_percentiles)）。可能只需要一个缓慢的事务，或者一个访问大量数据并获取许多锁的事务，就会导致系统的其余部分停滞不前。
 
-Although deadlocks can happen with the lock-based read committed isolation level, they occur much
-more frequently under 2PL serializable isolation (depending on the access patterns of your
-transaction). This can be an additional performance problem: when a transaction is aborted due to
-deadlock and is retried, it needs to do its work all over again. If deadlocks are frequent, this can
-mean significant wasted effort.
+尽管死锁可能发生在基于锁的读已提交隔离级别下，但在 2PL 可串行化隔离下（取决于事务的访问模式）它们发生得更频繁。这可能是一个额外的性能问题：当事务由于死锁而被中止并重试时，它需要重新完成所有工作。如果死锁频繁，这可能意味着大量的浪费努力。
 
 #### 谓词锁 {#predicate-locks}
 
-In the preceding description of locks, we glossed over a subtle but important detail. In
-[“Phantoms causing write skew”](/en/ch8#sec_transactions_phantom) we discussed the problem of *phantoms*—that is, one transaction
-changing the results of another transaction’s search query. A database with serializable isolation
-must prevent phantoms.
+在前面的锁描述中，我们掩盖了一个微妙但重要的细节。在["导致写偏斜的幻读"](/ch8#sec_transactions_phantom)中，我们讨论了*幻读*的问题——即一个事务改变另一个事务的搜索查询结果。具有可串行化隔离的数据库必须防止幻读。
 
-In the meeting room booking example this means that if one transaction has searched for existing
-bookings for a room within a certain time window (see [Example 8-2](/en/ch8#fig_transactions_meeting_rooms)), another
-transaction is not allowed to concurrently insert or update another booking for the same room and
-time range. (It’s okay to concurrently insert bookings for other rooms, or for the same room at a
-different time that doesn’t affect the proposed booking.)
+在会议室预订示例中，这意味着如果一个事务已经搜索了某个时间窗口内某个房间的现有预订（参见[例 8-2](/ch8#fig_transactions_meeting_rooms)），另一个事务不允许并发插入或更新同一房间和时间范围的另一个预订。（并发插入其他房间的预订，或同一房间不影响拟议预订的不同时间的预订是可以的。）
 
-How do we implement this? Conceptually, we need a *predicate lock* [^4]. It works similarly to the
-shared/exclusive lock described earlier, but rather than belonging to a particular object (e.g., one
-row in a table), it belongs to all objects that match some search condition, such as:
+我们如何实现这一点？从概念上讲，我们需要一个*谓词锁*[^4]。它的工作方式类似于前面描述的共享/独占锁，但它不属于特定对象（例如，表中的一行），而是属于匹配某些搜索条件的所有对象，例如：
 
 ```
 SELECT * FROM bookings
@@ -1484,866 +717,437 @@ SELECT * FROM bookings
  start_time < '2025-01-01 13:00';
 ```
 
-A predicate lock restricts access as follows:
+谓词锁限制访问如下：
 
-* If transaction A wants to read objects matching some condition, like in that `SELECT` query, it
- must acquire a shared-mode predicate lock on the conditions of the query. If another transaction B
- currently has an exclusive lock on any object matching those conditions, A must wait until B
- releases its lock before it is allowed to make its query.
-* If transaction A wants to insert, update, or delete any object, it must first check whether either the old
- or the new value matches any existing predicate lock. If there is a matching predicate lock held by
- transaction B, then A must wait until B has committed or aborted before it can continue.
+* 如果事务 A 想要读取匹配某些条件的对象，就像在该 `SELECT` 查询中一样，它必须在查询条件上获取共享模式谓词锁。如果另一个事务 B 当前对匹配这些条件的任何对象具有独占锁，A 必须等到 B 释放其锁后才允许进行查询。
+* 如果事务 A 想要插入、更新或删除任何对象，它必须首先检查旧值或新值是否匹配任何现有的谓词锁。如果存在事务 B 持有的匹配谓词锁，则 A 必须等到 B 提交或中止后才能继续。
 
-The key idea here is that a predicate lock applies even to objects that do not yet exist in the
-database, but which might be added in the future (phantoms). If two-phase locking includes predicate locks,
-the database prevents all forms of write skew and other race conditions, and so its isolation
-becomes serializable.
+这里的关键思想是，谓词锁甚至适用于数据库中尚不存在但将来可能添加的对象（幻读）。如果两阶段锁定包括谓词锁，数据库将防止所有形式的写偏斜和其他竞态条件，因此其隔离变为可串行化。
 
 #### 索引范围锁 {#sec_transactions_2pl_range}
 
-Unfortunately, predicate locks do not perform well: if there are many locks by active transactions,
-checking for matching locks becomes time-consuming. For that reason, most databases with 2PL
-actually implement *index-range locking* (also known as *next-key locking*), which is a simplified
-approximation of predicate locking [^54] [^64].
+不幸的是，谓词锁的性能不佳：如果活动事务有许多锁，检查匹配锁变得耗时。因此，大多数具有 2PL 的数据库实际上实现了*索引范围锁定*（也称为*间隙锁*），这是谓词锁定的简化近似[^54] [^64]。
 
-It’s safe to simplify a predicate by making it match a greater set of objects. For example, if you
-have a predicate lock for bookings of room 123 between noon and 1 p.m., you can approximate it by
-locking bookings for room 123 at any time, or you can approximate it by locking all rooms (not just
-room 123) between noon and 1 p.m. This is safe because any write that matches the original predicate
-will definitely also match the approximations.
+通过使谓词匹配更大的对象集来简化谓词是安全的。例如，如果你对中午到下午 1 点之间房间 123 的预订有谓词锁，你可以通过锁定房间 123 在任何时间的预订来近似它，或者你可以通过锁定中午到下午 1 点之间的所有房间（不仅仅是房间 123）来近似它。这是安全的，因为匹配原始谓词的任何写入肯定也会匹配近似。
 
-In the room bookings database you would probably have an index on the `room_id` column, and/or
-indexes on `start_time` and `end_time` (otherwise the preceding query would be very slow on a large database):
+在房间预订数据库中，你可能在 `room_id` 列上有索引，和/或在 `start_time` 和 `end_time` 上有索引（否则前面的查询在大型数据库上会非常慢）：
 
-* Say your index is on `room_id`, and the database uses this index to find existing bookings for
- room 123. Now the database can simply attach a shared lock to this index entry, indicating that a
- transaction has searched for bookings of room 123.
-* Alternatively, if the database uses a time-based index to find existing bookings, it can attach a
- shared lock to a range of values in that index, indicating that a transaction has searched for
- bookings that overlap with the time period of noon to 1 p.m. on January 1, 2025.
+* 假设你的索引在 `room_id` 上，数据库使用此索引查找房间 123 的现有预订。现在数据库可以简单地将共享锁附加到此索引条目，表示事务已搜索房间 123 的预订。
+* 或者，如果数据库使用基于时间的索引查找现有预订，它可以将共享锁附加到该索引中的值范围，表示事务已搜索与 2025 年 1 月 1 日中午到下午 1 点的时间段重叠的预订。
 
-Either way, an approximation of the search condition is attached to one of the indexes. Now, if
-another transaction wants to insert, update, or delete a booking for the same room and/or an
-overlapping time period, it will have to update the same part of the index. In the process of doing
-so, it will encounter the shared lock, and it will be forced to wait until the lock is released.
+无论哪种方式，搜索条件的近似都附加到其中一个索引。现在，如果另一个事务想要插入、更新或删除同一房间和/或重叠时间段的预订，它将必须更新索引的相同部分。在这样做的过程中，它将遇到共享锁，并被迫等到锁被释放。
 
-This provides effective protection against phantoms and write skew. Index-range locks are not as
-precise as predicate locks would be (they may lock a bigger range of objects than is strictly
-necessary to maintain serializability), but since they have much lower overheads, they are a good
-compromise.
+这提供了对幻读和写偏斜的有效保护。索引范围锁不如谓词锁精确（它们可能锁定比严格维护可串行化所需的更大范围的对象），但由于它们的开销要低得多，它们是一个很好的折衷。
 
-If there is no suitable index where a range lock can be attached, the database can fall back to a
-shared lock on the entire table. This will not be good for performance, since it will stop all
-other transactions writing to the table, but it’s a safe fallback position.
+如果没有合适的索引可以附加范围锁，数据库可以退回到整个表的共享锁。这对性能不利，因为它将阻止所有其他事务写入表，但这是一个安全的后备位置。
 
 ### 可串行化快照隔离（SSI） {#sec_transactions_ssi}
 
-This chapter has painted a bleak picture of concurrency control in databases. On the one hand, we
-have implementations of serializability that don’t perform well (two-phase locking) or don’t scale
-well (serial execution). On the other hand, we have weak isolation levels that have good
-performance, but are prone to various race conditions (lost updates, write skew, phantoms, etc.). Are
-serializable isolation and good performance fundamentally at odds with each other?
+本章描绘了数据库并发控制的黯淡画面。一方面，我们有性能不佳（两阶段锁定）或扩展性不佳（串行执行）的可串行化实现。另一方面，我们有性能良好但容易出现各种竞态条件（丢失的更新、写偏斜、幻读等）的弱隔离级别。可串行化隔离和良好性能从根本上是对立的吗？
 
-It seems not: an algorithm called *serializable snapshot isolation* (SSI) provides full
-serializability with only a small performance penalty compared to snapshot isolation. SSI is
-comparatively new: it was first described in 2008 [^53] [^65].
+似乎不是：一种称为*可串行化快照隔离*（SSI）的算法提供完全可串行化，与快照隔离相比只有很小的性能损失。SSI 相对较新：它于 2008 年首次描述[^53] [^65]。
 
-Today SSI and similar algorithms are used in single-node databases (the serializable isolation level
-in PostgreSQL [^54], SQL Server’s In-Memory OLTP/Hekaton [^66], and HyPer [^67]), distributed databases (CockroachDB [^5] and
-FoundationDB [^8]), and embedded storage engines such as BadgerDB.
+今天，SSI 和类似算法用于单节点数据库（PostgreSQL 中的可串行化隔离级别[^54]、SQL Server 的内存 OLTP/Hekaton[^66] 和 HyPer[^67]）、分布式数据库（CockroachDB[^5] 和 FoundationDB[^8]）以及嵌入式存储引擎（如 BadgerDB）。
 
 #### 悲观并发控制与乐观并发控制 {#pessimistic-versus-optimistic-concurrency-control}
 
-Two-phase locking is a so-called *pessimistic* concurrency control mechanism: it is based on the
-principle that if anything might possibly go wrong (as indicated by a lock held by another
-transaction), it’s better to wait until the situation is safe again before doing anything. It is
-like *mutual exclusion*, which is used to protect data structures in multi-threaded programming.
+两阶段锁定是所谓的*悲观*并发控制机制：它基于这样的原则，即如果任何事情可能出错（如另一个事务持有的锁所示），最好等到情况再次安全后再做任何事情。它就像*互斥*，用于保护多线程编程中的数据结构。
 
-Serial execution is, in a sense, pessimistic to the extreme: it is essentially equivalent to each
-transaction having an exclusive lock on the entire database (or one shard of the database) for the
-duration of the transaction. We compensate for the pessimism by making each transaction very fast to
-execute, so it only needs to hold the “lock” for a short time.
+串行执行在某种意义上是悲观到极端：它本质上相当于每个事务在事务期间对整个数据库（或数据库的一个分片）具有独占锁。我们通过使每个事务执行得非常快来补偿悲观主义，因此它只需要短时间持有"锁"。
 
-By contrast, serializable snapshot isolation is an *optimistic* concurrency control technique.
-Optimistic in this context means that instead of blocking if something potentially dangerous
-happens, transactions continue anyway, in the hope that everything will turn out all right. When a
-transaction wants to commit, the database checks whether anything bad happened (i.e., whether
-isolation was violated); if so, the transaction is aborted and has to be retried. Only transactions
-that executed serializably are allowed to commit.
+相比之下，可串行化快照隔离是一种*乐观*并发控制技术。在这种情况下，乐观意味着，如果发生潜在危险的事情，事务不会阻塞，而是继续进行，希望一切都会好起来。当事务想要提交时，数据库会检查是否发生了任何不好的事情（即，是否违反了隔离）；如果是，事务将被中止并必须重试。只允许可串行执行的事务提交。
 
-Optimistic concurrency control is an old idea [^68], and its advantages and disadvantages have been debated for a long time [^69].
-It performs badly if there is high contention (many transactions trying to access the same objects),
-as this leads to a high proportion of transactions needing to abort. If the system is already close
-to its maximum throughput, the additional transaction load from retried transactions can make
-performance worse.
+乐观并发控制是一个老想法[^68]，其优缺点已经争论了很长时间[^69]。如果存在高争用（许多事务尝试访问相同的对象），它的性能很差，因为这会导致大部分事务需要中止。如果系统已经接近其最大吞吐量，重试事务的额外事务负载可能会使性能变差。
 
-However, if there is enough spare capacity, and if contention between transactions is not too high,
-optimistic concurrency control techniques tend to perform better than pessimistic ones. Contention
-can be reduced with commutative atomic operations: for example, if several transactions concurrently
-want to increment a counter, it doesn’t matter in which order the increments are applied (as long as
-the counter isn’t read in the same transaction), so the concurrent increments can all be applied
-without conflicting.
+但是，如果有足够的备用容量，并且事务之间的争用不太高，乐观并发控制技术往往比悲观技术性能更好。可交换原子操作可以减少争用：例如，如果几个事务并发想要递增计数器，应用递增的顺序无关紧要（只要计数器在同一事务中没有被读取），因此并发递增都可以应用而不会发生冲突。
 
-As the name suggests, SSI is based on snapshot isolation—that is, all reads within a transaction
-are made from a consistent snapshot of the database (see [“Snapshot Isolation and Repeatable Read”](/en/ch8#sec_transactions_snapshot_isolation)).
-On top of snapshot isolation, SSI adds an algorithm for detecting serialization conflicts among
-reads and writes, and determining which transactions to abort.
+顾名思义，SSI 基于快照隔离——也就是说，事务中的所有读取都从数据库的一致快照进行（参见["快照隔离与可重复读"](/ch8#sec_transactions_snapshot_isolation)）。在快照隔离的基础上，SSI 添加了一种算法来检测读写之间的串行化冲突，并确定要中止哪些事务。
 
 #### 基于过时前提的决策 {#decisions-based-on-an-outdated-premise}
 
-When we previously discussed write skew in snapshot isolation (see [“Write Skew and Phantoms”](/en/ch8#sec_transactions_write_skew)),
-we observed a recurring pattern: a transaction reads some data from the database, examines the
-result of the query, and decides to take some action (write to the database) based on the result
-that it saw. However, under snapshot isolation, the result from the original query may no longer be
-up-to-date by the time the transaction commits, because the data may have been modified in the meantime.
+当我们之前讨论快照隔离中的写偏斜时（参见["写偏斜与幻读"](/ch8#sec_transactions_write_skew)），我们观察到一个反复出现的模式：事务从数据库读取一些数据，检查查询结果，并根据它看到的结果决定采取某些行动（写入数据库）。但是，在快照隔离下，原始查询的结果在事务提交时可能不再是最新的，因为数据可能在此期间被修改。
 
-Put another way, the transaction is taking an action based on a *premise* (a fact that was true at
-the beginning of the transaction, e.g., “There are currently two doctors on call”). Later, when the
-transaction wants to commit, the original data may have changed—the premise may no longer be
-true.
+换句话说，事务基于*前提*（事务开始时为真的事实，例如，"当前有两名医生值班"）采取行动。后来，当事务想要提交时，原始数据可能已更改——前提可能不再为真。
 
-When the application makes a query (e.g., “How many doctors are currently on call?”), the database
-doesn’t know how the application logic uses the result of that query. To be safe, the database needs
-to assume that any change in the query result (the premise) means that writes in that transaction
-may be invalid. In other words, there may be a causal dependency between the queries and the writes
-in the transaction. In order to provide serializable isolation, the database must detect situations
-in which a transaction may have acted on an outdated premise and abort the transaction in that case.
+当应用程序进行查询（例如，"当前有多少医生值班？"）时，数据库不知道应用程序逻辑如何使用该查询的结果。为了安全起见，数据库需要假设查询结果（前提）中的任何更改都意味着该事务中的写入可能无效。换句话说，事务中的查询和写入之间可能存在因果依赖关系。为了提供可串行化隔离，数据库必须检测事务可能基于过时前提采取行动的情况，并在这种情况下中止事务。
 
-How does the database know if a query result might have changed? There are two cases to consider:
+数据库如何知道查询结果是否可能已更改？有两种情况需要考虑：
 
-* Detecting reads of a stale MVCC object version (uncommitted write occurred before the read)
-* Detecting writes that affect prior reads (the write occurs after the read)
+* 检测陈旧的 MVCC 对象版本的读取（未提交的写入发生在读取之前）
+* 检测影响先前读取的写入（写入发生在读取之后）
 
 #### 检测陈旧的 MVCC 读取 {#detecting-stale-mvcc-reads}
 
-Recall that snapshot isolation is usually implemented by multi-version concurrency control (MVCC;
-see [“Multi-version concurrency control (MVCC)”](/en/ch8#sec_transactions_snapshot_impl)). When a transaction reads from a consistent snapshot in an
-MVCC database, it ignores writes that were made by any other transactions that hadn’t yet committed
-at the time when the snapshot was taken.
+回想一下，快照隔离通常由多版本并发控制（MVCC；参见["多版本并发控制（MVCC）"](/ch8#sec_transactions_snapshot_impl)）实现。当事务从 MVCC 数据库中的一致快照读取时，它会忽略在拍摄快照时尚未提交的任何其他事务所做的写入。
 
-In [Figure 8-10](/en/ch8#fig_transactions_detect_mvcc), transaction 43 sees
-Aaliyah as having `on_call = true`, because transaction 42 (which modified Aaliyah’s on-call status) is
-uncommitted. However, by the time transaction 43 wants to commit, transaction 42 has already
-committed. This means that the write that was ignored when reading from the consistent snapshot has
-now taken effect, and transaction 43’s premise is no longer true. Things get even more complicated
-when a writer inserts data that didn’t exist before (see [“Phantoms causing write skew”](/en/ch8#sec_transactions_phantom)). We’ll
-discuss detecting phantom writes for SSI in [“Detecting writes that affect prior reads”](/en/ch8#sec_detecting_writes_affect_reads).
+在[图 8-10](/ch8#fig_transactions_detect_mvcc) 中，事务 43 看到 Aaliyah 的 `on_call = true`，因为事务 42（修改了 Aaliyah 的值班状态）未提交。但是，当事务 43 想要提交时，事务 42 已经提交。这意味着从一致快照读取时被忽略的写入现在已生效，事务 43 的前提不再为真。当写入者插入以前不存在的数据时，事情变得更加复杂（参见["导致写偏斜的幻读"](/ch8#sec_transactions_phantom)）。我们将在["检测影响先前读取的写入"](/ch8#sec_detecting_writes_affect_reads)中讨论为 SSI 检测幻写。
 
-{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" caption="Figure 8-10. Detecting when a transaction reads outdated values from an MVCC snapshot." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" caption="图 8-10. 检测事务何时从 MVCC 快照读取过时值。" class="w-full my-4" >}}
 
 
-In order to prevent this anomaly, the database needs to track when a transaction ignores another
-transaction’s writes due to MVCC visibility rules. When the transaction wants to commit, the
-database checks whether any of the ignored writes have now been committed. If so, the transaction
-must be aborted.
+为了防止这种异常，数据库需要跟踪事务由于 MVCC 可见性规则而忽略另一个事务的写入的时间。当事务想要提交时，数据库会检查是否有任何被忽略的写入现在已经提交。如果是，事务必须被中止。
 
-Why wait until committing? Why not abort transaction 43 immediately when the stale read is detected?
-Well, if transaction 43 was a read-only transaction, it wouldn’t need to be aborted, because there
-is no risk of write skew. At the time when transaction 43 makes its read, the database doesn’t yet
-know whether that transaction is going to later perform a write. Moreover, transaction 42 may yet
-abort or may still be uncommitted at the time when transaction 43 is committed, and so the read may
-turn out not to have been stale after all. By avoiding unnecessary aborts, SSI preserves snapshot
-isolation’s support for long-running reads from a consistent snapshot.
+为什么要等到提交？为什么不在检测到陈旧读取时立即中止事务 43？好吧，如果事务 43 是只读事务，它就不需要被中止，因为没有写偏斜的风险。在事务 43 进行读取时，数据库还不知道该事务是否稍后会执行写入。此外，事务 42 可能还会中止，或者在事务 43 提交时可能仍未提交，因此读取可能最终不是陈旧的。通过避免不必要的中止，SSI 保留了快照隔离对从一致快照进行长时间运行读取的支持。
 
 #### 检测影响先前读取的写入 {#sec_detecting_writes_affect_reads}
 
-The second case to consider is when another transaction modifies data after it has been read. This
-case is illustrated in [Figure 8-11](/en/ch8#fig_transactions_detect_index_range).
+要考虑的第二种情况是另一个事务在数据被读取后修改数据。这种情况如[图 8-11](/ch8#fig_transactions_detect_index_range) 所示。
 
-{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" caption="Figure 8-11. In serializable snapshot isolation, detecting when one transaction modifies another transaction's reads." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" caption="图 8-11. 在可串行化快照隔离中，检测一个事务何时修改另一个事务的读取。" class="w-full my-4" >}}
 
 
-In the context of two-phase locking we discussed index-range locks (see
-[“Index-range locks”](/en/ch8#sec_transactions_2pl_range)), which allow the database to lock access to all rows matching some
-search query, such as `WHERE shift_id = 1234`. We can use a similar technique here, except that SSI
-locks don’t block other transactions.
+在两阶段锁定的上下文中，我们讨论了索引范围锁（参见["索引范围锁"](/ch8#sec_transactions_2pl_range)），它允许数据库锁定对匹配某些搜索查询的所有行的访问，例如 `WHERE shift_id = 1234`。我们可以在这里使用类似的技术，除了 SSI 锁不会阻塞其他事务。
 
-In [Figure 8-11](/en/ch8#fig_transactions_detect_index_range), transactions 42 and 43 both search for on-call doctors
-during shift `1234`. If there is an index on `shift_id`, the database can use the index entry 1234 to
-record the fact that transactions 42 and 43 read this data. (If there is no index, this information
-can be tracked at the table level.) This information only needs to be kept for a while: after a
-transaction has finished (committed or aborted), and all concurrent transactions have finished, the
-database can forget what data it read.
+在[图 8-11](/ch8#fig_transactions_detect_index_range) 中，事务 42 和 43 都在班次 `1234` 期间搜索值班医生。如果 `shift_id` 上有索引，数据库可以使用索引条目 1234 来记录事务 42 和 43 读取此数据的事实。（如果没有索引，可以在表级别跟踪此信息。）此信息只需要保留一段时间：在事务完成（提交或中止）并且所有并发事务完成后，数据库可以忘记它读取的数据。
 
-When a transaction writes to the database, it must look in the indexes for any other transactions
-that have recently read the affected data. This process is similar to acquiring a write lock on the affected
-key range, but rather than blocking until the readers have committed, the lock acts as a tripwire:
-it simply notifies the transactions that the data they read may no longer be up to date.
+当事务写入数据库时，它必须在索引中查找最近读取受影响数据的任何其他事务。此过程类似于获取受影响键范围的写锁，但它不是阻塞直到读者提交，而是充当绊线：它只是通知事务它们读取的数据可能不再是最新的。
 
-In [Figure 8-11](/en/ch8#fig_transactions_detect_index_range), transaction 43 notifies transaction 42 that its prior
-read is outdated, and vice versa. Transaction 42 is first to commit, and it is successful: although
-transaction 43’s write affected 42, 43 hasn’t yet committed, so the write has not yet taken effect.
-However, when transaction 43 wants to commit, the conflicting write from 42 has already been
-committed, so 43 must abort.
+在[图 8-11](/ch8#fig_transactions_detect_index_range) 中，事务 43 通知事务 42 其先前的读取已过时，反之亦然。事务 42 首先提交，并且成功：尽管事务 43 的写入影响了 42，但 43 尚未提交，因此写入尚未生效。但是，当事务 43 想要提交时，来自 42 的冲突写入已经提交，因此 43 必须中止。
 
 #### 可串行化快照隔离的性能 {#performance-of-serializable-snapshot-isolation}
 
-As always, many engineering details affect how well an algorithm works in practice. For example, one
-trade-off is the granularity at which transactions’ reads and writes are tracked. If the database
-keeps track of each transaction’s activity in great detail, it can be precise about which
-transactions need to abort, but the bookkeeping overhead can become significant. Less detailed
-tracking is faster, but may lead to more transactions being aborted than strictly necessary.
+与往常一样，许多工程细节会影响算法在实践中的工作效果。例如，一个权衡是跟踪事务读写的粒度。如果数据库详细跟踪每个事务的活动，它可以精确地确定哪些事务需要中止，但簿记开销可能变得很大。不太详细的跟踪速度更快，但可能导致比严格必要更多的事务被中止。
 
-In some cases, it’s okay for a transaction to read information that was overwritten by another
-transaction: depending on what else happened, it’s sometimes possible to prove that the result of
-the execution is nevertheless serializable. PostgreSQL uses this theory to reduce the number of
-unnecessary aborts [^14] [^54].
+在某些情况下，事务读取被另一个事务覆盖的信息是可以的：根据发生的其他情况，有时可以证明执行结果仍然是可串行化的。PostgreSQL 使用这一理论来减少不必要中止的数量[^14] [^54]。
 
-Compared to two-phase locking, the big advantage of serializable snapshot isolation is that one
-transaction doesn’t need to block waiting for locks held by another transaction. Like under snapshot
-isolation, writers don’t block readers, and vice versa. This design principle makes query latency
-much more predictable and less variable. In particular, read-only queries can run on a consistent
-snapshot without requiring any locks, which is very appealing for read-heavy workloads.
+与两阶段锁定相比，可串行化快照隔离的主要优点是一个事务不需要阻塞等待另一个事务持有的锁。与快照隔离一样，写入者不会阻塞读者，反之亦然。这种设计原则使查询延迟更可预测且变化更少。特别是，只读查询可以在一致快照上运行而无需任何锁，这对于读取密集型工作负载非常有吸引力。
 
-Compared to serial execution, serializable snapshot isolation is not limited to the throughput of a
-single CPU core: for example, FoundationDB distributes the detection of serialization conflicts across multiple
-machines, allowing it to scale to very high throughput. Even though data may be sharded across
-multiple machines, transactions can read and write data in multiple shards while ensuring
-serializable isolation.
+与串行执行相比，可串行化快照隔离不限于单个 CPU 核心的吞吐量：例如，FoundationDB 将串行化冲突的检测分布在多台机器上，允许它扩展到非常高的吞吐量。即使数据可能分片在多台机器上，事务也可以在多个分片中读取和写入数据，同时确保可串行化隔离。
 
-Compared to non-serializable snapshot isolation, the need to check for serializability violations
-introduces some performance overheads. How significant these overheads are is a matter of debate:
-some believe that serializability checking is not worth it [^70],
-while others believe that the performance of serializability is now so good that there is no need to
-use the weaker snapshot isolation any more [^67].
+与非可串行化快照隔离相比，检查可串行化违规的需要引入了一些性能开销。这些开销有多大是一个争论的问题：有些人认为可串行化检查不值得[^70]，而其他人认为可串行化的性能现在已经很好，不再需要使用较弱的快照隔离[^67]。
 
-The rate of aborts significantly affects the overall performance of SSI. For example, a transaction
-that reads and writes data over a long period of time is likely to run into conflicts and abort, so
-SSI requires that read-write transactions be fairly short (long-running read-only transactions are
-okay). However, SSI is less sensitive to slow transactions than two-phase locking or serial
-execution.
+中止率显著影响 SSI 的整体性能。例如，长时间读取和写入数据的事务可能会遇到冲突并中止，因此 SSI 要求读写事务相当短（长时间运行的只读事务是可以的）。但是，SSI 对慢事务的敏感性低于两阶段锁定或串行执行。
 
 ## 分布式事务 {#sec_transactions_distributed}
 
-The last few sections have focused on concurrency control for isolation, the I in ACID. The
-algorithms we have seen apply to both single-node and distributed databases: although there are
-challenges in making concurrency control algorithms scalable (for example, performing distributed
-serializability checking for SSI), the high-level ideas for distributed concurrency control are
-similar to single-node concurrency control [^8].
+前几节重点讨论了隔离的并发控制，即 ACID 中的 I。我们看到的算法适用于单节点和分布式数据库：尽管在使并发控制算法可扩展方面存在挑战（例如，为 SSI 执行分布式可串行化检查），但分布式并发控制的高层思想与单节点并发控制相似[^8]。
 
-Consistency and durability also don’t change much when we move to distributed transactions. However,
-atomicity requires more care.
+一致性和持久性在转向分布式事务时也没有太大变化。但是，原子性需要更多关注。
 
-For transactions that execute at a single database node, atomicity is commonly implemented by the
-storage engine. When the client asks the database node to commit the transaction, the database makes
-the transaction’s writes durable (typically in a write-ahead log; see [“Making B-trees reliable”](/en/ch4#sec_storage_btree_wal)) and
-then appends a commit record to the log on disk. If the database crashes in the middle of this
-process, the transaction is recovered from the log when the node restarts: if the commit record was
-successfully written to disk before the crash, the transaction is considered committed; if not, any
-writes from that transaction are rolled back.
+对于在单个数据库节点执行的事务，原子性通常由存储引擎实现。当客户端要求数据库节点提交事务时，数据库使事务的写入持久化（通常在预写日志中；参见["使 B 树可靠"](/ch4#sec_storage_btree_wal)），然后将提交记录附加到磁盘上的日志。如果数据库在此过程中崩溃，事务将在节点重新启动时从日志中恢复：如果提交记录在崩溃前成功写入磁盘，则事务被认为已提交；如果没有，该事务的任何写入都将回滚。
 
-Thus, on a single node, transaction commitment crucially depends on the *order* in which data is
-durably written to disk: first the data, then the commit record [^22].
-The key deciding moment for whether the transaction commits or aborts is the moment at which the
-disk finishes writing the commit record: before that moment, it is still possible to abort (due to a
-crash), but after that moment, the transaction is committed (even if the database crashes). Thus, it
-is a single device (the controller of one particular disk drive, attached to one particular node)
-that makes the commit atomic.
+因此，在单个节点上，事务提交关键取决于数据持久写入磁盘的*顺序*：首先是数据，然后是提交记录[^22]。事务提交或中止的关键决定时刻是磁盘完成写入提交记录的时刻：在那一刻之前，仍然可能中止（由于崩溃），但在那一刻之后，事务已提交（即使数据库崩溃）。因此，是单个设备（连接到特定节点的特定磁盘驱动器的控制器）使提交成为原子的。
 
-However, what if multiple nodes are involved in a transaction? For example, perhaps you have a
-multi-object transaction in a sharded database, or a global secondary index (in which the
-index entry may be on a different node from the primary data; see
-[“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes)). Most “NoSQL” distributed datastores do not support such
-distributed transactions, but various distributed relational databases do.
+但是，如果多个节点参与事务会怎样？例如，也许你在分片数据库中有多对象事务，或者有全局二级索引（其中索引条目可能与主数据在不同的节点上；参见["分片和二级索引"](/ch7#sec_sharding_secondary_indexes)）。大多数"NoSQL"分布式数据存储不支持此类分布式事务，但各种分布式关系数据库支持。
 
-In these cases, it is not sufficient to simply send a commit request to all of the nodes and
-independently commit the transaction on each one. It could easily happen that the commit succeeds on
-some nodes and fails on other nodes, as shown in [Figure 8-12](/en/ch8#fig_transactions_non_atomic):
+在这些情况下，仅向所有节点发送提交请求并在每个节点上独立提交事务是不够的。如[图 8-12](/ch8#fig_transactions_non_atomic) 所示，提交可能在某些节点上成功，在其他节点上失败：
 
-* Some nodes may detect a constraint violation or conflict, making an abort necessary, while other
- nodes are successfully able to commit.
-* Some of the commit requests might be lost in the network, eventually aborting due to a timeout,
- while other commit requests get through.
-* Some nodes may crash before the commit record is fully written and roll back on recovery, while
- others successfully commit.
+* 某些节点可能检测到约束违规或冲突，需要中止，而其他节点能够成功提交。
+* 某些提交请求可能在网络中丢失，最终由于超时而中止，而其他提交请求通过。
+* 某些节点可能在提交记录完全写入之前崩溃并在恢复时回滚，而其他节点成功提交。
 
-{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" caption="Figure 8-12. When a transaction involves multiple database nodes, it may commit on some and fail on others." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" caption="图 8-12. 当事务涉及多个数据库节点时，它可能在某些节点上提交，在其他节点上失败。" class="w-full my-4" >}}
 
 
-If some nodes commit the transaction but others abort it, the nodes become inconsistent with each
-other. And once a transaction has been committed on one node, it cannot be retracted again if it
-later turns out that it was aborted on another node. This is because once data has been committed,
-it becomes visible to other transactions under *read committed* or stronger isolation. For example,
-in [Figure 8-12](/en/ch8#fig_transactions_non_atomic), by the time user 1 notices that its commit failed on database 1,
-user 2 has already read the data from the same transaction on database 2. If user 1’s transaction
-was later aborted, user 2’s transaction would have to be reverted as well, since it was based on
-data that was retroactively declared not to have existed.
+如果某些节点提交事务而其他节点中止它，节点之间就会变得不一致。一旦事务在一个节点上提交，如果后来发现它在另一个节点上被中止，就不能撤回了。这是因为一旦数据被提交，它在*读已提交*或更强的隔离下对其他事务可见。例如，在[图 8-12](/ch8#fig_transactions_non_atomic) 中，当用户 1 注意到其在数据库 1 上的提交失败时，用户 2 已经从数据库 2 上的同一事务读取了数据。如果用户 1 的事务后来被中止，用户 2 的事务也必须被还原，因为它基于被追溯声明不存在的数据。
 
-A better approach is to ensure that the nodes involved in a transaction either all commit or all
-abort, and to prevent a mixture of the two. Ensuring this is known as the *atomic commitment* problem.
+更好的方法是确保参与事务的节点要么全部提交，要么全部中止，并防止两者的混合。确保这一点被称为*原子提交*问题。
 
 ### 两阶段提交（2PC） {#sec_transactions_2pc}
 
-Two-phase commit is an algorithm for achieving atomic transaction commit across multiple nodes. It
-is a classic algorithm in distributed databases [^13] [^71] [^72]. 2PC is used
-internally in some databases and also made available to applications in the form of *XA transactions* [^73]
-(which are supported by the Java Transaction API, for example) or via WS-AtomicTransaction for SOAP
-web services [^74] [^75].
+两阶段提交是一种跨多个节点实现原子事务提交的算法。它是分布式数据库中的经典算法[^13] [^71] [^72]。2PC 在某些数据库内部使用，也以 *XA 事务*[^73] 的形式提供给应用程序（例如，Java 事务 API 支持），或通过 WS-AtomicTransaction 用于 SOAP Web 服务[^74] [^75]。
 
-The basic flow of 2PC is illustrated in [Figure 8-13](/en/ch8#fig_transactions_two_phase_commit). Instead of a single
-commit request, as with a single-node transaction, the commit/abort process in 2PC is split into two
-phases (hence the name).
+2PC 的基本流程如[图 8-13](/ch8#fig_transactions_two_phase_commit) 所示。与单节点事务的单个提交请求不同，2PC 中的提交/中止过程分为两个阶段（因此得名）。
 
-{{< figure src="/fig/ddia_0813.png" id="fig_transactions_two_phase_commit" title="Figure 8-13. A successful execution of two-phase commit (2PC)." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0813.png" id="fig_transactions_two_phase_commit" title="图 8-13. 两阶段提交（2PC）的成功执行。" class="w-full my-4" >}}
 
 
-2PC uses a new component that does not normally appear in single-node transactions: a
-*coordinator* (also known as *transaction manager*). The coordinator is often implemented as a
-library within the same application process that is requesting the transaction (e.g., embedded in a
-Java EE container), but it can also be a separate process or service. Examples of such coordinators
-include Narayana, JOTM, BTM, or MSDTC.
+2PC 使用一个通常不会出现在单节点事务中的新组件：*协调器*（也称为*事务管理器*）。协调器通常作为请求事务的同一应用程序进程中的库实现（例如，嵌入在 Java EE 容器中），但它也可以是单独的进程或服务。此类协调器的示例包括 Narayana、JOTM、BTM 或 MSDTC。
 
-When 2PC is used, a distributed
-transaction begins with the application reading and writing data on multiple database nodes,
-as normal. We call these database nodes *participants* in the transaction. When the application is
-ready to commit, the coordinator begins phase 1: it sends a *prepare* request to each of the nodes,
-asking them whether they are able to commit. The coordinator then tracks the responses from the
-participants:
+使用 2PC 时，分布式事务从应用程序在多个数据库节点上正常读写数据开始。我们称这些数据库节点为事务中的*参与者*。当应用程序准备提交时，协调器开始第 1 阶段：它向每个节点发送*准备*请求，询问它们是否能够提交。然后协调器跟踪参与者的响应：
 
-* If all participants reply “yes,” indicating they are ready to commit, then the coordinator sends
- out a *commit* request in phase 2, and the commit actually takes place.
-* If any of the participants replies “no,” the coordinator sends an *abort* request to all nodes in phase 2.
+* 如果所有参与者回复"是"，表示他们准备提交，那么协调器在第 2 阶段发出*提交*请求，提交实际发生。
+* 如果任何参与者回复"否"，协调器在第 2 阶段向所有节点发送*中止*请求。
 
-This process is somewhat like the traditional marriage ceremony in Western cultures: the minister
-asks the bride and groom individually whether each wants to marry the other, and typically receives
-the answer “I do” from both. After receiving both acknowledgments, the minister pronounces the
-couple husband and wife: the transaction is committed, and the happy fact is broadcast to all
-attendees. If either bride or groom does not say “yes,” the ceremony is aborted [^76].
+这个过程有点像西方文化中的传统婚礼仪式：牧师分别询问新娘和新郎是否愿意嫁给对方，通常从两人那里得到"我愿意"的答案。在收到两个确认后，牧师宣布这对夫妇为夫妻：事务已提交，这个快乐的事实向所有参加者广播。如果新娘或新郎没有说"是"，仪式就被中止了[^76]。
 
 #### 系统性的承诺 {#a-system-of-promises}
 
-From this short description it might not be clear why two-phase commit ensures atomicity, while
-one-phase commit across several nodes does not. Surely the prepare and commit requests can just
-as easily be lost in the two-phase case. What makes 2PC different?
+从这个简短的描述中，可能不清楚为什么两阶段提交确保原子性，而跨多个节点的单阶段提交却不能。准备和提交请求在两阶段情况下同样容易丢失。是什么让 2PC 不同？
 
-To understand why it works, we have to break down the process in a bit more detail:
+要理解它为什么有效，我们必须更详细地分解这个过程：
 
-1. When the application wants to begin a distributed transaction, it requests a transaction ID from
- the coordinator. This transaction ID is globally unique.
-2. The application begins a single-node transaction on each of the participants, and attaches the
- globally unique transaction ID to the single-node transaction. All reads and writes are done in
- one of these single-node transactions. If anything goes wrong at this stage (for example, a node
- crashes or a request times out), the coordinator or any of the participants can abort.
-3. When the application is ready to commit, the coordinator sends a prepare request to all
- participants, tagged with the global transaction ID. If any of these requests fails or times out,
- the coordinator sends an abort request for that transaction ID to all participants.
-4. When a participant receives the prepare request, it makes sure that it can definitely commit
- the transaction under all circumstances.
+1. 当应用程序想要开始分布式事务时，它从协调器请求事务 ID。此事务 ID 是全局唯一的。
+2. 应用程序在每个参与者上开始单节点事务，并将全局唯一的事务 ID 附加到单节点事务。所有读写都在这些单节点事务之一中完成。如果在此阶段出现任何问题（例如，节点崩溃或请求超时），协调器或任何参与者都可以中止。
+3. 当应用程序准备提交时，协调器向所有参与者发送准备请求，标记有全局事务 ID。如果这些请求中的任何一个失败或超时，协调器向所有参与者发送该事务 ID 的中止请求。
+4. 当参与者收到准备请求时，它确保它可以在任何情况下明确提交事务。
 
- This includes writing all transaction data to disk (a crash, a power failure, or running out of
- disk space is not an acceptable excuse for refusing to commit later), and checking for any
- conflicts or constraint violations. By replying “yes” to the coordinator, the node promises to
- commit the transaction without error if requested. In other words, the participant surrenders the
- right to abort the transaction, but without actually committing it.
-5. When the coordinator has received responses to all prepare requests, it makes a definitive
- decision on whether to commit or abort the transaction (committing only if all participants voted
- “yes”). The coordinator must write that decision to its transaction log on disk so that it knows
- which way it decided in case it subsequently crashes. This is called the *commit point*.
-6. Once the coordinator’s decision has been written to disk, the commit or abort request is sent
- to all participants. If this request fails or times out, the coordinator must retry forever until
- it succeeds. There is no more going back: if the decision was to commit, that decision must be
- enforced, no matter how many retries it takes. If a participant has crashed in the meantime, the
- transaction will be committed when it recovers—since the participant voted “yes,” it cannot
- refuse to commit when it recovers.
+ 这包括将所有事务数据写入磁盘（崩溃、电源故障或磁盘空间不足不是稍后拒绝提交的可接受借口），并检查任何冲突或约束违规。通过向协调器回复"是"，节点承诺在请求时无错误地提交事务。换句话说，参与者放弃了中止事务的权利，但没有实际提交它。
+5. 当协调器收到所有准备请求的响应时，它对是否提交或中止事务做出明确决定（仅当所有参与者投票"是"时才提交）。协调器必须将该决定写入其磁盘上的事务日志，以便在随后崩溃时知道它是如何决定的。这称为*提交点*。
+6. 一旦协调器的决定被写入磁盘，提交或中止请求就会发送给所有参与者。如果此请求失败或超时，协调器必须永远重试，直到成功。没有回头路：如果决定是提交，那么必须执行该决定，无论需要多少次重试。如果参与者在此期间崩溃，事务将在恢复时提交——因为参与者投票"是"，它在恢复时不能拒绝提交。
 
-Thus, the protocol contains two crucial “points of no return”: when a participant votes “yes,” it
-promises that it will definitely be able to commit later (although the coordinator may still choose to
-abort); and once the coordinator decides, that decision is irrevocable. Those promises ensure the
-atomicity of 2PC. (Single-node atomic commit lumps these two events into one: writing the commit
-record to the transaction log.)
+因此，该协议包含两个关键的"不归路"：当参与者投票"是"时，它承诺它肯定能够稍后提交（尽管协调器仍可能选择中止）；一旦协调器决定，该决定是不可撤销的。这些承诺确保了 2PC 的原子性。（单节点原子提交将这两个事件合并为一个：将提交记录写入事务日志。）
 
-Returning to the marriage analogy, before saying “I do,” you and your bride/groom have the freedom
-to abort the transaction by saying “No way!” (or something to that effect). However, after saying “I
-do,” you cannot retract that statement. If you faint after saying “I do” and you don’t hear the
-minister speak the words “You are now husband and wife,” that doesn’t change the fact that the
-transaction was committed. When you recover consciousness later, you can find out whether you are
-married or not by querying the minister for the status of your global transaction ID, or you can
-wait for the minister’s next retry of the commit request (since the retries will have continued
-throughout your period of unconsciousness).
+回到婚姻比喻，在说"我愿意"之前，你和你的新娘/新郎有自由通过说"不行！"（或类似的话）来中止事务。但是，在说"我愿意"之后，你不能撤回该声明。如果你在说"我愿意"后晕倒，没有听到牧师说"你们现在是夫妻"，这并不改变事务已提交的事实。当你稍后恢复意识时，你可以通过向牧师查询你的全局事务 ID 的状态来了解你是否已婚，或者你可以等待牧师下一次重试提交请求（因为重试将在你失去意识期间继续）。
 
 #### 协调器故障 {#coordinator-failure}
 
-We have discussed what happens if one of the participants or the network fails during 2PC: if any of
-the prepare requests fails or times out, the coordinator aborts the transaction; if any of the
-commit or abort requests fails, the coordinator retries them indefinitely. However, it is less
-clear what happens if the coordinator crashes.
+我们已经讨论了如果参与者之一或网络在 2PC 期间失败会发生什么：如果任何准备请求失败或超时，协调器将中止事务；如果任何提交或中止请求失败，协调器将无限期地重试它们。但是，如果协调器崩溃会发生什么就不太清楚了。
 
-If the coordinator fails before sending the prepare requests, a participant can safely abort the
-transaction. But once the participant has received a prepare request and voted “yes,” it can no
-longer abort unilaterally—it must wait to hear back from the coordinator whether the transaction
-was committed or aborted. If the coordinator crashes or the network fails at this point, the
-participant can do nothing but wait. A participant’s transaction in this state is called *in doubt*
-or *uncertain*.
+如果协调器在发送准备请求之前失败，参与者可以安全地中止事务。但是一旦参与者收到准备请求并投票"是"，它就不能再单方面中止——它必须等待协调器回复事务是提交还是中止。如果协调器此时崩溃或网络失败，参与者除了等待别无他法。参与者在此状态下的事务称为*存疑*或*不确定*。
 
-The situation is illustrated in [Figure 8-14](/en/ch8#fig_transactions_2pc_crash). In this particular example, the
-coordinator actually decided to commit, and database 2 received the commit request. However, the
-coordinator crashed before it could send the commit request to database 1, and so database 1 does
-not know whether to commit or abort. Even a timeout does not help here: if database 1 unilaterally
-aborts after a timeout, it will end up inconsistent with database 2, which has committed. Similarly,
-it is not safe to unilaterally commit, because another participant may have aborted.
+这种情况如[图 8-14](/ch8#fig_transactions_2pc_crash) 所示。在这个特定的例子中，协调器实际上决定提交，数据库 2 收到了提交请求。但是，协调器在向数据库 1 发送提交请求之前崩溃了，因此数据库 1 不知道是提交还是中止。即使超时在这里也没有帮助：如果数据库 1 在超时后单方面中止，它将与已提交的数据库 2 不一致。同样，单方面提交也不安全，因为另一个参与者可能已中止。
 
-{{< figure src="/fig/ddia_0814.png" id="fig_transactions_2pc_crash" title="Figure 8-14. The coordinator crashes after participants vote \"yes.\" Database 1 does not know whether to commit or abort." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0814.png" id="fig_transactions_2pc_crash" title="图 8-14. 协调器在参与者投票“是”后崩溃。数据库 1 不知道是提交还是中止。" class="w-full my-4" >}}
 
 
-Without hearing from the coordinator, the participant has no way of knowing whether to commit or
-abort. In principle, the participants could communicate among themselves to find out how each
-participant voted and come to some agreement, but that is not part of the 2PC protocol.
+没有协调器的消息，参与者无法知道是提交还是中止。原则上，参与者可以相互通信，了解每个参与者如何投票并达成某种协议，但这不是 2PC 协议的一部分。
 
-The only way 2PC can complete is by waiting for the coordinator to recover. This is why the
-coordinator must write its commit or abort decision to a transaction log on disk before sending
-commit or abort requests to participants: when the coordinator recovers, it determines the status of
-all in-doubt transactions by reading its transaction log. Any transactions that don’t have a commit
-record in the coordinator’s log are aborted. Thus, the commit point of 2PC comes down to a regular
-single-node atomic commit on the coordinator.
+2PC 完成的唯一方法是等待协调器恢复。这就是为什么协调器必须在向参与者发送提交或中止请求之前将其提交或中止决定写入磁盘上的事务日志：当协调器恢复时，它通过读取其事务日志来确定所有存疑事务的状态。协调器日志中没有提交记录的任何事务都将中止。因此，2PC 的提交点归结为协调器上的常规单节点原子提交。
 
 #### 三阶段提交 {#three-phase-commit}
 
-Two-phase commit is called a *blocking* atomic commit protocol due to the fact that 2PC can become
-stuck waiting for the coordinator to recover. It is possible to make an atomic commit protocol
-*nonblocking*, so that it does not get stuck if a node fails. However, making this work in practice
-is not so straightforward.
+由于 2PC 可能会卡住等待协调器恢复，因此两阶段提交被称为*阻塞*原子提交协议。可以使原子提交协议*非阻塞*，以便在节点失败时不会卡住。但是，在实践中使其工作并不那么简单。
 
-As an alternative to 2PC, an algorithm called *three-phase commit* (3PC) has been proposed [^13] [^77].
-However, 3PC assumes a network with bounded delay and nodes with bounded response times; in most
-practical systems with unbounded network delay and process pauses (see [Chapter 9](/en/ch9#ch_distributed)), it
-cannot guarantee atomicity.
+作为 2PC 的替代方案，已经提出了一种称为*三阶段提交*（3PC）的算法[^13] [^77]。但是，3PC 假设具有有界延迟的网络和具有有界响应时间的节点；在大多数具有无界网络延迟和进程暂停的实际系统中（参见[第 9 章](/ch9#ch_distributed)），它无法保证原子性。
 
-A better solution in practice is to replace the single-node coordinator with a fault-tolerant
-consensus protocol. We will see how to do this in [Chapter 10](/en/ch10#ch_consistency).
+实践中更好的解决方案是用容错共识协议替换单节点协调器。我们将在[第 10 章](/ch10#ch_consistency)中看到如何做到这一点。
 
 ### 跨不同系统的分布式事务 {#sec_transactions_xa}
 
-Distributed transactions and two-phase commit have a mixed reputation. On the one hand, they are
-seen as providing an important safety guarantee that would be hard to achieve otherwise; on the
-other hand, they are criticized for causing operational problems, killing performance, and promising
-more than they can deliver [^78] [^79] [^80] [^81].
-Many cloud services choose not to implement distributed transactions due to the operational problems they engender [^82].
+分布式事务和两阶段提交的声誉参差不齐。一方面，它们被认为提供了一个重要的安全保证，否则很难实现；另一方面，它们因导致操作问题、扼杀性能并承诺超过它们可以提供的东西而受到批评[^78] [^79] [^80] [^81]。许多云服务由于它们引起的操作问题而选择不实现分布式事务[^82]。
 
-Some implementations of distributed transactions carry a heavy performance penalty. Much of the
-performance cost inherent in two-phase commit is due to the additional disk forcing (`fsync`) that
-is required for crash recovery, and the additional network round-trips.
+某些分布式事务的实现会带来沉重的性能损失。两阶段提交固有的大部分性能成本是由于崩溃恢复所需的额外磁盘强制（`fsync`）和额外的网络往返。
 
-However, rather than dismissing distributed transactions outright, we should examine them in some
-more detail, because there are important lessons to be learned from them. To begin, we should be
-precise about what we mean by “distributed transactions.” Two quite different types of distributed
-transactions are often conflated:
+但是，与其直接否定分布式事务，我们应该更详细地研究它们，因为从中可以学到重要的教训。首先，我们应该准确说明"分布式事务"的含义。两种完全不同类型的分布式事务经常被混淆：
 
-Database-internal distributed transactions
-: Some distributed databases (i.e., databases that use replication and sharding in their standard
- configuration) support internal transactions among the nodes of that database. For example,
- YugabyteDB, TiDB, FoundationDB, Spanner, VoltDB, and MySQL Cluster’s NDB storage engine have such
- internal transaction support. In this case, all the nodes participating in the transaction are
- running the same database software.
+数据库内部分布式事务
+: 某些分布式数据库（即，在其标准配置中使用复制和分片的数据库）支持该数据库节点之间的内部事务。例如，YugabyteDB、TiDB、FoundationDB、Spanner、VoltDB 和 MySQL Cluster 的 NDB 存储引擎都有这样的内部事务支持。在这种情况下，参与事务的所有节点都运行相同的数据库软件。
 
-Heterogeneous distributed transactions
-: In a *heterogeneous* transaction, the participants are two or more different technologies: for
- example, two databases from different vendors, or even non-database systems such as message
- brokers. A distributed transaction across these systems must ensure atomic commit, even though
- the systems may be entirely different under the hood.
+异构分布式事务
+: 在*异构*事务中，参与者是两个或多个不同的技术：例如，来自不同供应商的两个数据库，甚至是非数据库系统（如消息代理）。跨这些系统的分布式事务必须确保原子提交，即使系统在底层可能完全不同。
 
-Database-internal transactions do not have to be compatible with any other system, so they can
-use any protocol and apply optimizations specific to that particular technology. For that reason,
-database-internal distributed transactions can often work quite well. On the other hand,
-transactions spanning heterogeneous technologies are a lot more challenging.
+数据库内部事务不必与任何其他系统兼容，因此它们可以使用任何协议并应用特定于该特定技术的优化。因此，数据库内部分布式事务通常可以很好地工作。另一方面，跨异构技术的事务更具挑战性。
 
 #### 精确一次消息处理 {#sec_transactions_exactly_once}
 
-Heterogeneous distributed transactions allow diverse systems to be integrated in powerful ways. For
-example, a message from a message queue can be acknowledged as processed if and only if the database
-transaction for processing the message was successfully committed. This is implemented by atomically
-committing the message acknowledgment and the database writes in a single transaction. With
-distributed transaction support, this is possible, even if the message broker and the database are
-two unrelated technologies running on different machines.
+异构分布式事务允许以强大的方式集成各种系统。例如，当且仅当处理消息的数据库事务成功提交时，来自消息队列的消息才能被确认为已处理。这是通过在单个事务中原子地提交消息确认和数据库写入来实现的。有了分布式事务支持，即使消息代理和数据库是在不同机器上运行的两种不相关的技术，这也是可能的。
 
-If either the message delivery or the database transaction fails, both are aborted, and so the
-message broker may safely redeliver the message later. Thus, by atomically committing the message
-and the side effects of its processing, we can ensure that the message is *effectively* processed
-exactly once, even if it required a few retries before it succeeded. The abort discards any side
-effects of the partially completed transaction. This is known as *exactly-once semantics*.
+如果消息传递或数据库事务失败，两者都会中止，因此消息代理可以稍后安全地重新传递消息。因此，通过原子地提交消息及其处理的副作用，我们可以确保消息被*有效地*精确处理一次，即使在成功之前需要几次重试。中止会丢弃部分完成事务的任何副作用。这被称为*精确一次语义*。
 
-Such a distributed transaction is only possible if all systems affected by the transaction are able
-to use the same atomic commit protocol, however. For example, say a side effect of processing a
-message is to send an email, and the email server does not support two-phase commit: it could happen
-that the email is sent two or more times if message processing fails and is retried. But if all side
-effects of processing a message are rolled back on transaction abort, then the processing step can
-safely be retried as if nothing had happened.
+但是，只有当受事务影响的所有系统都能够使用相同的原子提交协议时，这种分布式事务才有可能。例如，假设处理消息的副作用是发送电子邮件，而电子邮件服务器不支持两阶段提交：如果消息处理失败并重试，可能会发生电子邮件被发送两次或更多次。但是，如果处理消息的所有副作用在事务中止时都会回滚，那么处理步骤可以安全地重试，就好像什么都没有发生一样。
 
-We will return to the topic of exactly-once semantics later in this chapter. Let’s look first at the
-atomic commit protocol that allows such heterogeneous distributed transactions.
+我们将在本章后面回到精确一次语义的主题。让我们首先看看允许此类异构分布式事务的原子提交协议。
 
 #### XA 事务 {#xa-transactions}
 
-*X/Open XA* (short for *eXtended Architecture*) is a standard for implementing two-phase commit
-across heterogeneous technologies [^73]. It was introduced in 1991 and has been widely
-implemented: XA is supported by many traditional relational databases (including PostgreSQL, MySQL,
-Db2, SQL Server, and Oracle) and message brokers (including ActiveMQ, HornetQ, MSMQ, and IBM MQ).
+*X/Open XA*（*eXtended Architecture* 的缩写）是跨异构技术实现两阶段提交的标准[^73]。它于 1991 年推出并得到广泛实现：XA 受到许多传统关系数据库（包括 PostgreSQL、MySQL、Db2、SQL Server 和 Oracle）和消息代理（包括 ActiveMQ、HornetQ、MSMQ 和 IBM MQ）的支持。
 
-XA is not a network protocol—it is merely a C API for interfacing with a transaction coordinator.
-Bindings for this API exist in other languages; for example, in the world of Java EE applications,
-XA transactions are implemented using the Java Transaction API (JTA), which in turn is supported by
-many drivers for databases using Java Database Connectivity (JDBC) and drivers for message brokers
-using the Java Message Service (JMS) APIs.
+XA 不是网络协议——它只是用于与事务协调器接口的 C API。此 API 的绑定存在于其他语言中；例如，在 Java EE 应用程序的世界中，XA 事务使用 Java 事务 API（JTA）实现，而 JTA 又由许多使用 Java 数据库连接（JDBC）的数据库驱动程序和使用 Java 消息服务（JMS）API 的消息代理驱动程序支持。
 
-XA assumes that your application uses a network driver or client library to communicate with the
-participant databases or messaging services. If the driver supports XA, that means it calls the XA
-API to find out whether an operation should be part of a distributed transaction—and if so, it
-sends the necessary information to the database server. The driver also exposes callbacks through
-which the coordinator can ask the participant to prepare, commit, or abort.
+XA 假设你的应用程序使用网络驱动程序或客户端库与参与者数据库或消息服务进行通信。如果驱动程序支持 XA，这意味着它调用 XA API 来确定操作是否应该是分布式事务的一部分——如果是，它将必要的信息发送到数据库服务器。驱动程序还公开回调，协调器可以通过回调要求参与者准备、提交或中止。
 
-The transaction coordinator implements the XA API. The standard does not specify how it should be
-implemented, but in practice the coordinator is often simply a library that is loaded into the same
-process as the application issuing the transaction (not a separate service). It keeps track of the
-participants in a transaction, collects partipants’ responses after asking them to prepare (via a
-callback into the driver), and uses a log on the local disk to keep track of the commit/abort
-decision for each transaction.
+事务协调器实现 XA API。该标准没有指定应该如何实现它，但在实践中，协调器通常只是加载到发出事务的应用程序的同一进程中的库（而不是单独的服务）。它跟踪事务中的参与者，在要求他们准备后收集参与者的响应（通过驱动程序的回调），并使用本地磁盘上的日志来跟踪每个事务的提交/中止决定。
 
-If the application process crashes, or the machine on which the application is running dies, the
-coordinator goes with it. Any participants with prepared but uncommitted transactions are then stuck
-in doubt. Since the coordinator’s log is on the application server’s local disk, that server must be
-restarted, and the coordinator library must read the log to recover the commit/abort outcome of each
-transaction. Only then can the coordinator use the database driver’s XA callbacks to ask
-participants to commit or abort, as appropriate. The database server cannot contact the coordinator
-directly, since all communication must go via its client library.
+如果应用程序进程崩溃，或者运行应用程序的机器死机，协调器也随之消失。任何准备但未提交事务的参与者都陷入存疑。由于协调器的日志在应用程序服务器的本地磁盘上，该服务器必须重新启动，协调器库必须读取日志以恢复每个事务的提交/中止结果。然后，协调器才能使用数据库驱动程序的 XA 回调来要求参与者提交或中止（视情况而定）。数据库服务器无法直接联系协调器，因为所有通信都必须通过其客户端库。
 
 #### 存疑时持有锁 {#holding-locks-while-in-doubt}
 
-Why do we care so much about a transaction being stuck in doubt? Can’t the rest of the system just
-get on with its work, and ignore the in-doubt transaction that will be cleaned up eventually?
+为什么我们如此关心事务陷入存疑？系统的其余部分不能继续工作，忽略最终会被清理的存疑事务吗？
 
-The problem is with *locking*. As discussed in [“Read Committed”](/en/ch8#sec_transactions_read_committed), database
-transactions usually take a row-level exclusive lock on any rows they modify, to prevent dirty
-writes. In addition, if you want serializable isolation, a database using two-phase locking would
-also have to take a shared lock on any rows *read* by the transaction.
+问题在于*锁定*。如["读已提交"](/ch8#sec_transactions_read_committed)中所讨论的，数据库事务通常对它们修改的任何行进行行级独占锁，以防止脏写。此外，如果你想要可串行化隔离，使用两阶段锁定的数据库还必须对事务*读取*的任何行进行共享锁。
 
-The database cannot release those locks until the transaction commits or aborts (illustrated as a
-shaded area in [Figure 8-13](/en/ch8#fig_transactions_two_phase_commit)). Therefore, when using two-phase commit, a
-transaction must hold onto the locks throughout the time it is in doubt. If the coordinator has
-crashed and takes 20 minutes to start up again, those locks will be held for 20 minutes. If the
-coordinator’s log is entirely lost for some reason, those locks will be held forever—or at least
-until the situation is manually resolved by an administrator.
+数据库在事务提交或中止之前不能释放这些锁（如[图 8-13](/ch8#fig_transactions_two_phase_commit) 中的阴影区域所示）。因此，使用两阶段提交时，事务必须在存疑期间保持锁。如果协调器崩溃并需要 20 分钟才能重新启动，这些锁将保持 20 分钟。如果协调器的日志由于某种原因完全丢失，这些锁将永远保持——或者至少直到管理员手动解决情况。
 
-While those locks are held, no other transaction can modify those rows. Depending on the isolation
-level, other transactions may even be blocked from reading those rows. Thus, other transactions
-cannot simply continue with their business—if they want to access that same data, they will be
-blocked. This can cause large parts of your application to become unavailable until the in-doubt
-transaction is resolved.
+当这些锁被持有时，没有其他事务可以修改这些行。根据隔离级别，其他事务甚至可能被阻止读取这些行。因此，其他事务不能简单地继续他们的业务——如果他们想要访问相同的数据，他们将被阻塞。这可能导致你的应用程序的大部分变得不可用，直到存疑事务得到解决。
 
 #### 从协调器故障中恢复 {#recovering-from-coordinator-failure}
 
-In theory, if the coordinator crashes and is restarted, it should cleanly recover its state from the
-log and resolve any in-doubt transactions. However, in practice, *orphaned* in-doubt transactions do occur [^83] [^84] — that is,
-transactions for which the coordinator cannot decide the outcome for whatever reason (e.g., because
-the transaction log has been lost or corrupted due to a software bug). These transactions cannot be
-resolved automatically, so they sit forever in the database, holding locks and blocking other
-transactions.
+理论上，如果协调器崩溃并重新启动，它应该从日志中干净地恢复其状态并解决任何存疑事务。但是，在实践中，*孤立的*存疑事务确实会发生[^83] [^84]——也就是说，协调器由于某种原因（例如，由于软件错误导致事务日志丢失或损坏）无法决定结果的事务。这些事务无法自动解决，因此它们永远留在数据库中，持有锁并阻塞其他事务。
 
-Even rebooting your database servers will not fix this problem, since a correct implementation of
-2PC must preserve the locks of an in-doubt transaction even across restarts (otherwise it would risk
-violating the atomicity guarantee). It’s a sticky situation.
+即使重新启动数据库服务器也无法解决此问题，因为 2PC 的正确实现必须即使在重新启动时也保留存疑事务的锁（否则它将冒着违反原子性保证的风险）。这是一个棘手的情况。
 
-The only way out is for an administrator to manually decide whether to commit or roll back the
-transactions. The administrator must examine the participants of each in-doubt transaction,
-determine whether any participant has committed or aborted already, and then apply the same outcome
-to the other participants. Resolving the problem potentially requires a lot of manual effort, and
-most likely needs to be done under high stress and time pressure during a serious production outage
-(otherwise, why would the coordinator be in such a bad state?).
+唯一的出路是管理员手动决定是提交还是回滚事务。管理员必须检查每个存疑事务的参与者，确定是否有任何参与者已经提交或中止，然后将相同的结果应用于其他参与者。解决问题可能需要大量的手动工作，并且很可能需要在严重的生产中断期间在高压力和时间压力下完成（否则，为什么协调器会处于如此糟糕的状态？）。
 
-Many XA implementations have an emergency escape hatch called *heuristic decisions*: allowing a
-participant to unilaterally decide to abort or commit an in-doubt transaction without a definitive
-decision from the coordinator [^73]. To be clear,
-*heuristic* here is a euphemism for *probably breaking atomicity*, since the heuristic decision
-violates the system of promises in two-phase commit. Thus, heuristic decisions are intended only for
-getting out of catastrophic situations, and not for regular use.
+许多 XA 实现都有一个名为*启发式决策*的紧急逃生舱口：允许参与者在没有协调器明确决定的情况下单方面决定中止或提交存疑事务[^73]。明确地说，这里的*启发式*是*可能破坏原子性*的委婉说法，因为启发式决策违反了两阶段提交中的承诺系统。因此，启发式决策仅用于摆脱灾难性情况，而不用于常规使用。
 
 #### XA 事务的问题 {#problems-with-xa-transactions}
 
-A single-node coordinator is a single point of failure for the entire system, and making it part of
-the application server is also problematic because the coordinator’s logs on its local disk become a
-crucial part of the durable system state—as important as the databases themselves.
+单节点协调器是整个系统的单点故障，使其成为应用程序服务器的一部分也是有问题的，因为协调器在其本地磁盘上的日志成为持久系统状态的关键部分——与数据库本身一样重要。
 
-In principle, the coordinator of an XA transaction could be highly available and replicated, just
-like we would expect of any other important database. Unfortunately, this still doesn’t solve a
-fundamental problem with XA, which is that it provides no way for the coordinator and the
-participants of a transaction to communicate with each other directly. They can only communicate via
-the application code that invoked the transaction, and the database drivers through which it calls
-the participants.
+原则上，XA 事务的协调器可以是高可用和复制的，就像我们对任何其他重要数据库的期望一样。不幸的是，这仍然不能解决 XA 的一个根本问题，即它没有为事务的协调器和参与者提供直接相互通信的方式。它们只能通过调用事务的应用程序代码以及调用参与者的数据库驱动程序进行通信。
 
-Even if the coordinator were replicated, the application code would therefore be a single point of
-failure. Solving this problem would require totally redesigning how application code is run to make
-it replicated or restartable, which could perhaps look similar to durable execution (see
-[“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows)). However, there don’t seem to be any tools that actually take
-this approach in practice.
+即使协调器被复制，应用程序代码也将是单点故障。解决这个问题需要完全重新设计应用程序代码的运行方式，使其复制或可重启，这可能看起来类似于持久执行（参见["持久执行和工作流"](/ch5#sec_encoding_dataflow_workflows)）。但是，实践中似乎没有任何工具实际采用这种方法。
 
-Another problem is that since XA needs to be compatible with a wide range of data systems, it is
-necessarily a lowest common denominator. For example, it cannot detect deadlocks across different
-systems (since that would require a standardized protocol for systems to exchange information on the
-locks that each transaction is waiting for), and it does not work with SSI (see
-[“Serializable Snapshot Isolation (SSI)”](/en/ch8#sec_transactions_ssi)), since that would require a protocol for identifying conflicts across
-different systems.
+另一个问题是，由于 XA 需要与各种数据系统兼容，它必然是最低公分母。例如，它无法检测跨不同系统的死锁（因为这需要系统交换有关每个事务正在等待的锁的信息的标准化协议），并且它不适用于 SSI（参见["可串行化快照隔离（SSI）"](/ch8#sec_transactions_ssi)），因为这需要跨不同系统识别冲突的协议。
 
-These problems are somewhat inherent in performing transactions across heterogeneous technologies.
-However, keeping several heterogeneous data systems consistent with each other is still a real and
-important problem, so we need to find a different solution to it. This can be done, as we will see
-in the next section and in [Link to Come].
+这些问题在某种程度上是跨异构技术执行事务所固有的。但是，保持几个异构数据系统彼此一致仍然是一个真实而重要的问题，因此我们需要为其找到不同的解决方案。这可以做到，我们将在下一节和[待补充链接]中看到。
 
 ### 数据库内部的分布式事务 {#sec_transactions_internal}
 
-As explained previously, there is a big difference between distributed transactions that span
-multiple heterogeneous storage technologies, and those that are internal to a system—i.e., where all
-the participating nodes are shards of the same database running the same software. Such internal
-distributed transactions are a defining feature of “NewSQL” databases such as
-CockroachDB [^5], TiDB [^6], Spanner [^7], FoundationDB [^8], and YugabyteDB, for example. 
-Some message brokers such as Kafka also support internal distributed transactions [^85].
+如前所述，跨多个异构存储技术的分布式事务与系统内部的分布式事务之间存在很大差异——即，参与节点都是运行相同软件的同一数据库的分片。此类内部分布式事务是"NewSQL"数据库的定义特征，例如 CockroachDB[^5]、TiDB[^6]、Spanner[^7]、FoundationDB[^8] 和 YugabyteDB。某些消息代理（如 Kafka）也支持内部分布式事务[^85]。
 
-Many of these systems use 2-phase commit to ensure atomicity of transactions that write to multiple
-shards, and yet they don’t suffer the same problems as XA transactions. The reason is that because
-their distributed transactions don’t need to interface with any other technologies, they avoid the
-lowest-common-denominator trap—the designers of these systems are free to use better protocols that
-are more reliable and faster.
+这些系统中的许多系统使用两阶段提交来确保写入多个分片的事务的原子性，但它们不会遇到与 XA 事务相同的问题。原因是，由于它们的分布式事务不需要与任何其他技术接口，它们避免了最低公分母陷阱——这些系统的设计者可以自由使用更可靠、更快的更好协议。
 
-The biggest problems with XA can be fixed by:
+XA 的最大问题可以通过以下方式解决：
 
-* Replicating the coordinator, with automatic failover to another coordinator node if the primary one crashes;
-* Allowing the coordinator and data shards to communicate directly without going via application code;
-* Replicating the participating shards, so that the risk of having to abort a transaction because of a fault in one of the shards is reduced; and
-* Coupling the atomic commitment protocol with a distributed concurrency control protocol that supports deadlock detection and consistent reads across shards.
+* 复制协调器，如果主协调器崩溃，自动故障转移到另一个协调器节点；
+* 允许协调器和数据分片直接通信，而不通过应用程序代码；
+* 复制参与分片，以减少由于分片中的故障而必须中止事务的风险；以及
+* 将原子提交协议与支持跨分片死锁检测和一致读取的分布式并发控制协议耦合。
 
-Consensus algorithms are commonly used to replicate the coordinator and the database shards. We will
-see in [Chapter 10](/en/ch10#ch_consistency) how atomic commitment for distributed transactions can be implemented
-using a consensus algorithm. These algorithms tolerate faults by automatically failing over from one
-node to another without any human intervention, and while continuing to guarantee strong consistency
-properties.
+共识算法通常用于复制协调器和数据库分片。我们将在[第 10 章](/ch10#ch_consistency)中看到如何使用共识算法实现分布式事务的原子提交。这些算法通过自动从一个节点故障转移到另一个节点来容忍故障，无需任何人工干预，同时继续保证强一致性属性。
 
-The isolation levels offered for distributed transactions depend on the system, but snapshot
-isolation and serializable snapshot isolation are both possible across shards. The details of how
-this works can be found in the papers referenced at the end of this chapter.
+为分布式事务提供的隔离级别取决于系统，但跨分片的快照隔离和可串行化快照隔离都是可能的。有关其工作原理的详细信息，请参见本章末尾引用的论文。
 
 #### 再谈精确一次消息处理 {#exactly-once-message-processing-revisited}
 
-We saw in [“Exactly-once message processing”](/en/ch8#sec_transactions_exactly_once) that an important use case for distributed transactions
-is to ensure that some operation takes effect exactly once, even if a crash occurs while it is being
-processed and the processing needs to be retried. If you can atomically commit a transaction across
-a message broker and a database, you can acknowledge the message to the broker if and only if it was
-successfully processed and the database writes resulting from the process were committed.
+我们在["精确一次消息处理"](/ch8#sec_transactions_exactly_once)中看到，分布式事务的一个重要用例是确保某些操作精确生效一次，即使在处理过程中发生崩溃并且需要重试处理。如果你可以跨消息代理和数据库原子地提交事务，则当且仅当成功处理消息并且从处理过程产生的数据库写入被提交时，你可以向代理确认消息。
 
-However, you don’t actually need such distributed transactions to achieve exactly-once semantics. An
-alternative approach is as follows, which only requires transactions within the database:
+但是，你实际上不需要这样的分布式事务来实现精确一次语义。另一种方法如下，它只需要数据库中的事务：
 
-1. Assume every message has a unique ID, and in the database you have a table of message IDs that
- have been processed. When you start processing a message from the broker, you begin a new
- transaction on the database, and check the message ID. If the same message ID is already present
- in the database, you know that it has already been processed, so you can acknowledge the message
- to the broker and drop it.
-2. If the message ID is not already in the database, you add it to the table. You then process the
- message, which may result in additional writes to the database within the same transaction. When
- you finish processing the message, you commit the transaction on the database.
-3. Once the database transaction is successfully committed, you can acknowledge the message to the
- broker.
-4. Once the message has successfully been acknowledged to the broker, you know that it won’t try
- processing the same message again, so you can delete the message ID from the database (in a
- separate transaction).
+1. 假设每条消息都有唯一的 ID，并且在数据库中有一个已处理消息 ID 的表。当你开始从代理处理消息时，你在数据库上开始一个新事务，并检查消息 ID。如果数据库中已经存在相同的消息 ID，你知道它已经被处理，因此你可以向代理确认消息并丢弃它。
+2. 如果消息 ID 尚未在数据库中，你将其添加到表中。然后你处理消息，这可能会导致在同一事务中对数据库进行额外的写入。完成处理消息后，你提交数据库上的事务。
+3. 一旦数据库事务成功提交，你就可以向代理确认消息。
+4. 一旦消息成功确认给代理，你知道它不会再次尝试处理相同的消息，因此你可以从数据库中删除消息 ID（在单独的事务中）。
 
-If the message processor crashes before committing the database transaction, the transaction is
-aborted and the message broker will retry processing. If it crashes after committing but before
-acknowledging the message to the broker, it will also retry processing, but the retry will see the
-message ID in the database and drop it. If it crashes after acknowledging the message but before
-deleting the message ID from the database, you will have an old message ID lying around, which
-doesn’t do any harm besides taking a little bit of storage space. If a retry happens before the
-database transaction is aborted (which could happen if communication between the message processor
-and the database is interrupted), a uniqueness constraint on the table of message IDs should prevent
-the same message ID from being inserted by two concurrent transactions.
+如果消息处理器在提交数据库事务之前崩溃，事务将被中止，消息代理将重试处理。如果它在提交后但在向代理确认消息之前崩溃，它也将重试处理，但重试将在数据库中看到消息 ID 并丢弃它。如果它在确认消息后但在从数据库中删除消息 ID 之前崩溃，你将有一个旧的消息 ID 留下，除了占用一点存储空间外不会造成任何伤害。如果在数据库事务中止之前发生重试（如果消息处理器和数据库之间的通信中断，这可能会发生），消息 ID 表上的唯一性约束应该防止两个并发事务插入相同的消息 ID。
 
-Thus, achieving exactly-once processing only requires transactions within the database—atomicity
-across database and message broker is not necessary for this use case. Recording the message ID in
-the database makes the message processing *idempotent*, so that message processing can be safely
-retried without duplicating its side-effects. A similar approach is used in stream processing
-frameworks such as Kafka Streams to achieve exactly-once semantics, as we shall see in [Link to Come].
+因此，实现精确一次处理只需要数据库中的事务——跨数据库和消息代理的原子性对于此用例不是必需的。在数据库中记录消息 ID 使消息处理*幂等*，因此可以安全地重试消息处理而不会重复其副作用。流处理框架（如 Kafka Streams）中使用类似的方法来实现精确一次语义，我们将在[待补充链接]中看到。
 
-However, internal distributed transactions within the database are still useful for the scalability
-of patterns such as these: for example, they would allow the message IDs to be stored on one shard
-and the main data updated by the message processing to be stored on other shards, and to ensure
-atomicity of the transaction commit across those shards.
+但是，数据库内的内部分布式事务对于此类模式的可扩展性仍然有用：例如，它们将允许消息 ID 存储在一个分片上，而消息处理更新的主数据存储在其他分片上，并确保跨这些分片的事务提交的原子性。
 
 
 
 ## 总结 {#summary}
 
-Transactions are an abstraction layer that allows an application to pretend that certain concurrency
-problems and certain kinds of hardware and software faults don’t exist. A large class of errors is
-reduced down to a simple *transaction abort*, and the application just needs to try again.
+事务是一个抽象层，允许应用程序假装某些并发问题和某些类型的硬件和软件故障不存在。大量错误被简化为简单的*事务中止*，应用程序只需要重试。
 
-In this chapter we saw many examples of problems that transactions help prevent. Not all
-applications are susceptible to all those problems: an application with very simple access patterns,
-such as reading and writing only a single record, can probably manage without transactions. However,
-for more complex access patterns, transactions can hugely reduce the number of potential error cases
-you need to think about.
+在本章中，我们看到了许多事务有助于防止的问题示例。并非所有应用程序都容易受到所有这些问题的影响：具有非常简单的访问模式的应用程序（例如，仅读取和写入单个记录）可能可以在没有事务的情况下管理。但是，对于更复杂的访问模式，事务可以大大减少你需要考虑的潜在错误情况的数量。
 
-Without transactions, various error scenarios (processes crashing, network interruptions, power
-outages, disk full, unexpected concurrency, etc.) mean that data can become inconsistent in various
-ways. For example, denormalized data can easily go out of sync with the source data. Without
-transactions, it becomes very difficult to reason about the effects that complex interacting accesses
-can have on the database.
+没有事务，各种错误场景（进程崩溃、网络中断、停电、磁盘已满、意外并发等）意味着数据可能以各种方式变得不一致。例如，反规范化数据很容易与源数据失去同步。没有事务，很难推理复杂的交互访问对数据库可能产生的影响。
 
-In this chapter, we went particularly deep into the topic of concurrency control. We discussed
-several widely used isolation levels, in particular *read committed*, *snapshot isolation*
-(sometimes called *repeatable read*), and *serializable*. We characterized those isolation levels by
-discussing various examples of race conditions, summarized in [Table 8-1](/en/ch8#ch_transactions_isolation_levels):
+在本章中，我们特别深入地探讨了并发控制的主题。我们讨论了几种广泛使用的隔离级别，特别是*读已提交*、*快照隔离*（有时称为*可重复读*）和*可串行化*。我们通过讨论各种竞态条件的示例来描述这些隔离级别，总结在[表 8-1](/ch8#ch_transactions_isolation_levels) 中：
 
-Table 8-1. Summary of anomalies that can occur at various isolation levels
+表 8-1. 各种隔离级别可能发生的异常总结
 
-| Isolation level    | Dirty reads | Read skew   | Phantom reads | Lost updates | Write skew  |
-|--------------------|-------------|-------------|---------------|--------------|-------------|
-| Read uncommitted   | ✗ Possible  | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
-| Read committed     | ✓ Prevented | ✗ Possible  | ✗ Possible    | ✗ Possible   | ✗ Possible  |
-| Snapshot isolation | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ? Depends    | ✗ Possible  |
-| Serializable       | ✓ Prevented | ✓ Prevented | ✓ Prevented   | ✓ Prevented  | ✓ Prevented |
+| 隔离级别 | 脏读   | 读偏斜  | 幻读   | 丢失更新  | 写偏斜  |
+|------|------|------|------|-------|------|
+| 读未提交 | ✗ 可能 | ✗ 可能 | ✗ 可能 | ✗ 可能  | ✗ 可能 |
+| 读已提交 | ✓ 防止 | ✗ 可能 | ✗ 可能 | ✗ 可能  | ✗ 可能 |
+| 快照隔离 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ? 视情况 | ✗ 可能 |
+| 可串行化 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ✓ 防止  | ✓ 防止 |
 
-Dirty reads
-: One client reads another client’s writes before they have been committed. The read committed
- isolation level and stronger levels prevent dirty reads.
+脏读
+: 一个客户端在另一个客户端的写入提交之前读取它们。读已提交隔离级别和更强的级别防止脏读。
 
-Dirty writes
-: One client overwrites data that another client has written, but not yet committed. Almost all
- transaction implementations prevent dirty writes.
+脏写
+: 一个客户端覆盖另一个客户端已写入但尚未提交的数据。几乎所有事务实现都防止脏写。
 
-Read skew
-: A client sees different parts of the database at different points in time. Some cases of read
- skew are also known as *nonrepeatable reads*. This issue is most commonly prevented with snapshot
- isolation, which allows a transaction to read from a consistent snapshot corresponding to one
- particular point in time. It is usually implemented with *multi-version concurrency control*
- (MVCC).
+读偏斜
+: 客户端在不同时间点看到数据库的不同部分。某些读偏斜的情况也称为*不可重复读*。这个问题最常通过快照隔离来防止，它允许事务从对应于特定时间点的一致快照读取。它通常使用*多版本并发控制*（MVCC）实现。
 
-Lost updates
-: Two clients concurrently perform a read-modify-write cycle. One overwrites the other’s write
- without incorporating its changes, so data is lost. Some implementations of snapshot isolation
- prevent this anomaly automatically, while others require a manual lock (`SELECT FOR UPDATE`).
+丢失更新
+: 两个客户端并发执行读-修改-写循环。一个覆盖另一个的写入而不合并其更改，因此数据丢失。某些快照隔离的实现会自动防止此异常，而其他实现需要手动锁（`SELECT FOR UPDATE`）。
 
-Write skew
-: A transaction reads something, makes a decision based on the value it saw, and writes the decision
- to the database. However, by the time the write is made, the premise of the decision is no longer
- true. Only serializable isolation prevents this anomaly.
+写偏斜
+: 事务读取某些内容，根据它看到的值做出决定，并将决定写入数据库。但是，在进行写入时，决策的前提不再为真。只有可串行化隔离才能防止此异常。
 
-Phantom reads
-: A transaction reads objects that match some search condition. Another client makes a write that
- affects the results of that search. Snapshot isolation prevents straightforward phantom reads, but
- phantoms in the context of write skew require special treatment, such as index-range locks.
+幻读
+: 事务读取匹配某些搜索条件的对象。另一个客户端进行影响该搜索结果的写入。快照隔离防止直接的幻读，但写偏斜上下文中的幻读需要特殊处理，例如索引范围锁。
 
-Weak isolation levels protect against some of those anomalies but leave you, the application
-developer, to handle others manually (e.g., using explicit locking). Only serializable isolation
-protects against all of these issues. We discussed three different approaches to implementing
-serializable transactions:
+弱隔离级别可以防止某些异常，但让你（应用程序开发人员）手动处理其他异常（例如，使用显式锁定）。只有可串行化隔离可以防止所有这些问题。我们讨论了实现可串行化事务的三种不同方法：
 
-Literally executing transactions in a serial order
-: If you can make each transaction very fast to execute (typically by using stored procedures), and
- the transaction throughput is low enough to process on a single CPU core or can be sharded, this
- is a simple and effective option.
+字面上串行执行事务
+: 如果你可以使每个事务执行得非常快（通常通过使用存储过程），并且事务吞吐量足够低，可以在单个 CPU 核心上处理或可以分片，这是一个简单有效的选择。
 
-Two-phase locking
-: For decades this has been the standard way of implementing serializability, but many applications
- avoid using it because of its poor performance.
+两阶段锁定
+: 几十年来，这一直是实现可串行化的标准方法，但许多应用程序由于其性能不佳而避免使用它。
 
-Serializable snapshot isolation (SSI)
-: A comparatively new algorithm that avoids most of the downsides of the previous approaches. It
- uses an optimistic approach, allowing transactions to proceed without blocking. When a transaction
- wants to commit, it is checked, and it is aborted if the execution was not serializable.
+可串行化快照隔离（SSI）
+: 一种相对较新的算法，避免了前面方法的大部分缺点。它使用乐观方法，允许事务在不阻塞的情况下进行。当事务想要提交时，它会被检查，如果执行不可串行化，它将被中止。
 
-Finally, we examined how to achieve atomicity when a transaction is distributed across multiple
-nodes, using two-phase commit. If those nodes are all running the same database software,
-distributed transactions can work quite well, but across different storage technologies (using XA
-transactions), 2PC is problematic: it is very sensitive to faults in the coordinator and the
-application code driving the transaction, and it interacts poorly with concurrency control
-mechanisms. Fortunately, idempotence can ensure exactly-once semantics without requiring atomic
-commit across different storage technologies, and we will see more on this in later chapters.
+最后，我们研究了当事务分布在多个节点上时如何实现原子性，使用两阶段提交。如果这些节点都运行相同的数据库软件，分布式事务可以很好地工作，但跨不同存储技术（使用 XA 事务），2PC 是有问题的：它对协调器和驱动事务的应用程序代码中的故障非常敏感，并且与并发控制机制的交互很差。幸运的是，幂等性可以确保精确一次语义，而无需跨不同存储技术的原子提交，我们将在后面的章节中看到更多相关内容。
 
-The examples in this chapter used a relational data model. However, as discussed in
-[“The need for multi-object transactions”](/en/ch8#sec_transactions_need), transactions are a valuable database feature, no matter which data model is used.
+本章中的示例使用了关系数据模型。但是，如["多对象事务的需求"](/ch8#sec_transactions_need)中所讨论的，无论使用哪种数据模型，事务都是有价值的数据库功能。
 
 
 
-### 参考
+## 参考
 
-[^1]: Steven J. Murdoch. [What went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021. Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F) 
-[^2]: Donald D. Chamberlin, Morton M. Astrahan, Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl, Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz, Irving L. Traiger, Bradford W. Wade, and Robert A. Yost. [A History and Evaluation of System R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981. [doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784) 
-[^3]: Jim N. Gray, Raymond A. Lorie, Gianfranco R. Putzolu, and Irving L. Traiger. [Granularity of Locks and Degrees of Consistency in a Shared Data Base](https://citeseerx.ist.psu.edu/pdf/e127f0a6a912bb9150ecfe03c0ebf7fbc289a023). in *Modelling in Data Base Management Systems: Proceedings of the IFIP Working Conference on Modelling in Data Base Management Systems*, edited by G. M. Nijssen, pages 364–394, Elsevier/North Holland Publishing, 1976. Also in *Readings in Database Systems*, 4th edition, edited by Joseph M. Hellerstein and Michael Stonebraker, MIT Press, 2005. ISBN: 978-0-262-69314-1 
-[^4]: Kapali P. Eswaran, Jim N. Gray, Raymond A. Lorie, and Irving L. Traiger. [The Notions of Consistency and Predicate Locks in a Database System](https://jimgray.azurewebsites.net/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf?from=https://research.microsoft.com/en-us/um/people/gray/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf). *Communications of the ACM*, volume 19, issue 11, pages 624–633, November 1976. [doi:10.1145/360363.360369](https://doi.org/10.1145/360363.360369) 
-[^5]: Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis. [CockroachDB: The Resilient Geo-Distributed SQL Database](https://dl.acm.org/doi/pdf/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1493–1509, June 2020. [doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134) 
-[^6]: Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang, Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang, Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan Pei, and Xin Tang. [TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084. [doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535) 
-[^7]: James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012. 
-[^8]: Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. [FoundationDB: A Distributed Unbundled Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559) 
-[^9]: Theo Härder and Andreas Reuter. [Principles of Transaction-Oriented Database Recovery](https://citeseerx.ist.psu.edu/pdf/11ef7c142295aeb1a28a0e714c91fc8d610c3047). *ACM Computing Surveys*, volume 15, issue 4, pages 287–317, December 1983. [doi:10.1145/289.291](https://doi.org/10.1145/289.291) 
-[^10]: Peter Bailis, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [HAT, not CAP: Towards Highly Available Transactions](https://www.usenix.org/system/files/conference/hotos13/hotos13-final80.pdf). At *14th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2013. 
-[^11]: Armando Fox, Steven D. Gribble, Yatin Chawathe, Eric A. Brewer, and Paul Gauthier. [Cluster-Based Scalable Network Services](https://people.eecs.berkeley.edu/~brewer/cs262b/TACC.pdf). At *16th ACM Symposium on Operating Systems Principles* (SOSP), October 1997. [doi:10.1145/268998.266662](https://doi.org/10.1145/268998.266662) 
-[^12]: Tony Andrews. [Enforcing Complex Constraints in Oracle](https://tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html). *tonyandrews.blogspot.co.uk*, October 2004. Archived at [archive.org](https://web.archive.org/web/20220201190625/https%3A//tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html) 
-[^13]: Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman. [*Concurrency Control and Recovery in Database Systems*](https://www.microsoft.com/en-us/research/people/philbe/book/). Addison-Wesley, 1987. ISBN: 978-0-201-10715-9, available online at [*microsoft.com*](https://www.microsoft.com/en-us/research/people/philbe/book/). 
-[^14]: Alan Fekete, Dimitrios Liarokapis, Elizabeth O’Neil, Patrick O’Neil, and Dennis Shasha. [Making Snapshot Isolation Serializable](https://www.cse.iitb.ac.in/infolab/Data/Courses/CS632/2009/Papers/p492-fekete.pdf). *ACM Transactions on Database Systems*, volume 30, issue 2, pages 492–528, June 2005. [doi:10.1145/1071610.1071615](https://doi.org/10.1145/1071610.1071615) 
-[^15]: Mai Zheng, Joseph Tucek, Feng Qin, and Mark Lillibridge. [Understanding the Robustness of SSDs Under Power Fault](https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf). At *11th USENIX Conference on File and Storage Technologies* (FAST), February 2013. 
-[^16]: Laurie Denness. [SSDs: A Gift and a Curse](https://laur.ie/blog/2015/06/ssds-a-gift-and-a-curse/). *laur.ie*, June 2015. Archived at [perma.cc/6GLP-BX3T](https://perma.cc/6GLP-BX3T) 
-[^17]: Adam Surak. [When Solid State Drives Are Not That Solid](https://www.algolia.com/blog/engineering/when-solid-state-drives-are-not-that-solid). *blog.algolia.com*, June 2015. Archived at [perma.cc/CBR9-QZEE](https://perma.cc/CBR9-QZEE) 
-[^18]: Hewlett Packard Enterprise. [Bulletin: (Revision) HPE SAS Solid State Drives - Critical Firmware Upgrade Required for Certain HPE SAS Solid State Drive Models to Prevent Drive Failure at 32,768 Hours of Operation](https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00092491en_us). *support.hpe.com*, November 2019. Archived at [perma.cc/CZR4-AQBS](https://perma.cc/CZR4-AQBS) 
-[^19]: Craig Ringer et al. [PostgreSQL’s handling of fsync() errors is unsafe and risks data loss at least on XFS](https://www.postgresql.org/message-id/flat/CAMsr%2BYHh%2B5Oq4xziwwoEfhoTZgr07vdGG%2Bhu%3D1adXx59aTeaoQ%40mail.gmail.com). Email thread on pgsql-hackers mailing list, *postgresql.org*, March 2018. Archived at [perma.cc/5RKU-57FL](https://perma.cc/5RKU-57FL) 
-[^20]: Anthony Rebello, Yuvraj Patel, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Can Applications Recover from fsync Failures?](https://www.usenix.org/conference/atc20/presentation/rebello) At *USENIX Annual Technical Conference* (ATC), July 2020. 
-[^21]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Crash Consistency: Rethinking the Fundamental Abstractions of the File System](https://dl.acm.org/doi/pdf/10.1145/2800695.2801719). *ACM Queue*, volume 13, issue 7, pages 20–28, July 2015. [doi:10.1145/2800695.2801719](https://doi.org/10.1145/2800695.2801719) 
-[^22]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [All File Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf). At *11th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2014. 
-[^23]: Chris Siebenmann. [Unix’s File Durability Problem](https://utcc.utoronto.ca/~cks/space/blog/unix/FileSyncProblem). *utcc.utoronto.ca*, April 2016. Archived at [perma.cc/VSS8-5MC4](https://perma.cc/VSS8-5MC4) 
-[^24]: Aishwarya Ganesan, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Redundancy Does Not Imply Fault Tolerance: Analysis of Distributed Storage Reactions to Single Errors and Corruptions](https://www.usenix.org/conference/fast17/technical-sessions/presentation/ganesan). At *15th USENIX Conference on File and Storage Technologies* (FAST), February 2017. 
-[^25]: Lakshmi N. Bairavasundaram, Garth R. Goodson, Bianca Schroeder, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [An Analysis of Data Corruption in the Storage Stack](https://www.usenix.org/legacy/event/fast08/tech/full_papers/bairavasundaram/bairavasundaram.pdf). At *6th USENIX Conference on File and Storage Technologies* (FAST), February 2008. 
-[^26]: Bianca Schroeder, Raghav Lagisetty, and Arif Merchant. [Flash Reliability in Production: The Expected and the Unexpected](https://www.usenix.org/conference/fast16/technical-sessions/presentation/schroeder). At *14th USENIX Conference on File and Storage Technologies* (FAST), February 2016. 
-[^27]: Don Allison. [SSD Storage – Ignorance of Technology Is No Excuse](https://blog.korelogic.com/blog/2015/03/24). *blog.korelogic.com*, March 2015. Archived at [perma.cc/9QN4-9SNJ](https://perma.cc/9QN4-9SNJ) 
-[^28]: Gordon Mah Ung. [Debunked: Your SSD won’t lose data if left unplugged after all](https://www.pcworld.com/article/427602/debunked-your-ssd-wont-lose-data-if-left-unplugged-after-all.html). *pcworld.com*, May 2015. Archived at [perma.cc/S46H-JUDU](https://perma.cc/S46H-JUDU) 
-[^29]: Martin Kleppmann. [Hermitage: Testing the ‘I’ in ACID](https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html). *martin.kleppmann.com*, November 2014. Archived at [perma.cc/KP2Y-AQGK](https://perma.cc/KP2Y-AQGK) 
-[^30]: Todd Warszawski and Peter Bailis. [ACIDRain: Concurrency-Related Attacks on Database-Backed Web Applications](http://www.bailis.org/papers/acidrain-sigmod2017.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 2017. [doi:10.1145/3035918.3064037](https://doi.org/10.1145/3035918.3064037) 
-[^31]: Tristan D’Agosta. [BTC Stolen from Poloniex](https://bitcointalk.org/index.php?topic=499580). *bitcointalk.org*, March 2014. Archived at [perma.cc/YHA6-4C5D](https://perma.cc/YHA6-4C5D) 
-[^32]: bitcointhief2. [How I Stole Roughly 100 BTC from an Exchange and How I Could Have Stolen More!](https://www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) *reddit.com*, February 2014. Archived at [archive.org](https://web.archive.org/web/20250118042610/https%3A//www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) 
-[^33]: Sudhir Jorwekar, Alan Fekete, Krithi Ramamritham, and S. Sudarshan. [Automating the Detection of Snapshot Isolation Anomalies](https://www.vldb.org/conf/2007/papers/industrial/p1263-jorwekar.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007. 
-[^34]: Michael Melanson. [Transactions: The Limits of Isolation](https://www.michaelmelanson.net/posts/transactions-the-limits-of-isolation/). *michaelmelanson.net*, November 2014. Archived at [perma.cc/RG5R-KMYZ](https://perma.cc/RG5R-KMYZ) 
-[^35]: Edward Kim. [How ACH works: A developer perspective — Part 1](https://engineering.gusto.com/how-ach-works-a-developer-perspective-part-1-339d3e7bea1). *engineering.gusto.com*, April 2014. Archived at [perma.cc/7B2H-PU94](https://perma.cc/7B2H-PU94) 
-[^36]: Hal Berenson, Philip A. Bernstein, Jim N. Gray, Jim Melton, Elizabeth O’Neil, and Patrick O’Neil. [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 1995. [doi:10.1145/568271.223785](https://doi.org/10.1145/568271.223785) 
-[^37]: Atul Adya. [Weak Consistency: A Generalized Theory and Optimistic Implementations for Distributed Transactions](https://pmg.csail.mit.edu/papers/adya-phd.pdf). PhD Thesis, Massachusetts Institute of Technology, March 1999. Archived at [perma.cc/E97M-HW5Q](https://perma.cc/E97M-HW5Q) 
-[^38]: Peter Bailis, Aaron Davidson, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Highly Available Transactions: Virtues and Limitations](https://www.vldb.org/pvldb/vol7/p181-bailis.pdf). At *40th International Conference on Very Large Data Bases* (VLDB), September 2014. 
-[^39]: Natacha Crooks, Youer Pu, Lorenzo Alvisi, and Allen Clement. [Seeing is Believing: A Client-Centric Specification of Database Isolation](https://www.cs.cornell.edu/lorenzo/papers/Crooks17Seeing.pdf). At *ACM Symposium on Principles of Distributed Computing* (PODC), pages 73–82, July 2017. [doi:10.1145/3087801.3087802](https://doi.org/10.1145/3087801.3087802) 
-[^40]: Bruce Momjian. [MVCC Unmasked](https://momjian.us/main/writings/pgsql/mvcc.pdf). *momjian.us*, July 2014. Archived at [perma.cc/KQ47-9GYB](https://perma.cc/KQ47-9GYB) 
-[^41]: Peter Alvaro and Kyle Kingsbury. [MySQL 8.0.34](https://jepsen.io/analyses/mysql-8.0.34). *jepsen.io*, December 2023. Archived at [perma.cc/HGE2-Z878](https://perma.cc/HGE2-Z878) 
-[^42]: Egor Rogov. [PostgreSQL 14 Internals](https://postgrespro.com/community/books/internals). *postgrespro.com*, April 2023. Archived at [perma.cc/FRK2-D7WB](https://perma.cc/FRK2-D7WB) 
-[^43]: Hironobu Suzuki. [The Internals of PostgreSQL](https://www.interdb.jp/pg/). *interdb.jp*, 2017. 
-[^44]: Rohan Reddy Alleti. [Internals of MVCC in Postgres: Hidden costs of Updates vs Inserts](https://medium.com/%40rohanjnr44/internals-of-mvcc-in-postgres-hidden-costs-of-updates-vs-inserts-381eadd35844). *medium.com*, March 2025. Archived at [perma.cc/3ACX-DFXT](https://perma.cc/3ACX-DFXT) 
-[^45]: Andy Pavlo and Bohan Zhang. [The Part of PostgreSQL We Hate the Most](https://www.cs.cmu.edu/~pavlo/blog/2023/04/the-part-of-postgresql-we-hate-the-most.html). *cs.cmu.edu*, April 2023. Archived at [perma.cc/XSP6-3JBN](https://perma.cc/XSP6-3JBN) 
-[^46]: Yingjun Wu, Joy Arulraj, Jiexi Lin, Ran Xian, and Andrew Pavlo. [An empirical evaluation of in-memory multi-version concurrency control](https://vldb.org/pvldb/vol10/p781-Wu.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue 7, pages 781–792, March 2017. [doi:10.14778/3067421.3067427](https://doi.org/10.14778/3067421.3067427) 
-[^47]: Nikita Prokopov. [Unofficial Guide to Datomic Internals](https://tonsky.me/blog/unofficial-guide-to-datomic-internals/). *tonsky.me*, May 2014. 
-[^48]: Daniil Svetlov. [A Practical Guide to Taming Postgres Isolation Anomalies](https://dansvetlov.me/postgres-anomalies/). *dansvetlov.me*, March 2025. Archived at [perma.cc/L7LE-TDLS](https://perma.cc/L7LE-TDLS) 
-[^49]: Nate Wiger. [An Atomic Rant](https://nateware.com/2010/02/18/an-atomic-rant/). *nateware.com*, February 2010. Archived at [perma.cc/5ZYB-PE44](https://perma.cc/5ZYB-PE44) 
-[^50]: James Coglan. [Reading and writing, part 3: web applications](https://blog.jcoglan.com/2020/10/12/reading-and-writing-part-3/). *blog.jcoglan.com*, October 2020. Archived at [perma.cc/A7EK-PJVS](https://perma.cc/A7EK-PJVS) 
-[^51]: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Feral Concurrency Control: An Empirical Investigation of Modern Application Integrity](http://www.bailis.org/papers/feral-sigmod2015.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2015. [doi:10.1145/2723372.2737784](https://doi.org/10.1145/2723372.2737784) 
-[^52]: Jaana Dogan. [Things I Wished More Developers Knew About Databases](https://rakyll.medium.com/things-i-wished-more-developers-knew-about-databases-2d0178464f78). *rakyll.medium.com*, April 2020. Archived at [perma.cc/6EFK-P2TD](https://perma.cc/6EFK-P2TD) 
-[^53]: Michael J. Cahill, Uwe Röhm, and Alan Fekete. [Serializable Isolation for Snapshot Databases](https://www.cs.cornell.edu/~sowell/dbpapers/serializable_isolation.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2008. [doi:10.1145/1376616.1376690](https://doi.org/10.1145/1376616.1376690) 
-[^54]: Dan R. K. Ports and Kevin Grittner. [Serializable Snapshot Isolation in PostgreSQL](https://drkp.net/papers/ssi-vldb12.pdf). At *38th International Conference on Very Large Databases* (VLDB), August 2012. 
-[^55]: Douglas B. Terry, Marvin M. Theimer, Karin Petersen, Alan J. Demers, Mike J. Spreitzer and Carl H. Hauser. [Managing Update Conflicts in Bayou, a Weakly Connected Replicated Storage System](https://pdos.csail.mit.edu/6.824/papers/bayou-conflicts.pdf). At *15th ACM Symposium on Operating Systems Principles* (SOSP), December 1995. [doi:10.1145/224056.224070](https://doi.org/10.1145/224056.224070) 
-[^56]: Hans-Jürgen Schönig. [Constraints over multiple rows in PostgreSQL](https://www.cybertec-postgresql.com/en/postgresql-constraints-over-multiple-rows/). *cybertec-postgresql.com*, June 2021. Archived at [perma.cc/2TGH-XUPZ](https://perma.cc/2TGH-XUPZ) 
-[^57]: Michael Stonebraker, Samuel Madden, Daniel J. Abadi, Stavros Harizopoulos, Nabil Hachem, and Pat Helland. [The End of an Architectural Era (It’s Time for a Complete Rewrite)](https://vldb.org/conf/2007/papers/industrial/p1150-stonebraker.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007. 
-[^58]: John Hugg. [H-Store/VoltDB Architecture vs. CEP Systems and Newer Streaming Architectures](https://www.youtube.com/watch?v=hD5M4a1UVz8). At *Data @Scale Boston*, November 2014. 
-[^59]: Robert Kallman, Hideaki Kimura, Jonathan Natkins, Andrew Pavlo, Alexander Rasin, Stanley Zdonik, Evan P. C. Jones, Samuel Madden, Michael Stonebraker, Yang Zhang, John Hugg, and Daniel J. Abadi. [H-Store: A High-Performance, Distributed Main Memory Transaction Processing System](https://www.vldb.org/pvldb/vol1/1454211.pdf). *Proceedings of the VLDB Endowment*, volume 1, issue 2, pages 1496–1499, August 2008. 
-[^60]: Rich Hickey. [The Architecture of Datomic](https://www.infoq.com/articles/Architecture-Datomic/). *infoq.com*, November 2012. Archived at [perma.cc/5YWU-8XJK](https://perma.cc/5YWU-8XJK) 
-[^61]: John Hugg. [Debunking Myths About the VoltDB In-Memory Database](https://dzone.com/articles/debunking-myths-about-voltdb). *dzone.com*, May 2014. Archived at [perma.cc/2Z9N-HPKF](https://perma.cc/2Z9N-HPKF) 
-[^62]: Xinjing Zhou, Viktor Leis, Xiangyao Yu, and Michael Stonebraker. [OLTP Through the Looking Glass 16 Years Later: Communication is the New Bottleneck](https://www.vldb.org/cidrdb/papers/2025/p17-zhou.pdf). At *15th Annual Conference on Innovative Data Systems Research* (CIDR), January 2025. 
-[^63]: Xinjing Zhou, Xiangyao Yu, Goetz Graefe, and Michael Stonebraker. [Lotus: scalable multi-partition transactions on single-threaded partitioned databases](https://www.vldb.org/pvldb/vol15/p2939-zhou.pdf). *Proceedings of the VLDB Endowment* (PVLDB), volume 15, issue 11, pages 2939–2952, July 2022. [doi:10.14778/3551793.3551843](https://doi.org/10.14778/3551793.3551843) 
-[^64]: Joseph M. Hellerstein, Michael Stonebraker, and James Hamilton. [Architecture of a Database System](https://dsf.berkeley.edu/papers/fntdb07-architecture.pdf). *Foundations and Trends in Databases*, volume 1, issue 2, pages 141–259, November 2007. [doi:10.1561/1900000002](https://doi.org/10.1561/1900000002) 
-[^65]: Michael J. Cahill. [Serializable Isolation for Snapshot Databases](https://ses.library.usyd.edu.au/bitstream/handle/2123/5353/michael-cahill-2009-thesis.pdf). PhD Thesis, University of Sydney, July 2009. Archived at [perma.cc/727J-NTMP](https://perma.cc/727J-NTMP) 
-[^66]: Cristian Diaconu, Craig Freedman, Erik Ismert, Per-Åke Larson, Pravin Mittal, Ryan Stonecipher, Nitin Verma, and Mike Zwilling. [Hekaton: SQL Server’s Memory-Optimized OLTP Engine](https://www.microsoft.com/en-us/research/wp-content/uploads/2013/06/Hekaton-Sigmod2013-final.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1243–1254, June 2013. [doi:10.1145/2463676.2463710](https://doi.org/10.1145/2463676.2463710) 
-[^67]: Thomas Neumann, Tobias Mühlbauer, and Alfons Kemper. [Fast Serializable Multi-Version Concurrency Control for Main-Memory Database Systems](https://db.in.tum.de/~muehlbau/papers/mvcc.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 677–689, May 2015. [doi:10.1145/2723372.2749436](https://doi.org/10.1145/2723372.2749436) 
-[^68]: D. Z. Badal. [Correctness of Concurrency Control and Implications in Distributed Databases](https://ieeexplore.ieee.org/abstract/document/762563). At *3rd International IEEE Computer Software and Applications Conference* (COMPSAC), November 1979. [doi:10.1109/CMPSAC.1979.762563](https://doi.org/10.1109/CMPSAC.1979.762563) 
-[^69]: Rakesh Agrawal, Michael J. Carey, and Miron Livny. [Concurrency Control Performance Modeling: Alternatives and Implications](https://people.eecs.berkeley.edu/~brewer/cs262/ConcControl.pdf). *ACM Transactions on Database Systems* (TODS), volume 12, issue 4, pages 609–654, December 1987. [doi:10.1145/32204.32220](https://doi.org/10.1145/32204.32220) 
-[^70]: Marc Brooker. [Snapshot Isolation vs Serializability](https://brooker.co.za/blog/2024/12/17/occ-and-isolation.html). *brooker.co.za*, December 2024. Archived at [perma.cc/5TRC-CR5G](https://perma.cc/5TRC-CR5G) 
-[^71]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD) 
-[^72]: C. Mohan, Bruce G. Lindsay, and Ron Obermarck. [Transaction Management in the R\* Distributed Database Management System](https://cs.brown.edu/courses/csci2270/archives/2012/papers/dtxn/p378-mohan.pdf). *ACM Transactions on Database Systems*, volume 11, issue 4, pages 378–396, December 1986. [doi:10.1145/7239.7266](https://doi.org/10.1145/7239.7266) 
-[^73]: X/Open Company Ltd. [Distributed Transaction Processing: The XA Specification](https://pubs.opengroup.org/onlinepubs/009680699/toc.pdf). Technical Standard XO/CAE/91/300, December 1991. ISBN: 978-1-872-63024-3, archived at [perma.cc/Z96H-29JB](https://perma.cc/Z96H-29JB) 
-[^74]: Ivan Silva Neto and Francisco Reverbel. [Lessons Learned from Implementing WS-Coordination and WS-AtomicTransaction](https://www.ime.usp.br/~reverbel/papers/icis2008.pdf). At *7th IEEE/ACIS International Conference on Computer and Information Science* (ICIS), May 2008. [doi:10.1109/ICIS.2008.75](https://doi.org/10.1109/ICIS.2008.75) 
-[^75]: James E. Johnson, David E. Langworthy, Leslie Lamport, and Friedrich H. Vogt. [Formal Specification of a Web Services Protocol](https://www.microsoft.com/en-us/research/publication/formal-specification-of-a-web-services-protocol/). At *1st International Workshop on Web Services and Formal Methods* (WS-FM), February 2004. [doi:10.1016/j.entcs.2004.02.022](https://doi.org/10.1016/j.entcs.2004.02.022) 
-[^76]: Jim Gray. [The Transaction Concept: Virtues and Limitations](https://jimgray.azurewebsites.net/papers/thetransactionconcept.pdf). At *7th International Conference on Very Large Data Bases* (VLDB), September 1981. 
-[^77]: Dale Skeen. [Nonblocking Commit Protocols](https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/Ske81.pdf). At *ACM International Conference on Management of Data* (SIGMOD), April 1981. [doi:10.1145/582318.582339](https://doi.org/10.1145/582318.582339) 
-[^78]: Gregor Hohpe. [Your Coffee Shop Doesn’t Use Two-Phase Commit](https://www.martinfowler.com/ieeeSoftware/coffeeShop.pdf). *IEEE Software*, volume 22, issue 2, pages 64–66, March 2005. [doi:10.1109/MS.2005.52](https://doi.org/10.1109/MS.2005.52) 
-[^79]: Pat Helland. [Life Beyond Distributed Transactions: An Apostate’s Opinion](https://www.cidrdb.org/cidr2007/papers/cidr07p15.pdf). At *3rd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2007. 
-[^80]: Jonathan Oliver. [My Beef with MSDTC and Two-Phase Commits](https://blog.jonathanoliver.com/my-beef-with-msdtc-and-two-phase-commits/). *blog.jonathanoliver.com*, April 2011. Archived at [perma.cc/K8HF-Z4EN](https://perma.cc/K8HF-Z4EN) 
-[^81]: Oren Eini (Ahende Rahien). [The Fallacy of Distributed Transactions](https://ayende.com/blog/167362/the-fallacy-of-distributed-transactions). *ayende.com*, July 2014. Archived at [perma.cc/VB87-2JEF](https://perma.cc/VB87-2JEF) 
-[^82]: Clemens Vasters. [Transactions in Windows Azure (with Service Bus) – An Email Discussion](https://learn.microsoft.com/en-gb/archive/blogs/clemensv/transactions-in-windows-azure-with-service-bus-an-email-discussion). *learn.microsoft.com*, July 2012. Archived at [perma.cc/4EZ9-5SKW](https://perma.cc/4EZ9-5SKW) 
-[^83]: Ajmer Dhariwal. [Orphaned MSDTC Transactions (-2 spids)](https://www.eraofdata.com/posts/2008/orphaned-msdtc-transactions-2-spids/). *eraofdata.com*, December 2008. Archived at [perma.cc/YG6F-U34C](https://perma.cc/YG6F-U34C) 
-[^84]: Paul Randal. [Real World Story of DBCC PAGE Saving the Day](https://www.sqlskills.com/blogs/paul/real-world-story-of-dbcc-page-saving-the-day/). *sqlskills.com*, June 2013. Archived at [perma.cc/2MJN-A5QH](https://perma.cc/2MJN-A5QH) 
-[^85]: Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva Mehta, Varun Madan, and Jun Rao. [Consistency and Completeness: Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556) 
+
+[^1]: Steven J. Murdoch. [What went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021. Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F)
+[^2]: Donald D. Chamberlin, Morton M. Astrahan, Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl, Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz, Irving L. Traiger, Bradford W. Wade, and Robert A. Yost. [A History and Evaluation of System R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981. [doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784)
+[^3]: Jim N. Gray, Raymond A. Lorie, Gianfranco R. Putzolu, and Irving L. Traiger. [Granularity of Locks and Degrees of Consistency in a Shared Data Base](https://citeseerx.ist.psu.edu/pdf/e127f0a6a912bb9150ecfe03c0ebf7fbc289a023). in *Modelling in Data Base Management Systems: Proceedings of the IFIP Working Conference on Modelling in Data Base Management Systems*, edited by G. M. Nijssen, pages 364–394, Elsevier/North Holland Publishing, 1976. Also in *Readings in Database Systems*, 4th edition, edited by Joseph M. Hellerstein and Michael Stonebraker, MIT Press, 2005. ISBN: 978-0-262-69314-1
+[^4]: Kapali P. Eswaran, Jim N. Gray, Raymond A. Lorie, and Irving L. Traiger. [The Notions of Consistency and Predicate Locks in a Database System](https://jimgray.azurewebsites.net/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf?from=https://research.microsoft.com/en-us/um/people/gray/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf). *Communications of the ACM*, volume 19, issue 11, pages 624–633, November 1976. [doi:10.1145/360363.360369](https://doi.org/10.1145/360363.360369)
+[^5]: Rebecca Taft, Irfan Sharif, Andrei Matei, Nathan VanBenschoten, Jordan Lewis, Tobias Grieger, Kai Niemi, Andy Woods, Anne Birzin, Raphael Poss, Paul Bardea, Amruta Ranade, Ben Darnell, Bram Gruneir, Justin Jaffray, Lucy Zhang, and Peter Mattis. [CockroachDB: The Resilient Geo-Distributed SQL Database](https://dl.acm.org/doi/pdf/10.1145/3318464.3386134). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1493–1509, June 2020. [doi:10.1145/3318464.3386134](https://doi.org/10.1145/3318464.3386134)
+[^6]: Dongxu Huang, Qi Liu, Qiu Cui, Zhuhe Fang, Xiaoyu Ma, Fei Xu, Li Shen, Liu Tang, Yuxing Zhou, Menglong Huang, Wan Wei, Cong Liu, Jian Zhang, Jianjun Li, Xuelian Wu, Lingyu Song, Ruoxi Sun, Shuaipeng Yu, Lei Zhao, Nicholas Cameron, Liquan Pei, and Xin Tang. [TiDB: a Raft-based HTAP database](https://www.vldb.org/pvldb/vol13/p3072-huang.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 12, pages 3072–3084. [doi:10.14778/3415478.3415535](https://doi.org/10.14778/3415478.3415535)
+[^7]: James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. [Spanner: Google’s Globally-Distributed Database](https://research.google/pubs/pub39966/). At *10th USENIX Symposium on Operating System Design and Implementation* (OSDI), October 2012.
+[^8]: Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. [FoundationDB: A Distributed Unbundled Transactional Key Value Store](https://www.foundationdb.org/files/fdb-paper.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457559](https://doi.org/10.1145/3448016.3457559)
+[^9]: Theo Härder and Andreas Reuter. [Principles of Transaction-Oriented Database Recovery](https://citeseerx.ist.psu.edu/pdf/11ef7c142295aeb1a28a0e714c91fc8d610c3047). *ACM Computing Surveys*, volume 15, issue 4, pages 287–317, December 1983. [doi:10.1145/289.291](https://doi.org/10.1145/289.291)
+[^10]: Peter Bailis, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [HAT, not CAP: Towards Highly Available Transactions](https://www.usenix.org/system/files/conference/hotos13/hotos13-final80.pdf). At *14th USENIX Workshop on Hot Topics in Operating Systems* (HotOS), May 2013.
+[^11]: Armando Fox, Steven D. Gribble, Yatin Chawathe, Eric A. Brewer, and Paul Gauthier. [Cluster-Based Scalable Network Services](https://people.eecs.berkeley.edu/~brewer/cs262b/TACC.pdf). At *16th ACM Symposium on Operating Systems Principles* (SOSP), October 1997. [doi:10.1145/268998.266662](https://doi.org/10.1145/268998.266662)
+[^12]: Tony Andrews. [Enforcing Complex Constraints in Oracle](https://tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html). *tonyandrews.blogspot.co.uk*, October 2004. Archived at [archive.org](https://web.archive.org/web/20220201190625/https%3A//tonyandrews.blogspot.com/2004/10/enforcing-complex-constraints-in.html)
+[^13]: Philip A. Bernstein, Vassos Hadzilacos, and Nathan Goodman. [*Concurrency Control and Recovery in Database Systems*](https://www.microsoft.com/en-us/research/people/philbe/book/). Addison-Wesley, 1987. ISBN: 978-0-201-10715-9, available online at [*microsoft.com*](https://www.microsoft.com/en-us/research/people/philbe/book/).
+[^14]: Alan Fekete, Dimitrios Liarokapis, Elizabeth O’Neil, Patrick O’Neil, and Dennis Shasha. [Making Snapshot Isolation Serializable](https://www.cse.iitb.ac.in/infolab/Data/Courses/CS632/2009/Papers/p492-fekete.pdf). *ACM Transactions on Database Systems*, volume 30, issue 2, pages 492–528, June 2005. [doi:10.1145/1071610.1071615](https://doi.org/10.1145/1071610.1071615)
+[^15]: Mai Zheng, Joseph Tucek, Feng Qin, and Mark Lillibridge. [Understanding the Robustness of SSDs Under Power Fault](https://www.usenix.org/system/files/conference/fast13/fast13-final80.pdf). At *11th USENIX Conference on File and Storage Technologies* (FAST), February 2013.
+[^16]: Laurie Denness. [SSDs: A Gift and a Curse](https://laur.ie/blog/2015/06/ssds-a-gift-and-a-curse/). *laur.ie*, June 2015. Archived at [perma.cc/6GLP-BX3T](https://perma.cc/6GLP-BX3T)
+[^17]: Adam Surak. [When Solid State Drives Are Not That Solid](https://www.algolia.com/blog/engineering/when-solid-state-drives-are-not-that-solid). *blog.algolia.com*, June 2015. Archived at [perma.cc/CBR9-QZEE](https://perma.cc/CBR9-QZEE)
+[^18]: Hewlett Packard Enterprise. [Bulletin: (Revision) HPE SAS Solid State Drives - Critical Firmware Upgrade Required for Certain HPE SAS Solid State Drive Models to Prevent Drive Failure at 32,768 Hours of Operation](https://support.hpe.com/hpesc/public/docDisplay?docId=emr_na-a00092491en_us). *support.hpe.com*, November 2019. Archived at [perma.cc/CZR4-AQBS](https://perma.cc/CZR4-AQBS)
+[^19]: Craig Ringer et al. [PostgreSQL’s handling of fsync() errors is unsafe and risks data loss at least on XFS](https://www.postgresql.org/message-id/flat/CAMsr%2BYHh%2B5Oq4xziwwoEfhoTZgr07vdGG%2Bhu%3D1adXx59aTeaoQ%40mail.gmail.com). Email thread on pgsql-hackers mailing list, *postgresql.org*, March 2018. Archived at [perma.cc/5RKU-57FL](https://perma.cc/5RKU-57FL)
+[^20]: Anthony Rebello, Yuvraj Patel, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Can Applications Recover from fsync Failures?](https://www.usenix.org/conference/atc20/presentation/rebello) At *USENIX Annual Technical Conference* (ATC), July 2020.
+[^21]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Crash Consistency: Rethinking the Fundamental Abstractions of the File System](https://dl.acm.org/doi/pdf/10.1145/2800695.2801719). *ACM Queue*, volume 13, issue 7, pages 20–28, July 2015. [doi:10.1145/2800695.2801719](https://doi.org/10.1145/2800695.2801719)
+[^22]: Thanumalayan Sankaranarayana Pillai, Vijay Chidambaram, Ramnatthan Alagappan, Samer Al-Kiswany, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [All File Systems Are Not Created Equal: On the Complexity of Crafting Crash-Consistent Applications](https://www.usenix.org/system/files/conference/osdi14/osdi14-paper-pillai.pdf). At *11th USENIX Symposium on Operating Systems Design and Implementation* (OSDI), October 2014.
+[^23]: Chris Siebenmann. [Unix’s File Durability Problem](https://utcc.utoronto.ca/~cks/space/blog/unix/FileSyncProblem). *utcc.utoronto.ca*, April 2016. Archived at [perma.cc/VSS8-5MC4](https://perma.cc/VSS8-5MC4)
+[^24]: Aishwarya Ganesan, Ramnatthan Alagappan, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [Redundancy Does Not Imply Fault Tolerance: Analysis of Distributed Storage Reactions to Single Errors and Corruptions](https://www.usenix.org/conference/fast17/technical-sessions/presentation/ganesan). At *15th USENIX Conference on File and Storage Technologies* (FAST), February 2017.
+[^25]: Lakshmi N. Bairavasundaram, Garth R. Goodson, Bianca Schroeder, Andrea C. Arpaci-Dusseau, and Remzi H. Arpaci-Dusseau. [An Analysis of Data Corruption in the Storage Stack](https://www.usenix.org/legacy/event/fast08/tech/full_papers/bairavasundaram/bairavasundaram.pdf). At *6th USENIX Conference on File and Storage Technologies* (FAST), February 2008.
+[^26]: Bianca Schroeder, Raghav Lagisetty, and Arif Merchant. [Flash Reliability in Production: The Expected and the Unexpected](https://www.usenix.org/conference/fast16/technical-sessions/presentation/schroeder). At *14th USENIX Conference on File and Storage Technologies* (FAST), February 2016.
+[^27]: Don Allison. [SSD Storage – Ignorance of Technology Is No Excuse](https://blog.korelogic.com/blog/2015/03/24). *blog.korelogic.com*, March 2015. Archived at [perma.cc/9QN4-9SNJ](https://perma.cc/9QN4-9SNJ)
+[^28]: Gordon Mah Ung. [Debunked: Your SSD won’t lose data if left unplugged after all](https://www.pcworld.com/article/427602/debunked-your-ssd-wont-lose-data-if-left-unplugged-after-all.html). *pcworld.com*, May 2015. Archived at [perma.cc/S46H-JUDU](https://perma.cc/S46H-JUDU)
+[^29]: Martin Kleppmann. [Hermitage: Testing the ‘I’ in ACID](https://martin.kleppmann.com/2014/11/25/hermitage-testing-the-i-in-acid.html). *martin.kleppmann.com*, November 2014. Archived at [perma.cc/KP2Y-AQGK](https://perma.cc/KP2Y-AQGK)
+[^30]: Todd Warszawski and Peter Bailis. [ACIDRain: Concurrency-Related Attacks on Database-Backed Web Applications](http://www.bailis.org/papers/acidrain-sigmod2017.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 2017. [doi:10.1145/3035918.3064037](https://doi.org/10.1145/3035918.3064037)
+[^31]: Tristan D’Agosta. [BTC Stolen from Poloniex](https://bitcointalk.org/index.php?topic=499580). *bitcointalk.org*, March 2014. Archived at [perma.cc/YHA6-4C5D](https://perma.cc/YHA6-4C5D)
+[^32]: bitcointhief2. [How I Stole Roughly 100 BTC from an Exchange and How I Could Have Stolen More!](https://www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/) *reddit.com*, February 2014. Archived at [archive.org](https://web.archive.org/web/20250118042610/https%3A//www.reddit.com/r/Bitcoin/comments/1wtbiu/how_i_stole_roughly_100_btc_from_an_exchange_and/)
+[^33]: Sudhir Jorwekar, Alan Fekete, Krithi Ramamritham, and S. Sudarshan. [Automating the Detection of Snapshot Isolation Anomalies](https://www.vldb.org/conf/2007/papers/industrial/p1263-jorwekar.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007.
+[^34]: Michael Melanson. [Transactions: The Limits of Isolation](https://www.michaelmelanson.net/posts/transactions-the-limits-of-isolation/). *michaelmelanson.net*, November 2014. Archived at [perma.cc/RG5R-KMYZ](https://perma.cc/RG5R-KMYZ)
+[^35]: Edward Kim. [How ACH works: A developer perspective — Part 1](https://engineering.gusto.com/how-ach-works-a-developer-perspective-part-1-339d3e7bea1). *engineering.gusto.com*, April 2014. Archived at [perma.cc/7B2H-PU94](https://perma.cc/7B2H-PU94)
+[^36]: Hal Berenson, Philip A. Bernstein, Jim N. Gray, Jim Melton, Elizabeth O’Neil, and Patrick O’Neil. [A Critique of ANSI SQL Isolation Levels](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf). At *ACM International Conference on Management of Data* (SIGMOD), May 1995. [doi:10.1145/568271.223785](https://doi.org/10.1145/568271.223785)
+[^37]: Atul Adya. [Weak Consistency: A Generalized Theory and Optimistic Implementations for Distributed Transactions](https://pmg.csail.mit.edu/papers/adya-phd.pdf). PhD Thesis, Massachusetts Institute of Technology, March 1999. Archived at [perma.cc/E97M-HW5Q](https://perma.cc/E97M-HW5Q)
+[^38]: Peter Bailis, Aaron Davidson, Alan Fekete, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Highly Available Transactions: Virtues and Limitations](https://www.vldb.org/pvldb/vol7/p181-bailis.pdf). At *40th International Conference on Very Large Data Bases* (VLDB), September 2014.
+[^39]: Natacha Crooks, Youer Pu, Lorenzo Alvisi, and Allen Clement. [Seeing is Believing: A Client-Centric Specification of Database Isolation](https://www.cs.cornell.edu/lorenzo/papers/Crooks17Seeing.pdf). At *ACM Symposium on Principles of Distributed Computing* (PODC), pages 73–82, July 2017. [doi:10.1145/3087801.3087802](https://doi.org/10.1145/3087801.3087802)
+[^40]: Bruce Momjian. [MVCC Unmasked](https://momjian.us/main/writings/pgsql/mvcc.pdf). *momjian.us*, July 2014. Archived at [perma.cc/KQ47-9GYB](https://perma.cc/KQ47-9GYB)
+[^41]: Peter Alvaro and Kyle Kingsbury. [MySQL 8.0.34](https://jepsen.io/analyses/mysql-8.0.34). *jepsen.io*, December 2023. Archived at [perma.cc/HGE2-Z878](https://perma.cc/HGE2-Z878)
+[^42]: Egor Rogov. [PostgreSQL 14 Internals](https://postgrespro.com/community/books/internals). *postgrespro.com*, April 2023. Archived at [perma.cc/FRK2-D7WB](https://perma.cc/FRK2-D7WB)
+[^43]: Hironobu Suzuki. [The Internals of PostgreSQL](https://www.interdb.jp/pg/). *interdb.jp*, 2017.
+[^44]: Rohan Reddy Alleti. [Internals of MVCC in Postgres: Hidden costs of Updates vs Inserts](https://medium.com/%40rohanjnr44/internals-of-mvcc-in-postgres-hidden-costs-of-updates-vs-inserts-381eadd35844). *medium.com*, March 2025. Archived at [perma.cc/3ACX-DFXT](https://perma.cc/3ACX-DFXT)
+[^45]: Andy Pavlo and Bohan Zhang. [The Part of PostgreSQL We Hate the Most](https://www.cs.cmu.edu/~pavlo/blog/2023/04/the-part-of-postgresql-we-hate-the-most.html). *cs.cmu.edu*, April 2023. Archived at [perma.cc/XSP6-3JBN](https://perma.cc/XSP6-3JBN)
+[^46]: Yingjun Wu, Joy Arulraj, Jiexi Lin, Ran Xian, and Andrew Pavlo. [An empirical evaluation of in-memory multi-version concurrency control](https://vldb.org/pvldb/vol10/p781-Wu.pdf). *Proceedings of the VLDB Endowment*, volume 10, issue 7, pages 781–792, March 2017. [doi:10.14778/3067421.3067427](https://doi.org/10.14778/3067421.3067427)
+[^47]: Nikita Prokopov. [Unofficial Guide to Datomic Internals](https://tonsky.me/blog/unofficial-guide-to-datomic-internals/). *tonsky.me*, May 2014.
+[^48]: Daniil Svetlov. [A Practical Guide to Taming Postgres Isolation Anomalies](https://dansvetlov.me/postgres-anomalies/). *dansvetlov.me*, March 2025. Archived at [perma.cc/L7LE-TDLS](https://perma.cc/L7LE-TDLS)
+[^49]: Nate Wiger. [An Atomic Rant](https://nateware.com/2010/02/18/an-atomic-rant/). *nateware.com*, February 2010. Archived at [perma.cc/5ZYB-PE44](https://perma.cc/5ZYB-PE44)
+[^50]: James Coglan. [Reading and writing, part 3: web applications](https://blog.jcoglan.com/2020/10/12/reading-and-writing-part-3/). *blog.jcoglan.com*, October 2020. Archived at [perma.cc/A7EK-PJVS](https://perma.cc/A7EK-PJVS)
+[^51]: Peter Bailis, Alan Fekete, Michael J. Franklin, Ali Ghodsi, Joseph M. Hellerstein, and Ion Stoica. [Feral Concurrency Control: An Empirical Investigation of Modern Application Integrity](http://www.bailis.org/papers/feral-sigmod2015.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2015. [doi:10.1145/2723372.2737784](https://doi.org/10.1145/2723372.2737784)
+[^52]: Jaana Dogan. [Things I Wished More Developers Knew About Databases](https://rakyll.medium.com/things-i-wished-more-developers-knew-about-databases-2d0178464f78). *rakyll.medium.com*, April 2020. Archived at [perma.cc/6EFK-P2TD](https://perma.cc/6EFK-P2TD)
+[^53]: Michael J. Cahill, Uwe Röhm, and Alan Fekete. [Serializable Isolation for Snapshot Databases](https://www.cs.cornell.edu/~sowell/dbpapers/serializable_isolation.pdf). At *ACM International Conference on Management of Data* (SIGMOD), June 2008. [doi:10.1145/1376616.1376690](https://doi.org/10.1145/1376616.1376690)
+[^54]: Dan R. K. Ports and Kevin Grittner. [Serializable Snapshot Isolation in PostgreSQL](https://drkp.net/papers/ssi-vldb12.pdf). At *38th International Conference on Very Large Databases* (VLDB), August 2012.
+[^55]: Douglas B. Terry, Marvin M. Theimer, Karin Petersen, Alan J. Demers, Mike J. Spreitzer and Carl H. Hauser. [Managing Update Conflicts in Bayou, a Weakly Connected Replicated Storage System](https://pdos.csail.mit.edu/6.824/papers/bayou-conflicts.pdf). At *15th ACM Symposium on Operating Systems Principles* (SOSP), December 1995. [doi:10.1145/224056.224070](https://doi.org/10.1145/224056.224070)
+[^56]: Hans-Jürgen Schönig. [Constraints over multiple rows in PostgreSQL](https://www.cybertec-postgresql.com/en/postgresql-constraints-over-multiple-rows/). *cybertec-postgresql.com*, June 2021. Archived at [perma.cc/2TGH-XUPZ](https://perma.cc/2TGH-XUPZ)
+[^57]: Michael Stonebraker, Samuel Madden, Daniel J. Abadi, Stavros Harizopoulos, Nabil Hachem, and Pat Helland. [The End of an Architectural Era (It’s Time for a Complete Rewrite)](https://vldb.org/conf/2007/papers/industrial/p1150-stonebraker.pdf). At *33rd International Conference on Very Large Data Bases* (VLDB), September 2007.
+[^58]: John Hugg. [H-Store/VoltDB Architecture vs. CEP Systems and Newer Streaming Architectures](https://www.youtube.com/watch?v=hD5M4a1UVz8). At *Data @Scale Boston*, November 2014.
+[^59]: Robert Kallman, Hideaki Kimura, Jonathan Natkins, Andrew Pavlo, Alexander Rasin, Stanley Zdonik, Evan P. C. Jones, Samuel Madden, Michael Stonebraker, Yang Zhang, John Hugg, and Daniel J. Abadi. [H-Store: A High-Performance, Distributed Main Memory Transaction Processing System](https://www.vldb.org/pvldb/vol1/1454211.pdf). *Proceedings of the VLDB Endowment*, volume 1, issue 2, pages 1496–1499, August 2008.
+[^60]: Rich Hickey. [The Architecture of Datomic](https://www.infoq.com/articles/Architecture-Datomic/). *infoq.com*, November 2012. Archived at [perma.cc/5YWU-8XJK](https://perma.cc/5YWU-8XJK)
+[^61]: John Hugg. [Debunking Myths About the VoltDB In-Memory Database](https://dzone.com/articles/debunking-myths-about-voltdb). *dzone.com*, May 2014. Archived at [perma.cc/2Z9N-HPKF](https://perma.cc/2Z9N-HPKF)
+[^62]: Xinjing Zhou, Viktor Leis, Xiangyao Yu, and Michael Stonebraker. [OLTP Through the Looking Glass 16 Years Later: Communication is the New Bottleneck](https://www.vldb.org/cidrdb/papers/2025/p17-zhou.pdf). At *15th Annual Conference on Innovative Data Systems Research* (CIDR), January 2025.
+[^63]: Xinjing Zhou, Xiangyao Yu, Goetz Graefe, and Michael Stonebraker. [Lotus: scalable multi-partition transactions on single-threaded partitioned databases](https://www.vldb.org/pvldb/vol15/p2939-zhou.pdf). *Proceedings of the VLDB Endowment* (PVLDB), volume 15, issue 11, pages 2939–2952, July 2022. [doi:10.14778/3551793.3551843](https://doi.org/10.14778/3551793.3551843)
+[^64]: Joseph M. Hellerstein, Michael Stonebraker, and James Hamilton. [Architecture of a Database System](https://dsf.berkeley.edu/papers/fntdb07-architecture.pdf). *Foundations and Trends in Databases*, volume 1, issue 2, pages 141–259, November 2007. [doi:10.1561/1900000002](https://doi.org/10.1561/1900000002)
+[^65]: Michael J. Cahill. [Serializable Isolation for Snapshot Databases](https://ses.library.usyd.edu.au/bitstream/handle/2123/5353/michael-cahill-2009-thesis.pdf). PhD Thesis, University of Sydney, July 2009. Archived at [perma.cc/727J-NTMP](https://perma.cc/727J-NTMP)
+[^66]: Cristian Diaconu, Craig Freedman, Erik Ismert, Per-Åke Larson, Pravin Mittal, Ryan Stonecipher, Nitin Verma, and Mike Zwilling. [Hekaton: SQL Server’s Memory-Optimized OLTP Engine](https://www.microsoft.com/en-us/research/wp-content/uploads/2013/06/Hekaton-Sigmod2013-final.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 1243–1254, June 2013. [doi:10.1145/2463676.2463710](https://doi.org/10.1145/2463676.2463710)
+[^67]: Thomas Neumann, Tobias Mühlbauer, and Alfons Kemper. [Fast Serializable Multi-Version Concurrency Control for Main-Memory Database Systems](https://db.in.tum.de/~muehlbau/papers/mvcc.pdf). At *ACM SIGMOD International Conference on Management of Data* (SIGMOD), pages 677–689, May 2015. [doi:10.1145/2723372.2749436](https://doi.org/10.1145/2723372.2749436)
+[^68]: D. Z. Badal. [Correctness of Concurrency Control and Implications in Distributed Databases](https://ieeexplore.ieee.org/abstract/document/762563). At *3rd International IEEE Computer Software and Applications Conference* (COMPSAC), November 1979. [doi:10.1109/CMPSAC.1979.762563](https://doi.org/10.1109/CMPSAC.1979.762563)
+[^69]: Rakesh Agrawal, Michael J. Carey, and Miron Livny. [Concurrency Control Performance Modeling: Alternatives and Implications](https://people.eecs.berkeley.edu/~brewer/cs262/ConcControl.pdf). *ACM Transactions on Database Systems* (TODS), volume 12, issue 4, pages 609–654, December 1987. [doi:10.1145/32204.32220](https://doi.org/10.1145/32204.32220)
+[^70]: Marc Brooker. [Snapshot Isolation vs Serializability](https://brooker.co.za/blog/2024/12/17/occ-and-isolation.html). *brooker.co.za*, December 2024. Archived at [perma.cc/5TRC-CR5G](https://perma.cc/5TRC-CR5G)
+[^71]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)
+[^72]: C. Mohan, Bruce G. Lindsay, and Ron Obermarck. [Transaction Management in the R\* Distributed Database Management System](https://cs.brown.edu/courses/csci2270/archives/2012/papers/dtxn/p378-mohan.pdf). *ACM Transactions on Database Systems*, volume 11, issue 4, pages 378–396, December 1986. [doi:10.1145/7239.7266](https://doi.org/10.1145/7239.7266)
+[^73]: X/Open Company Ltd. [Distributed Transaction Processing: The XA Specification](https://pubs.opengroup.org/onlinepubs/009680699/toc.pdf). Technical Standard XO/CAE/91/300, December 1991. ISBN: 978-1-872-63024-3, archived at [perma.cc/Z96H-29JB](https://perma.cc/Z96H-29JB)
+[^74]: Ivan Silva Neto and Francisco Reverbel. [Lessons Learned from Implementing WS-Coordination and WS-AtomicTransaction](https://www.ime.usp.br/~reverbel/papers/icis2008.pdf). At *7th IEEE/ACIS International Conference on Computer and Information Science* (ICIS), May 2008. [doi:10.1109/ICIS.2008.75](https://doi.org/10.1109/ICIS.2008.75)
+[^75]: James E. Johnson, David E. Langworthy, Leslie Lamport, and Friedrich H. Vogt. [Formal Specification of a Web Services Protocol](https://www.microsoft.com/en-us/research/publication/formal-specification-of-a-web-services-protocol/). At *1st International Workshop on Web Services and Formal Methods* (WS-FM), February 2004. [doi:10.1016/j.entcs.2004.02.022](https://doi.org/10.1016/j.entcs.2004.02.022)
+[^76]: Jim Gray. [The Transaction Concept: Virtues and Limitations](https://jimgray.azurewebsites.net/papers/thetransactionconcept.pdf). At *7th International Conference on Very Large Data Bases* (VLDB), September 1981.
+[^77]: Dale Skeen. [Nonblocking Commit Protocols](https://www.cs.utexas.edu/~lorenzo/corsi/cs380d/papers/Ske81.pdf). At *ACM International Conference on Management of Data* (SIGMOD), April 1981. [doi:10.1145/582318.582339](https://doi.org/10.1145/582318.582339)
+[^78]: Gregor Hohpe. [Your Coffee Shop Doesn’t Use Two-Phase Commit](https://www.martinfowler.com/ieeeSoftware/coffeeShop.pdf). *IEEE Software*, volume 22, issue 2, pages 64–66, March 2005. [doi:10.1109/MS.2005.52](https://doi.org/10.1109/MS.2005.52)
+[^79]: Pat Helland. [Life Beyond Distributed Transactions: An Apostate’s Opinion](https://www.cidrdb.org/cidr2007/papers/cidr07p15.pdf). At *3rd Biennial Conference on Innovative Data Systems Research* (CIDR), January 2007.
+[^80]: Jonathan Oliver. [My Beef with MSDTC and Two-Phase Commits](https://blog.jonathanoliver.com/my-beef-with-msdtc-and-two-phase-commits/). *blog.jonathanoliver.com*, April 2011. Archived at [perma.cc/K8HF-Z4EN](https://perma.cc/K8HF-Z4EN)
+[^81]: Oren Eini (Ahende Rahien). [The Fallacy of Distributed Transactions](https://ayende.com/blog/167362/the-fallacy-of-distributed-transactions). *ayende.com*, July 2014. Archived at [perma.cc/VB87-2JEF](https://perma.cc/VB87-2JEF)
+[^82]: Clemens Vasters. [Transactions in Windows Azure (with Service Bus) – An Email Discussion](https://learn.microsoft.com/en-gb/archive/blogs/clemensv/transactions-in-windows-azure-with-service-bus-an-email-discussion). *learn.microsoft.com*, July 2012. Archived at [perma.cc/4EZ9-5SKW](https://perma.cc/4EZ9-5SKW)
+[^83]: Ajmer Dhariwal. [Orphaned MSDTC Transactions (-2 spids)](https://www.eraofdata.com/posts/2008/orphaned-msdtc-transactions-2-spids/). *eraofdata.com*, December 2008. Archived at [perma.cc/YG6F-U34C](https://perma.cc/YG6F-U34C)
+[^84]: Paul Randal. [Real World Story of DBCC PAGE Saving the Day](https://www.sqlskills.com/blogs/paul/real-world-story-of-dbcc-page-saving-the-day/). *sqlskills.com*, June 2013. Archived at [perma.cc/2MJN-A5QH](https://perma.cc/2MJN-A5QH)
+[^85]: Guozhang Wang, Lei Chen, Ayusman Dikshit, Jason Gustafson, Boyang Chen, Matthias J. Sax, John Roesler, Sophie Blee-Goldman, Bruno Cadonna, Apurva Mehta, Varun Madan, and Jun Rao. [Consistency and Completeness: Rethinking Distributed Stream Processing in Apache Kafka](https://dl.acm.org/doi/pdf/10.1145/3448016.3457556). At *ACM International Conference on Management of Data* (SIGMOD), June 2021. [doi:10.1145/3448016.3457556](https://doi.org/10.1145/3448016.3457556)

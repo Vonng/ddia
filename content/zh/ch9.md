@@ -4,835 +4,351 @@ weight: 209
 breadcrumbs: false
 ---
 
-> *They’re funny things, Accidents. You never have them till you’re having them.*
+![](/map/ch08.png)
+
+> *它们是有趣的东西，意外。在你遇到它们之前，你永远不会遇到它们。*
 >
-> A.A. Milne, *The House at Pooh Corner* (1928)
+> A.A. 米尔恩，《小熊维尼和老灰驴的家》（1928）
 
-As discussed in [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability), making a system reliable means ensuring that the
-system as a whole continues working, even when things go wrong (i.e., when there is a fault).
-However, anticipating all the possible faults and handling them is not that easy. As a developer, it
-is very tempting to focus mostly on the happy path (after all, most of the time things work fine!)
-and to neglect faults, since they introduce a lot of edge cases.
+正如 ["可靠性与容错"](/ch2#sec_introduction_reliability) 中所讨论的，让系统可靠意味着确保系统作为一个整体继续工作，即使出了问题（即出现故障）。然而，预料所有可能的故障并处理它们并不是那么容易。作为开发者，我们很容易主要关注正常路径（毕竟，大多数时候事情都运行良好！）而忽略故障，因为故障会引入大量边界情况。
 
-If you want your system to be reliable in the presence of faults you have to radically change your
-mindset, and focus on the things that could go wrong, even though they may be unlikely. It doesn’t
-matter whether there is only a one-in-a-million chance of a thing going wrong: in a large enough
-system, one-in-a-million events happen every day. Experienced systems operators will tell you that
-anything that *can* go wrong *will* go wrong.
+如果你希望系统在故障存在的情况下仍然可靠，你必须从根本上改变你的思维方式，并专注于可能出错的事情，即使它们可能性很低。一件事情出错的概率是否只有百万分之一并不重要：在一个足够大的系统中，百万分之一的事件每天都在发生。经验丰富的系统操作员会告诉你，任何 *可能* 出错的事情 *都会* 出错。
 
-Moreover, working with distributed systems is fundamentally different from writing software on a
-single computer—and the main difference is that there are lots of new and exciting ways for things
-to go wrong [^1] [^2].
-In this chapter, you will get a taste of the problems that arise in practice, and an understanding
-of the things you can and cannot rely on.
+此外，使用分布式系统与在单台计算机上编写软件有着根本的不同 —— 主要区别在于有许多新的、令人兴奋的出错方式 [^1] [^2]。在本章中，你将体验实践中出现的问题，并理解你可以依赖和不能依赖的事物。
 
-To understand what challenges we are up against, we will now turn our pessimism to the maximum and
-explore the things that may go wrong in a distributed system. We will look into problems with
-networks ([“Unreliable Networks”](/en/ch9#sec_distributed_networks)) as well as clocks and timing issues
-([“Unreliable Clocks”](/en/ch9#sec_distributed_clocks)). The consequences of all these issues are disorienting, so we’ll
-explore how to think about the state of a distributed system and how to reason about things that
-have happened ([“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth)). Later, in [Chapter 10](/en/ch10#ch_consistency), we will look at some
-examples of how we can achieve fault tolerance in the face of those faults.
+为了理解我们面临的挑战，我们现在将把悲观情绪发挥到极致，探索分布式系统中可能出错的事情。我们将研究网络问题（["不可靠的网络"](/ch9#sec_distributed_networks)）以及时钟和时序问题（["不可靠的时钟"](/ch9#sec_distributed_clocks)）。所有这些问题的后果令人迷惑，因此我们将探索如何思考分布式系统的状态以及如何推理已经发生的事情（["知识、真相与谎言"](/ch9#sec_distributed_truth)）。稍后，在 [第 10 章](/ch10#ch_consistency) 中，我们将看一些面对这些故障时如何实现容错的例子。
 
-## 故障和部分失效 {#sec_distributed_partial_failure}
+## 故障与部分失效 {#sec_distributed_partial_failure}
 
-When you are writing a program on a single computer, it normally behaves in a fairly predictable
-way: either it works or it doesn’t. Buggy software may give the appearance that the computer is
-sometimes “having a bad day” (a problem that is often fixed by a reboot), but that is mostly just
-a consequence of badly written software.
+当你在单台计算机上编写程序时，它通常以相当可预测的方式运行：要么工作，要么不工作。有缺陷的软件可能会给人一种计算机有时 "状态不佳" 的印象（这个问题通常通过重启来解决），但这主要只是编写不良的软件的后果。
 
-There is no fundamental reason why software on a single computer should be flaky: when the hardware
-is working correctly, the same operation always produces the same result (it is *deterministic*). If
-there is a hardware problem (e.g., memory corruption or a loose connector), the consequence is usually a
-total system failure (e.g., kernel panic, “blue screen of death,” failure to start up). An individual
-computer with good software is usually either fully functional or entirely broken, but not something
-in between.
+软件在单台计算机上不应该是不稳定的，这没有根本原因：当硬件正常工作时，相同的操作总是产生相同的结果（它是 *确定性的*）。如果存在硬件问题（例如，内存损坏或连接器松动），后果通常是整个系统故障（例如，内核恐慌、"蓝屏死机"、无法启动）。一台运行良好软件的单独计算机通常要么完全正常运行，要么完全故障，而不是介于两者之间。
 
-This is a deliberate choice in the design of computers: if an internal fault occurs, we prefer a
-computer to crash completely rather than returning a wrong result, because wrong results are difficult
-and confusing to deal with. Thus, computers hide the fuzzy physical reality on which they are
-implemented and present an idealized system model that operates with mathematical perfection. A CPU
-instruction always does the same thing; if you write some data to memory or disk, that data remains
-intact and doesn’t get randomly corrupted. As discussed in [“Hardware and Software Faults”](/en/ch2#sec_introduction_hardware_faults),
-this is not actually true—in reality, data does get silently corrupted and CPUs do sometimes
-silently return the wrong result—but it happens rarely enough that we can get away with ignoring it.
+这是计算机设计中的一个刻意选择：如果发生内部故障，我们宁愿计算机完全崩溃而不是返回错误的结果，因为错误的结果很难处理且令人困惑。因此，计算机隐藏了它们所实现的模糊物理现实，并呈现一个以数学完美运行的理想化系统模型。CPU 指令总是做同样的事情；如果你将一些数据写入内存或磁盘，该数据保持完整，不会被随机损坏。正如 ["硬件与软件故障"](/ch2#sec_introduction_hardware_faults) 中所讨论的，这实际上并不是真的 —— 实际上，数据确实会被静默损坏，CPU 有时会静默返回错误的结果 —— 但这种情况发生得足够少，以至于我们可以忽略它。
 
-When you are writing software that runs on several computers, connected by a network, the situation
-is fundamentally different. In distributed systems, faults occur much more frequently, and so we can
-no longer ignore them—we have no choice but to confront the messy reality of the physical world. And
-in the physical world, a remarkably wide range of things can go wrong, as illustrated by this
-anecdote [^3]:
+当你编写在多台计算机上运行的软件，通过网络连接时，情况就根本不同了。在分布式系统中，故障发生得更加频繁，因此我们不能再忽略它们 —— 我们别无选择，只能直面物理世界的混乱现实。在物理世界中，可能出错的事情范围非常广泛，正如这个轶事所说明的 [^3]：
 
-> In my limited experience I’ve dealt with long-lived network partitions in a single data center (DC),
-> PDU [power distribution unit] failures, switch failures, accidental power cycles of whole racks,
-> whole-DC backbone failures, whole-DC power failures, and a hypoglycemic driver smashing his Ford
-> pickup truck into a DC’s HVAC [heating, ventilation, and air conditioning] system. And I’m not even
-> an ops guy.
+> 在我有限的经验中，我处理过单个数据中心（DC）中的长期网络分区、PDU [配电单元] 故障、交换机故障、整个机架的意外断电、整个 DC 骨干网故障、整个 DC 电源故障，以及一个低血糖的司机将他的福特皮卡撞进 DC 的 HVAC [供暖、通风和空调] 系统。而我甚至不是运维人员。
 >
 > —— Coda Hale
 
-In a distributed system, there may well be some parts of the system that are broken in some
-unpredictable way, even though other parts of the system are working fine. This is known as a
-*partial failure*. The difficulty is that partial failures are *nondeterministic*: if you try to do
-anything involving multiple nodes and the network, it may sometimes work and sometimes unpredictably
-fail. As we shall see, you may not even *know* whether something succeeded or not!
+在分布式系统中，系统的某些部分可能以某种不可预测的方式出现故障，即使系统的其他部分工作正常。这被称为 *部分失效*。困难在于部分失效是 *非确定性的*：如果你尝试做任何涉及多个节点和网络的事情，它有时可能工作，有时可能不可预测地失败。正如我们将看到的，你甚至可能不 *知道* 某事是否成功！
 
-This nondeterminism and possibility of partial failures is what makes distributed systems hard to work with [^4].
-On the other hand, if a distributed system can tolerate partial failures, that opens up powerful
-possibilities: for example, it allows you to perform a rolling upgrade, rebooting one node at a time
-to install software updates while the system as a whole continues working uninterrupted all the
-time. Fault tolerance therefore allows us to make distributed systems more reliable than single-node
-systems: we can build a reliable system from unreliable components.
+这种非确定性和部分失效的可能性使分布式系统难以使用 [^4]。另一方面，如果分布式系统可以容忍部分失效，这将开启强大的可能性：例如，它允许你执行滚动升级，一次重启一个节点以安装软件更新，而系统作为一个整体继续不间断地工作。因此，容错使我们能够从不可靠的组件构建比单节点系统更可靠的分布式系统。
 
-But before we can implement fault tolerance, we need to know more about the faults that we’re
-supposed to tolerate. It is important to consider a wide range of possible faults—even fairly
-unlikely ones—and to artificially create such situations in your testing environment to see what
-happens. In distributed systems, suspicion, pessimism, and paranoia pay off.
+但在我们实现容错之前，我们需要更多地了解我们应该容忍的故障。重要的是要考虑各种可能的故障 —— 即使是相当不太可能的故障 —— 并在你的测试环境中人为地创建这种情况以查看会发生什么。在分布式系统中，怀疑、悲观和偏执是有回报的。
 
 ## 不可靠的网络 {#sec_distributed_networks}
 
-As discussed in [“Shared-Memory, Shared-Disk, and Shared-Nothing Architecture”](/en/ch2#sec_introduction_shared_nothing), the distributed systems we focus on
-in this book are mostly *shared-nothing systems*: i.e., a bunch of machines connected by a network.
-The network is the only way those machines can communicate—we assume that each machine has its
-own memory and disk, and one machine cannot access another machine’s memory or disk (except by
-making requests to a service over the network). Even when storage is shared, such as with Amazon’s
-S3, machines communicate with shared storage services over the network.
+正如 ["共享内存、共享磁盘和无共享架构"](/ch2#sec_introduction_shared_nothing) 中所讨论的，我们在本书中关注的分布式系统主要是 *无共享系统*：即通过网络连接的一组机器。网络是这些机器进行通信的唯一方式 —— 我们假设每台机器都有自己的内存和磁盘，一台机器不能访问另一台机器的内存或磁盘（除非通过网络向服务发出请求）。即使存储是共享的，例如亚马逊的 S3，机器也是通过网络与共享存储服务通信。
 
-The internet and most internal networks in datacenters (often Ethernet) are *asynchronous packet
-networks*. In this kind of network, one node can send a message (a packet) to another node, but the
-network gives no guarantees as to when it will arrive, or whether it will arrive at all. If you send
-a request and expect a response, many things could go wrong (some of which are illustrated in
-[Figure 9-1](/en/ch9#fig_distributed_network)):
+互联网和数据中心中的大多数内部网络（通常是以太网）都是 *异步分组网络*。在这种网络中，一个节点可以向另一个节点发送消息（数据包），但网络不保证它何时到达，或者是否会到达。如果你发送请求并期望响应，许多事情可能会出错（其中一些如 [图 9-1](/ch9#fig_distributed_network) 所示）：
 
-1. Your request may have been lost (perhaps someone unplugged a network cable).
-2. Your request may be waiting in a queue and will be delivered later (perhaps the network or the
- recipient is overloaded).
-3. The remote node may have failed (perhaps it crashed or it was powered down).
-4. The remote node may have temporarily stopped responding (perhaps it is experiencing a long
- garbage collection pause; see [“Process Pauses”](/en/ch9#sec_distributed_clocks_pauses)), but it will start responding
- again later.
-5. The remote node may have processed your request, but the response has been lost on the network
- (perhaps a network switch has been misconfigured).
-6. The remote node may have processed your request, but the response has been delayed and will be
- delivered later (perhaps the network or your own machine is overloaded).
+1. 你的请求可能已经丢失（也许有人拔掉了网线）。
+2. 你的请求可能在队列中等待，稍后将被交付（也许网络或接收方过载）。
+3. 远程节点可能已经失效（也许它崩溃了或被关闭了）。
+4. 远程节点可能暂时停止响应（也许它正在经历长时间的垃圾回收暂停；见 ["进程暂停"](/ch9#sec_distributed_clocks_pauses)），但稍后会再次开始响应。
+5. 远程节点可能已经处理了你的请求，但响应在网络上丢失了（也许网络交换机配置错误）。
+6. 远程节点可能已经处理了你的请求，但响应被延迟了，稍后将被交付（也许网络或你自己的机器过载）。
 
-{{< figure src="/fig/ddia_0901.png" id="fig_distributed_network" caption="Figure 9-1. If you send a request and don't get a response, it's not possible to distinguish whether (a) the request was lost, (b) the remote node is down, or (c) the response was lost." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0901.png" id="fig_distributed_network" caption="图 9-1. 如果你发送请求但没有收到响应，无法区分是 (a) 请求丢失了，(b) 远程节点宕机了，还是 (c) 响应丢失了。" class="w-full my-4" >}}
 
 
-The sender can’t even tell whether the packet was delivered: the only option is for the recipient to
-send a response message, which may in turn be lost or delayed. These issues are indistinguishable in
-an asynchronous network: the only information you have is that you haven’t received a response yet.
-If you send a request to another node and don’t receive a response, it is *impossible* to tell why.
+发送方甚至无法判断数据包是否已交付：唯一的选择是让接收方发送响应消息，而响应消息本身也可能丢失或延迟。在异步网络中，这些问题是无法区分的：你拥有的唯一信息是你还没有收到响应。如果你向另一个节点发送请求但没有收到响应，*不可能* 判断原因。
 
-The usual way of handling this issue is a *timeout*: after some time you give up waiting and assume that
-the response is not going to arrive. However, when a timeout occurs, you still don’t know whether
-the remote node got your request or not (and if the request is still queued somewhere, it may still
-be delivered to the recipient, even if the sender has given up on it).
+处理这个问题的常用方法是 *超时*：在一段时间后，你放弃等待并假设响应不会到达。然而，当超时发生时，你仍然不知道远程节点是否收到了你的请求（如果请求仍在某处排队，即使发送方已经放弃了它，它仍可能被交付给接收方）。
 
 ### TCP 的局限性 {#sec_distributed_tcp}
 
-Network packets have a maximum size (generally a few kilobytes), but many applications need to send
-messages (requests, responses) that are too big to fit in one packet. These applications most often
-use TCP, the Transmission Control Protocol, to establish a *connection* that breaks up large data
-streams into individual packets, and puts them back together again on the receiving side.
+网络数据包有最大大小（通常为几千字节），但许多应用程序需要发送太大而无法装入一个数据包的消息（请求、响应）。这些应用程序最常使用 TCP（传输控制协议）来建立一个 *连接*，将大型数据流分解为单个数据包，并在接收端将它们重新组合起来。
 
 --------
 
 > [!NOTE]
-> Most of what we say about TCP applies also to its more recent alternative QUIC, as well as the
-> Stream Control Transmission Protocol (SCTP) used in WebRTC, the BitTorrent uTP protocol, and
-> other transport protocols. For a comparison to UDP, see [“TCP Versus UDP”](/en/ch9#sidebar_distributed_tcp_udp).
+> 我们关于 TCP 的大部分内容也适用于其更新的替代方案 QUIC，以及 WebRTC 中使用的流控制传输协议（SCTP）、BitTorrent uTP 协议和其他传输协议。有关与 UDP 的比较，请参见 ["TCP 与 UDP"](/ch9#sidebar_distributed_tcp_udp)。
 
 --------
 
-TCP is often described as providing “reliable” delivery, in the sense that it detects and
-retransmits dropped packets, it detects reordered packets and puts them back in the correct order,
-and it detects packet corruption using a simple checksum. It also figures out how fast it can send
-data so that it is transferred as quickly as possible, but without overloading the network or the
-receiving node; this is known as *congestion control*, *flow control*, or *backpressure* [^5].
+TCP 通常被描述为提供 "可靠" 的交付，从某种意义上说，它检测并重传丢弃的数据包，检测重新排序的数据包并将它们恢复到正确的顺序，并使用简单的校验和检测数据包损坏。它还计算出可以发送数据的速度，以便尽快传输数据，但不会使网络或接收节点过载；这被称为 *拥塞控制*、*流量控制* 或 *背压* [^5]。
 
-When you “send” some data by writing it to a socket, it actually doesn’t get sent immediately,
-but it’s only placed in a buffer managed by your operating system. When the congestion control
-algorithm decides that it has capacity to send a packet, it takes the next packet-worth of data from
-that buffer and passes it to the network interface. The packet passes through several switches and
-routers, and eventually the receiving node’s operating system places the packet’s data in a receive
-buffer and sends an acknowledgment packet back to the sender. Only then does the receiving operating
-system notify the application that some more data has arrived [^6].
+当你通过将数据写入套接字来 "发送" 一些数据时，它实际上不会立即发送，而只是放置在由操作系统管理的缓冲区中。当拥塞控制算法决定它有能力发送数据包时，它会从该缓冲区中获取下一个数据包的数据并将其传递给网络接口。数据包通过几个交换机和路由器，最终接收节点的操作系统将数据包的数据放置在接收缓冲区中并向发送方发送确认数据包。只有这样，接收操作系统才会通知应用程序有更多数据到达 [^6]。
 
-So, if TCP provides “reliability”, does that mean we no longer need to worry about networks being
-unreliable? Unfortunately not. It decides that a packet must have been lost if no acknowledgment
-arrives within some timeout, but TCP can’t tell either whether it was the outbound packet or the
-acknowledgment that was lost. Although TCP can resend the packet, it can’t guarantee that the new
-packet will get through either. If the network cable is unplugged, TCP can’t plug it back in for
-you. Eventually, after a configurable timeout, TCP gives up and signals an error to the application.
+那么，如果 TCP 提供 "可靠性"，这是否意味着我们不再需要担心网络不可靠？不幸的是不是。如果在某个超时时间内没有收到确认，它会认为数据包一定已经丢失，但 TCP 也无法判断是出站数据包还是确认丢失了。尽管 TCP 可以重新发送数据包，但它不能保证新数据包也会通过。如果网线被拔掉，TCP 不能为你重新插上它。最终，在可配置的超时后，TCP 放弃并向应用程序发出错误信号。
 
-If a TCP connection is closed with an error—perhaps because the remote node crashed, or perhaps
-because the network was interrupted—you unfortunately have no way of knowing how much data was
-actually processed by the remote node [^6].
-Even if TCP acknowledged that a packet was delivered, this only means that the operating system
-kernel on the remote node received it, but the application may have crashed before it handled that
-data. If you want to be sure that a request was successful, you need a positive response from the
-application itself [^7].
+如果 TCP 连接因错误而关闭 —— 也许是因为远程节点崩溃了，或者是因为网络被中断了 —— 你不幸地无法知道远程节点实际处理了多少数据 [^6]。即使 TCP 确认数据包已交付，这仅意味着远程节点上的操作系统内核收到了它，但应用程序可能在处理该数据之前就崩溃了。如果你想确保请求成功，你需要来自应用程序本身的积极响应 [^7]。
 
-Nevertheless, TCP is very useful, because it provides a convenient way of sending and receiving
-messages that are too big to fit in one packet. Once a TCP connection is established, you can also
-use it to send multiple requests and responses. This is usually done by first sending a header that
-indicates the length of the following message in bytes, followed by the actual message. HTTP and
-many RPC protocols (see [“Dataflow Through Services: REST and RPC”](/en/ch5#sec_encoding_dataflow_rpc)) work like this.
+尽管如此，TCP 非常有用，因为它提供了一种方便的方式来发送和接收太大而无法装入一个数据包的消息。一旦建立了 TCP 连接，你还可以使用它来发送多个请求和响应。这通常是通过首先发送一个标头来完成的，该标头以字节为单位指示后续消息的长度，然后是实际消息。HTTP 和许多 RPC 协议（见 ["通过服务的数据流：REST 和 RPC"](/ch5#sec_encoding_dataflow_rpc)）就是这样工作的。
 
-### 实践中的网络故障 {#sec_distributed_network_faults}
+### 网络故障的实践 {#sec_distributed_network_faults}
 
-We have been building computer networks for decades—one might hope that by now we would have figured
-out how to make them reliable. Unfortunately, we have not yet succeeded. There are some systematic
-studies, and plenty of anecdotal evidence, showing that network problems can be surprisingly common,
-even in controlled environments like a datacenter operated by one company [^8]:
+我们已经建立计算机网络几十年了 —— 人们可能希望到现在我们已经弄清楚如何使它们可靠。不幸的是，我们还没有成功。有一些系统研究和大量轶事证据表明，网络问题可能出人意料地常见，即使在由一家公司运营的受控环境（如数据中心）中也是如此 [^8]：
 
-* One study in a medium-sized datacenter found about 12 network faults per month, of which half
- disconnected a single machine, and half disconnected an entire rack [^9].
-* Another study measured the failure rates of components like top-of-rack switches, aggregation
- switches, and load balancers [^10].
- It found that adding redundant networking gear doesn’t reduce faults as much as you might hope,
- since it doesn’t guard against human error (e.g., misconfigured switches), which is a major cause
- of outages.
-* Interruptions of wide-area fiber links have been blamed on cows [^11], beavers [^12], and sharks [^13]
- (though shark bites have become rarer due to better shielding of submarine cables [^14]).
- Humans are also at fault, be it due to accidental misconfiguration [^15], scavenging [^16], or sabotage [^17].
-* Across different cloud regions, round-trip times of up to several *minutes* have been observed at
- high percentiles [^18].
- Even within a single datacenter, packet delay of more than a minute can occur during a network
- topology reconfiguration, triggered by a problem during a software upgrade for a switch [^19].
- Thus, we have to assume that messages might be delayed arbitrarily.
-* Sometimes communications are partially interrupted, depending on who you’re talking to: for
- example, A and B can communicate, B and C can communicate, but A and C cannot [^20] [^21].
- Other surprising faults include a network interface that sometimes drops all inbound packets but
- sends outbound packets successfully [^22]:
- just because a network link works in one direction doesn’t guarantee it’s also working in the opposite direction.
-* Even a brief network interruption can have repercussions that last for much longer than the
- original issue [^8] [^20] [^23].
+* 一项在中型数据中心的研究发现，每月约有 12 次网络故障，其中一半断开了单台机器，一半断开了整个机架 [^9]。
+* 另一项研究测量了组件（如机架顶部交换机、汇聚交换机和负载均衡器）的故障率 [^10]。它发现，添加冗余网络设备并不能像你希望的那样减少故障，因为它不能防范人为错误（例如，配置错误的交换机），这是停机的主要原因。
+* 广域光纤链路的中断被归咎于奶牛 [^11]、海狸 [^12] 和鲨鱼 [^13]（尽管由于海底电缆屏蔽更好，鲨鱼咬伤已经变得更加罕见 [^14]）。人类也有过错，无论是由于意外配置错误 [^15]、拾荒 [^16] 还是破坏 [^17]。
+* 在不同的云区域之间，已经观察到高百分位数下长达几 *分钟* 的往返时间 [^18]。即使在单个数据中心内，在网络拓扑重新配置期间（由交换机软件升级期间的问题触发），也可能发生超过一分钟的数据包延迟 [^19]。因此，我们必须假设消息可能被任意延迟。
+* 有时通信部分中断，这取决于你在和谁交谈：例如，A 和 B 可以通信，B 和 C 可以通信，但 A 和 C 不能 [^20] [^21]。其他令人惊讶的故障包括网络接口有时会丢弃所有入站数据包但成功发送出站数据包 [^22]：仅仅因为网络链路在一个方向上工作并不能保证它在相反方向上也工作。
+* 即使是短暂的网络中断也可能产生比原始问题持续时间更长的影响 [^8] [^20] [^23]。
 
 --------
 
 > [!TIP] 网络分区
-
-当网络的一部分由于网络故障而与其余部分断开时，有时
-称为*网络分区*或*网络分裂*，但它与其他类型的网络中断并没有根本区别。
-网络分区与存储系统的分片无关，后者
-有时也称为*分区*（见[第 7 章](/zh/ch7#ch_sharding)）。
+>
+> 当网络的一部分由于网络故障而与其余部分隔离时，有时称为 *网络分区* 或 *网络分裂*，但它与其他类型的网络中断没有根本区别。网络分区与存储系统的分片无关，后者有时也称为 *分区*（见 [第 7 章](/ch7#ch_sharding)）。
 
 --------
 
-Even if network faults are rare in your environment, the fact that faults *can* occur means that
-your software needs to be able to handle them. Whenever any communication happens over a network, it
-may fail—there is no way around it.
+即使网络故障在你的环境中很少见，故障 *可能* 发生的事实意味着你的软件需要能够处理它们。每当通过网络进行任何通信时，它都可能失败 —— 这是无法避免的。
 
-If the error handling of network faults is not defined and tested, arbitrarily bad things could
-happen: for example, the cluster could become deadlocked and permanently unable to serve requests,
-even when the network recovers [^24],
-or it could even delete all of your data [^25].
-If software is put in an unanticipated situation, it may do arbitrary unexpected things.
+如果网络故障的错误处理没有定义和测试，可能会发生任意糟糕的事情：例如，集群可能会陷入死锁并永久无法提供请求，即使网络恢复 [^24]，或者它甚至可能删除你的所有数据 [^25]。如果软件处于意料之外的情况，它可能会做任意意外的事情。
 
-Handling network faults doesn’t necessarily mean *tolerating* them: if your network is normally
-fairly reliable, a valid approach may be to simply show an error message to users while your network
-is experiencing problems. However, you do need to know how your software reacts to network problems
-and ensure that the system can recover from them.
-It may make sense to deliberately trigger network problems and test the system’s response (this is
-known as *fault injection*; see [“Fault injection”](/en/ch9#sec_fault_injection)).
+处理网络故障不一定意味着 *容忍* 它们：如果你的网络通常相当可靠，一个有效的方法可能是在网络出现问题时简单地向用户显示错误消息。但是，你确实需要知道你的软件如何对网络问题做出反应，并确保系统可以从中恢复。故意触发网络问题并测试系统的响应可能是有意义的（这被称为 *故障注入*；见 ["故障注入"](/ch9#sec_fault_injection)）。
 
-### 故障检测 {#id307}
+### 检测故障 {#id307}
 
-Many systems need to automatically detect faulty nodes. For example:
+许多系统需要自动检测故障节点。例如：
 
-* A load balancer needs to stop sending requests to a node that is dead (i.e., take it *out of rotation*).
-* In a distributed database with single-leader replication, if the leader fails, one of the
- followers needs to be promoted to be the new leader (see [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
+* 负载均衡器需要停止向已死亡的节点发送请求（即，将其 *移出轮转*）。
+* 在具有单主复制的分布式数据库中，如果主节点失效，其中一个从节点需要被提升为新的主节点（见 ["处理节点中断"](/ch6#sec_replication_failover)）。
 
-Unfortunately, the uncertainty about the network makes it difficult to tell whether a node is
-working or not. In some specific circumstances you might get some feedback to explicitly tell you
-that something is not working:
+不幸的是，网络的不确定性使得很难判断节点是否正常工作。在某些特定情况下，你可能会得到一些明确告诉你某事不工作的反馈：
 
-* If you can reach the machine on which the node should be running, but no process is listening on
- the destination port (e.g., because the process crashed), the operating system will helpfully close
- or refuse TCP connections by sending a `RST` or `FIN` packet in reply.
-* If a node process crashed (or was killed by an administrator) but the node’s operating system is
- still running, a script can notify other nodes about the crash so that another node can take over
- quickly without having to wait for a timeout to expire. For example, HBase does this [^26].
-* If you have access to the management interface of the network switches in your datacenter, you can
- query them to detect link failures at a hardware level (e.g., if the remote machine is powered
- down). This option is ruled out if you’re connecting via the internet, or if you’re in a shared
- datacenter with no access to the switches themselves, or if you can’t reach the management
- interface due to a network problem.
-* If a router is sure that the IP address you’re trying to connect to is unreachable, it may reply
- to you with an ICMP Destination Unreachable packet. However, the router doesn’t have a magic
- failure detection capability either—it is subject to the same limitations as other participants
- of the network.
+* 如果你可以访问节点应该运行的机器，但没有进程监听目标端口（例如，因为进程崩溃了），操作系统将通过发送 `RST` 或 `FIN` 数据包来帮助关闭或拒绝 TCP 连接。
+* 如果节点进程崩溃（或被管理员杀死）但节点的操作系统仍在运行，脚本可以通知其他节点有关崩溃的信息，以便另一个节点可以快速接管而无需等待超时到期。例如，HBase 就是这样做的 [^26]。
+* 如果你可以访问数据中心中网络交换机的管理接口，你可以查询它们以在硬件级别检测链路故障（例如，如果远程机器已关闭电源）。如果你通过互联网连接，或者你在共享数据中心中无法访问交换机本身，或者由于网络问题无法访问管理接口，则此选项被排除。
+* 如果路由器确定你尝试连接的 IP 地址不可达，它可能会向你回复 ICMP 目标不可达数据包。然而，路由器也没有神奇的故障检测能力 —— 它受到与网络其他参与者相同的限制。
 
-Rapid feedback about a remote node being down is useful, but you can’t count on it. If something has
-gone wrong, you may get an error response at some level of the stack, but in general you have to
-assume that you will get no response at all. You can retry a few times, wait for a timeout to
-elapse, and eventually declare the node dead if you don’t hear back within the timeout.
+关于远程节点宕机的快速反馈很有用，但你不能指望它。如果出了问题，你可能会在堆栈的某个级别收到错误响应，但通常你必须假设你根本不会收到任何响应。你可以重试几次，等待超时过去，如果在超时内没有收到回复，最终宣布节点死亡。
 
 ### 超时和无界延迟 {#sec_distributed_queueing}
 
-If a timeout is the only sure way of detecting a fault, then how long should the timeout be? There
-is unfortunately no simple answer.
+如果超时是检测故障的唯一可靠方法，那么超时应该多长？不幸的是，没有简单的答案。
 
-A long timeout means a long wait until a node is declared dead (and during this time, users may have
-to wait or see error messages). A short timeout detects faults faster, but carries a higher risk of
-incorrectly declaring a node dead when in fact it has only suffered a temporary slowdown (e.g., due
-to a load spike on the node or the network).
+长超时意味着在节点被宣布死亡之前需要长时间等待（在此期间，用户可能不得不等待或看到错误消息）。短超时可以更快地检测故障，但当节点实际上只是遭受暂时的减速（例如，由于节点或网络上的负载峰值）时，错误地宣布节点死亡的风险更高。
 
-Prematurely declaring a node dead is problematic: if the node is actually alive and in the middle of
-performing some action (for example, sending an email), and another node takes over, the action may
-end up being performed twice. We will discuss this issue in more detail in
-[“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth), and in Chapters [^10] and [Link to Come].
+过早地宣布节点死亡是有问题的：如果节点实际上是活着的并且正在执行某些操作（例如，发送电子邮件），而另一个节点接管，该操作可能最终被执行两次。我们将在 ["知识、真相与谎言"](/ch9#sec_distributed_truth) 以及第 10 章和后续章节中更详细地讨论这个问题。
 
-When a node is declared dead, its responsibilities need to be transferred to other nodes, which
-places additional load on other nodes and the network. If the system is already struggling with high
-load, declaring nodes dead prematurely can make the problem worse. In particular, it could happen
-that the node actually wasn’t dead but only slow to respond due to overload; transferring its load
-to other nodes can cause a cascading failure (in the extreme case, all nodes declare each other
-dead, and everything stops working—see [“When an overloaded system won’t recover”](/en/ch2#sidebar_metastable)).
+当节点被宣布死亡时，其职责需要转移到其他节点，这会给其他节点和网络带来额外的负载。如果系统已经在高负载下挣扎，过早地宣布节点死亡可能会使问题变得更糟。特别是，可能发生的情况是，节点实际上并没有死亡，只是由于过载而响应缓慢；将其负载转移到其他节点可能会导致级联故障（在极端情况下，所有节点互相宣布对方死亡，一切都停止工作 —— 见 ["当过载系统无法恢复时"](/ch2#sidebar_metastable)）。
 
-Imagine a fictitious system with a network that guaranteed a maximum delay for packets—every packet
-is either delivered within some time *d*, or it is lost, but delivery never takes longer than *d*.
-Furthermore, assume that you can guarantee that a non-failed node always handles a request within
-some time *r*. In this case, you could guarantee that every successful request receives a response
-within time 2*d* + *r*—and if you don’t receive a response within that time, you know
-that either the network or the remote node is not working. If this was true,
-2*d* + *r* would be a reasonable timeout to use.
+想象一个虚构的系统，其网络保证数据包的最大延迟 —— 每个数据包要么在某个时间 *d* 内交付，要么丢失，但交付从不会超过 *d*。此外，假设你可以保证未失效的节点总是在某个时间 *r* 内处理请求。在这种情况下，你可以保证每个成功的请求在时间 2*d* + *r* 内收到响应 —— 如果你在该时间内没有收到响应，你就知道网络或远程节点不工作。如果这是真的，2*d* + *r* 将是一个合理的超时时间。
 
-Unfortunately, most systems we work with have neither of those guarantees: asynchronous networks
-have *unbounded delays* (that is, they try to deliver packets as quickly as possible, but there is
-no upper limit on the time it may take for a packet to arrive), and most server implementations
-cannot guarantee that they can handle requests within some maximum time (see
-[“Response time guarantees”](/en/ch9#sec_distributed_clocks_realtime)). For failure detection, it’s not sufficient for the system to
-be fast most of the time: if your timeout is low, it only takes a transient spike in round-trip
-times to throw the system off-balance.
+不幸的是，我们使用的大多数系统都没有这些保证：异步网络具有 *无界延迟*（即，它们尝试尽快交付数据包，但数据包到达所需的时间没有上限），大多数服务器实现无法保证它们可以在某个最大时间内处理请求（见 ["响应时间保证"](/ch9#sec_distributed_clocks_realtime)）。对于故障检测，系统大部分时间快速运行是不够的：如果你的超时很低，往返时间的瞬时峰值就足以使系统失去平衡。
 
-#### 网络拥塞与排队 {#network-congestion-and-queueing}
+#### 网络拥塞和排队 {#network-congestion-and-queueing}
 
-When driving a car, travel times on road networks often vary most due to traffic congestion.
-Similarly, the variability of packet delays on computer networks is most often due to queueing [^27]:
+开车时，道路网络上的行驶时间通常因交通拥堵而变化最大。同样，计算机网络上数据包延迟的可变性最常是由于排队 [^27]：
 
-* If several different nodes simultaneously try to send packets to the same destination, the network
- switch must queue them up and feed them into the destination network link one by one (as illustrated
- in [Figure 9-2](/en/ch9#fig_distributed_switch_queueing)). On a busy network link, a packet may have to wait a while
- until it can get a slot (this is called *network congestion*). If there is so much incoming data
- that the switch queue fills up, the packet is dropped, so it needs to be resent—even though
- the network is functioning fine.
-* When a packet reaches the destination machine, if all CPU cores are currently busy, the incoming
- request from the network is queued by the operating system until the application is ready to
- handle it. Depending on the load on the machine, this may take an arbitrary length of time [^28].
-* In virtualized environments, a running operating system is often paused for tens of milliseconds
- while another virtual machine uses a CPU core. During this time, the VM cannot consume any data
- from the network, so the incoming data is queued (buffered) by the virtual machine monitor [^29],
- further increasing the variability of network delays.
-* As mentioned earlier, in order to avoid overloading the network, TCP limits the rate at which it
- sends data. This means additional queueing at the sender before the data even enters the network.
+* 如果几个不同的节点同时尝试向同一目的地发送数据包，网络交换机必须将它们排队并逐个送入目标网络链路（如 [图 9-2](/ch9#fig_distributed_switch_queueing) 所示）。在繁忙的网络链路上，数据包可能需要等待一段时间才能获得一个插槽（这称为 *网络拥塞*）。如果有太多的传入数据以至于交换机队列满了，数据包将被丢弃，因此需要重新发送 —— 即使网络运行正常。
+* 当数据包到达目标机器时，如果所有 CPU 核心当前都很忙，来自网络的传入请求会被操作系统排队，直到应用程序准备处理它。根据机器上的负载，这可能需要任意长的时间 [^28]。
+* 在虚拟化环境中，正在运行的操作系统经常会暂停几十毫秒，而另一个虚拟机使用 CPU 核心。在此期间，VM 无法消耗来自网络的任何数据，因此传入数据由虚拟机监视器排队（缓冲）[^29]，进一步增加了网络延迟的可变性。
+* 如前所述，为了避免网络过载，TCP 限制发送数据的速率。这意味着在数据甚至进入网络之前，发送方就有额外的排队。
 
-{{< figure src="/fig/ddia_0902.png" id="fig_distributed_switch_queueing" caption="Figure 9-2. If several machines send network traffic to the same destination, its switch queue can fill up. Here, ports 1, 2, and 4 are all trying to send packets to port 3." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0902.png" id="fig_distributed_switch_queueing" caption="图 9-2. 如果几台机器向同一目的地发送网络流量，其交换机队列可能会满。这里，端口 1、2 和 4 都试图向端口 3 发送数据包。" class="w-full my-4" >}}
 
-Moreover, when TCP detects and automatically retransmits a lost packet, although the application
-does not see the packet loss directly, it does see the resulting delay (waiting for the timeout to
-expire, and then waiting for the retransmitted packet to be acknowledged).
+此外，当 TCP 检测到并自动重传丢失的数据包时，尽管应用程序不会直接看到数据包丢失，但它确实会看到由此产生的延迟（等待超时到期，然后等待重传的数据包被确认）。
 
 --------
 
-> [!TIP] TCP 对比 UDP
-
-Some latency-sensitive applications, such as videoconferencing and Voice over IP (VoIP), use UDP
-rather than TCP. It’s a trade-off between reliability and variability of delays: as UDP does not
-perform flow control and does not retransmit lost packets, it avoids some of the reasons for
-variable network delays (although it is still susceptible to switch queues and scheduling delays).
-
-UDP is a good choice in situations where delayed data is worthless. For example, in a VoIP phone
-call, there probably isn’t enough time to retransmit a lost packet before its data is due to be
-played over the loudspeakers. In this case, there’s no point in retransmitting the packet—the
-application must instead fill the missing packet’s time slot with silence (causing a brief
-interruption in the sound) and move on in the stream. The retry happens at the human layer instead.
-(“Could you repeat that please? The sound just cut out for a moment.”)
+> [!TIP] TCP 与 UDP
+>
+> 一些对延迟敏感的应用程序，如视频会议和 IP 语音（VoIP），使用 UDP 而不是 TCP。这是可靠性和延迟可变性之间的权衡：由于 UDP 不执行流量控制并且不重传丢失的数据包，它避免了网络延迟可变的一些原因（尽管它仍然容易受到交换机队列和调度延迟的影响）。
+>
+> UDP 是延迟数据无价值的情况下的好选择。例如，在 VoIP 电话通话中，在数据应该通过扬声器播放之前，可能没有足够的时间重传丢失的数据包。在这种情况下，重传数据包没有意义 —— 应用程序必须用静音填充缺失数据包的时间槽（导致声音短暂中断）并继续流。重试发生在人类层面。（"你能重复一下吗？声音刚刚中断了一会儿。"）
 
 --------
 
-All of these factors contribute to the variability of network delays. Queueing delays have an
-especially wide range when a system is close to its maximum capacity: a system with plenty of spare
-capacity can easily drain queues, whereas in a highly utilized system, long queues can build up very
-quickly.
+所有这些因素都导致了网络延迟的可变性。当系统接近其最大容量时，排队延迟的范围特别大：具有充足备用容量的系统可以轻松排空队列，而在高度利用的系统中，长队列可以很快建立起来。
 
-In public clouds and multitenant datacenters, resources are shared among many customers: the
-network links and switches, and even each machine’s network interface and CPUs (when running on
-virtual machines), are shared. Processing large amounts of data can use the entire capacity of
-network links (*saturate* them). As you have no control over or insight into other customers’ usage of the shared
-resources, network delays can be highly variable if someone near you (a *noisy neighbor*) is
-using a lot of resources [^30] [^31].
+在公共云和多租户数据中心中，资源在许多客户之间共享：网络链路和交换机，甚至每台机器的网络接口和 CPU（在虚拟机上运行时）都是共享的。处理大量数据可以使用网络链路的全部容量（*饱和* 它们）。由于你无法控制或了解其他客户对共享资源的使用情况，如果你附近的某人（*吵闹的邻居*）正在使用大量资源，网络延迟可能会高度可变 [^30] [^31]。
 
-In such environments, you can only choose timeouts experimentally: measure the distribution of
-network round-trip times over an extended period, and over many machines, to determine the expected
-variability of delays. Then, taking into account your application’s characteristics, you can
-determine an appropriate trade-off between failure detection delay and risk of premature timeouts.
+在这种环境中，你只能通过实验选择超时：在较长时间内和许多机器上测量网络往返时间的分布，以确定延迟的预期可变性。然后，考虑到你的应用程序的特征，你可以在故障检测延迟和过早超时风险之间确定适当的权衡。
 
-Even better, rather than using configured constant timeouts, systems can continually measure
-response times and their variability (*jitter*), and automatically adjust timeouts according to the
-observed response time distribution. The Phi Accrual failure detector [^32],
-which is used for example in Akka and Cassandra [^33]
-is one way of doing this. TCP retransmission timeouts also work similarly [^5].
+更好的是，系统可以持续测量响应时间及其可变性（*抖动*），并根据观察到的响应时间分布自动调整超时，而不是使用配置的常量超时。Phi 累积故障检测器 [^32]（例如在 Akka 和 Cassandra 中使用 [^33]）就是这样做的一种方法。TCP 重传超时也以类似的方式工作 [^5]。
 
-### 同步网络与异步网络 {#sec_distributed_sync_networks}
+### 同步与异步网络 {#sec_distributed_sync_networks}
 
-Distributed systems would be a lot simpler if we could rely on the network to deliver packets with
-some fixed maximum delay, and not to drop packets. Why can’t we solve this at the hardware level
-and make the network reliable so that the software doesn’t need to worry about it?
+如果我们可以依靠网络以某个固定的最大延迟交付数据包，并且不丢弃数据包，分布式系统将会简单得多。为什么我们不能在硬件级别解决这个问题，使网络可靠，这样软件就不需要担心它了？
 
-To answer this question, it’s interesting to compare datacenter networks to the traditional fixed-line
-telephone network (non-cellular, non-VoIP), which is extremely reliable: delayed audio
-frames and dropped calls are very rare. A phone call requires a constantly low end-to-end latency
-and enough bandwidth to transfer the audio samples of your voice. Wouldn’t it be nice to have
-similar reliability and predictability in computer networks?
+要回答这个问题，比较数据中心网络与传统的固定电话网络（非蜂窝、非 VoIP）很有趣，后者极其可靠：延迟的音频帧和掉线非常罕见。电话通话需要持续的低端到端延迟和足够的带宽来传输你声音的音频样本。在计算机网络中拥有类似的可靠性和可预测性不是很好吗？
 
-When you make a call over the telephone network, it establishes a *circuit*: a fixed, guaranteed
-amount of bandwidth is allocated for the call, along the entire route between the two callers. This
-circuit remains in place until the call ends [^34].
-For example, an ISDN network runs at a fixed rate of 4,000 frames per second. When a call is
-established, it is allocated 16 bits of space within each frame (in each direction). Thus, for the
-duration of the call, each side is guaranteed to be able to send exactly 16 bits of audio data every
-250 microseconds [^35].
+当你通过电话网络拨打电话时，它会建立一个 *电路*：在两个呼叫者之间的整个路线上分配固定、有保证的带宽量。该电路一直保持到通话结束 [^34]。例如，ISDN 网络以每秒 4,000 帧的固定速率运行。建立呼叫时，它在每帧内（在每个方向上）分配 16 位空间。因此，在通话期间，每一方都保证能够每 250 微秒准确发送 16 位音频数据 [^35]。
 
-This kind of network is *synchronous*: even as data passes through several routers, it does not
-suffer from queueing, because the 16 bits of space for the call have already been reserved in the
-next hop of the network. And because there is no queueing, the maximum end-to-end latency of the
-network is fixed. We call this a *bounded delay*.
+这种网络是 *同步的*：即使数据通过几个路由器，它也不会遭受排队，因为呼叫的 16 位空间已经在网络的下一跳中预留了。由于没有排队，网络的最大端到端延迟是固定的。我们称之为 *有界延迟*。
 
-#### 我们不能简单地让网络延迟可预测吗？ {#can-we-not-simply-make-network-delays-predictable}
+#### 我们不能简单地使网络延迟可预测吗？ {#can-we-not-simply-make-network-delays-predictable}
 
-Note that a circuit in a telephone network is very different from a TCP connection: a circuit is a
-fixed amount of reserved bandwidth which nobody else can use while the circuit is established,
-whereas the packets of a TCP connection opportunistically use whatever network bandwidth is
-available. You can give TCP a variable-sized block of data (e.g., an email or a web page), and it
-will try to transfer it in the shortest time possible. While a TCP connection is idle, it doesn’t
-use any bandwidth (except perhaps for an occasional keepalive packet).
+请注意，电话网络中的电路与 TCP 连接非常不同：电路是固定数量的预留带宽，在电路建立期间其他人无法使用，而 TCP 连接的数据包则机会主义地使用任何可用的网络带宽。你可以给 TCP 一个可变大小的数据块（例如，电子邮件或网页），它会尝试在尽可能短的时间内传输它。当 TCP 连接空闲时，它不使用任何带宽（除了偶尔的保活数据包）。
 
-If datacenter networks and the internet were circuit-switched networks, it would be possible to
-establish a guaranteed maximum round-trip time when a circuit was set up. However, they are not:
-Ethernet and IP are packet-switched protocols, which suffer from queueing and thus unbounded delays
-in the network. These protocols do not have the concept of a circuit.
+如果数据中心网络和互联网是电路交换网络，那么在建立电路时就可以建立有保证的最大往返时间。然而，它们不是：以太网和 IP 是分组交换协议，会遭受排队，因此在网络中有无界延迟。这些协议没有电路的概念。
 
-Why do datacenter networks and the internet use packet switching? The answer is that they are
-optimized for *bursty traffic*. A circuit is good for an audio or video call, which needs to
-transfer a fairly constant number of bits per second for the duration of the call. On the other
-hand, requesting a web page, sending an email, or transferring a file doesn’t have any particular
-bandwidth requirement—we just want it to complete as quickly as possible.
+为什么数据中心网络和互联网使用分组交换？答案是它们针对 *突发流量* 进行了优化。电路适合音频或视频通话，需要在通话期间传输相当恒定的每秒位数。另一方面，请求网页、发送电子邮件或传输文件没有任何特定的带宽要求 —— 我们只希望它尽快完成。
 
-If you wanted to transfer a file over a circuit, you would have to guess a bandwidth allocation. If
-you guess too low, the transfer is unnecessarily slow, leaving network capacity unused. If you guess
-too high, the circuit cannot be set up (because the network cannot allow a circuit to be created if
-its bandwidth allocation cannot be guaranteed). Thus, using circuits for bursty data transfers
-wastes network capacity and makes transfers unnecessarily slow. By contrast, TCP dynamically adapts
-the rate of data transfer to the available network capacity.
+如果你想通过电路传输文件，你必须猜测带宽分配。如果你猜得太低，传输会不必要地慢，使网络容量未被使用。如果你猜得太高，电路无法建立（因为如果无法保证其带宽分配，网络无法允许创建电路）。因此，使用电路进行突发数据传输会浪费网络容量并使传输不必要地缓慢。相比之下，TCP 动态调整数据传输速率以适应可用的网络容量。
 
-There have been some attempts to build hybrid networks that support both circuit switching and
-packet switching. *Asynchronous Transfer Mode* (ATM) was a competitor to Ethernet in the 1980s, but
-it didn’t gain much adoption outside of telephone network core switches. InfiniBand has some similarities [^36]:
-it implements end-to-end flow control at the link layer, which reduces the need for queueing in the
-network, although it can still suffer from delays due to link congestion [^37].
-With careful use of *quality of service* (QoS, prioritization and scheduling of packets) and *admission
-control* (rate-limiting senders), it is possible to emulate circuit switching on packet networks, or
-provide statistically bounded delay [^27] [^34]. New network algorithms like Low Latency, Low
-Loss, and Scalable Throughput (L4S) attempt to mitigate some of the queuing and congestion control
-problems both at the client and router level. Linux’s traffic controller (TC) also allows
-applications to reprioritize packets for QoS purposes.
+曾经有一些尝试构建既支持电路交换又支持分组交换的混合网络。*异步传输模式*（ATM）在 1980 年代是以太网的竞争对手，但除了电话网络核心交换机外，它没有获得太多采用。InfiniBand 有一些相似之处 [^36]：它在链路层实现端到端流量控制，减少了网络中排队的需要，尽管它仍然可能因链路拥塞而遭受延迟 [^37]。通过仔细使用 *服务质量*（QoS，数据包的优先级和调度）和 *准入控制*（对发送者的速率限制），可以在分组网络上模拟电路交换，或提供统计上有界的延迟 [^27] [^34]。新的网络算法，如低延迟、低损耗和可扩展吞吐量（L4S）试图在客户端和路由器级别缓解一些排队和拥塞控制问题。Linux 的流量控制器（TC）也允许应用程序为 QoS 目的重新优先排序数据包。
 
 --------
 
-> [!TIP] 延迟与资源利用率
-
-More generally, you can think of variable delays as a consequence of dynamic resource partitioning.
-
-Say you have a wire between two telephone switches that can carry up to 10,000 simultaneous calls.
-Each circuit that is switched over this wire occupies one of those call slots. Thus, you can think of
-the wire as a resource that can be shared by up to 10,000 simultaneous users. The resource is
-divided up in a *static* way: even if you’re the only call on the wire right now, and all other
-9,999 slots are unused, your circuit is still allocated the same fixed amount of bandwidth as when
-the wire is fully utilized.
-
-By contrast, the internet shares network bandwidth *dynamically*. Senders push and jostle with each
-other to get their packets over the wire as quickly as possible, and the network switches decide
-which packet to send (i.e., the bandwidth allocation) from one moment to the next. This approach has the
-downside of queueing, but the advantage is that it maximizes utilization of the wire. The wire has a
-fixed cost, so if you utilize it better, each byte you send over the wire is cheaper.
-
-A similar situation arises with CPUs: if you share each CPU core dynamically between several
-threads, one thread sometimes has to wait in the operating system’s run queue while another thread
-is running, so a thread can be paused for varying lengths of time [^38].
-However, this utilizes the hardware better than if you allocated a static number of CPU cycles to
-each thread (see [“Response time guarantees”](/en/ch9#sec_distributed_clocks_realtime)). Better hardware utilization is also why cloud
-platforms run several virtual machines from different customers on the same physical machine.
-
-Latency guarantees are achievable in certain environments, if resources are statically partitioned
-(e.g., dedicated hardware and exclusive bandwidth allocations). However, it comes at the cost of
-reduced utilization—in other words, it is more expensive. On the other hand, multitenancy with
-dynamic resource partitioning provides better utilization, so it is cheaper, but it has the downside of variable delays.
-
-Variable delays in networks are not a law of nature, but simply the result of a cost/benefit trade-off.
+> [!TIP] 延迟和资源利用率
+>
+> 更一般地说，你可以将可变延迟视为动态资源分区的结果。
+>
+> 假设你在两个电话交换机之间有一条可以承载多达 10,000 个同时呼叫的线路。通过此线路交换的每个电路都占用其中一个呼叫插槽。因此，你可以将该线路视为最多可由 10,000 个同时用户共享的资源。资源以 *静态* 方式划分：即使你现在是线路上唯一的呼叫，并且所有其他 9,999 个插槽都未使用，你的电路仍然分配与线路完全利用时相同的固定带宽量。
+>
+> 相比之下，互联网 *动态* 共享网络带宽。发送者互相推挤，尽可能快地通过线路发送数据包，网络交换机决定在每个时刻发送哪个数据包（即带宽分配）。这种方法的缺点是排队，但优点是它最大化了线路的利用率。线路有固定成本，所以如果你更好地利用它，你通过线路发送的每个字节都更便宜。
+>
+> CPU 也会出现类似的情况：如果你在几个线程之间动态共享每个 CPU 核心，一个线程有时必须在操作系统的运行队列中等待，而另一个线程正在运行，因此线程可能会暂停不同的时间长度 [^38]。然而，这比为每个线程分配静态数量的 CPU 周期更好地利用硬件（见 ["响应时间保证"](/ch9#sec_distributed_clocks_realtime)）。更好的硬件利用率也是云平台在同一物理机器上运行来自不同客户的多个虚拟机的原因。
+>
+> 如果资源是静态分区的（例如，专用硬件和独占带宽分配），则在某些环境中可以实现延迟保证。然而，这是以降低利用率为代价的 —— 换句话说，它更昂贵。另一方面，具有动态资源分区的多租户提供了更好的利用率，因此更便宜，但它有可变延迟的缺点。
+>
+> 网络中的可变延迟不是自然法则，而只是成本/收益权衡的结果。
 
 --------
 
-However, such quality of service is currently not enabled in multitenant datacenters and public clouds, or when communicating via the internet.
-Currently deployed technology does not allow us to make any guarantees about delays or reliability
-of the network: we have to assume that network congestion, queueing, and unbounded delays will
-happen. Consequently, there’s no “correct” value for timeouts—they need to be determined experimentally.
+然而，这种服务质量目前在多租户数据中心和公共云中未启用，或者在通过互联网通信时未启用。当前部署的技术不允许我们对网络的延迟或可靠性做出任何保证：我们必须假设网络拥塞、排队和无界延迟会发生。因此，超时没有 "正确" 的值 —— 它们需要通过实验确定。
 
-Peering agreements between internet service providers and the establishment of routes through the
-Border Gateway Protocol (BGP), bear closer resemblance to circuit switching than IP itself. At this
-level, it is possible to buy dedicated bandwidth. However, internet routing operates at the level of
-networks, not individual connections between hosts, and at a much longer timescale.
+互联网服务提供商之间的对等协议和通过边界网关协议（BGP）建立路由，比 IP 本身更接近电路交换。在这个级别，可以购买专用带宽。然而，互联网路由在网络级别而不是主机之间的单个连接上运行，并且时间尺度要长得多。
 
 
 
 ## 不可靠的时钟 {#sec_distributed_clocks}
 
-Clocks and time are important. Applications depend on clocks in various ways to answer questions
-like the following:
+时钟和时间很重要。应用程序以各种方式依赖时钟来回答如下问题：
 
-1. Has this request timed out yet?
-2. What’s the 99th percentile response time of this service?
-3. How many queries per second did this service handle on average in the last five minutes?
-4. How long did the user spend on our site?
-5. When was this article published?
-6. At what date and time should the reminder email be sent?
-7. When does this cache entry expire?
-8. What is the timestamp on this error message in the log file?
+1. 这个请求超时了吗？
+2. 这项服务的第 99 百分位响应时间是多少？
+3. 这项服务在过去五分钟内平均每秒处理了多少查询？
+4. 用户在我们的网站上花了多长时间？
+5. 这篇文章是什么时候发表的？
+6. 提醒邮件应该在什么日期和时间发送？
+7. 这个缓存条目何时过期？
+8. 日志文件中此错误消息的时间戳是什么？
 
-Examples 1–4 measure *durations* (e.g., the time interval between a request being sent and a
-response being received), whereas examples 5–8 describe *points in time* (events that occur on a
-particular date, at a particular time).
+示例 1-4 测量 *持续时间*（例如，发送请求和接收响应之间的时间间隔），而示例 5-8 描述 *时间点*（在特定日期、特定时间发生的事件）。
 
-In a distributed system, time is a tricky business, because communication is not instantaneous: it
-takes time for a message to travel across the network from one machine to another. The time when a
-message is received is always later than the time when it is sent, but due to variable delays in the
-network, we don’t know how much later. This fact sometimes makes it difficult to determine the order
-in which things happened when multiple machines are involved.
+在分布式系统中，时间是一件棘手的事情，因为通信不是瞬时的：消息从一台机器通过网络传输到另一台机器需要时间。接收消息的时间总是晚于发送消息的时间，但由于网络中的可变延迟，我们不知道晚了多少。当涉及多台机器时，这个事实有时会使确定事情发生的顺序变得困难。
 
-Moreover, each machine on the network has its own clock, which is an actual hardware device: usually
-a quartz crystal oscillator. These devices are not perfectly accurate, so each machine has its own
-notion of time, which may be slightly faster or slower than on other machines. It is possible to
-synchronize clocks to some degree: the most commonly used mechanism is the Network Time Protocol (NTP), which
-allows the computer clock to be adjusted according to the time reported by a group of servers [^39].
-The servers in turn get their time from a more accurate time source, such as a GPS receiver.
+此外，网络上的每台机器都有自己的时钟，这是一个实际的硬件设备：通常是石英晶体振荡器。这些设备并不完全准确，因此每台机器都有自己的时间概念，可能比其他机器稍快或稍慢。可以在某种程度上同步时钟：最常用的机制是网络时间协议（NTP），它允许根据一组服务器报告的时间调整计算机时钟 [^39]。服务器反过来从更准确的时间源（如 GPS 接收器）获取时间。
 
 ### 单调时钟与日历时钟 {#sec_distributed_monotonic_timeofday}
 
-Modern computers have at least two different kinds of clocks: a *time-of-day clock* and a *monotonic
-clock*. Although they both measure time, it is important to distinguish the two, since they serve
-different purposes.
+现代计算机至少有两种不同类型的时钟：*日历时钟* 和 *单调时钟*。尽管它们都测量时间，但区分两者很重要，因为它们服务于不同的目的。
 
 #### 日历时钟 {#time-of-day-clocks}
 
-A time-of-day clock does what you intuitively expect of a clock: it returns the current date and
-time according to some calendar (also known as *wall-clock time*). For example,
-`clock_gettime(CLOCK_REALTIME)` on Linux and
-`System.currentTimeMillis()` in Java return the number of seconds (or milliseconds) since the
-*epoch*: midnight UTC on January 1, 1970, according to the Gregorian calendar, not counting leap
-seconds. Some systems use other dates as their reference point.
-(Although the Linux clock is called *real-time*, it has nothing to do with real-time operating
-systems, as discussed in [“Response time guarantees”](/en/ch9#sec_distributed_clocks_realtime).)
+日历时钟做你直观期望时钟做的事情：它根据某个日历返回当前日期和时间（也称为 *墙上时钟时间*）。例如，Linux 上的 `clock_gettime(CLOCK_REALTIME)` 和 Java 中的 `System.currentTimeMillis()` 返回自 *纪元* 以来的秒数（或毫秒数）：根据格里高利历，1970 年 1 月 1 日午夜 UTC，不计算闰秒。一些系统使用其他日期作为参考点。（尽管 Linux 时钟被称为 *实时*，但它与实时操作系统无关，如 ["响应时间保证"](/ch9#sec_distributed_clocks_realtime) 中所讨论的。）
 
-Time-of-day clocks are usually synchronized with NTP, which means that a timestamp from one machine
-(ideally) means the same as a timestamp on another machine. However, time-of-day clocks also have
-various oddities, as described in the next section. In particular, if the local clock is too far
-ahead of the NTP server, it may be forcibly reset and appear to jump back to a previous point in
-time. These jumps, as well as similar jumps caused by leap seconds, make time-of-day clocks
-unsuitable for measuring elapsed time [^40].
+日历时钟通常与 NTP 同步，这意味着来自一台机器的时间戳（理想情况下）与另一台机器上的时间戳意思相同。然而，日历时钟也有各种奇怪之处，如下一节所述。特别是，如果本地时钟远远超前于 NTP 服务器，它可能会被强制重置并显示跳回到以前的时间点。这些跳跃，以及闰秒引起的类似跳跃，使日历时钟不适合测量经过的时间 [^40]。
 
-Time-of-day clocks can experience jumps due to the start and end of Daylight Saving Time (DST);
-these can be avoided by always using UTC as time zone, which does not have DST.
-Time-of-day clocks have also historically had quite a coarse-grained resolution, e.g., moving forward
-in steps of 10 ms on older Windows systems [^41].
-On recent systems, this is less of a problem.
+日历时钟可能会因夏令时（DST）的开始和结束而经历跳跃；这些可以通过始终使用 UTC 作为时区来避免，UTC 没有 DST。日历时钟在历史上也具有相当粗粒度的分辨率，例如，在较旧的 Windows 系统上以 10 毫秒的步长前进 [^41]。在最近的系统上，这不再是一个问题。
 
 #### 单调时钟 {#monotonic-clocks}
 
-A monotonic clock is suitable for measuring a duration (time interval), such as a timeout or a
-service’s response time: `clock_gettime(CLOCK_MONOTONIC)` or `clock_gettime(CLOCK_BOOTTIME)` on Linux [^42]
-and `System.nanoTime()` in Java are monotonic clocks, for example. The name comes from the fact that
-they are guaranteed to always move forward (whereas a time-of-day clock may jump back in time).
+单调时钟适用于测量持续时间（时间间隔），例如超时或服务的响应时间：例如，Linux 上的 `clock_gettime(CLOCK_MONOTONIC)` 或 `clock_gettime(CLOCK_BOOTTIME)` [^42] 和 Java 中的 `System.nanoTime()` 是单调时钟。这个名字来源于它们保证始终向前移动的事实（而日历时钟可能会在时间上向后跳跃）。
 
-You can check the value of the monotonic clock at one point in time, do something, and then check
-the clock again at a later time. The *difference* between the two values tells you how much time
-elapsed between the two checks — more like a stopwatch than a wall clock. However, the *absolute*
-value of the clock is meaningless: it might be the number of nanoseconds since the computer was
-booted up, or something similarly arbitrary. In particular, it makes no sense to compare monotonic
-clock values from two different computers, because they don’t mean the same thing.
+你可以在某个时间点检查单调时钟的值，做一些事情，然后在稍后的时间再次检查时钟。两个值之间的 *差值* 告诉你两次检查之间经过了多少时间 —— 更像秒表而不是挂钟。然而，时钟的 *绝对* 值是没有意义的：它可能是自计算机启动以来的纳秒数，或类似的任意值。特别是，比较来自两台不同计算机的单调时钟值是没有意义的，因为它们不代表同样的东西。
 
-On a server with multiple CPU sockets, there may be a separate timer per CPU, which is not
-necessarily synchronized with other CPUs [^43].
-Operating systems compensate for any discrepancy and try
-to present a monotonic view of the clock to application threads, even as they are scheduled across
-different CPUs. However, it is wise to take this guarantee of monotonicity with a pinch of salt [^44].
+在具有多个 CPU 插槽的服务器上，每个 CPU 可能有一个单独的计时器，它不一定与其他 CPU 同步 [^43]。操作系统会补偿任何差异，并尝试向应用程序线程呈现时钟的单调视图，即使它们被调度到不同的 CPU 上。然而，明智的做法是对这种单调性保证持保留态度 [^44]。
 
-NTP may adjust the frequency at which the monotonic clock moves forward (this is known as *slewing*
-the clock) if it detects that the computer’s local quartz is moving faster or slower than the NTP
-server. By default, NTP allows the clock rate to be speeded up or slowed down by up to 0.05%, but
-NTP cannot cause the monotonic clock to jump forward or backward. The resolution of monotonic
-clocks is usually quite good: on most systems they can measure time intervals in microseconds or
-less.
+如果 NTP 检测到计算机的本地石英晶体比 NTP 服务器运行得更快或更慢，它可能会调整单调时钟前进的频率（这被称为 *调整* 时钟）。默认情况下，NTP 允许时钟速率加速或减速高达 0.05%，但 NTP 不能导致单调时钟向前或向后跳跃。单调时钟的分辨率通常相当好：在大多数系统上，它们可以测量微秒或更短的时间间隔。
 
-In a distributed system, using a monotonic clock for measuring elapsed time (e.g., timeouts) is
-usually fine, because it doesn’t assume any synchronization between different nodes’ clocks and is
-not sensitive to slight inaccuracies of measurement.
+在分布式系统中，使用单调时钟测量经过的时间（例如，超时）通常是可以的，因为它不假设不同节点的时钟之间有任何同步，并且对测量的轻微不准确不敏感。
 
 ### 时钟同步和准确性 {#sec_distributed_clock_accuracy}
 
-Monotonic clocks don’t need synchronization, but time-of-day clocks need to be set according to an
-NTP server or other external time source in order to be useful. Unfortunately, our methods for
-getting a clock to tell the correct time aren’t nearly as reliable or accurate as you might
-hope—hardware clocks and NTP can be fickle beasts. To give just a few examples:
+单调时钟不需要同步，但日历时钟需要根据 NTP 服务器或其他外部时间源设置才能有用。不幸的是，我们让时钟显示正确时间的方法远不如你希望的那样可靠或准确 —— 硬件时钟和 NTP 可能是反复无常的野兽。仅举几个例子：
 
-* The quartz clock in a computer is not very accurate: it *drifts* (runs faster or slower than it
- should). Clock drift varies depending on the temperature of the machine. Google assumes a clock
- drift of up to 200 ppm (parts per million) for its servers  [^45],
- which is equivalent to 6 ms drift for a clock that is resynchronized with a server every 30
- seconds, or 17 seconds drift for a clock that is resynchronized once a day. This drift limits the best
- possible accuracy you can achieve, even if everything is working correctly.
-* If a computer’s clock differs too much from an NTP server, it may refuse to synchronize, or the
- local clock will be forcibly reset [^39]. Any applications observing the time before and after this reset may see time go backward or suddenly jump forward.
-* If a node is accidentally firewalled off from NTP servers, the misconfiguration may go
- unnoticed for some time, during which the drift may add up to large discrepancies between
- different nodes’ clocks. Anecdotal evidence suggests that this does happen in practice.
-* NTP synchronization can only be as good as the network delay, so there is a limit to its
- accuracy when you’re on a congested network with variable packet delays. One experiment showed
- that a minimum error of 35 ms is achievable when synchronizing over the internet [^46],
- though occasional spikes in network delay lead to errors of around a second. Depending on the
- configuration, large network delays can cause the NTP client to give up entirely.
-* Some NTP servers are wrong or misconfigured, reporting time that is off by hours [^47] [^48].
- NTP clients mitigate such errors by querying several servers and ignoring outliers.
- Nevertheless, it’s somewhat worrying to bet the correctness of your systems on the time that you
- were told by a stranger on the internet.
-* Leap seconds result in a minute that is 59 seconds or 61 seconds long, which messes up timing
- assumptions in systems that are not designed with leap seconds in mind [^49].
- The fact that leap seconds have crashed many large systems [^40] [^50]
- shows how easy it is for incorrect assumptions about clocks to sneak into a system. The best
- way of handling leap seconds may be to make NTP servers “lie,” by performing the leap second
- adjustment gradually over the course of a day (this is known as *smearing*) [^51] [^52],
- although actual NTP server behavior varies in practice [^53].
- Leap seconds will no longer be used from 2035 onwards, so this problem will fortunately go away.
-* In virtual machines, the hardware clock is virtualized, which raises additional challenges for applications that need accurate timekeeping [^54].
- When a CPU core is shared between virtual machines, each VM is paused for tens of milliseconds
- while another VM is running. From an application’s point of view, this pause manifests itself as
- the clock suddenly jumping forward [^29].
- If a VM pauses for several seconds, the clock may then be several seconds behind the actual time,
- but NTP may continue to report that the clock is almost perfectly in sync [^55].
-* If you run software on devices that you don’t fully control (e.g., mobile or embedded devices), you
- probably cannot trust the device’s hardware clock at all. Some users deliberately set their
- hardware clock to an incorrect date and time, for example to cheat in games [^56].
- As a result, the clock might be set to a time wildly in the past or the future.
+* 计算机中的石英时钟不是很准确：它会 *漂移*（比应该的运行得更快或更慢）。时钟漂移因机器的温度而异。Google 假设其服务器的时钟漂移高达 200 ppm（百万分之一）[^45]，这相当于每 30 秒与服务器重新同步的时钟有 6 毫秒漂移，或每天重新同步一次的时钟有 17 秒漂移。即使一切正常工作，这种漂移也限制了你可以达到的最佳精度。
+* 如果计算机的时钟与 NTP 服务器相差太多，它可能会拒绝同步，或者本地时钟将被强制重置 [^39]。任何在重置前后观察时间的应用程序都可能看到时间倒退或突然向前跳跃。
+* 如果节点意外地被防火墙与 NTP 服务器隔离，配置错误可能会在一段时间内未被注意到，在此期间漂移可能会累积成不同节点时钟之间的巨大差异。轶事证据表明，这在实践中确实会发生。
+* NTP 同步只能与网络延迟一样好，因此当你在具有可变数据包延迟的拥塞网络上时，其准确性有限。一项实验表明，通过互联网同步时可以达到 35 毫秒的最小误差 [^46]，尽管网络延迟的偶尔峰值会导致大约一秒的误差。根据配置，大的网络延迟可能导致 NTP 客户端完全放弃。
+* 一些 NTP 服务器是错误的或配置错误的，报告的时间相差数小时 [^47] [^48]。NTP 客户端通过查询多个服务器并忽略异常值来减轻此类错误。尽管如此，将系统的正确性押注在互联网上陌生人告诉你的时间上还是有些令人担忧的。
+* 闰秒导致一分钟有 59 秒或 61 秒长，这会搞乱在设计时没有考虑闰秒的系统中的时序假设 [^49]。闰秒已经导致许多大型系统崩溃的事实 [^40] [^50] 表明，关于时钟的错误假设是多么容易潜入系统。处理闰秒的最佳方法可能是让 NTP 服务器 "撒谎"，通过在一天的过程中逐渐执行闰秒调整（这被称为 *平滑*）[^51] [^52]，尽管实际的 NTP 服务器行为在实践中有所不同 [^53]。从 2035 年起将不再使用闰秒，所以这个问题幸运地将会消失。
+* 在虚拟机中，硬件时钟是虚拟化的，这为需要准确计时的应用程序带来了额外的挑战 [^54]。当 CPU 核心在虚拟机之间共享时，每个 VM 在另一个 VM 运行时会暂停数十毫秒。从应用程序的角度来看，这种暂停表现为时钟突然向前跳跃 [^29]。如果 VM 暂停几秒钟，时钟可能会比实际时间落后几秒钟，但 NTP 可能会继续报告时钟几乎完全同步 [^55]。
+* 如果你在不完全控制的设备上运行软件（例如，移动或嵌入式设备），你可能根本无法信任设备的硬件时钟。一些用户故意将他们的硬件时钟设置为不正确的日期和时间，例如在游戏中作弊 [^56]。因此，时钟可能被设置为遥远的过去或未来的时间。
 
-It is possible to achieve very good clock accuracy if you care about it sufficiently to invest
-significant resources. For example, the MiFID II European regulation for financial
-institutions requires all high-frequency trading funds to synchronize their clocks to within 100
-microseconds of UTC, in order to help debug market anomalies such as “flash crashes” and to help
-detect market manipulation [^57].
+如果你足够关心时钟精度并愿意投入大量资源，就可以实现非常好的时钟精度。例如，欧洲金融机构的 MiFID II 法规要求所有高频交易基金将其时钟同步到 UTC 的 100 微秒以内，以帮助调试市场异常（如 "闪崩"）并帮助检测市场操纵 [^57]。
 
-Such accuracy can be achieved with some special hardware (GPS receivers and/or atomic clocks), the
-Precision Time Protocol (PTP) and careful deployment and monitoring [^58] [^59].
-Relying on GPS alone can be risky because GPS signals can easily be jammed. In some locations this
-happens frequently, e.g. close to military facilities [^60].
-Some cloud providers have begun offering high-accuracy clock synchronization for their virtual machines [^61].
-However, clock synchronization still requires a lot of care. If your NTP daemon is misconfigured, or
-a firewall is blocking NTP traffic, the clock error due to drift can quickly become large.
+这种精度可以通过一些特殊硬件（GPS 接收器和/或原子钟）、精确时间协议（PTP）以及仔细的部署和监控来实现 [^58] [^59]。仅依赖 GPS 可能有风险，因为 GPS 信号很容易被干扰。在某些地方，这种情况经常发生，例如靠近军事设施 [^60]。一些云提供商已经开始为其虚拟机提供高精度时钟同步 [^61]。然而，时钟同步仍然需要很多注意。如果你的 NTP 守护进程配置错误，或者防火墙阻止了 NTP 流量，由于漂移导致的时钟误差可能会迅速变大。
 
 ### 对同步时钟的依赖 {#sec_distributed_clocks_relying}
 
-The problem with clocks is that while they seem simple and easy to use, they have a surprising
-number of pitfalls: a day may not have exactly 86,400 seconds, time-of-day clocks may move backward
-in time, and the time according to one node’s clock may be quite different from another node’s clock.
+时钟的问题在于，虽然它们看起来简单易用，但它们有惊人数量的陷阱：一天可能没有正好 86,400 秒，日历时钟可能会在时间上向后移动，根据一个节点的时钟的时间可能与另一个节点的时钟相差很大。
 
-Earlier in this chapter we discussed networks dropping and arbitrarily delaying packets. Even though
-networks are well behaved most of the time, software must be designed on the assumption that the
-network will occasionally be faulty, and the software must handle such faults gracefully. The same
-is true with clocks: although they work quite well most of the time, robust software needs to be
-prepared to deal with incorrect clocks.
+本章前面我们讨论了网络丢弃和任意延迟数据包。即使网络大部分时间表现良好，软件也必须设计成假设网络偶尔会出现故障，软件必须优雅地处理此类故障。时钟也是如此：尽管它们大部分时间工作得很好，但强健的软件需要准备好处理不正确的时钟。
 
-Part of the problem is that incorrect clocks easily go unnoticed. If a machine’s CPU is defective or
-its network is misconfigured, it most likely won’t work at all, so it will quickly be noticed and
-fixed. On the other hand, if its quartz clock is defective or its NTP client is misconfigured, most
-things will seem to work fine, even though its clock gradually drifts further and further away from
-reality. If some piece of software is relying on an accurately synchronized clock, the result is
-more likely to be silent and subtle data loss than a dramatic crash [^62] [^63].
+问题的一部分是不正确的时钟很容易被忽视。如果机器的 CPU 有缺陷或其网络配置错误，它很可能根本无法工作，因此会很快被注意到并修复。另一方面，如果它的石英时钟有缺陷或其 NTP 客户端配置错误，大多数事情看起来会正常工作，即使它的时钟逐渐偏离现实越来越远。如果某些软件依赖于准确同步的时钟，结果更可能是静默和微妙的数据丢失，而不是戏剧性的崩溃 [^62] [^63]。
 
-Thus, if you use software that requires synchronized clocks, it is essential that you also carefully
-monitor the clock offsets between all the machines. Any node whose clock drifts too far from the
-others should be declared dead and removed from the cluster. Such monitoring ensures that you notice
-the broken clocks before they can cause too much damage.
+因此，如果你使用需要同步时钟的软件，你还必须仔细监控所有机器之间的时钟偏移。任何时钟偏离其他节点太远的节点都应该被宣布死亡并从集群中移除。这种监控确保你在损坏的时钟造成太多损害之前注意到它们。
 
 #### 用于事件排序的时间戳 {#sec_distributed_lww}
 
-Let’s consider one particular situation in which it is tempting, but dangerous, to rely on clocks:
-ordering of events across multiple nodes [^64].
-For example, if two clients write to a distributed database, who got there first? Which write is the
-more recent one?
+让我们考虑一个特定的情况，其中依赖时钟是诱人但危险的：跨多个节点的事件排序 [^64]。例如，如果两个客户端写入分布式数据库，谁先到达？哪个写入是更新的？
 
-[Figure 9-3](/en/ch9#fig_distributed_timestamps) illustrates a dangerous use of time-of-day clocks in a database with
-multi-leader replication (the example is similar to [Figure 6-8](/en/ch6#fig_replication_causality)). Client A writes
-*x* = 1 on node 1; the write is replicated to node 3; client B increments *x* on node
-3 (we now have *x* = 2); and finally, both writes are replicated to node 2.
+[图 9-3](/ch9#fig_distributed_timestamps) 说明了在具有多主复制的数据库中日历时钟的危险使用（该示例类似于 [图 6-8](/ch6#fig_replication_causality)）。客户端 A 在节点 1 上写入 *x* = 1；写入被复制到节点 3；客户端 B 在节点 3 上递增 *x*（我们现在有 *x* = 2）；最后，两个写入都被复制到节点 2。
 
-{{< figure src="/fig/ddia_0903.png" id="fig_distributed_timestamps" caption="Figure 9-3. The write by client B is causally later than the write by client A, but B's write has an earlier timestamp." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0903.png" id="fig_distributed_timestamps" caption="图 9-3. 客户端 B 的写入在因果关系上晚于客户端 A 的写入，但 B 的写入具有更早的时间戳。" class="w-full my-4" >}}
 
 
-In [Figure 9-3](/en/ch9#fig_distributed_timestamps), when a write is replicated to other nodes, it is tagged with a
-timestamp according to the time-of-day clock on the node where the write originated. The clock
-synchronization is very good in this example: the skew between node 1 and node 3 is less than
-3 ms, which is probably better than you can expect in practice.
+在 [图 9-3](/ch9#fig_distributed_timestamps) 中，当写入被复制到其他节点时，它会根据写入起源节点上的日历时钟标记时间戳。此示例中的时钟同步非常好：节点 1 和节点 3 之间的偏差小于 3 毫秒，这可能比你在实践中可以期望的要好。
 
-Since the increment builds upon the earlier write of *x* = 1, we might expect that the
-write of *x* = 2 should have the greater timestamp of the two. Unfortunately, that is
-not what happens in [Figure 9-3](/en/ch9#fig_distributed_timestamps): the write *x* = 1 has a timestamp of
-42.004 seconds, but the write *x* = 2 has a timestamp of 42.003 seconds.
+由于递增建立在 *x* = 1 的早期写入之上，我们可能期望 *x* = 2 的写入应该具有两者中更大的时间戳。不幸的是，[图 9-3](/ch9#fig_distributed_timestamps) 中发生的并非如此：写入 *x* = 1 的时间戳为 42.004 秒，但写入 *x* = 2 的时间戳为 42.003 秒。
 
-As discussed in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww), one way of resolving conflicts between concurrently written
-values on different nodes is *last write wins* (LWW), which means keeping the write with the
-greatest timestamp for a given key and discarding all writes with older timestamps. In the example
-of [Figure 9-3](/en/ch9#fig_distributed_timestamps), when node 2 receives these two events, it will incorrectly
-conclude that *x* = 1 is the more recent value and drop the write *x* = 2,
-so the increment is lost.
+如 ["最后写入胜利（丢弃并发写入）"](/ch6#sec_replication_lww) 中所讨论的，解决不同节点上并发写入值之间冲突的一种方法是 *最后写入胜利*（LWW），这意味着保留给定键的具有最大时间戳的写入，并丢弃所有具有较旧时间戳的写入。在 [图 9-3](/ch9#fig_distributed_timestamps) 的示例中，当节点 2 接收这两个事件时，它将错误地得出结论，认为 *x* = 1 是更新的值并丢弃写入 *x* = 2，因此递增丢失了。
 
-This problem can be prevented by ensuring that when a value is overwritten, the new value always has
-a higher timestamp than the overwritten value, even if that timestamp is ahead of the writer’s local
-clock. However, that incurs the cost of an additional read to find the greatest existing timestamp.
-Some systems, including Cassandra and ScyllaDB, want to write to all replicas in a single round
-trip, and therefore they simply use the client clock’s timestamp along with a last write wins
-policy [^62]. This approach has some serious problems:
+可以通过确保当值被覆盖时，新值总是具有比被覆盖值更高的时间戳来防止这个问题，即使该时间戳超前于写入者的本地时钟。然而，这会产生额外的读取成本来查找最大的现有时间戳。一些系统，包括 Cassandra 和 ScyllaDB，希望在单次往返中写入所有副本，因此它们只是使用客户端时钟的时间戳以及最后写入胜利策略 [^62]。这种方法有一些严重的问题：
 
-* Database writes can mysteriously disappear: a node with a lagging clock is unable to overwrite
- values previously written by a node with a fast clock until the clock skew between the nodes has elapsed [^63] [^65].
- This scenario can cause arbitrary amounts of data to be silently dropped without any error being
- reported to the application.
-* LWW cannot distinguish between writes that occurred sequentially in quick succession (in
- [Figure 9-3](/en/ch9#fig_distributed_timestamps), client B’s increment definitely occurs *after* client A’s write)
- and writes that were truly concurrent (neither writer was aware of the other). Additional
- causality tracking mechanisms, such as version vectors, are needed in order to prevent violations
- of causality (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)).
-* It is possible for two nodes to independently generate writes with the same timestamp, especially
- when the clock only has millisecond resolution. An additional tiebreaker value (which can simply
- be a large random number) is required to resolve such conflicts, but this approach can also lead to
- violations of causality [^62].
+* 数据库写入可能会神秘地消失：具有滞后时钟的节点无法覆盖先前由具有快速时钟的节点写入的值，直到节点之间的时钟偏差时间过去 [^63] [^65]。这种情况可能导致任意数量的数据被静默丢弃，而不会向应用程序报告任何错误。
+* LWW 无法区分快速连续发生的顺序写入（在 [图 9-3](/ch9#fig_distributed_timestamps) 中，客户端 B 的递增肯定发生在客户端 A 的写入 *之后*）和真正并发的写入（两个写入者都不知道对方）。需要额外的因果关系跟踪机制，如版本向量，以防止违反因果关系（见 ["检测并发写入"](/ch6#sec_replication_concurrent)）。
+* 两个节点可能独立生成具有相同时间戳的写入，特别是当时钟只有毫秒分辨率时。需要额外的决胜值（可以简单地是一个大的随机数）来解决此类冲突，但这种方法也可能导致违反因果关系 [^62]。
 
-Thus, even though it is tempting to resolve conflicts by keeping the most “recent” value and
-discarding others, it’s important to be aware that the definition of “recent” depends on a local
-time-of-day clock, which may well be incorrect. Even with tightly NTP-synchronized clocks, you could
-send a packet at timestamp 100 ms (according to the sender’s clock) and have it arrive at
-timestamp 99 ms (according to the recipient’s clock)—so it appears as though the packet
-arrived before it was sent, which is impossible.
+因此，即使通过保留最 "新" 的值并丢弃其他值来解决冲突很诱人，但重要的是要意识到 "新" 的定义取决于本地日历时钟，它很可能是不正确的。即使使用紧密 NTP 同步的时钟，你也可能在时间戳 100 毫秒（根据发送者的时钟）发送数据包，并让它在时间戳 99 毫秒（根据接收者的时钟）到达 —— 因此看起来数据包在发送之前就到达了，这是不可能的。
 
-Could NTP synchronization be made accurate enough that such incorrect orderings cannot occur?
-Probably not, because NTP’s synchronization accuracy is itself limited by the network round-trip
-time, in addition to other sources of error such as quartz drift. To guarantee a correct ordering,
-you would need the clock error to be significantly lower than the network delay, which is not possible.
+NTP 同步能否足够准确以至于不会发生此类错误排序？可能不行，因为除了石英漂移等其他误差源之外，NTP 的同步精度本身受到网络往返时间的限制。要保证正确的排序，你需要时钟误差显著低于网络延迟，这是不可能的。
 
-So-called *logical clocks* [^66], which are based on incrementing counters rather than an oscillating quartz crystal, are a safer
-alternative for ordering events (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)). Logical clocks do not measure
-the time of day or the number of seconds elapsed, only the relative ordering of events (whether one
-event happened before or after another). In contrast, time-of-day and monotonic clocks, which
-measure actual elapsed time, are also known as *physical clocks*. We’ll look at logical clocks in
-more detail in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).
+所谓的 *逻辑时钟* [^66]，基于递增计数器而不是振荡石英晶体，是排序事件的更安全替代方案（见 ["检测并发写入"](/ch6#sec_replication_concurrent)）。逻辑时钟不测量一天中的时间或经过的秒数，只测量事件的相对顺序（一个事件是在另一个事件之前还是之后发生）。相比之下，日历时钟和单调时钟测量实际经过的时间，也称为 *物理时钟*。我们将在 ["ID 生成器和逻辑时钟"](/ch10#sec_consistency_logical) 中更详细地研究逻辑时钟。
 
 #### 带置信区间的时钟读数 {#clock-readings-with-a-confidence-interval}
 
-You may be able to read a machine’s time-of-day clock with microsecond or even nanosecond
-resolution. But even if you can get such a fine-grained measurement, that doesn’t mean the value is
-actually accurate to such precision. In fact, it most likely is not—as mentioned previously, the
-drift in an imprecise quartz clock can easily be several milliseconds, even if you synchronize with
-an NTP server on the local network every minute. With an NTP server on the public internet, the best
-possible accuracy is probably to the tens of milliseconds, and the error may easily spike to over
-100 ms when there is network congestion.
+你可能能够以微秒甚至纳秒分辨率读取机器的日历时钟。但即使你能获得如此细粒度的测量，也不意味着该值实际上精确到如此精度。事实上，它很可能不是 —— 如前所述，即使你每分钟与本地网络上的 NTP 服务器同步，不精确的石英时钟的漂移也很容易达到几毫秒。使用公共互联网上的 NTP 服务器，最佳可能精度可能是几十毫秒，当存在网络拥塞时，误差很容易超过 100 毫秒。
 
-Thus, it doesn’t make sense to think of a clock reading as a point in time—it is more like a
-range of times, within a confidence interval: for example, a system may be 95% confident that the
-time now is between 10.3 and 10.5 seconds past the minute, but it doesn’t know any more precisely than that [^67].
-If we only know the time +/– 100 ms, the microsecond digits in the timestamp are essentially meaningless.
+因此，将时钟读数视为时间点是没有意义的 —— 它更像是一个时间范围，在置信区间内：例如，系统可能有 95% 的信心认为现在的时间在分钟后的 10.3 到 10.5 秒之间，但它不知道比这更精确的时间 [^67]。如果我们只知道时间 +/- 100 毫秒，时间戳中的微秒数字基本上是没有意义的。
 
-The uncertainty bound can be calculated based on your time source. If you have a GPS receiver or
-atomic clock directly attached to your computer, the expected error range is determined by
-the device and, in the case of GPS, by the quality of the signal from the satellites. If you’re
-getting the time from a server, the uncertainty is based on the expected quartz drift since your
-last sync with the server, plus the NTP server’s uncertainty, plus the network round-trip time to
-the server (to a first approximation, and assuming you trust the server).
+不确定性边界可以根据你的时间源计算。如果你有直接连接到计算机的 GPS 接收器或原子钟，预期误差范围由设备决定，对于 GPS，由来自卫星的信号质量决定。如果你从服务器获取时间，不确定性基于自上次与服务器同步以来的预期石英漂移，加上 NTP 服务器的不确定性，加上到服务器的网络往返时间（作为第一近似，并假设你信任服务器）。
 
-Unfortunately, most systems don’t expose this uncertainty: for example, when you call
-`clock_gettime()`, the return value doesn’t tell you the expected error of the timestamp, so you
-don’t know if its confidence interval is five milliseconds or five years.
+不幸的是，大多数系统不暴露这种不确定性：例如，当你调用 `clock_gettime()` 时，返回值不会告诉你时间戳的预期误差，所以你不知道它的置信区间是五毫秒还是五年。
 
-There are exceptions: the *TrueTime* API in Google’s Spanner [^45] and Amazon’s ClockBound explicitly report the
-confidence interval on the local clock. When you ask it for the current time, you get back two
-values: `[earliest, latest]`, which are the *earliest possible* and the *latest possible*
-timestamp. Based on its uncertainty calculations, the clock knows that the actual current time is
-somewhere within that interval. The width of the interval depends, among other things, on how long
-it has been since the local quartz clock was last synchronized with a more accurate clock source.
+有例外：Google Spanner 中的 *TrueTime* API [^45] 和亚马逊的 ClockBound 明确报告本地时钟的置信区间。当你询问当前时间时，你会得到两个值：`[earliest, latest]`，它们是 *最早可能* 和 *最晚可能* 的时间戳。基于其不确定性计算，时钟知道实际当前时间在该区间内的某处。区间的宽度取决于多种因素，包括本地石英时钟上次与更准确的时钟源同步以来已经过去了多长时间。
 
 #### 用于全局快照的同步时钟 {#sec_distributed_spanner}
 
-In [“Snapshot Isolation and Repeatable Read”](/en/ch8#sec_transactions_snapshot_isolation) we discussed *multi-version concurrency control* (MVCC),
-which is a very useful feature in databases that need to support both small, fast read-write
-transactions and large, long-running read-only transactions (e.g., for backups or analytics). It
-allows read-only transactions to see a *snapshot* of the database, a consistent state at a
-particular point in time, without locking and interfering with read-write transactions.
+在 ["快照隔离和可重复读"](/ch8#sec_transactions_snapshot_isolation) 中，我们讨论了 *多版本并发控制*（MVCC），这是数据库中非常有用的功能，需要支持小型、快速的读写事务和大型、长时间运行的只读事务（例如，用于备份或分析）。它允许只读事务看到数据库的 *快照*，即特定时间点的一致状态，而不会锁定和干扰读写事务。
 
-Generally, MVCC requires a monotonically increasing transaction ID. If a write happened later than
-the snapshot (i.e., the write has a greater transaction ID than the snapshot), that write is
-invisible to the snapshot transaction. On a single-node database, a simple counter is sufficient for
-generating transaction IDs.
+通常，MVCC 需要单调递增的事务 ID。如果写入发生在快照之后（即，写入的事务 ID 大于快照），则该写入对快照事务不可见。在单节点数据库上，简单的计数器就足以生成事务 ID。
 
-However, when a database is distributed across many machines, potentially in multiple datacenters, a
-global, monotonically increasing transaction ID (across all shards) is difficult to generate,
-because it requires coordination. The transaction ID must reflect causality: if transaction B reads
-or overwrites a value that was previously written by transaction A, then B must have a higher
-transaction ID than A—otherwise, the snapshot would not be consistent. With lots of small, rapid
-transactions, creating transaction IDs in a distributed system becomes an untenable
-bottleneck. (We will discuss such ID generators in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).)
+然而，当数据库分布在许多机器上，可能在多个数据中心时，全局单调递增的事务 ID（跨所有分片）很难生成，因为它需要协调。事务 ID 必须反映因果关系：如果事务 B 读取或覆盖先前由事务 A 写入的值，则 B 必须具有比 A 更高的事务 ID —— 否则，快照将不一致。对于大量小型、快速的事务，在分布式系统中创建事务 ID 成为难以承受的瓶颈。（我们将在 ["ID 生成器和逻辑时钟"](/ch10#sec_consistency_logical) 中讨论此类 ID 生成器。）
 
-Can we use the timestamps from synchronized time-of-day clocks as transaction IDs? If we could get
-the synchronization good enough, they would have the right properties: later transactions have a
-higher timestamp. The problem, of course, is the uncertainty about clock accuracy.
+我们能否使用同步日历时钟的时间戳作为事务 ID？如果我们能够获得足够好的同步，它们将具有正确的属性：较晚的事务具有更高的时间戳。当然，问题是时钟精度的不确定性。
 
-Spanner implements snapshot isolation across datacenters in this way [^68] [^69].
-It uses the clock’s confidence interval as reported by the TrueTime API, and is based on the
-following observation: if you have two confidence intervals, each consisting of an earliest and
-latest possible timestamp (*A* = [*Aearliest*, *Alatest*] and *B* = [*Bearliest*, *Blatest*]), and those two intervals do not overlap 
-(i.e., *Aearliest* < *Alatest* < *Bearliest* < *Blatest*), then B definitely happened after A—there
-can be no doubt. Only if the intervals overlap are we unsure in which order A and B happened.
+Spanner 以这种方式跨数据中心实现快照隔离 [^68] [^69]。它使用 TrueTime API 报告的时钟置信区间，并基于以下观察：如果你有两个置信区间，每个都由最早和最晚可能的时间戳组成（*A* = [*A最早*, *A最晚*] 和 *B* = [*B最早*, *B最晚*]），并且这两个区间不重叠（即，*A最早* < *A最晚* < *B最早* < *B最晚*），那么 B 肯定发生在 A 之后 —— 毫无疑问。只有当区间重叠时，我们才不确定 A 和 B 发生的顺序。
 
-In order to ensure that transaction timestamps reflect causality, Spanner deliberately waits for the
-length of the confidence interval before committing a read-write transaction. By doing so, it
-ensures that any transaction that may read the data is at a sufficiently later time, so their
-confidence intervals do not overlap. In order to keep the wait time as short as possible, Spanner
-needs to keep the clock uncertainty as small as possible; for this purpose, Google deploys a GPS
-receiver or atomic clock in each datacenter, allowing clocks to be synchronized to within about 7 ms [^45].
+为了确保事务时间戳反映因果关系，Spanner 在提交读写事务之前故意等待置信区间的长度。通过这样做，它确保任何可能读取数据的事务都在足够晚的时间，因此它们的置信区间不会重叠。为了使等待时间尽可能短，Spanner 需要使时钟不确定性尽可能小；为此，Google 在每个数据中心部署 GPS 接收器或原子钟，使时钟能够同步到大约 7 毫秒以内 [^45]。
 
-The atomic clocks and GPS receivers are not strictly necessary in Spanner: the important thing is to
-have a confidence interval, and the accurate clock sources only help keep that interval small. Other
-systems are beginning to adopt similar approaches: for example, YugabyteDB can leverage ClockBound
-when running on AWS [^70], and several other systems now also rely on clock synchronization to various degrees [^71] [^72].
+原子钟和 GPS 接收器在 Spanner 中并不是严格必要的：重要的是要有一个置信区间，准确的时钟源只是帮助保持该区间较小。其他系统开始采用类似的方法：例如，YugabyteDB 在 AWS 上运行时可以利用 ClockBound [^70]，其他几个系统现在也在不同程度上依赖时钟同步 [^71] [^72]。
 
 ### 进程暂停 {#sec_distributed_clocks_pauses}
 
-Let’s consider another example of dangerous clock use in a distributed system. Say you have a
-database with a single leader per shard. Only the leader is allowed to accept writes. How does a
-node know that it is still leader (that it hasn’t been declared dead by the others), and that it may
-safely accept writes?
+让我们考虑分布式系统中危险使用时钟的另一个例子。假设你有一个每个分片都有单个主节点的数据库。只有主节点被允许接受写入。节点如何知道它仍然是主节点（它没有被其他节点宣布死亡），并且它可以安全地接受写入？
 
-One option is for the leader to obtain a *lease* from the other nodes, which is similar to a lock with a timeout [^73].
-Only one node can hold the lease at any one time—thus, when a node obtains a lease, it knows that
-it is the leader for some amount of time, until the lease expires. In order to remain leader, the
-node must periodically renew the lease before it expires. If the node fails, it stops renewing the
-lease, so another node can take over when it expires.
+一种选择是让主节点从其他节点获取 *租约*，这类似于带有超时的锁 [^73]。任何时候只有一个节点可以持有租约 —— 因此，当节点获得租约时，它知道在租约到期之前的一段时间内它是主节点。为了保持主节点身份，节点必须在租约到期之前定期续订租约。如果节点失效，它会停止续订租约，因此另一个节点可以在租约到期时接管。
 
-You can imagine the request-handling loop looking something like this:
+你可以想象请求处理循环看起来像这样：
 
 ```js
 while (true) {
     request = getIncomingRequest();
 
-    // Ensure that the lease always has at least 10 seconds remaining
+    // 确保租约始终至少有 10 秒的剩余时间
     if (lease.expiryTimeMillis - System.currentTimeMillis() < 10000) {
         lease = lease.renew();
     }
@@ -843,862 +359,351 @@ while (true) {
 }
 ```
 
-What’s wrong with this code? Firstly, it’s relying on synchronized clocks: the expiry time on the
-lease is set by a different machine (where the expiry may be calculated as the current time plus 30
-seconds, for example), and it’s being compared to the local system clock. If the clocks are out of
-sync by more than a few seconds, this code will start doing strange things.
+这段代码有什么问题？首先，它依赖于同步时钟：租约的到期时间由不同的机器设置（到期时间可能计算为当前时间加 30 秒，例如），并且它与本地系统时钟进行比较。如果时钟相差超过几秒钟，这段代码将开始做奇怪的事情。
 
-Secondly, even if we change the protocol to only use the local monotonic clock, there is another
-problem: the code assumes that very little time passes between the point that it checks the time
-(`System.currentTimeMillis()`) and the time when the request is processed (`process(request)`).
-Normally this code runs very quickly, so the 10 second buffer is more than enough to ensure that the
-lease doesn’t expire in the middle of processing a request.
+其次，即使我们更改协议以仅使用本地单调时钟，还有另一个问题：代码假设在检查时间（`System.currentTimeMillis()`）和处理请求（`process(request)`）之间经过的时间非常少。通常这段代码运行得非常快，所以 10 秒的缓冲时间足以确保租约不会在处理请求的过程中到期。
 
-However, what if there is an unexpected pause in the execution of the program? For example, imagine
-the thread stops for 15 seconds around the line `lease.isValid()` before finally continuing. In
-that case, it’s likely that the lease will have expired by the time the request is processed, and
-another node has already taken over as leader. However, there is nothing to tell this thread that it
-was paused for so long, so this code won’t notice that the lease has expired until the next
-iteration of the loop—by which time it may have already done something unsafe by processing the
-request.
+然而，如果程序执行中出现意外暂停会怎样？例如，想象线程在 `lease.isValid()` 行周围停止了 15 秒，然后才最终继续。在这种情况下，处理请求时租约很可能已经到期，另一个节点已经接管了主节点身份。然而，没有任何东西告诉这个线程它暂停了这么长时间，所以这段代码不会注意到租约已经到期，直到循环的下一次迭代 —— 到那时它可能已经通过处理请求做了一些不安全的事情。
 
-Is it reasonable to assume that a thread might be paused for so long? Unfortunately yes. There are
-various reasons why this could happen:
+假设线程可能暂停这么长时间是合理的吗？不幸的是，是的。有各种原因可能导致这种情况发生：
 
-* Contention among threads accessing a shared resource, such as a lock or queue, can cause threads
- to spend a lot of their time waiting. Moving to a machine with more CPU cores can make such
- problems worse, and contention problems can be difficult to diagnose [^74].
-* Many programming language runtimes (such as the Java Virtual Machine) have a *garbage collector*
- (GC) that occasionally needs to stop all running threads. In the past, such *“stop-the-world” GC
- pauses* would sometimes last for several minutes [^75]!
- With modern GC algorithms this is less of a problem, but GC pauses can still be noticable (see
- [“Limiting the impact of garbage collection”](/en/ch9#sec_distributed_gc_impact)).
-* In virtualized environments, a virtual machine can be *suspended* (pausing the execution of all
- processes and saving the contents of memory to disk) and *resumed* (restoring the contents of
- memory and continuing execution). This pause can occur at any time in a process’s execution and can
- last for an arbitrary length of time. This feature is sometimes used for *live migration* of
- virtual machines from one host to another without a reboot, in which case the length of the pause
- depends on the rate at which processes are writing to memory [^76].
-* On end-user devices such as laptops and phones, execution may also be suspended and resumed
- arbitrarily, e.g., when the user closes the lid of their laptop.
-* When the operating system context-switches to another thread, or when the hypervisor switches to a
- different virtual machine (when running in a virtual machine), the currently running thread can be
- paused at any arbitrary point in the code. In the case of a virtual machine, the CPU time spent in
- other virtual machines is known as *steal time*. If the machine is under heavy load—i.e., if
- there is a long queue of threads waiting to run—it may take some time before the paused thread
- gets to run again.
-* If the application performs synchronous disk access, a thread may be paused waiting for a slow
- disk I/O operation to complete [^77]. In many languages, disk access can happen
- surprisingly, even if the code doesn’t explicitly mention file access—for example, the Java
- classloader lazily loads class files when they are first used, which could happen at any time in
- the program execution. I/O pauses and GC pauses may even conspire to combine their delays [^78].
- If the disk is actually a network filesystem or network block device (such as Amazon’s EBS), the
- I/O latency is further subject to the variability of network delays [^31].
-* If the operating system is configured to allow *swapping to disk* (*paging*), a simple memory
- access may result in a page fault that requires a page from disk to be loaded into memory. The
- thread is paused while this slow I/O operation takes place. If memory pressure is high, this may
- in turn require a different page to be swapped out to disk. In extreme circumstances, the
- operating system may spend most of its time swapping pages in and out of memory and getting little
- actual work done (this is known as *thrashing*). To avoid this problem, paging is often disabled
- on server machines (if you would rather kill a process to free up memory than risk thrashing).
-* A Unix process can be paused by sending it the `SIGSTOP` signal, for example by pressing Ctrl-Z in
- a shell. This signal immediately stops the process from getting any more CPU cycles until it is
- resumed with `SIGCONT`, at which point it continues running where it left off. Even if your
- environment does not normally use `SIGSTOP`, it might be sent accidentally by an operations
- engineer.
+* 线程访问共享资源（如锁或队列）时的争用可能导致线程花费大量时间等待。转移到具有更多 CPU 核心的机器可能会使此类问题变得更糟，并且争用问题可能难以诊断 [^74]。
+* 许多编程语言运行时（如 Java 虚拟机）有 *垃圾回收器*（GC），偶尔需要停止所有正在运行的线程。过去，这种 *"全局暂停" GC 暂停* 有时会持续几分钟 [^75]！使用现代 GC 算法，这不再是一个大问题，但 GC 暂停仍然可能很明显（见 ["限制垃圾回收的影响"](/ch9#sec_distributed_gc_impact)）。
+* 在虚拟化环境中，虚拟机可以被 *挂起*（暂停所有进程的执行并将内存内容保存到磁盘）和 *恢复*（恢复内存内容并继续执行）。这种暂停可能发生在进程执行的任何时间，并且可能持续任意长的时间。这个功能有时用于虚拟机从一台主机到另一台主机的 *实时迁移*，无需重启，在这种情况下，暂停的长度取决于进程写入内存的速率 [^76]。
+* 在笔记本电脑和手机等终端用户设备上，执行也可能被任意挂起和恢复，例如，当用户合上笔记本电脑盖时。
+* 当操作系统上下文切换到另一个线程时，或者当虚拟机管理程序切换到不同的虚拟机时（在虚拟机中运行时），当前运行的线程可能在代码的任何任意点暂停。在虚拟机的情况下，在其他虚拟机中花费的 CPU 时间称为 *窃取时间*。如果机器负载很重 —— 即，如果有长队列的线程等待运行 —— 暂停的线程可能需要一些时间才能再次运行。
+* 如果应用程序执行同步磁盘访问，线程可能会暂停等待缓慢的磁盘 I/O 操作完成 [^77]。在许多语言中，磁盘访问可能会令人惊讶地发生，即使代码没有明确提到文件访问 —— 例如，Java 类加载器在首次使用时会延迟加载类文件，这可能发生在程序执行的任何时间。I/O 暂停和 GC 暂停甚至可能共谋结合它们的延迟 [^78]。如果磁盘实际上是网络文件系统或网络块设备（如亚马逊的 EBS），I/O 延迟还会受到网络延迟可变性的影响 [^31]。
+* 如果操作系统配置为允许 *交换到磁盘*（*分页*），简单的内存访问可能会导致页面错误，需要从磁盘加载页面到内存。线程在此缓慢的 I/O 操作进行时暂停。如果内存压力很高，这可能反过来需要将不同的页面交换到磁盘。在极端情况下，操作系统可能会花费大部分时间在内存中交换页面进出，而实际完成的工作很少（这被称为 *抖动*）。为了避免这个问题，服务器机器上通常禁用分页（如果你宁愿杀死进程以释放内存而不是冒抖动的风险）。
+* Unix 进程可以通过向其发送 `SIGSTOP` 信号来暂停，例如通过在 shell 中按 Ctrl-Z。此信号立即停止进程获取更多 CPU 周期，直到使用 `SIGCONT` 恢复它，此时它从停止的地方继续运行。即使你的环境通常不使用 `SIGSTOP`，它也可能被运维工程师意外发送。
 
-All of these occurrences can *preempt* the running thread at any point and resume it at some later time,
-without the thread even noticing. The problem is similar to making multi-threaded code on a single
-machine thread-safe: you can’t assume anything about timing, because arbitrary context switches and
-parallelism may occur.
+所有这些情况都可以在任何时候 *抢占* 正在运行的线程，并在稍后的某个时间恢复它，而线程甚至没有注意到。这个问题类似于在单台机器上使多线程代码线程安全：你不能对时序做任何假设，因为可能会发生任意的上下文切换和并行性。
 
-When writing multi-threaded code on a single machine, we have fairly good tools for making it
-thread-safe: mutexes, semaphores, atomic counters, lock-free data structures, blocking queues, and
-so on. Unfortunately, these tools don’t directly translate to distributed systems, because a
-distributed system has no shared memory—only messages sent over an unreliable network.
+在单台机器上编写多线程代码时，我们有相当好的工具来使其线程安全：互斥锁、信号量、原子计数器、无锁数据结构、阻塞队列等。不幸的是，这些工具不能直接转换到分布式系统，因为分布式系统没有共享内存 —— 只有通过不可靠网络发送的消息。
 
-A node in a distributed system must assume that its execution can be paused for a significant length
-of time at any point, even in the middle of a function. During the pause, the rest of the world
-keeps moving and may even declare the paused node dead because it’s not responding. Eventually,
-the paused node may continue running, without even noticing that it was asleep until it checks its
-clock sometime later.
+分布式系统中的节点必须假设其执行可以在任何时候暂停相当长的时间，即使在函数的中间。在暂停期间，世界的其余部分继续运行，甚至可能因为暂停的节点没有响应而宣布它死亡。最终，暂停的节点可能会继续运行，甚至没有注意到它在睡觉，直到它稍后某个时候检查其时钟。
 
 #### 响应时间保证 {#sec_distributed_clocks_realtime}
 
-In many programming languages and operating systems, threads and processes may pause for an
-unbounded amount of time, as discussed. Those reasons for pausing *can* be eliminated if you try
-hard enough.
+在许多编程语言和操作系统中，如所讨论的，线程和进程可能会暂停无限长的时间。如果你足够努力，这些暂停的原因 *可以* 被消除。
 
-Some software runs in environments where a failure to respond within a specified time can cause
-serious damage: computers that control aircraft, rockets, robots, cars, and other physical objects
-must respond quickly and predictably to their sensor inputs. In these systems, there is a specified
-*deadline* by which the software must respond; if it doesn’t meet the deadline, that may cause a
-failure of the entire system. These are so-called *hard real-time* systems.
+某些软件在环境中运行，如果未能在指定时间内响应可能会造成严重损害：控制飞机、火箭、机器人、汽车和其他物理对象的计算机必须快速且可预测地响应其传感器输入。在这些系统中，有一个指定的 *截止时间*，软件必须在此之前响应；如果它没有达到截止时间，可能会导致整个系统的故障。这些被称为 *硬实时* 系统。
 
 --------
 
 > [!NOTE]
-> In embedded systems, *real-time* means that a system is carefully designed and tested to meet
-> specified timing guarantees in all circumstances. This meaning is in contrast to the more vague use of the
-> term *real-time* on the web, where it describes servers pushing data to clients and stream
-> processing without hard response time constraints (see [Link to Come]).
+> 在嵌入式系统中，*实时* 意味着系统经过精心设计和测试，以在所有情况下满足指定的时序保证。这个含义与网络上更模糊的 *实时* 术语使用形成对比，后者描述服务器向客户端推送数据和流处理，没有硬响应时间约束（见后续章节）。
 
 --------
 
-For example, if your car’s onboard sensors detect that you are currently experiencing a crash, you
-wouldn’t want the release of the airbag to be delayed due to an inopportune GC pause in the airbag
-release system.
+例如，如果你的汽车的车载传感器检测到你当前正在经历碰撞，你不希望安全气囊的释放因为安全气囊释放系统中不合时宜的 GC 暂停而延迟。
 
-Providing real-time guarantees in a system requires support from all levels of the software stack: a
-*real-time operating system* (RTOS) that allows processes to be scheduled with a guaranteed
-allocation of CPU time in specified intervals is needed; library functions must document their
-worst-case execution times; dynamic memory allocation may be restricted or disallowed entirely
-(real-time garbage collectors exist, but the application must still ensure that it doesn’t give the
-GC too much work to do); and an enormous amount of testing and measurement must be done to ensure
-that guarantees are being met.
+在系统中提供实时保证需要软件栈所有级别的支持：需要 *实时操作系统*（RTOS），它允许进程在指定的时间间隔内以有保证的 CPU 时间分配进行调度；库函数必须记录其最坏情况执行时间；动态内存分配可能受到限制或完全禁止（实时垃圾回收器存在，但应用程序仍必须确保它不会给 GC 太多工作）；必须进行大量的测试和测量以确保满足保证。
 
-All of this requires a large amount of additional work and severely restricts the range of
-programming languages, libraries, and tools that can be used (since most languages and tools do not
-provide real-time guarantees). For these reasons, developing real-time systems is very expensive,
-and they are most commonly used in safety-critical embedded devices. Moreover, “real-time” is not the
-same as “high-performance”—in fact, real-time systems may have lower throughput, since they have to
-prioritize timely responses above all else (see also [“Latency and Resource Utilization”](/en/ch9#sidebar_distributed_latency_utilization)).
+所有这些都需要大量的额外工作，并严重限制了可以使用的编程语言、库和工具的范围（因为大多数语言和工具不提供实时保证）。由于这些原因，开发实时系统非常昂贵，它们最常用于安全关键的嵌入式设备。此外，"实时" 不同于 "高性能" —— 事实上，实时系统可能具有较低的吞吐量，因为它们必须优先考虑及时响应高于一切（另见 ["延迟和资源利用率"](/ch9#sidebar_distributed_latency_utilization)）。
 
-For most server-side data processing systems, real-time guarantees are simply not economical or
-appropriate. Consequently, these systems must suffer the pauses and clock instability that come from
-operating in a non-real-time environment.
+对于大多数服务器端数据处理系统，实时保证根本不经济或不合适。因此，这些系统必须承受在非实时环境中运行带来的暂停和时钟不稳定性。
 
 #### 限制垃圾回收的影响 {#sec_distributed_gc_impact}
 
-Garbage collection used to be one of the biggest reasons for process pauses [^79],
-but fortunately GC algorithms have improved a lot: a properly tuned collector will now usually pause
-for no more than a few milliseconds. The Java runtime offers collectors such as concurrent mark
-sweep (CMS), garbage-first (G1), the Z garbage collector (ZGC), Epsilon, and Shenandoah. Each of
-these is optimized for different memory profiles such as high-frequency object creation, large
-heaps, and so on. By contrast, Go offers a simpler concurrent mark sweep garbage collector that
-attempts to optimize itself.
+垃圾回收曾经是进程暂停的最大原因之一 [^79]，但幸运的是 GC 算法已经改进了很多：经过适当调整的回收器现在通常只会暂停几毫秒。Java 运行时提供了并发标记清除（CMS）、G1、Z 垃圾回收器（ZGC）、Epsilon 和 Shenandoah 等回收器。每个都针对不同的内存配置文件进行了优化，如高频对象创建、大堆等。相比之下，Go 提供了一个更简单的并发标记清除垃圾回收器，试图自我优化。
 
-If you need to avoid GC pauses entirely, one option is to use a language that doesn’t have a garbage
-collector at all. For example, Swift uses automatic reference counting to determine when memory can
-be freed; Rust and Mojo track lifetimes of objects using the type system so the compiler can
-determine how long memory must be allocated for.
+如果你需要完全避免 GC 暂停，一个选择是使用根本没有垃圾回收器的语言。例如，Swift 使用自动引用计数来确定何时可以释放内存；Rust 和 Mojo 使用类型系统跟踪对象的生命周期，以便编译器可以确定必须分配内存多长时间。
 
-It’s also possible to use a garbage-collected language while mitigating the impact of pauses.
-One approach is to treat GC pauses like brief planned outages of a node, and to let other nodes
-handle requests from clients while one node is collecting its garbage. If the runtime can warn the
-application that a node soon requires a GC pause, the application can stop sending new requests to
-that node, wait for it to finish processing outstanding requests, and then perform the GC while no
-requests are in progress. This trick hides GC pauses from clients and reduces the high percentiles
-of the response time [^80] [^81].
+也可以使用垃圾回收语言，同时减轻暂停的影响。一种方法是将 GC 暂停视为节点的短暂计划中断，并让其他节点在一个节点收集垃圾时处理来自客户端的请求。如果运行时可以警告应用程序节点很快需要 GC 暂停，应用程序可以停止向该节点发送新请求，等待它完成处理未完成的请求，然后在没有请求进行时执行 GC。这个技巧从客户端隐藏了 GC 暂停，并减少了响应时间的高百分位数 [^80] [^81]。
 
-A variant of this idea is to use the garbage collector only for short-lived objects (which are fast
-to collect) and to restart processes periodically, before they accumulate enough long-lived objects
-to require a full GC of long-lived objects [^79] [^82].
-One node can be restarted at a time, and traffic can be shifted away from the node before the
-planned restart, like in a rolling upgrade (see [Chapter 5](/en/ch5#ch_encoding)).
+这个想法的一个变体是仅对短期对象使用垃圾回收器（快速收集），并定期重启进程，在它们积累足够的长期对象需要长期对象的完整 GC 之前 [^79] [^82]。可以一次重启一个节点，并且可以在计划重启之前将流量从节点转移，就像滚动升级一样（见 [第 5 章](/ch5#ch_encoding)）。
 
-These measures cannot fully prevent garbage collection pauses, but they can usefully reduce their
-impact on the application.
+这些措施不能完全防止垃圾回收暂停，但它们可以有效地减少对应用程序的影响。
 
 
 
 ## 知识、真相和谎言 {#sec_distributed_truth}
 
-So far in this chapter we have explored the ways in which distributed systems are different from
-programs running on a single computer: there is no shared memory, only message passing via an
-unreliable network with variable delays, and the systems may suffer from partial failures, unreliable clocks,
-and processing pauses.
+到目前为止，在本章中，我们已经探讨了分布式系统与在单台计算机上运行的程序的不同之处：没有共享内存，只有通过不可靠的网络进行消息传递，具有可变延迟，系统可能会遭受部分失效、不可靠的时钟和处理暂停。
 
-The consequences of these issues are profoundly disorienting if you’re not used to distributed
-systems. A node in the network cannot *know* anything for sure about other nodes—it can only make
-guesses based on the messages it receives (or doesn’t receive). A node can only find out what state
-another node is in (what data it has stored, whether it is correctly functioning, etc.) by
-exchanging messages with it. If a remote node doesn’t respond, there is no way of knowing what state
-it is in, because problems in the network cannot reliably be distinguished from problems at a node.
+如果你不习惯分布式系统，这些问题的后果会令人深感迷惑。网络中的节点不能 *确切地知道* 关于其他节点的任何事情 —— 它只能根据它接收（或未接收）的消息进行猜测。节点只能通过与另一个节点交换消息来了解它处于什么状态（它存储了什么数据，它是否正常运行等）。如果远程节点没有响应，就无法知道它处于什么状态，因为网络中的问题无法与节点的问题可靠地区分开来。
 
-Discussions of these systems border on the philosophical: What do we know to be true or false in our
-system? How sure can we be of that knowledge, if the mechanisms for perception and measurement are unreliable [^83]?
-Should software systems obey the laws that we expect of the physical world, such as cause and effect?
+这些系统的讨论接近哲学：在我们的系统中，我们知道什么是真或假？如果感知和测量的机制不可靠，我们对这些知识有多确定 [^83]？软件系统是否应该遵守我们对物理世界的期望法则，如因果关系？
 
-Fortunately, we don’t need to go as far as figuring out the meaning of life. In a distributed
-system, we can state the assumptions we are making about the behavior (the *system model*) and
-design the actual system in such a way that it meets those assumptions. Algorithms can be proved to
-function correctly within a certain system model. This means that reliable behavior is achievable,
-even if the underlying system model provides very few guarantees.
+幸运的是，我们不需要走到弄清生命意义的程度。在分布式系统中，我们可以陈述我们对行为（*系统模型*）的假设，并以这样的方式设计实际系统，使其满足这些假设。算法可以被证明在某个系统模型内正确运行。这意味着即使底层系统模型提供的保证很少，也可以实现可靠的行为。
 
-However, although it is possible to make software well behaved in an unreliable system model, it
-is not straightforward to do so. In the rest of this chapter we will further explore the notions of
-knowledge and truth in distributed systems, which will help us think about the kinds of assumptions
-we can make and the guarantees we may want to provide. In [Chapter 10](/en/ch10#ch_consistency) we will proceed to
-look at some examples of distributed algorithms that provide particular guarantees under particular
-assumptions.
+然而，尽管可以在不可靠的系统模型中使软件表现良好，但这样做并不简单。在本章的其余部分，我们将进一步探讨分布式系统中知识和真相的概念，这将帮助我们思考我们可以做出的假设类型和我们可能希望提供的保证。在 [第 10 章](/ch10#ch_consistency) 中，我们将继续查看在特定假设下提供特定保证的分布式算法的一些示例。
 
 ### 多数派原则 {#sec_distributed_majority}
 
-Imagine a network with an asymmetric fault: a node is able to receive all messages sent to it, but
-any outgoing messages from that node are dropped or delayed [^22]. Even though that node is working
-perfectly well, and is receiving requests from other nodes, the other nodes cannot hear its
-responses. After some timeout, the other nodes declare it dead, because they haven’t heard from the
-node. The situation unfolds like a nightmare: the semi-disconnected node is dragged to the
-graveyard, kicking and screaming “I’m not dead!”—but since nobody can hear its screaming, the
-funeral procession continues with stoic determination.
+想象一个具有不对称故障的网络：一个节点能够接收发送给它的所有消息，但该节点的任何传出消息都被丢弃或延迟 [^22]。即使该节点运行得非常好，并且正在接收来自其他节点的请求，其他节点也无法听到它的响应。在一些超时之后，其他节点宣布它死亡，因为它们没有收到该节点的消息。情况展开就像一场噩梦：半断开的节点被拖到墓地，踢腿尖叫着 "我没死！" —— 但由于没人能听到它的尖叫，葬礼队伍以坚忍的决心继续前进。
 
-In a slightly less nightmarish scenario, the semi-disconnected node may notice that the messages it
-is sending are not being acknowledged by other nodes, and so realize that there must be a fault
-in the network. Nevertheless, the node is wrongly declared dead by the other nodes, and the
-semi-disconnected node cannot do anything about it.
+在稍微不那么可怕的情况下，半断开的节点可能会注意到它发送的消息没有被其他节点确认，因此意识到网络中一定有故障。尽管如此，该节点被其他节点错误地宣布死亡，半断开的节点对此无能为力。
 
-As a third scenario, imagine a node that pauses execution for one minute. During that time, no
-requests are processed and no responses are sent. The other nodes wait, retry, grow impatient, and
-eventually declare the node dead and load it onto the hearse. Finally, the pause finishes and the
-node’s threads continue as if nothing had happened. The other nodes are surprised as the supposedly
-dead node suddenly raises its head out of the coffin, in full health, and starts cheerfully chatting
-with bystanders. At first, the paused node doesn’t even realize that an entire minute has passed and
-that it was declared dead—from its perspective, hardly any time has passed since it was last talking
-to the other nodes.
+作为第三种情况，想象一个节点暂停执行一分钟。在此期间，没有请求被处理，也没有响应被发送。其他节点等待、重试、变得不耐烦，最终宣布该节点死亡并将其装上灵车。最后，暂停结束，节点的线程继续运行，就好像什么都没发生过。其他节点惊讶地看到据称已死的节点突然从棺材里抬起头来，健康状况良好，开始愉快地与旁观者聊天。起初，暂停的节点甚至没有意识到整整一分钟已经过去，它被宣布死亡 —— 从它的角度来看，自从它上次与其他节点交谈以来，几乎没有时间过去。
 
-The moral of these stories is that a node cannot necessarily trust its own judgment of a situation.
-A distributed system cannot exclusively rely on a single node, because a node may fail at any time,
-potentially leaving the system stuck and unable to recover. Instead, many distributed algorithms
-rely on a *quorum*, that is, voting among the nodes (see [“Quorums for reading and writing”](/en/ch6#sec_replication_quorum_condition)):
-decisions require some minimum number of votes from several nodes in order to reduce the dependence
-on any one particular node.
+这些故事的寓意是，节点不一定能信任自己对情况的判断。分布式系统不能完全依赖单个节点，因为节点可能随时失效，可能使系统陷入困境并无法恢复。相反，许多分布式算法依赖于 *仲裁*，即节点之间的投票（见 ["读写仲裁"](/ch6#sec_replication_quorum_condition)）：决策需要来自几个节点的最少票数，以减少对任何一个特定节点的依赖。
 
-That includes decisions about declaring nodes dead. If a quorum of nodes declares another node
-dead, then it must be considered dead, even if that node still very much feels alive. The individual
-node must abide by the quorum decision and step down.
+这包括关于宣布节点死亡的决定。如果节点的仲裁宣布另一个节点死亡，那么它必须被认为是死亡的，即使该节点仍然感觉自己非常活着。个别节点必须遵守仲裁决定并退出。
 
-Most commonly, the quorum is an absolute majority of more than half the nodes (although other kinds
-of quorums are possible). A majority quorum allows the system to continue working if a minority of nodes
-are faulty (with three nodes, one faulty node can be tolerated; with five nodes, two faulty nodes can be
-tolerated). However, it is still safe, because there can only be only one majority in the
-system—there cannot be two majorities with conflicting decisions at the same time. We will discuss
-the use of quorums in more detail when we get to *consensus algorithms* in [Chapter 10](/en/ch10#ch_consistency).
+最常见的是，仲裁是超过半数节点的绝对多数（尽管其他类型的仲裁也是可能的）。多数仲裁允许系统在少数节点故障时继续工作（三个节点可以容忍一个故障节点；五个节点可以容忍两个故障节点）。然而，它仍然是安全的，因为系统中只能有一个多数 —— 不能同时有两个具有冲突决策的多数。当我们在 [第 10 章](/ch10#ch_consistency) 讨论 *共识算法* 时，我们将更详细地讨论仲裁的使用。
 
 ### 分布式锁和租约 {#sec_distributed_lock_fencing}
 
-Locks and leases in distributed application are prone to be misused, and a common source of bugs [^84].
-Let’s look at one particular case of how they can go wrong.
+分布式应用程序中的锁和租约容易被误用，并且是错误的常见来源 [^84]。让我们看看它们如何出错的一个特定案例。
 
-In [“Process Pauses”](/en/ch9#sec_distributed_clocks_pauses) we saw that a lease is a kind of lock that times out and can be
-assigned to a new owner if the old owner stops responding (perhaps because it crashed, it paused for
-too long, or it was disconnected from the network). You can use leases in situations where a system
-requires there to be only one of some thing. For example:
+在 ["进程暂停"](/ch9#sec_distributed_clocks_pauses) 中，我们看到租约是一种超时的锁，如果旧所有者停止响应（可能是因为它崩溃了、暂停太久或与网络断开连接），可以分配给新所有者。你可以在系统需要只有一个某种东西的情况下使用租约。例如：
 
-* Only one node is allowed to be the leader for a database shard, to avoid split brain (see
- [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
-* Only one transaction or client is allowed to update a particular resource or object, to prevent
- it being corrupted by concurrent writes.
-* Only one node should process a given input file to a big processing job, to avoid wasted effort
- due to multiple nodes redundantly doing the same work.
+* 只允许一个节点成为数据库分片的主节点，以避免脑裂（见 ["处理节点中断"](/ch6#sec_replication_failover)）。
+* 只允许一个事务或客户端更新特定资源或对象，以防止并发写入损坏它。
+* 只有一个节点应该处理大型处理作业的给定输入文件，以避免由于多个节点冗余地执行相同工作而浪费精力。
 
-It is worth thinking carefully about what happens if several nodes simultaneously believe that they
-hold the lease, perhaps due to a process pause. In the third example, the consequence is only some
-wasted computational resources, which is not a big deal. But in the first two cases, the consequence
-could be lost or corrupted data, which is much more serious.
+值得仔细思考如果几个节点同时认为它们持有租约会发生什么，可能是由于进程暂停。在第三个例子中，后果只是一些浪费的计算资源，这不是什么大问题。但在前两种情况下，后果可能是数据丢失或损坏，这要严重得多。
 
-For example, [Figure 9-4](/en/ch9#fig_distributed_lease_pause) shows a data corruption bug due to an incorrect
-implementation of locking. (The bug is not theoretical: HBase used to have this problem [^85] [^86].)
-Say you want to ensure that a file in a storage service can only be
-accessed by one client at a time, because if multiple clients tried to write to it, the file would
-become corrupted. You try to implement this by requiring a client to obtain a lease from a lock
-service before accessing the file. Such a lock service is often implemented using a consensus
-algorithm; we will discuss this further in [Chapter 10](/en/ch10#ch_consistency).
+例如，[图 9-4](/ch9#fig_distributed_lease_pause) 显示了由于锁的错误实现导致的数据损坏错误。（该错误不是理论上的：HBase 曾经有这个问题 [^85] [^86]。）假设你想确保存储服务中的文件一次只能由一个客户端访问，因为如果多个客户端试图写入它，文件将被损坏。你尝试通过要求客户端在访问文件之前从锁服务获取租约来实现这一点。这种锁服务通常使用共识算法实现；我们将在 [第 10 章](/ch10#ch_consistency) 中进一步讨论这一点。
 
-{{< figure src="/fig/ddia_0904.png" id="fig_distributed_lease_pause" caption="Figure 9-4. Incorrect implementation of a distributed lock: client 1 believes that it still has a valid lease, even though it has expired, and thus corrupts a file in storage." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0904.png" id="fig_distributed_lease_pause" caption="图 9-4. 分布式锁的错误实现：客户端 1 认为它仍然有有效的租约，即使它已经过期，因此损坏了存储中的文件。" class="w-full my-4" >}}
 
 
-The problem is an example of what we discussed in [“Process Pauses”](/en/ch9#sec_distributed_clocks_pauses): if the client
-holding the lease is paused for too long, its lease expires. Another client can obtain a lease for
-the same file, and start writing to the file. When the paused client comes back, it believes
-(incorrectly) that it still has a valid lease and proceeds to also write to the file. We now have a
-split brain situation: the clients’ writes clash and corrupt the file.
+问题是我们在 ["进程暂停"](/ch9#sec_distributed_clocks_pauses) 中讨论的一个例子：如果持有租约的客户端暂停太久，其租约就会过期。另一个客户端可以获得同一文件的租约，并开始写入文件。当暂停的客户端回来时，它（错误地）认为它仍然有有效的租约，并继续写入文件。我们现在有了脑裂情况：客户端的写入冲突并损坏了文件。
 
-[Figure 9-5](/en/ch9#fig_distributed_lease_delay) shows a different problem that has similar consequences. In this
-example there is no process pause, only a crash by client 1. Just before client 1 crashes it sends a
-write request to the storage service, but this request is delayed for a long time in the network.
-(Remember from [“Network Faults in Practice”](/en/ch9#sec_distributed_network_faults) that packets can sometimes be delayed by a minute
-or more.) By the time the write request arrives at the storage service, the lease has already timed
-out, allowing client 2 to acquire it and issue a write of its own. The result is corruption similar
-to [Figure 9-4](/en/ch9#fig_distributed_lease_pause).
+[图 9-5](/ch9#fig_distributed_lease_delay) 显示了具有类似后果的另一个问题。在这个例子中没有进程暂停，只有客户端 1 的崩溃。就在客户端 1 崩溃之前，它向存储服务发送了一个写请求，但这个请求在网络中被延迟了很长时间。（请记住 ["实践中的网络故障"](/ch9#sec_distributed_network_faults)，数据包有时可能会延迟一分钟或更长时间。）当写请求到达存储服务时，租约已经超时，允许客户端 2 获取它并发出自己的写入。结果是类似于 [图 9-4](/ch9#fig_distributed_lease_pause) 的损坏。
 
-{{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" caption="Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" caption="图 9-5. 来自前租约持有者的消息可能会延迟很长时间，并在另一个节点接管租约后到达。" class="w-full my-4" >}}
 
 
 #### 隔离僵尸进程和延迟请求 {#sec_distributed_fencing_tokens}
 
-The term *zombie* is sometimes used to describe a former leaseholder who has not yet found out that
-it lost the lease, and who is still acting as if it was the current leaseholder. Since we cannot
-rule out zombies entirely, we have to instead ensure that they can’t do any damage in the form of
-split brain. This is called *fencing off* the zombie.
+术语 *僵尸* 有时用于描述尚未发现失去租约的前租约持有者，并且仍在充当当前租约持有者。由于我们不能完全排除僵尸，我们必须确保它们不能以脑裂的形式造成任何损害。这被称为 *隔离* 僵尸。
 
-Some systems attempt to fence off zombies by shutting them down, for example by disconnecting them
-from the network [^9], shutting down the VM via
-the cloud provider’s management interface, or even physically powering down the machine [^87].
-This approach is known as *Shoot The Other Node In The Head* or STONITH. Unfortunately, it suffers
-from some problems: it does not protect against large network delays like in
-[Figure 9-5](/en/ch9#fig_distributed_lease_delay); it can happen that all of the nodes shut each other down [^19]; and by the time the zombie has been
-detected and shut down, it may already be too late and data may already have been corrupted.
+一些系统试图通过关闭僵尸来隔离它们，例如通过断开它们与网络的连接 [^9]、通过云提供商的管理界面关闭 VM，甚至物理关闭机器 [^87]。这种方法被称为 *向对方节点头部开枪* 或 STONITH。不幸的是，它存在一些问题：它不能防范像 [图 9-5](/ch9#fig_distributed_lease_delay) 中那样的大网络延迟；可能会发生所有节点相互关闭的情况 [^19]；到检测到僵尸并关闭它时，可能已经太晚了，数据可能已经被损坏。
 
-A more robust fencing solution, which protects against both zombies and delayed requests, is
-illustrated in [Figure 9-6](/en/ch9#fig_distributed_fencing).
+一个更强大的隔离解决方案，可以防范僵尸和延迟请求，如 [图 9-6](/ch9#fig_distributed_fencing) 所示。
 
-{{< figure src="/fig/ddia_0906.png" id="fig_distributed_fencing" caption="Figure 9-6. Making access to storage safe by allowing writes only in the order of increasing fencing tokens." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0906.png" id="fig_distributed_fencing" caption="图 9-6. 通过只允许按递增隔离令牌顺序写入来使存储访问安全。" class="w-full my-4" >}}
 
 
-Let’s assume that every time the lock service grants a lock or lease, it also returns a *fencing
-token*, which is a number that increases every time a lock is granted (e.g., incremented by the lock
-service). We can then require that every time a client sends a write request to the storage service,
-it must include its current fencing token.
+假设每次锁服务授予锁或租约时，它还返回一个 *隔离令牌*，这是一个每次授予锁时都会增加的数字（例如，由锁服务递增）。然后我们可以要求客户端每次向存储服务发送写请求时，都必须包含其当前的隔离令牌。
 
 --------
 
 > [!NOTE]
-> There are several alternative names for fencing tokens. In Chubby, Google’s lock service, they are
-> called *sequencers* [^88], and in Kafka they are called *epoch numbers*.
-> In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
-> *term number* (Raft) serves a similar purpose.
+> 隔离令牌有几个替代名称。在 Google 的锁服务 Chubby 中，它们被称为 *序列器* [^88]，在 Kafka 中它们被称为 *纪元编号*。在共识算法中，我们将在 [第 10 章](/ch10#ch_consistency) 中讨论，*投票编号*（Paxos）或 *任期编号*（Raft）起着类似的作用。
 
 --------
 
-In [Figure 9-6](/en/ch9#fig_distributed_fencing), client 1 acquires the lease with a token of 33, but then
-it goes into a long pause and the lease expires. Client 2 acquires the lease with a token of 34 (the
-number always increases) and then sends its write request to the storage service, including the
-token of 34. Later, client 1 comes back to life and sends its write to the storage service,
-including its token value 33. However, the storage service remembers that it has already processed a
-write with a higher token number (34), and so it rejects the request with token 33. A client that
-has just acquired the lease must immediately make a write to the storage service, and once that
-write has completed, any zombies are fenced off.
+在 [图 9-6](/ch9#fig_distributed_fencing) 中，客户端 1 获得带有令牌 33 的租约，但随后进入长时间暂停，租约过期。客户端 2 获得带有令牌 34 的租约（数字总是增加），然后将其写请求发送到存储服务，包括令牌 34。稍后，客户端 1 恢复生机并将其写入发送到存储服务，包括其令牌值 33。然而，存储服务记得它已经处理了具有更高令牌编号（34）的写入，因此它拒绝带有令牌 33 的请求。刚刚获得租约的客户端必须立即向存储服务进行写入，一旦该写入完成，任何僵尸都被隔离了。
 
-If ZooKeeper is your lock service, you can use the transaction ID `zxid` or the node version
-`cversion` as fencing token [^85].
-With etcd, the revision number along with the lease ID serves a similar purpose [^89].
-The FencedLock API in Hazelcast explicitly generates a fencing token [^90].
+如果 ZooKeeper 是你的锁服务，你可以使用事务 ID `zxid` 或节点版本 `cversion` 作为隔离令牌 [^85]。使用 etcd，修订号与租约 ID 一起起着类似的作用 [^89]。Hazelcast 中的 FencedLock API 明确生成隔离令牌 [^90]。
 
-This mechanism requires that the storage service has some way of checking whether a write is based
-on an outdated token. Alternatively, it’s sufficient for the service to support a write that
-succeeds only if the object has not been written by another client since the current client last
-read it, similarly to an atomic compare-and-set (CAS) operation. For example, object storage
-services support such a check: Amazon S3 calls it *conditional writes*, Azure Blob Storage calls it
-*conditional headers*, and Google Cloud Storage calls it *request preconditions*.
+这种机制要求存储服务有某种方法来检查写入是否基于过时的令牌。或者，服务支持仅在对象自当前客户端上次读取以来未被另一个客户端写入时才成功的写入就足够了，类似于原子比较并设置（CAS）操作。例如，对象存储服务支持这种检查：Amazon S3 称之为 *条件写入*，Azure Blob Storage 称之为 *条件标头*，Google Cloud Storage 称之为 *请求前提条件*。
 
 #### 多副本隔离 {#fencing-with-multiple-replicas}
 
-If your clients need to write only to one storage service that supports such conditional writes, the
-lock service is somewhat redundant [^91] [^92], since the lease assignment could have been implemented directly based on that storage service [^93].
-However, once you have a fencing token you can also use it with multiple services or replicas, and
-ensure that the old leaseholder is fenced off on all of those services.
+如果你的客户端只需要写入一个支持此类条件写入的存储服务，锁服务在某种程度上是多余的 [^91] [^92]，因为租约分配本可以直接基于该存储服务实现 [^93]。然而，一旦你有了隔离令牌，你也可以将其用于多个服务或副本，并确保旧的租约持有者在所有这些服务上都被隔离。
 
-For example, imagine the storage service is a leaderless replicated key-value store with
-last-write-wins conflict resolution (see [“Leaderless Replication”](/en/ch6#sec_replication_leaderless)). In such a system, the
-client sends writes directly to each replica, and each replica independently decides whether to
-accept a write based on a timestamp assigned by the client.
+例如，想象存储服务是一个具有最后写入胜利冲突解决的无主复制键值存储（见 ["无主复制"](/ch6#sec_replication_leaderless)）。在这样的系统中，客户端直接向每个副本发送写入，每个副本根据客户端分配的时间戳独立决定是否接受写入。
 
-As illustrated in [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), you can put the writer’s fencing token in
-the most significant bits or digits of the timestamp. You can then be sure that any timestamp
-generated by the new leaseholder will be greater than any timestamp from the old leaseholder, even
-if the old leaseholder’s writes happened later.
+如 [图 9-7](/ch9#fig_distributed_fencing_leaderless) 所示，你可以将写入者的隔离令牌放在时间戳的最高有效位或数字中。然后你可以确保新租约持有者生成的任何时间戳都将大于旧租约持有者的任何时间戳，即使旧租约持有者的写入发生得更晚。
 
-{{< figure src="/fig/ddia_0907.png" id="fig_distributed_fencing_leaderless" caption="Figure 9-7. Using fencing tokens to protect writes to a leaderless replicated database." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0907.png" id="fig_distributed_fencing_leaderless" caption="图 9-7. 使用隔离令牌保护对无主复制数据库的写入。" class="w-full my-4" >}}
 
 
-In [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), Client 2 has a fencing token of 34, so all of its
-timestamps starting with 34…​ are greater than any timestamps starting with 33…​ that are
-generated by Client 1. Client 2 writes to a quorum of replicas but it can’t reach Replica 3. This
-means that when the zombie Client 1 later tries to write, its write may succeed at Replica 3 even
-though it is ignored by replicas 1 and 2. This is not a problem, since a subsequent quorum read will
-prefer the write from Client 2 with the greater timestamp, and read repair or anti-entropy will
-eventually overwrite the value written by Client 1.
+在 [图 9-7](/ch9#fig_distributed_fencing_leaderless) 中，客户端 2 有隔离令牌 34，因此它所有以 34… 开头的时间戳都大于客户端 1 生成的任何以 33… 开头的时间戳。客户端 2 写入副本的仲裁，但它无法到达副本 3。这意味着当僵尸客户端 1 稍后尝试写入时，它的写入可能在副本 3 上成功，即使它被副本 1 和 2 忽略。这不是问题，因为后续的仲裁读取将更喜欢具有更大时间戳的客户端 2 的写入，读修复或反熵最终将覆盖客户端 1 写入的值。
 
-As you can see from these examples, it is not safe to assume that there is only one node holding a
-lease at any one time. Fortunately, with a bit of care you can use fencing tokens to prevent zombies
-and delayed requests from doing any damage.
+从这些例子可以看出，假设任何时候只有一个节点持有租约是不安全的。幸运的是，通过一点小心，你可以使用隔离令牌来防止僵尸和延迟请求造成任何损害。
 
 ### 拜占庭故障 {#sec_distributed_byzantine}
 
-Fencing tokens can detect and block a node that is *inadvertently* acting in error (e.g., because it
-hasn’t yet found out that its lease has expired). However, if the node deliberately wanted to
-subvert the system’s guarantees, it could easily do so by sending messages with a fake fencing
-token.
+隔离令牌可以检测并阻止 *无意中* 出错的节点（例如，因为它尚未发现其租约已过期）。然而，如果节点故意想要破坏系统的保证，它可以通过发送带有虚假隔离令牌的消息轻松做到。
 
-In this book we assume that nodes are unreliable but honest: they may be slow or never respond (due
-to a fault), and their state may be outdated (due to a GC pause or network delays), but we assume
-that if a node *does* respond, it is telling the “truth”: to the best of its knowledge, it is
-playing by the rules of the protocol.
+在本书中，我们假设节点是不可靠但诚实的：它们可能很慢或从不响应（由于故障），它们的状态可能已过时（由于 GC 暂停或网络延迟），但我们假设如果节点 *确实* 响应，它就是在说 "真话"：据它所知，它正在按协议规则行事。
 
-Distributed systems problems become much harder if there is a risk that nodes may “lie” (send
-arbitrary faulty or corrupted responses)—for example, it might cast multiple contradictory votes in
-the same election. Such behavior is known as a *Byzantine fault*, and the problem of reaching
-consensus in this untrusting environment is known as the *Byzantine Generals Problem* [^94].
+如果节点可能 "撒谎"（发送任意错误或损坏的响应）的风险存在，分布式系统问题会变得更加困难 —— 例如，它可能在同一次选举中投出多个相互矛盾的票。这种行为被称为 *拜占庭故障*，在这种不信任环境中达成共识的问题被称为 *拜占庭将军问题* [^94]。
 
 > [!TIP] 拜占庭将军问题
-
-The Byzantine Generals Problem is a generalization of the so-called *Two Generals Problem* [^95],
-which imagines a situation in which two army generals need to agree on a battle plan. As they
-have set up camp on two different sites, they can only communicate by messenger, and the messengers
-sometimes get delayed or lost (like packets in a network). We will discuss this problem of
-*consensus* in [Chapter 10](/en/ch10#ch_consistency).
-
-In the Byzantine version of the problem, there are *n* generals who need to agree, and their
-endeavor is hampered by the fact that there are some traitors in their midst. Most of the generals
-are loyal, and thus send truthful messages, but the traitors may try to deceive and confuse the
-others by sending fake or untrue messages. It is not known in advance who the traitors are.
-
-Byzantium was an ancient Greek city that later became Constantinople, in the place which is now
-Istanbul in Turkey. There isn’t any historic evidence that the generals of Byzantium were any more
-prone to intrigue and conspiracy than those elsewhere. Rather, the name is derived from *Byzantine*
-in the sense of *excessively complicated, bureaucratic, devious*, which was used in politics long
-before computers [^96].
-Lamport wanted to choose a nationality that would not offend any readers, and he was advised that
-calling it *The Albanian Generals Problem* was not such a good idea [^97].
+>
+> 拜占庭将军问题是所谓 *两将军问题* [^95] 的推广，它想象了两个军队将军需要就战斗计划达成一致的情况。由于他们在两个不同的地点扎营，他们只能通过信使进行通信，信使有时会延迟或丢失（就像网络中的数据包）。我们将在 [第 10 章](/ch10#ch_consistency) 中讨论这个 *共识* 问题。
+>
+> 在问题的拜占庭版本中，有 *n* 个需要达成一致的将军，他们的努力受到他们中间有一些叛徒的阻碍。大多数将军是忠诚的，因此发送真实的消息，但叛徒可能试图通过发送虚假或不真实的消息来欺骗和混淆其他人。事先不知道谁是叛徒。
+>
+> 拜占庭是一个古希腊城市，后来成为君士坦丁堡，位于现在土耳其的伊斯坦布尔。没有任何历史证据表明拜占庭的将军比其他地方的将军更容易搞阴谋和密谋。相反，这个名字源自 *拜占庭* 一词在 *过于复杂、官僚、狡猾* 的意义上的使用，这个词在计算机出现之前很久就在政治中使用了 [^96]。Lamport 想选择一个不会冒犯任何读者的国籍，他被建议称之为 *阿尔巴尼亚将军问题* 不是个好主意 [^97]。
 
 --------
 
-A system is *Byzantine fault-tolerant* if it continues to operate correctly even if some of the
-nodes are malfunctioning and not obeying the protocol, or if malicious attackers are interfering
-with the network. This concern is relevant in certain specific circumstances. For example:
+如果即使某些节点发生故障并且不遵守协议，或者恶意攻击者干扰网络，系统仍能继续正确运行，则该系统是 *拜占庭容错* 的。这种担忧在某些特定情况下是相关的。例如：
 
-* In aerospace environments, the data in a computer’s memory or CPU register could become corrupted
- by radiation, leading it to respond to other nodes in arbitrarily unpredictable ways. Since a
- system failure would be very expensive (e.g., an aircraft crashing and killing everyone on board,
- or a rocket colliding with the International Space Station), flight control systems must tolerate
- Byzantine faults [^98] [^99].
-* In a system with multiple participating parties, some participants may attempt to cheat or
- defraud others. In such circumstances, it is not safe for a node to simply trust another node’s
- messages, since they may be sent with malicious intent. For example, cryptocurrencies like
- Bitcoin and other blockchains can be considered to be a way of getting mutually untrusting parties
- to agree whether a transaction happened or not, without relying on a central authority [^100].
+* 在航空航天环境中，计算机内存或 CPU 寄存器中的数据可能因辐射而损坏，导致它以任意不可预测的方式响应其他节点。由于系统故障的成本非常高昂（例如，飞机坠毁并杀死机上所有人，或火箭与国际空间站相撞），飞行控制系统必须容忍拜占庭故障 [^98] [^99]。
+* 在有多个参与方的系统中，一些参与者可能试图欺骗或欺诈其他人。在这种情况下，节点简单地信任另一个节点的消息是不安全的，因为它们可能是恶意发送的。例如，比特币等加密货币和其他区块链可以被认为是让相互不信任的各方就交易是否发生达成一致的一种方式，而无需依赖中央权威 [^100]。
 
-However, in the kinds of systems we discuss in this book, we can usually safely assume that there
-are no Byzantine faults. In a datacenter, all the nodes are controlled by your organization (so
-they can hopefully be trusted) and radiation levels are low enough that memory corruption is not a
-major problem (although datacenters in orbit are being considered [^101]).
-Multitenant systems have mutually untrusting tenants, but they are isolated from each
-other using firewalls, virtualization, and access control policies, not using Byzantine fault
-tolerance. Protocols for making systems Byzantine fault-tolerant are quite expensive [^102],
-and fault-tolerant embedded systems rely on support from the hardware level [^98]. In most server-side data systems, the
-cost of deploying Byzantine fault-tolerant solutions makes them impracticable.
+然而，在我们在本书中讨论的系统类型中，我们通常可以安全地假设没有拜占庭故障。在数据中心中，所有节点都由你的组织控制（因此它们有望被信任），辐射水平足够低，内存损坏不是主要问题（尽管正在考虑轨道数据中心 [^101]）。多租户系统有相互不信任的租户，但它们使用防火墙、虚拟化和访问控制策略相互隔离，而不是使用拜占庭容错。使系统拜占庭容错的协议相当昂贵 [^102]，容错嵌入式系统依赖于硬件级别的支持 [^98]。在大多数服务器端数据系统中，部署拜占庭容错解决方案的成本使它们不切实际。
 
-Web applications do need to expect arbitrary and malicious behavior of clients that are under
-end-user control, such as web browsers. This is why input validation, sanitization, and output
-escaping are so important: to prevent SQL injection and cross-site scripting, for example. However,
-we typically don’t use Byzantine fault-tolerant protocols here, but simply make the server the
-authority on deciding what client behavior is and isn’t allowed. In peer-to-peer networks, where
-there is no such central authority, Byzantine fault tolerance is more relevant [^103] [^104].
+Web 应用程序确实需要预期客户端在最终用户控制下的任意和恶意行为，例如 Web 浏览器。这就是输入验证、清理和输出转义如此重要的原因：例如，防止 SQL 注入和跨站脚本攻击。然而，我们通常不在这里使用拜占庭容错协议，而只是让服务器成为决定什么客户端行为被允许和不被允许的权威。在没有这种中央权威的点对点网络中，拜占庭容错更相关 [^103] [^104]。
 
-A bug in the software could be regarded as a Byzantine fault, but if you deploy the same software to
-all nodes, then a Byzantine fault-tolerant algorithm cannot save you. Most Byzantine fault-tolerant
-algorithms require a supermajority of more than two-thirds of the nodes to be functioning correctly
-(for example, if you have four nodes, at most one may malfunction). To use this approach against bugs, you
-would have to have four independent implementations of the same software and hope that a bug only
-appears in one of the four implementations.
+软件中的错误可以被视为拜占庭故障，但如果你将相同的软件部署到所有节点，那么拜占庭容错算法无法拯救你。大多数拜占庭容错算法需要超过三分之二的节点的绝对多数才能正常运行（例如，如果你有四个节点，最多一个可能发生故障）。要使用这种方法对付错误，你必须有四个相同软件的独立实现，并希望错误只出现在四个实现中的一个。
 
-Similarly, it would be appealing if a protocol could protect us from vulnerabilities, security
-compromises, and malicious attacks. Unfortunately, this is not realistic either: in most systems, if
-an attacker can compromise one node, they can probably compromise all of them, because they are
-probably running the same software. Thus, traditional mechanisms (authentication, access control,
-encryption, firewalls, and so on) continue to be the main protection against attackers.
+同样，如果协议可以保护我们免受漏洞、安全妥协和恶意攻击，那将是很有吸引力的。不幸的是，这也不现实：在大多数系统中，如果攻击者可以破坏一个节点，他们可能可以破坏所有节点，因为它们可能运行相同的软件。因此，传统机制（身份验证、访问控制、加密、防火墙等）仍然是防范攻击者的主要保护。
 
 #### 弱形式的谎言 {#weak-forms-of-lying}
 
-Although we assume that nodes are generally honest, it can be worth adding mechanisms to software
-that guard against weak forms of “lying”—for example, invalid messages due to hardware issues,
-software bugs, and misconfiguration. Such protection mechanisms are not full-blown Byzantine fault
-tolerance, as they would not withstand a determined adversary, but they are nevertheless simple and
-pragmatic steps toward better reliability. For example:
+尽管我们假设节点通常是诚实的，但向软件添加防范弱形式 "谎言" 的机制可能是值得的 —— 例如，由于硬件问题、软件错误和配置错误导致的无效消息。这种保护机制不是完全的拜占庭容错，因为它们无法抵御坚定的对手，但它们仍然是朝着更好可靠性迈出的简单而务实的步骤。例如：
 
-* Network packets do sometimes get corrupted due to hardware issues or bugs in operating systems,
- drivers, routers, etc. Usually, corrupted packets are caught by the checksums built into TCP and
- UDP, but sometimes they evade detection [^105] [^106] [^107].
- Simple measures are usually sufficient protection against such corruption, such as checksums in
- the application-level protocol. TLS-encrypted connections also offer protection against corruption.
-* A publicly accessible application must carefully sanitize any inputs from users, for example
- checking that a value is within a reasonable range and limiting the size of strings to prevent
- denial of service through large memory allocations. An internal service behind a firewall may be
- able to get away with less strict checks on inputs, but basic checks in protocol parsers are still a good idea [^105].
-* NTP clients can be configured with multiple server addresses. When synchronizing, the client
- contacts all of them, estimates their errors, and checks that a majority of servers agree on some
- time range. As long as most of the servers are okay, a misconfigured NTP server that is reporting an
- incorrect time is detected as an outlier and is excluded from synchronization [^39]. The use of multiple servers makes NTP
- more robust than if it only uses a single server.
+* 由于硬件问题或操作系统、驱动程序、路由器等中的错误，网络数据包有时确实会损坏。通常，损坏的数据包会被内置于 TCP 和 UDP 中的校验和捕获，但有时它们会逃避检测 [^105] [^106] [^107]。简单的措施通常足以防范此类损坏，例如应用程序级协议中的校验和。TLS 加密连接也提供防损坏保护。
+* 公开可访问的应用程序必须仔细清理来自用户的任何输入，例如检查值是否在合理范围内，并限制字符串的大小以防止通过大内存分配进行拒绝服务。防火墙后面的内部服务可能能够在输入上进行较少严格的检查，但协议解析器中的基本检查仍然是个好主意 [^105]。
+* NTP 客户端可以配置多个服务器地址。同步时，客户端联系所有服务器，估计它们的错误，并检查大多数服务器是否在某个时间范围内达成一致。只要大多数服务器都正常，报告不正确时间的配置错误的 NTP 服务器就会被检测为异常值并从同步中排除 [^39]。使用多个服务器使 NTP 比仅使用单个服务器更强大。
 
 ### 系统模型与现实 {#sec_distributed_system_model}
 
-Many algorithms have been designed to solve distributed systems problems—for example, we will
-examine solutions for the consensus problem in [Chapter 10](/en/ch10#ch_consistency). In order to be useful, these
-algorithms need to tolerate the various faults of distributed systems that we discussed in this
-chapter.
+许多算法被设计来解决分布式系统问题 —— 例如，我们将在 [第 10 章](/ch10#ch_consistency) 中研究共识问题的解决方案。为了有用，这些算法需要容忍我们在本章中讨论的分布式系统的各种故障。
 
-Algorithms need to be written in a way that does not depend too heavily on the details of the
-hardware and software configuration on which they are run. This in turn requires that we somehow
-formalize the kinds of faults that we expect to happen in a system. We do this by defining a *system
-model*, which is an abstraction that describes what things an algorithm may assume.
+算法需要以不过度依赖于它们运行的硬件和软件配置细节的方式编写。这反过来又要求我们以某种方式形式化我们期望在系统中发生的故障类型。我们通过定义 *系统模型* 来做到这一点，这是一个描述算法可能假设什么事情的抽象。
 
-With regard to timing assumptions, three system models are in common use:
+关于时序假设，三种系统模型常用：
 
-Synchronous model
-: The synchronous model assumes bounded network delay, bounded process pauses, and bounded clock
- error. This does not imply exactly synchronized clocks or zero network delay; it just means you
- know that network delay, pauses, and clock drift will never exceed some fixed upper bound [^108].
- The synchronous model is not a realistic model of most practical
- systems, because (as discussed in this chapter) unbounded delays and pauses do occur.
+同步模型
+: 同步模型假设有界的网络延迟、有界的进程暂停和有界的时钟误差。这并不意味着精确同步的时钟或零网络延迟；它只是意味着你知道网络延迟、暂停和时钟漂移永远不会超过某个固定的上限 [^108]。同步模型不是大多数实际系统的现实模型，因为（如本章所讨论的）无界延迟和暂停确实会发生。
 
-Partially synchronous model
-: Partial synchrony means that a system behaves like a synchronous system *most of the time*, but it
- sometimes exceeds the bounds for network delay, process pauses, and clock drift [^108]. This is a realistic model of many
- systems: most of the time, networks and processes are quite well behaved—otherwise we would never
- be able to get anything done—but we have to reckon with the fact that any timing assumptions
- may be shattered occasionally. When this happens, network delay, pauses, and clock error may become
- arbitrarily large.
+部分同步模型
+: 部分同步意味着系统 *大部分时间* 表现得像同步系统，但有时会超过网络延迟、进程暂停和时钟漂移的界限 [^108]。这是许多系统的现实模型：大部分时间，网络和进程表现相当良好 —— 否则我们永远无法完成任何事情 —— 但我们必须考虑到任何时序假设偶尔可能会被打破的事实。发生这种情况时，网络延迟、暂停和时钟误差可能会变得任意大。
 
-Asynchronous model
-: In this model, an algorithm is not allowed to make any timing assumptions—in fact, it does not
- even have a clock (so it cannot use timeouts). Some algorithms can be designed for the
- asynchronous model, but it is very restrictive.
+异步模型
+: 在这个模型中，算法不允许做出任何时序假设 —— 事实上，它甚至没有时钟（因此它不能使用超时）。一些算法可以为异步模型设计，但它非常有限。
 
-Moreover, besides timing issues, we have to consider node failures. Some common system models for
-nodes are:
+此外，除了时序问题，我们还必须考虑节点故障。节点的一些常见系统模型是：
 
-Crash-stop faults
-: In the *crash-stop* (or *fail-stop*) model, an algorithm may assume that a node can fail in only
- one way, namely by crashing [^109].
- This means that the node may suddenly stop responding at any moment, and thereafter that node is
- gone forever—it never comes back.
+崩溃停止故障
+: 在 *崩溃停止*（或 *故障停止*）模型中，算法可以假设节点只能以一种方式失效，即崩溃 [^109]。这意味着节点可能在任何时刻突然停止响应，此后该节点永远消失 —— 它永远不会回来。
 
-Crash-recovery faults
-: We assume that nodes may crash at any moment, and perhaps start responding again after some
- unknown time. In the crash-recovery model, nodes are assumed to have stable storage (i.e.,
- nonvolatile disk storage) that is preserved across crashes, while the in-memory state is assumed
- to be lost.
+崩溃恢复故障
+: 我们假设节点可能在任何时刻崩溃，并且可能在某个未知时间后再次开始响应。在崩溃恢复模型中，假设节点具有跨崩溃保留的稳定存储（即非易失性磁盘存储），而内存中的状态假设丢失。
 
-Degraded performance and partial functionality
-: In addition to crashing and restarting, nodes may go slow: they may still be able to respond to
- health check requests, while being too slow to get any real work done. For example, a Gigabit
- network interface could suddenly drop to 1 Kb/s throughput due to a driver bug [^110];
- a process that is under memory pressure may spend most of its time performing garbage collection [^111];
- worn-out SSDs can have erratic performance; and hardware can be affected by high temperature,
- loose connectors, mechanical vibration, power supply problems, firmware bugs, and more [^112].
- Such a situation is called a *limping node*, *gray failure*, or *fail-slow* [^113],
- and it can be even more difficult to deal with than a cleanly failed node. A related problem is
- when a process stops doing some of the things it is supposed to do while other aspects continue
- working, for example because a background thread is crashed or deadlocked [^114].
+性能下降和部分功能
+: 除了崩溃和重启之外，节点可能变慢：它们可能仍然能够响应健康检查请求，但速度太慢而无法完成任何实际工作。例如，千兆网络接口可能由于驱动程序错误突然降至 1 Kb/s 吞吐量 [^110]；处于内存压力下的进程可能会花费大部分时间执行垃圾回收 [^111]；磨损的 SSD 可能具有不稳定的性能；硬件可能受到高温、松动的连接器、机械振动、电源问题、固件错误等的影响 [^112]。这种情况被称为 *跛行节点*、*灰色故障* 或 *慢速故障* [^113]，它可能比干净失效的节点更难处理。一个相关的问题是当进程停止执行它应该做的某些事情，而其他方面继续工作时，例如因为后台线程崩溃或死锁 [^114]。
 
-Byzantine (arbitrary) faults
-: Nodes may do absolutely anything, including trying to trick and deceive other nodes, as described
- in the last section.
+拜占庭（任意）故障
+: 节点可能做任何事情，包括试图欺骗和欺骗其他节点，如上一节所述。
 
-For modeling real systems, the partially synchronous model with crash-recovery faults is generally
-the most useful model. It allows for unbounded network delay, process pauses, and slow nodes. But
-how do distributed algorithms cope with that model?
+对于建模真实系统，具有崩溃恢复故障的部分同步模型通常是最有用的模型。它允许无界的网络延迟、进程暂停和慢节点。但是分布式算法如何应对该模型？
 
 #### 定义算法的正确性 {#defining-the-correctness-of-an-algorithm}
 
-To define what it means for an algorithm to be *correct*, we can describe its *properties*. For
-example, the output of a sorting algorithm has the property that for any two distinct elements of
-the output list, the element further to the left is smaller than the element further to the right.
-That is simply a formal way of defining what it means for a list to be sorted.
+为了定义算法 *正确* 的含义，我们可以描述它的 *属性*。例如，排序算法的输出具有这样的属性：对于输出列表的任何两个不同元素，左边的元素小于右边的元素。这只是定义列表排序含义的正式方式。
 
-Similarly, we can write down the properties we want of a distributed algorithm to define what it
-means to be correct. For example, if we are generating fencing tokens for a lock (see
-[“Fencing off zombies and delayed requests”](/en/ch9#sec_distributed_fencing_tokens)), we may require the algorithm to have the following properties:
+同样，我们可以写下我们希望分布式算法具有的属性，以定义正确的含义。例如，如果我们为锁生成隔离令牌（见 ["隔离僵尸进程和延迟请求"](/ch9#sec_distributed_fencing_tokens)），我们可能要求算法具有以下属性：
 
-Uniqueness
-: No two requests for a fencing token return the same value.
+唯一性
+: 没有两个隔离令牌请求返回相同的值。
 
-Monotonic sequence
-: If request *x* returned token *t**x*, and request *y* returned token *t**y*, and
- *x* completed before *y* began, then *t**x* < *t**y*.
+单调序列
+: 如果请求 *x* 返回令牌 *t**x*，请求 *y* 返回令牌 *t**y*，并且 *x* 在 *y* 开始之前完成，则 *t**x* < *t**y*。
 
-Availability
-: A node that requests a fencing token and does not crash eventually receives a response.
+可用性
+: 请求隔离令牌且不崩溃的节点最终会收到响应。
 
-An algorithm is correct in some system model if it always satisfies its properties in all situations
-that we assume may occur in that system model. However, if all nodes crash, or all network delays
-suddenly become infinitely long, then no algorithm will be able to get anything done. How can we
-still make useful guarantees even in a system model that allows complete failures?
+如果算法在我们假设该系统模型中可能发生的所有情况下始终满足其属性，则该算法在某个系统模型中是正确的。然而，如果所有节点崩溃，或者所有网络延迟突然变得无限长，那么没有算法能够完成任何事情。即使在允许完全失效的系统模型中，我们如何仍然做出有用的保证？
 
 #### 安全性与活性 {#sec_distributed_safety_liveness}
 
-To clarify the situation, it is worth distinguishing between two different kinds of properties:
-*safety* and *liveness* properties. In the example just given, *uniqueness* and *monotonic sequence* are
-safety properties, but *availability* is a liveness property.
+为了澄清情况，值得区分两种不同类型的属性：*安全性* 和 *活性* 属性。在刚才给出的例子中，*唯一性* 和 *单调序列* 是安全属性，但 *可用性* 是活性属性。
 
-What distinguishes the two kinds of properties? A giveaway is that liveness properties often include
-the word “eventually” in their definition. (And yes, you guessed it—*eventual consistency* is a
-liveness property [^115].)
+什么区分这两种属性？一个迹象是活性属性通常在其定义中包含 "最终" 一词。（是的，你猜对了 —— *最终一致性* 是一个活性属性 [^115]。）
 
-Safety is often informally defined as *nothing bad happens*, and liveness as *something good
-eventually happens*. However, it’s best to not read too much into those informal definitions,
-because “good” and “bad” are value judgements that don’t apply well to algorithms. The actual
-definitions of safety and liveness are more precise [^116]:
+安全性通常被非正式地定义为 *没有坏事发生*，活性被定义为 *好事最终会发生*。然而，最好不要过多地解读这些非正式定义，因为 "好" 和 "坏" 是价值判断，不能很好地应用于算法。安全性和活性的实际定义更精确 [^116]：
 
-* If a safety property is violated, we can point at a particular point in time at which it was
- broken (for example, if the uniqueness property was violated, we can identify the particular
- operation in which a duplicate fencing token was returned). After a safety property has been
- violated, the violation cannot be undone—the damage is already done.
-* A liveness property works the other way round: it may not hold at some point in time (for example,
- a node may have sent a request but not yet received a response), but there is always hope that it
- may be satisfied in the future (namely by receiving a response).
+* 如果违反了安全属性，我们可以指出它被破坏的特定时间点（例如，如果违反了唯一性属性，我们可以识别返回重复隔离令牌的特定操作）。在违反安全属性之后，违规无法撤消 —— 损害已经造成。
+* 活性属性以相反的方式工作：它可能在某个时间点不成立（例如，节点可能已发送请求但尚未收到响应），但总有希望它将来可能得到满足（即通过接收响应）。
 
-An advantage of distinguishing between safety and liveness properties is that it helps us deal with
-difficult system models. For distributed algorithms, it is common to require that safety properties
-*always* hold, in all possible situations of a system model [^108]. That is, even if all nodes crash, or
-the entire network fails, the algorithm must nevertheless ensure that it does not return a wrong
-result (i.e., that the safety properties remain satisfied).
+区分安全性和活性属性的一个优点是它有助于我们处理困难的系统模型。对于分布式算法，通常要求安全属性在系统模型的所有可能情况下 *始终* 成立 [^108]。也就是说，即使所有节点崩溃，或整个网络失效，算法也必须确保它不会返回错误的结果（即，安全属性保持满足）。
 
-However, with liveness properties we are allowed to make caveats: for example, we could say that a
-request needs to receive a response only if a majority of nodes have not crashed, and only if the
-network eventually recovers from an outage. The definition of the partially synchronous model
-requires that eventually the system returns to a synchronous state—that is, any period of network
-interruption lasts only for a finite duration and is then repaired.
+然而，对于活性属性，我们可以做出警告：例如，我们可以说请求只有在大多数节点没有崩溃时才需要收到响应，并且只有在网络最终从中断中恢复时才需要响应。部分同步模型的定义要求系统最终返回到同步状态 —— 也就是说，任何网络中断期只持续有限的时间，然后被修复。
 
 #### 将系统模型映射到现实世界 {#mapping-system-models-to-the-real-world}
 
-Safety and liveness properties and system models are very useful for reasoning about the correctness
-of a distributed algorithm. However, when implementing an algorithm in practice, the messy facts of
-reality come back to bite you again, and it becomes clear that the system model is a simplified
-abstraction of reality.
+安全性和活性属性以及系统模型对于推理分布式算法的正确性非常有用。然而，在实践中实现算法时，现实的混乱事实又会回来咬你一口，很明显系统模型是现实的简化抽象。
 
-For example, algorithms in the crash-recovery model generally assume that data in stable storage
-survives crashes. However, what happens if the data on disk is corrupted, or the data is wiped out
-due to hardware error or misconfiguration [^117]?
-What happens if a server has a firmware bug and fails to recognize
-its hard drives on reboot, even though the drives are correctly attached to the server [^118]?
+例如，崩溃恢复模型中的算法通常假设稳定存储中的数据在崩溃后幸存。然而，如果磁盘上的数据损坏了，或者由于硬件错误或配置错误而擦除了数据，会发生什么 [^117]？如果服务器有固件错误并且在重启时无法识别其硬盘驱动器，即使驱动器正确连接到服务器，会发生什么 [^118]？
 
-Quorum algorithms (see [“Quorums for reading and writing”](/en/ch6#sec_replication_quorum_condition)) rely on a node remembering the data
-that it claims to have stored. If a node may suffer from amnesia and forget previously stored data,
-that breaks the quorum condition, and thus breaks the correctness of the algorithm. Perhaps a new
-system model is needed, in which we assume that stable storage mostly survives crashes, but may
-sometimes be lost. But that model then becomes harder to reason about.
+仲裁算法（见 ["读写仲裁"](/ch6#sec_replication_quorum_condition)）依赖于节点记住它声称已存储的数据。如果节点可能患有健忘症并忘记先前存储的数据，那会破坏仲裁条件，从而破坏算法的正确性。也许需要一个新的系统模型，其中我们假设稳定存储大多在崩溃后幸存，但有时可能会丢失。但该模型随后变得更难推理。
 
-The theoretical description of an algorithm can declare that certain things are simply assumed not
-to happen—and in non-Byzantine systems, we do have to make some assumptions about faults that can
-and cannot happen. However, a real implementation may still have to include code to handle the
-case where something happens that was assumed to be impossible, even if that handling boils down to
-`printf("Sucks to be you")` and `exit(666)`—i.e., letting a human operator clean up the mess [^119].
-(This is one difference between computer science and software engineering.)
+算法的理论描述可以声明某些事情被简单地假设不会发生 —— 在非拜占庭系统中，我们确实必须对可能和不可能发生的故障做出一些假设。然而，真正的实现可能仍然必须包含代码来处理被假设为不可能的事情发生的情况，即使该处理归结为 `printf("Sucks to be you")` 和 `exit(666)` —— 即，让人类操作员清理烂摊子 [^119]。（这是计算机科学和软件工程之间的一个区别。）
 
-That is not to say that theoretical, abstract system models are worthless—quite the opposite.
-They are incredibly helpful for distilling down the complexity of real systems to a manageable set
-of faults that we can reason about, so that we can understand the problem and try to solve it
-systematically.
+这并不是说理论上的、抽象的系统模型是无用的 —— 恰恰相反。它们非常有助于将真实系统的复杂性提炼为我们可以推理的可管理的故障集，以便我们可以理解问题并尝试系统地解决它。
 
 ### 形式化方法和随机测试 {#sec_distributed_formal}
 
-How do we know that an algorithm satisfies the required properties? Due to concurrency, partial
-failures, and network delays there are a huge number of potential states. We need to guarantee
-that the properties hold in every possible state, and ensure that we haven’t forgotten about any
-edge cases.
+我们如何知道算法满足所需的属性？由于并发性、部分失效和网络延迟，存在大量潜在状态。我们需要保证属性在每个可能的状态下都成立，并确保我们没有忘记任何边界情况。
 
-One approach is to formally verify an algorithm by describing it mathematically, and using proof
-techniques to show that it satisfies the required properties in all situations that the system model
-allows. Proving an algorithm correct does not mean its *implementation* on a real system will
-necessarily always behave correctly. But it’s a very good first step, because the theoretical
-analysis can uncover problems in an algorithm that might remain hidden for a long time in a real
-system, and that only come to bite you when your assumptions (e.g., about timing) are defeated due
-to unusual circumstances.
+一种方法是通过数学描述算法来形式验证它，并使用证明技术来表明它在系统模型允许的所有情况下都满足所需的属性。证明算法正确并不意味着它在真实系统上的 *实现* 必然总是正确运行。但这是一个非常好的第一步，因为理论分析可以发现算法中的问题，这些问题可能在真实系统中长时间隐藏，并且只有当你的假设（例如，关于时序）由于不寻常的情况而失败时才会咬你一口。
 
-It is prudent to combine theoretical analysis with empirical testing to verify that implementations
-behave as expected. Techniques such as property-based testing, fuzzing, and deterministic simulation
-testing (DST) use randomization to test a system in a wide range of situations. Companies such as
-Amazon Web Services have successfully used a combination of these techniques on many of their
-products [^120] [^121].
+将理论分析与经验测试相结合以验证实现按预期运行是明智的。基于属性的测试、模糊测试和确定性模拟测试（DST）等技术使用随机化来在各种情况下测试系统。亚马逊网络服务等公司已成功地在其许多产品上使用了这些技术的组合 [^120] [^121]。
 
 #### 模型检查与规范语言 {#model-checking-and-specification-languages}
 
-*Model checkers* are tools that help verify that an algorithm or system behaves as expected. An algorithm
-specification is written in a purpose-built language such as TLA+, Gallina, or FizzBee. These
-languages make it easier to focus on an algorithm’s behavior without worrying about code
-implementation details. Model checkers then use these models to verify that invariants hold across
-all of an algorithm’s states by systematically trying all the things that could happen.
+*模型检查器* 是帮助验证算法或系统按预期运行的工具。算法规范是用专门构建的语言编写的，如 TLA+、Gallina 或 FizzBee。这些语言使得更容易专注于算法的行为，而不必担心代码实现细节。然后，模型检查器使用这些模型通过系统地尝试所有可能发生的事情来验证不变量在算法的所有状态中都成立。
 
-Model checking can’t actually prove that an algorithm’s invariants hold for every possible state
-since most real-world algorithms have an infinite state space. A true verification of all states
-would require a formal proof, which can be done, but which is typically more difficult than running
-a model checker. Instead, model checkers encourage you to reduce the algorithm’s model to an
-approximation that can be fully verified, or to limit the execution to some upper bound (for
-example, by setting a maximum number of messages that can be sent). Any bugs that only occur with
-longer executions would then not be found.
+模型检查实际上不能证明算法的不变量对每个可能的状态都成立，因为大多数现实世界的算法都有无限的状态空间。对所有状态的真正验证需要形式证明，这是可以做到的，但通常比运行模型检查器更困难。相反，模型检查器鼓励你将算法的模型减少到可以完全验证的近似值，或者将执行限制到某个上限（例如，通过设置可以发送的最大消息数）。任何只在更长执行时发生的错误将不会被发现。
 
-Still, model checkers strike a nice balance between ease of use and the ability to find non-obvious
-bugs. CockroachDB, TiDB, Kafka, and many other distributed systems use model specifications to find
-and fix bugs [^122] [^123] [^124]. For example,
-using TLA+, researchers were able to demonstrate the potential for data loss in viewstamped
-replication (VR) caused by ambiguity in the prose description of the algorithm [^125].
+尽管如此，模型检查器在易用性和查找非显而易见错误的能力之间取得了很好的平衡。CockroachDB、TiDB、Kafka 和许多其他分布式系统使用模型规范来查找和修复错误 [^122] [^123] [^124]。例如，使用 TLA+，研究人员能够证明由算法的散文描述中的歧义引起的视图戳复制（VR）中数据丢失的可能性 [^125]。
 
-By design, model checkers don’t run your actual code, but rather a simplified model that specifies
-only the core ideas of your protocol. This makes it more tractable to systematically explore the
-state space, but it risks that your specification and your implementation go out of sync with each other [^126].
-It is possible to check whether the model and the real implementation have equivalent behavior, but
-this requires instrumentation in the real implementation [^127].
+按设计，模型检查器不运行你的实际代码，而是运行一个简化的模型，该模型仅指定你的协议的核心思想。这使得系统地探索状态空间更易处理，但有风险是你的规范和你的实现彼此不同步 [^126]。可以检查模型和真实实现是否具有等效行为，但这需要在真实实现中进行仪器化 [^127]。
 
 #### 故障注入 {#sec_fault_injection}
 
-Many bugs are triggered when machine and network failures occur. Fault injection is an effective
-(and sometimes scary) technique that verifies whether a system’s implementation works as expected things
-go wrong. The idea is simple: inject faults into a running system’s environment and see how it
-behaves. Faults can be network failures, machine crashes, disk corruption, paused
-processes—anything you can imagine going wrong with a computer.
+许多错误是在机器和网络故障发生时触发的。故障注入是一种有效（有时令人恐惧）的技术，用于验证系统的实现在出错时是否按预期工作。这个想法很简单：将故障注入到正在运行的系统环境中，看看它如何表现。故障可以是网络故障、机器崩溃、磁盘损坏、暂停的进程 —— 你能想象到的计算机出错的任何事情。
 
-Fault injection tests are typically run in an environment that closely resembles the production
-environment where the system will run. Some even inject faults directly into their production
-environment. Netflix popularized this approach with their Chaos Monkey tool [^128]. Production fault
-injection is often referred to as *chaos engineering*, which we discussed in
-[“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability).
+故障注入测试通常在与系统将运行的生产环境非常相似的环境中运行。有些甚至直接将故障注入到他们的生产环境中。Netflix 通过他们的 Chaos Monkey 工具推广了这种方法 [^128]。生产故障注入通常被称为 *混沌工程*，我们在 ["可靠性与容错"](/ch2#sec_introduction_reliability) 中讨论过。
 
-To run fault injection tests, the system under test is first deployed along with fault injection
-coordinators and scripts. Coordinators are responsible for deciding what faults to execute and when
-to execute them. Local or remote scripts are responsible for injecting failures into individual
-nodes or processes. Injection scripts use many different tools to trigger faults. A Linux process
-can be paused or killed using Linux’s `kill` command, a disk can be unmounted with `umount`, and
-network connections can be disrupted through firewall settings. You can inspect system behavior
-during and after faults are injected to make sure things work as expected.
+要运行故障注入测试，首先部署被测系统以及故障注入协调器和脚本。协调器负责决定执行什么故障以及何时执行它们。本地或远程脚本负责将故障注入到单个节点或进程中。注入脚本使用许多不同的工具来触发故障。可以使用 Linux 的 `kill` 命令暂停或杀死 Linux 进程，可以使用 `umount` 卸载磁盘，可以通过防火墙设置中断网络连接。你可以在注入故障期间和之后检查系统行为，以确保事情按预期工作。
 
-The myriad of tools required to trigger failures make fault injection tests cumbersome to write.
-It’s common to adopt a fault injection framework like Jepsen to run fault injection tests to
-simplify the process. Such frameworks come with integrations for various operating systems and many
-pre-built fault injectors [^129].
-Jepsen has been remarkably effective at finding critical bugs in many widely-used systems [^130] [^131].
+触发故障所需的无数工具使故障注入测试编写起来很麻烦。采用像 Jepsen 这样的故障注入框架来运行故障注入测试以简化过程是常见的。这些框架带有各种操作系统的集成和许多预构建的故障注入器 [^129]。Jepsen 在许多广泛使用的系统中发现关键错误方面非常有效 [^130] [^131]。
 
 #### 确定性模拟测试 {#deterministic-simulation-testing}
 
-Deterministic simulation testing (DST) has also become a popular complement to model-checking and
-fault injection. It uses a similar state space exploration process as a model checker, but it tests
-your actual code, not a model.
+确定性模拟测试（DST）也已成为模型检查和故障注入的流行补充。它使用与模型检查器类似的状态空间探索过程，但它测试你的实际代码，而不是模型。
 
-In DST, a simulation automatically runs through a large number of randomised executions of the
-system. Network communication, I/O, and clock timing during the simulation are all replaced with
-mocks that allow the simulator to control the exact order in which things happen, including various
-timings and failure scenarios. This allows the simulator to explore many more situations than
-hand-written tests or fault injection could. If a test fails, it can be re-run since the simulator
-knows the exact order of operations that triggered the failure—in contrast to fault injection, which
-does not have such fine-grained control over the system.
+在 DST 中，模拟自动运行系统的大量随机执行。模拟期间的网络通信、I/O 和时钟时序都被模拟替换，允许模拟器控制事情发生的确切顺序，包括各种时序和故障场景。这允许模拟器探索比手写测试或故障注入更多的情况。如果测试失败，它可以重新运行，因为模拟器知道触发故障的确切操作顺序 —— 与故障注入相比，后者对系统没有如此细粒度的控制。
 
-DST requires the simulator to be able to control all sources of nondeterminism, such as network
-delays. One of three strategies is generally adopted to make code deterministic:
+DST 要求模拟器能够控制所有非确定性来源，例如网络延迟。通常采用三种策略之一来使代码确定性：
 
-Application-level
-: Some systems are built from the ground-up to make it easy to execute code deterministically. For
- example, FoundationDB, one of the pioneers in the DST space, is built using an asynchronous
- communication library called Flow. Flow provides a point for developers to inject a deterministic
- network simulation into the system [^132].
- Similarly, TigerBeetle is an online transaction processing (OLTP) database with first-class DST
- support. The system’s state is modeled as a state machine, with all mutations occuring within a
- single event loop. When combined with mock deterministic primitives such as clocks, such an
- architecture is able to run deterministically [^133].
+应用程序级
+: 一些系统从头开始构建，以便于确定性地执行代码。例如，DST 领域的先驱之一 FoundationDB 是使用称为 Flow 的异步通信库构建的。Flow 为开发人员提供了将确定性网络模拟注入系统的点 [^132]。类似地，TigerBeetle 是一个具有一流 DST 支持的在线事务处理（OLTP）数据库。系统的状态被建模为状态机，所有突变都发生在单个事件循环中。当与模拟确定性原语（如时钟）结合时，这种架构能够确定性地运行 [^133]。
 
-Runtime-level
-: Languages with asynchronous runtimes and commonly used libraries provide an insertion point
- to introduce determinism. A single-threaded runtime is used to force all asynchronous code to run
- sequentially. FrostDB, for example, patches Go’s runtime to execute goroutines sequentially [^134].
- Rust’s madsim library works in a similar manner. Madsim provides deterministic implementations of
- Tokio’s asynchronous runtime API, AWS’s S3 library, Kafka’s Rust library, and many others.
- Applications can swap in deterministic libraries and runtimes to get deterministic test executions
- without changing their code.
+运行时级
+: 具有异步运行时和常用库的语言提供了引入确定性的插入点。使用单线程运行时强制所有异步代码按顺序运行。例如，FrostDB 修补 Go 的运行时以按顺序执行 goroutine [^134]。Rust 的 madsim 库以类似的方式工作。Madsim 提供了 Tokio 的异步运行时 API、AWS 的 S3 库、Kafka 的 Rust 库等的确定性实现。应用程序可以交换确定性库和运行时以获得确定性测试执行，而无需更改其代码。
 
-Machine-level
-: Rather than patching code at runtime, an entire machine can be made deterministic. This is a
- delicate process that requires a machine to respond to all normally nondeterministic calls with
- deterministic responses. Tools such as Antithesis do this by building a custom hypervisor that
- replaces normally nondeterministic operations with deterministic ones. Everything from clocks
- to network and storage needs to be accounted for. Once done, though, developers can run their
- entire distributed system in a collection of containers within the hypervisor and get a completely
- deterministic distributed system.
+机器级
+: 与其在运行时修补代码，不如使整个机器确定性。这是一个微妙的过程，需要机器对所有通常非确定性的调用响应确定性响应。Antithesis 等工具通过构建自定义虚拟机管理程序来做到这一点，该虚拟机管理程序用确定性操作替换通常的非确定性操作。从时钟到网络和存储的一切都需要考虑。不过，一旦完成，开发人员可以在虚拟机管理程序内的容器集合中运行其整个分布式系统，并获得完全确定性的分布式系统。
 
-DST provides several advantages beyond replayability. Tools such as Antithesis attempt to explore
-many different code paths in application code by branching a test execution into multiple
-sub-executions when it discovers less common behavior. And because deterministic tests often use
-mocked clocks and network calls, such tests can run faster than wall-clock time. For example,
-TigerBeetle’s time abstraction allows simulations to simulate network latency and timeouts without
-actually taking the full length of time to trigger the timeout. Such techniques allow the simulator
-to explore more code paths faster.
+DST 提供了超越可重放性的几个优势。Antithesis 等工具试图通过在发现不太常见的行为时将测试执行分支为多个子执行来探索应用程序代码中的许多不同代码路径。由于确定性测试通常使用模拟时钟和网络调用，因此此类测试可以比挂钟时间运行得更快。例如，TigerBeetle 的时间抽象允许模拟模拟网络延迟和超时，而实际上不需要触发超时的全部时间长度。这些技术允许模拟器更快地探索更多代码路径。
 
 # 确定性的力量
 
-Nondeterminism is at the core of all of the distributed systems challenges we discussed in this
-chapter: concurrency, network delay, process pauses, clock jumps, and crashes all happen in
-unpredictable ways that vary from one run of a system to the next. Conversely, if you can make a
-system deterministic, that can hugely simplify things.
+非确定性是我们在本章中讨论的所有分布式系统挑战的核心：并发性、网络延迟、进程暂停、时钟跳跃和崩溃都以不可预测的方式发生，从系统的一次运行到下一次运行都不同。相反，如果你能使系统确定性，那可以极大地简化事情。
 
-In fact, making things deterministic is a simple but powerful idea that arises again and again in
-distributed system design. Besides deterministic simulation testing, we have seen several ways of
-using determinism over the past chapters:
+事实上，使事物确定性是一个简单但强大的想法，在分布式系统设计中一再出现。除了确定性模拟测试，我们在过去的章节中已经看到了几种使用确定性的方法：
 
-* A key advantage of event sourcing (see [“Event Sourcing and CQRS”](/en/ch3#sec_datamodels_events)) is that you can
- deterministically replay a log of events to reconstruct derived materialized views.
-* Workflow engines (see [“Durable Execution and Workflows”](/en/ch5#sec_encoding_dataflow_workflows)) rely on workflow definitions being
- deterministic to provide durable execution semantics.
-* *State machine replication*, which we will discuss in [“Using shared logs”](/en/ch10#sec_consistency_smr), replicates data by
- independently executing the same sequence of deterministic transactions on each replica. We have
- already seen two variants of that idea: statement-based replication (see
- [“Implementation of Replication Logs”](/en/ch6#sec_replication_implementation)) and serial transaction execution using stored procedures
- (see [“Pros and cons of stored procedures”](/en/ch8#sec_transactions_stored_proc_tradeoffs)).
+* 事件溯源的一个关键优势（见 ["事件溯源和 CQRS"](/ch3#sec_datamodels_events)）是你可以确定性地重放事件日志以重建衍生的物化视图。
+* 工作流引擎（见 ["持久执行和工作流"](/ch5#sec_encoding_dataflow_workflows)）依赖于工作流定义是确定性的，以提供持久执行语义。
+* *状态机复制*，我们将在 ["使用共享日志"](/ch10#sec_consistency_smr) 中讨论，通过在每个副本上独立执行相同的确定性事务序列来复制数据。我们已经看到了这个想法的两个变体：基于语句的复制（见 ["复制日志的实现"](/ch6#sec_replication_implementation)）和使用存储过程的串行事务执行（见 ["存储过程的利弊"](/ch8#sec_transactions_stored_proc_tradeoffs)）。
 
-However, making code fully deterministic requires care. Even once you have removed all concurrency
-and replaced I/O, network communication, clocks, and random number generators with deterministic
-simulations, elements of nondeterminism may remain. For example, in some programming languages, the
-order in which you iterate over the elements of a hash table may be nondeterministic. Whether you
-run into a resource limit (memory allocation failure, stack overflow) is also nondeterministic.
+然而，使代码完全确定性需要小心。即使你已经删除了所有并发性并用确定性模拟替换了 I/O、网络通信、时钟和随机数生成器，非确定性元素可能仍然存在。例如，在某些编程语言中，迭代哈希表元素的顺序可能是非确定性的。是否遇到资源限制（内存分配失败、堆栈溢出）也是非确定性的。
 
 ## 总结 {#summary}
 
-In this chapter we have discussed a wide range of problems that can occur in distributed systems,
-including:
+在本章中，我们讨论了分布式系统中可能发生的各种问题，包括：
 
-* Whenever you try to send a packet over the network, it may be lost or arbitrarily delayed.
- Likewise, the reply may be lost or delayed, so if you don’t get a reply, you have no idea whether
- the message got through.
-* A node’s clock may be significantly out of sync with other nodes (despite your best efforts to set
- up NTP), it may suddenly jump forward or back in time, and relying on it is dangerous because you
- most likely don’t have a good measure of your clock’s confidence interval.
-* A process may pause for a substantial amount of time at any point in its execution, be declared
- dead by other nodes, and then come back to life again without realizing that it was paused.
+* 每当你尝试通过网络发送数据包时，它可能会丢失或任意延迟。同样，回复可能会丢失或延迟，所以如果你没有得到回复，你不知道消息是否送达。
+* 节点的时钟可能与其他节点严重不同步（尽管你尽最大努力设置了 NTP），它可能会突然向前或向后跳跃，而依赖它是危险的，因为你很可能没有一个好的时钟置信区间度量。
+* 进程可能在其执行的任何时刻暂停相当长的时间，被其他节点宣告死亡，然后再次恢复活动而没有意识到它曾暂停。
 
-The fact that such *partial failures* can occur is the defining characteristic of distributed
-systems. Whenever software tries to do anything involving other nodes, there is the possibility that
-it may occasionally fail, or randomly go slow, or not respond at all (and eventually time out). In
-distributed systems, we try to build tolerance of partial failures into software, so that the system
-as a whole may continue functioning even when some of its constituent parts are broken.
+这种 *部分失败* 可能发生的事实是分布式系统的决定性特征。每当软件尝试做任何涉及其他节点的事情时，都有可能偶尔失败、随机变慢或根本没有响应（并最终超时）。在分布式系统中，我们尝试将对部分失败的容忍构建到软件中，这样即使某些组成部分出现故障，整个系统也可以继续运行。
 
-To tolerate faults, the first step is to *detect* them, but even that is hard. Most systems
-don’t have an accurate mechanism of detecting whether a node has failed, so most distributed
-algorithms rely on timeouts to determine whether a remote node is still available. However, timeouts
-can’t distinguish between network and node failures, and variable network delay sometimes causes a
-node to be falsely suspected of crashing. Handling limping nodes, which are responding but are too
-slow to do anything useful, is even harder.
+要容忍故障，第一步是 *检测* 它们，但即使这样也很困难。大多数系统没有准确的机制来检测节点是否已失败，因此大多数分布式算法依赖超时来确定远程节点是否仍然可用。然而，超时无法区分网络和节点故障，可变的网络延迟有时会导致节点被错误地怀疑崩溃。处理跛行节点（limping nodes）更加困难，这些节点正在响应但速度太慢而无法做任何有用的事情。
 
-Once a fault is detected, making a system tolerate it is not easy either: there is no global
-variable, no shared memory, no common knowledge or any other kind of shared state between the machines [^83].
-Nodes can’t even agree on what time it is, let alone on anything more profound. The only way
-information can flow from one node to another is by sending it over the unreliable network. Major
-decisions cannot be safely made by a single node, so we require protocols that enlist help from
-other nodes and try to get a quorum to agree.
+一旦检测到故障，让系统容忍它也不容易：没有全局变量、没有共享内存、没有公共知识或机器之间任何其他类型的共享状态 [^83]。节点甚至无法就现在是什么时间达成一致，更不用说任何更深刻的事情了。信息从一个节点流向另一个节点的唯一方式是通过不可靠的网络发送。单个节点无法安全地做出重大决策，因此我们需要协议来征求其他节点的帮助并尝试获得法定人数的同意。
 
-If you’re used to writing software in the idealized mathematical perfection of a single computer,
-where the same operation always deterministically returns the same result, then moving to the messy
-physical reality of distributed systems can be a bit of a shock. Conversely, distributed systems
-engineers will often regard a problem as trivial if it can be solved on a single computer [^4],
-and indeed a single computer can do a lot nowadays. If you can avoid opening Pandora’s box and
-simply keep things on a single machine, for example by using an embedded storage engine (see [“Embedded storage engines”](/en/ch4#sidebar_embedded)), it is generally worth doing so.
+如果你习惯于在单台计算机的理想数学完美环境中编写软件，其中相同的操作总是确定性地返回相同的结果，那么转向分布式系统混乱的物理现实可能会有点震惊。相反，分布式系统工程师通常会认为如果一个问题可以在单台计算机上解决，那它就是微不足道的 [^4]，而且单台计算机现在确实可以做很多事情。如果你可以避免打开潘多拉的盒子，只需将事情保持在单台机器上，例如使用嵌入式存储引擎（见 ["嵌入式存储引擎"](/ch4#sidebar_embedded)），通常值得这样做。
 
-However, as discussed in [“Distributed versus Single-Node Systems”](/en/ch1#sec_introduction_distributed), scalability is not the only reason for
-wanting to use a distributed system. Fault tolerance and low latency (by placing data geographically
-close to users) are equally important goals, and those things cannot be achieved with a single node.
-The power of distributed systems is that in principle, they can run forever without being
-interrupted at the service level, because all faults and maintenance can be handled at the node
-level. (In practice, if a bad configuration change is rolled out to all nodes, that will still bring
-a distributed system to its knees.)
+然而，正如在 ["分布式系统与单节点系统"](/ch1#sec_introduction_distributed) 中讨论的，可扩展性并不是使用分布式系统的唯一原因。容错和低延迟（通过将数据在地理上放置在靠近用户的位置）是同样重要的目标，而这些事情无法通过单个节点实现。分布式系统的力量在于，原则上它们可以在服务层面永远运行而不被中断，因为所有故障和维护都可以在节点层面处理。（实际上，如果错误的配置更改被推送到所有节点，仍然会让分布式系统崩溃。）
 
-In this chapter we also went on some tangents to explore whether the unreliability of networks,
-clocks, and processes is an inevitable law of nature. We saw that it isn’t: it is possible to give
-hard real-time response guarantees and bounded delays in networks, but doing so is very expensive and
-results in lower utilization of hardware resources. Most non-safety-critical systems choose cheap
-and unreliable over expensive and reliable.
+在本章中，我们还探讨了网络、时钟和进程的不可靠性是否是不可避免的自然法则。我们看到它不是：可以在网络中提供硬实时响应保证和有界延迟，但这样做非常昂贵，并导致硬件资源利用率降低。大多数非安全关键系统选择便宜和不可靠而不是昂贵和可靠。
 
-This chapter has been all about problems, and has given us a bleak outlook. In the next chapter we
-will move on to solutions, and discuss some algorithms that have been designed to cope with the
-problems in distributed systems.
-
+本章一直在讨论问题，给了我们一个暗淡的前景。在下一章中，我们将转向解决方案，并讨论一些为应对分布式系统中的问题而设计的算法。
 
 
 

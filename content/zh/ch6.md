@@ -4,1754 +4,797 @@ weight: 206
 breadcrumbs: false
 ---
 
-> *The major difference between a thing that might go wrong and a thing that cannot possibly go wrong
-> is that when a thing that cannot possibly go wrong goes wrong it usually turns out to be impossible
-> to get at or repair.*
+![](/map/ch05.png)
+
+> *出错的事物与不可能出错的事物之间的主要区别在于，当不可能出错的事物出错时，通常会发现它几乎不可能查找或修复。*
 >
-> Douglas Adams, *Mostly Harmless* (1992)
+> Douglas Adams，《基本无害》（1992）
 
-*Replication* means keeping a copy of the same data on multiple machines that are connected via a
-network. As discussed in [“Distributed versus Single-Node Systems”](/en/ch1#sec_introduction_distributed), there are several reasons
-why you might want to replicate data:
+**复制** 指的是通过网络连接的多台机器上保存相同数据的副本。如 ["分布式与单节点系统"](/ch1#sec_introduction_distributed) 中所讨论的，你可能出于以下几个原因想要复制数据：
 
-* To keep data geographically close to your users (and thus reduce access latency)
-* To allow the system to continue working even if some of its parts have failed (and thus increase availability)
-* To scale out the number of machines that can serve read queries (and thus increase read throughput)
+* 使数据在地理上更接近用户（从而减少访问延迟）
+* 即使系统的部分组件出现故障，也能让系统继续工作（从而提高可用性）
+* 扩展能够处理读查询的机器数量（从而提高读吞吐量）
 
-In this chapter we will assume that your dataset is small enough that each machine can hold a copy of
-the entire dataset. In [Chapter 7](/en/ch7#ch_sharding) we will relax that assumption and discuss *sharding*
-(*partitioning*) of datasets that are too big for a single machine. In later chapters we will discuss
-various kinds of faults that can occur in a replicated data system, and how to deal with them.
+本章假设你的数据集足够小，每台机器都可以保存整个数据集的副本。在 [第 7 章](/ch7#ch_sharding) 中，我们将放宽这一假设，讨论单台机器无法容纳的、过大数据集的 **分片**（**分区**）。在后续章节中，我们将讨论复制数据系统中可能发生的各种故障，以及如何处理它们。
 
-If the data that you’re replicating does not change over time, then replication is easy: you just
-need to copy the data to every node once, and you’re done. All of the difficulty in replication lies
-in handling *changes* to replicated data, and that’s what this chapter is about. We will discuss
-three families of algorithms for replicating changes between nodes: *single-leader*, *multi-leader*,
-and *leaderless* replication. Almost all distributed databases use one of these three approaches.
-They all have various pros and cons, which we will examine in detail.
+如果需要复制的数据不会随时间变化，那么复制就很简单：只需要将数据复制到每个节点一次就大功告成。处理复制的所有困难都在于处理复制数据的 **变更**，这也是本章的主题。我们将讨论三种复制节点间变更的算法族：**单主**、**多主** 和 **无主** 复制。几乎所有分布式数据库都使用这三种方法之一。它们各有利弊，我们将详细研究。
 
-There are many trade-offs to consider with replication: for example, whether to use synchronous or
-asynchronous replication, and how to handle failed replicas. Those are often configuration options
-in databases, and although the details vary by database, the general principles are similar across
-many different implementations. We will discuss the consequences of such choices in this chapter.
+复制需要考虑许多权衡：例如，是使用同步还是异步复制，以及如何处理失败的副本。这些通常是数据库中的配置选项，尽管不同数据库的细节有所不同，但许多不同实现的通用原则是相似的。我们将在本章中讨论这些选择的后果。
 
-Replication of databases is an old topic—the principles haven’t changed much since they were
-studied in the 1970s [^1], because the fundamental constraints of networks have remained the same. Despite being so old,
-concepts such as *eventual consistency* still cause confusion. In [“Problems with Replication Lag”](/en/ch6#sec_replication_lag) we will
-get more precise about eventual consistency and discuss things like the *read-your-writes* and
-*monotonic reads* guarantees.
+数据库复制是一个古老的话题——自 20 世纪 70 年代研究以来，原理并没有太大变化 [^1]，因为网络的基本约束保持不变。尽管如此古老，像 **最终一致性** 这样的概念仍然会引起困惑。在 ["复制延迟的问题"](/ch6#sec_replication_lag) 中，我们将更准确地了解最终一致性，并讨论诸如 **读己之写** 和 **单调读** 等保证。
 
 --------
 
 > [!TIP] 备份与复制
-
-You might be wondering whether you still need backups if you have replication. The answer is yes,
-because they have different purposes: replicas quickly reflect writes from one node on other nodes,
-but backups store old snapshots of the data so that you can go back in time. If you accidentally
-delete some data, replication doesn’t help since the deletion will have also been propagated to the
-replicas, so you need a backup if you want to restore the deleted data.
-
-In fact, replication and backups are often complementary to each other. Backups are sometimes part
-of the process of setting up replication, as we shall see in [“Setting Up New Followers”](/en/ch6#sec_replication_new_replica).
-Conversely, archiving replication logs can be part of a backup process.
-
-Some databases internally maintain immutable snapshots of past states, which serve as a kind of
-internal backup. However, this means keeping old versions of the data on the same storage media as
-the current state. If you have a large amount of data, it can be cheaper to keep the backups of old
-data in an object store that is optimized for infrequently-accessed data, and to store only the
-current state of the database in primary storage.
+>
+> 你可能会想，如果有了复制，是否还需要备份。答案是肯定的，因为它们有不同的目的：副本会快速将一个节点的写入反映到其他节点上，但备份存储数据的旧快照，以便你可以回到过去的时间点。如果你不小心删除了一些数据，复制并不能帮助你，因为删除操作也会传播到副本，所以如果你想恢复被删除的数据，就需要备份。
+>
+> 事实上，复制和备份通常是相互补充的。备份有时是设置复制过程的一部分，正如我们将在 ["设置新的副本"](/ch6#sec_replication_new_replica) 中看到的。反过来，归档复制日志可以成为备份过程的一部分。
+>
+> 一些数据库在内部维护过去状态的不可变快照，作为一种内部备份。然而，这意味着在与当前状态相同的存储介质上保留数据的旧版本。如果你有大量数据，将旧数据的备份保存在针对不常访问数据优化的对象存储中可能会更便宜，而只在主存储中存储数据库的当前状态。
 
 --------
 
 ## 单主复制 {#sec_replication_leader}
 
-Each node that stores a copy of the database is called a *replica*. With multiple replicas, a
-question inevitably arises: how do we ensure that all the data ends up on all the replicas?
+存储数据库副本的每个节点称为 **副本**。有了多个副本，不可避免地会出现一个问题：我们如何确保所有数据最终都出现在所有副本上？
 
-Every write to the database needs to be processed by every replica; otherwise, the replicas would no
-longer contain the same data. The most common solution is called *leader-based replication*,
-*primary-backup*, or *active/passive*. It works as follows (see [Figure 6-1](/en/ch6#fig_replication_leader_follower)):
+每次写入数据库都需要由每个副本处理；否则，副本将不再包含相同的数据。最常见的解决方案称为 **基于主节点的复制**、**主备复制** 或 **主动/被动复制**。它的工作原理如下（见 [图 6-1](/ch6#fig_replication_leader_follower)）：
 
-1. One of the replicas is designated the *leader* (also known as *primary* or *source* [^2]).
-   When clients want to write to the database, they must send their requests to the leader, which
-   first writes the new data to its local storage.
-2. The other replicas are known as *followers* (*read replicas*, *secondaries*, or *hot standbys*).
-   Whenever the leader writes new data to its local storage, it also sends the data change to all of
-   its followers as part of a *replication log* or *change stream*. Each follower takes the log
-   from the leader and updates its local copy of the database accordingly, by applying all writes in
-   the same order as they were processed on the leader.
-3. When a client wants to read from the database, it can query either the leader or any of the
-   followers. However, writes are only accepted on the leader (the followers are read-only from the
-   client’s point of view).
+1. 其中一个副本被指定为 **主节点**（也称为 **主库** 或 **源** [^2]）。当客户端想要写入数据库时，他们必须将请求发送给主节点，主节点首先将新数据写入其本地存储。
+2. 其他副本称为 **从节点**（**只读副本**、**从库** 或 **热备**）。每当主节点将新数据写入其本地存储时，它也会将数据变更作为 **复制日志** 或 **变更流** 的一部分发送给所有从节点。每个从节点从主节点获取日志，并通过按照与主节点处理相同的顺序应用所有写入来相应地更新其本地数据库副本。
+3. 当客户端想要从数据库读取时，它可以查询主节点或任何从节点。然而，只有主节点接受写入（从客户端的角度来看，从节点是只读的）。
 
-{{< figure src="/fig/ddia_0601.png" id="fig_replication_leader_follower" caption="Figure 6-1. Single-leader replication directs all writes to a designated leader, which sends a stream of changes to the follower replicas." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0601.png" id="fig_replication_leader_follower" caption="图 6-1. 单主复制将所有写入定向到指定的主节点，该主节点向从副本发送变更流。" class="w-full my-4" >}}
 
-If the database is sharded (see [Chapter 7](/en/ch7#ch_sharding)), each shard has one leader. Different shards may
-have their leaders on different nodes, but each shard must nevertheless have one leader node. In
-[“Multi-Leader Replication”](/en/ch6#sec_replication_multi_leader) we will discuss an alternative model in which a system may have
-multiple leaders for the same shard at the same time.
+如果数据库是分片的（见 [第 7 章](/ch7#ch_sharding)），每个分片都有一个主节点。不同的分片可能在不同的节点上有其主节点，但每个分片仍必须有一个主节点。在 ["多主复制"](/ch6#sec_replication_multi_leader) 中，我们将讨论一种替代模型，其中系统可能同时为同一分片拥有多个主节点。
 
-Single-leader replication is very widely used. It’s a built-in feature of many relational databases,
-such as PostgreSQL, MySQL, Oracle Data Guard [^3], and SQL Server’s Always On Availability Groups [^4].
-It is also used in some document databases such as MongoDB and DynamoDB [^5],
-message brokers such as Kafka, replicated block devices such as DRBD, and some network filesystems.
-Many consensus algorithms such as Raft, which is used for replication in CockroachDB [^6], TiDB [^7],
-etcd, and RabbitMQ quorum queues (among others), are also based on a single leader, and automatically 
-elect a new leader if the old one fails (we will discuss consensus in more detail in [Chapter 10](/en/ch10#ch_consistency)).
+单主复制被广泛使用。它是许多关系数据库的内置功能，如 PostgreSQL、MySQL、Oracle Data Guard [^3] 和 SQL Server 的 Always On 可用性组 [^4]。它也用于一些文档数据库，如 MongoDB 和 DynamoDB [^5]，消息代理如 Kafka，复制块设备如 DRBD，以及一些网络文件系统。许多共识算法（如 Raft）也基于单个主节点，用于 CockroachDB [^6]、TiDB [^7]、etcd 和 RabbitMQ 仲裁队列（以及其他）中的复制，并在旧主节点失败时自动选举新主节点（我们将在 [第 10 章](/ch10#ch_consistency) 中更详细地讨论共识）。
 
 --------
 
 > [!NOTE]
-> In older documents you may see the term *master–slave replication*. It means the same as
-> leader-based replication, but the term should be avoided as it is widely considered offensive [^8].
+> 在较旧的文档中，你可能会看到术语 **主从复制**。它与基于主节点的复制含义相同，但应该避免使用该术语，因为它被广泛认为是冒犯性的 [^8]。
 
 --------
 
 ### 同步复制与异步复制 {#sec_replication_sync_async}
 
-An important detail of a replicated system is whether the replication happens *synchronously* or
-*asynchronously*. (In relational databases, this is often a configurable option; other systems are
-often hardcoded to be either one or the other.)
+复制系统的一个重要细节是复制是 **同步** 发生还是 **异步** 发生。（在关系数据库中，这通常是一个可配置选项；其他系统通常硬编码为其中之一。）
 
-Think about what happens in [Figure 6-1](/en/ch6#fig_replication_leader_follower), where the user of a website updates
-their profile image. At some point in time, the client sends the update request to the leader;
-shortly afterward, it is received by the leader. At some point, the leader forwards the data change
-to the followers. Eventually, the leader notifies the client that the update was successful.
-[Figure 6-2](/en/ch6#fig_replication_sync_replication) shows one possible way how the timings could work out.
+想想 [图 6-1](/ch6#fig_replication_leader_follower) 中发生的情况，一个网站用户更新他们的个人资料图片。在某个时间点，客户端向主节点发送更新请求；不久之后，主节点收到了它。在某个时间点，主节点将数据变更转发给从节点。最终，主节点通知客户端更新成功。[图 6-2](/ch6#fig_replication_sync_replication) 显示了时序可能的工作方式。
 
-{{< figure src="/fig/ddia_0602.png" id="fig_replication_sync_replication" caption="Figure 6-2. Leader-based replication with one synchronous and one asynchronous follower." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0602.png" id="fig_replication_sync_replication" caption="图 6-2. 基于主节点的复制，带有一个同步和一个异步从节点。" class="w-full my-4" >}}
 
-In the example of [Figure 6-2](/en/ch6#fig_replication_sync_replication), the replication to follower 1 is
-*synchronous*: the leader waits until follower 1 has confirmed that it received the write before
-reporting success to the user, and before making the write visible to other clients. The replication
-to follower 2 is *asynchronous*: the leader sends the message, but doesn’t wait for a response from
-the follower.
+在 [图 6-2](/ch6#fig_replication_sync_replication) 的示例中，对从节点 1 的复制是 **同步的**：主节点等待从节点 1 确认它已收到写入，然后才向用户报告成功，并使写入对其他客户端可见。对从节点 2 的复制是 **异步的**：主节点发送消息，但不等待从节点的响应。
 
-The diagram shows that there is a substantial delay before follower 2 processes the message.
-Normally, replication is quite fast: most database systems apply changes to followers in less than a
-second. However, there is no guarantee of how long it might take. There are circumstances when
-followers might fall behind the leader by several minutes or more; for example, if a follower is
-recovering from a failure, if the system is operating near maximum capacity, or if there are network
-problems between the nodes.
+图中显示，从节点 2 处理消息之前有相当大的延迟。通常，复制相当快：大多数数据库系统在不到一秒的时间内将变更应用到从节点。然而，不能保证需要多长时间。在某些情况下，从节点可能落后主节点几分钟或更长时间；例如，如果从节点正在从故障中恢复，如果系统正在接近最大容量运行，或者如果节点之间存在网络问题。
 
-The advantage of synchronous replication is that the follower is guaranteed to have an up-to-date
-copy of the data that is consistent with the leader. If the leader suddenly fails, we can be sure
-that the data is still available on the follower. The disadvantage is that if the synchronous
-follower doesn’t respond (because it has crashed, or there is a network fault, or for any other
-reason), the write cannot be processed. The leader must block all writes and wait until the
-synchronous replica is available again.
+同步复制的优点是从节点保证拥有与主节点一致的最新数据副本。如果主节点突然失败，我们可以确信数据仍然在从节点上可用。缺点是，如果同步从节点没有响应（因为它已崩溃，或存在网络故障，或任何其他原因），写入就无法处理。主节点必须阻塞所有写入并等待同步副本再次可用。
 
-For that reason, it is impracticable for all followers to be synchronous: any one node outage would
-cause the whole system to grind to a halt. In practice, if a database offers synchronous
-replication, it often means that *one* of the followers is synchronous, and the others are
-asynchronous. If the synchronous follower becomes unavailable or slow, one of the asynchronous
-followers is made synchronous. This guarantees that you have an up-to-date copy of the data on at
-least two nodes: the leader and one synchronous follower. This configuration is sometimes also
-called *semi-synchronous*.
+因此，将所有从节点都设为同步是不切实际的：任何一个节点的中断都会导致整个系统停止。实际上，如果数据库提供同步复制，通常意味着 **一个** 从节点是同步的，其他的是异步的。如果同步从节点变得不可用或缓慢，异步从节点之一将变为同步。这保证了你至少在两个节点上拥有最新的数据副本：主节点和一个同步从节点。这种配置有时也称为 **半同步**。
 
-In some systems, a *majority* (e.g., 3 out of 5 replicas, including the leader) of replicas is
-updated synchronously, and the remaining minority is asynchronous. This is an example of a *quorum*,
-which we will discuss further in [“Quorums for reading and writing”](/en/ch6#sec_replication_quorum_condition). Majority quorums are often
-used in systems that use a consensus protocol for automatic leader election, which we will return to
-in [Chapter 10](/en/ch10#ch_consistency).
+在某些系统中，**多数**（例如，包括主节点在内的 5 个副本中的 3 个）副本被同步更新，其余少数是异步的。这是 **仲裁** 的一个例子，我们将在 ["读写仲裁"](/ch6#sec_replication_quorum_condition) 中进一步讨论。多数仲裁通常用于使用共识协议进行自动主节点选举的系统中，我们将在 [第 10 章](/ch10#ch_consistency) 中回到这个话题。
 
-Sometimes, leader-based replication is configured to be completely asynchronous. In this case, if the
-leader fails and is not recoverable, any writes that have not yet been replicated to followers are
-lost. This means that a write is not guaranteed to be durable, even if it has been confirmed to the
-client. However, a fully asynchronous configuration has the advantage that the leader can continue
-processing writes, even if all of its followers have fallen behind.
+有时，基于主节点的复制被配置为完全异步。在这种情况下，如果主节点失败且无法恢复，任何尚未复制到从节点的写入都会丢失。这意味着即使已向客户端确认，写入也不能保证持久。然而，完全异步配置的优点是主节点可以继续处理写入，即使所有从节点都已落后。
 
-Weakening durability may sound like a bad trade-off, but asynchronous replication is nevertheless
-widely used, especially if there are many followers or if they are geographically distributed [^9].
-We will return to this issue in [“Problems with Replication Lag”](/en/ch6#sec_replication_lag).
+弱化持久性可能听起来像是一个糟糕的权衡，但异步复制仍然被广泛使用，特别是如果有许多从节点或者它们在地理上分布广泛 [^9]。我们将在 ["复制延迟的问题"](/ch6#sec_replication_lag) 中回到这个问题。
 
 ### 设置新的副本 {#sec_replication_new_replica}
 
-From time to time, you need to set up new followers—perhaps to increase the number of replicas,
-or to replace failed nodes. How do you ensure that the new follower has an accurate copy of the
-leader’s data?
+不时地，你需要设置新的从节点——也许是为了增加副本的数量，或者替换失败的节点。如何确保新的从节点拥有主节点数据的准确副本？
 
-Simply copying data files from one node to another is typically not sufficient: clients are
-constantly writing to the database, and the data is always in flux, so a standard file copy would
-see different parts of the database at different points in time. The result might not make any
-sense.
+简单地将数据文件从一个节点复制到另一个节点通常是不够的：客户端不断向数据库写入，数据总是在变化，所以标准文件复制会在不同的时间点看到数据库的不同部分。结果可能没有任何意义。
 
-You could make the files on disk consistent by locking the database (making it unavailable for
-writes), but that would go against our goal of high availability. Fortunately, setting up a
-follower can usually be done without downtime. Conceptually, the process looks like this:
+你可以通过锁定数据库（使其不可用于写入）来使磁盘上的文件保持一致，但这将违背我们的高可用性目标。幸运的是，设置从节点通常可以在不停机的情况下完成。从概念上讲，过程如下所示：
 
-1. Take a consistent snapshot of the leader’s database at some point in time—if possible, without
-   taking a lock on the entire database. Most databases have this feature, as it is also required
-   for backups. In some cases, third-party tools are needed, such as Percona XtraBackup for MySQL.
-2. Copy the snapshot to the new follower node.
-3. The follower connects to the leader and requests all the data changes that have happened since
-   the snapshot was taken. This requires that the snapshot is associated with an exact position in
-   the leader’s replication log. That position has various names: for example, PostgreSQL calls it
-   the *log sequence number*; MySQL has two mechanisms, *binlog coordinates* and *global transaction
-   identifiers* (GTIDs).
-4. When the follower has processed the backlog of data changes since the snapshot, we say it has
-   *caught up*. It can now continue to process data changes from the leader as they happen.
+1. 在某个时间点获取主节点数据库的一致快照——如果可能，不锁定整个数据库。大多数数据库都有此功能，因为备份也需要它。在某些情况下，需要第三方工具，例如用于 MySQL 的 Percona XtraBackup。
+2. 将快照复制到新的从节点。
+3. 从节点连接到主节点并请求自快照拍摄以来发生的所有数据变更。这要求快照与主节点复制日志中的确切位置相关联。该位置有各种名称：例如，PostgreSQL 称之为 **日志序列号**；MySQL 有两种机制，**binlog 位点** 和 **全局事务标识符**（GTID）。
+4. 当从节点处理了自快照以来的数据变更积压后，我们说它已经 **追上进度**。它现在可以继续处理主节点发生的数据变更。
 
-The practical steps of setting up a follower vary significantly by database. In some systems the
-process is fully automated, whereas in others it can be a somewhat arcane multi-step workflow that
-needs to be manually performed by an administrator.
+设置从节点的实际步骤因数据库而异。在某些系统中，该过程是完全自动化的，而在其他系统中，它可能是需要管理员手动执行的有些神秘的多步骤工作流程。
 
-You can also archive the replication log to an object store; along with periodic snapshots of the
-whole database in the object store this is a good way of implementing database backups and disaster
-recovery. You can also perform steps 1 and 2 of setting up a new follower by downloading those files
-from the object store. For example, WAL-G does this for PostgreSQL, MySQL, and SQL Server, and
-Litestream does the equivalent for SQLite.
+你也可以将复制日志归档到对象存储；连同对象存储中整个数据库的定期快照，这是实现数据库备份和灾难恢复的好方法。你还可以通过从对象存储下载这些文件来执行设置新从节点的步骤 1 和 2。例如，WAL-G 为 PostgreSQL、MySQL 和 SQL Server 执行此操作，Litestream 为 SQLite 执行等效操作。
 
 --------
 
-> [!TIP] 基于对象存储的数据库
-
-Object storage can be used for more than archiving data. Many databases are beginning to use object
-stores such as Amazon Web Services S3, Google Cloud Storage, and Azure Blob Storage to serve data
-for live queries. Storing database data in object storage has many benefits:
-
-* Object storage is inexpensive compared to other cloud storage options, which allow cloud databases
-  to store less-often queried data on cheaper, higher-latency storage while serving the working set
-  from memory, SSDs, and NVMe.
-* Object stores also provide multi-zone, dual-region, or multi-region replication with very high
-  durability guarantees. This also allows databases to bypass inter-zone network fees.
-* Databases can use an object store’s *conditional write* feature—essentially, a *compare-and-set*
-  (CAS) operation—to implement transactions and leadership election [^10] [^11]
-* Storing data from multiple databases in the same object store can simplify data integration,
-  particularly when open formats such as Apache Parquet and Apache Iceberg are used.
-
-These benefits dramatically simplify the database architecture by shifting the responsibility of
-transactions, leadership election, and replication to object storage.
-
-Systems that adopt object storage for replication must grapple with some tradeoffs. Notably, object
-stores have much higher read and write latencies than local disks or virtual block devices such as
-EBS. Many cloud providers also charge a per-API call fee, which forces systems to batch reads and
-writes to reduce cost. Such batching further increases latency. Moreover, many object stores do not
-offer standard filesystem interfaces. This prevents systems that lack object storage integration
-from leveraging object storage. Interfaces such as *filesystem in userspace* (FUSE) allow operators
-to mount object store buckets as filesystems that applications can use without knowing their data is
-stored on object storage. Still, many FUSE interfaces to object stores lack POSIX features such as
-non-sequential writes or symlinks, which systems might depend on.
-
-Different systems deal with these trade-offs in various ways. Some introduce a *tiered storage*
-architecture that places less frequently accessed data on object storage while new or frequently
-accessed data is kept on faster storage devices such as SSDs, NVMe, or even in memory. Other systems
-use object storage as their primary storage tier, but use a separate low-latency storage system such
-as Amazon’s EBS or Neon’s Safekeepers [^12]) to store their WAL. Recently, some systems have gone even farther by adopting a
-*zero-disk architecture* (ZDA). ZDA-based systems persist all data to object storage and use disks
-and memory strictly for caching. This allows nodes to have no persistent state, which dramatically
-simplifies operations. WarpStream, Confluent Freight, Buf’s Bufstream, and Redpanda Serverless are
-all Kafka-compatible systems built using a zero-disk architecture. Nearly every modern cloud data
-warehouse also adopts such an architecture, as does Turbopuffer (a vector search engine), and
-SlateDB (a cloud-native LSM storage engine).
+> [!TIP] 由对象存储支持的数据库
+>
+> 对象存储可用于存档数据之外的更多用途。许多数据库开始使用对象存储（如 Amazon Web Services S3、Google Cloud Storage 和 Azure Blob Storage）来为实时查询提供数据。在对象存储中存储数据库数据有许多好处：
+>
+> * 与其他云存储选项相比，对象存储价格便宜，这使得云数据库可以将较少查询的数据存储在更便宜、更高延迟的存储上，同时从内存、SSD 和 NVMe 中提供工作集。
+> * 对象存储还提供具有非常高持久性保证的多区域、双区域或多区域复制。这也允许数据库绕过跨区域网络费用。
+> * 数据库可以使用对象存储的 **条件写入** 功能——本质上是 **比较并设置**（CAS）操作——来实现事务和领导者选举 [^10] [^11]
+> * 将来自多个数据库的数据存储在同一对象存储中可以简化数据集成，特别是在使用 Apache Parquet 和 Apache Iceberg 等开放格式时。
+>
+> 这些好处通过将事务、领导者选举和复制的责任转移到对象存储，大大简化了数据库架构。
+>
+> 采用对象存储进行复制的系统必须应对一些权衡。值得注意的是，对象存储的读写延迟比本地磁盘或 EBS 等虚拟块设备要高得多。许多云提供商还收取每个 API 调用费用，这迫使系统批量读写以降低成本。这种批处理进一步增加了延迟。此外，许多对象存储不提供标准文件系统接口。这阻止了缺乏对象存储集成的系统利用对象存储。像 **用户空间文件系统**（FUSE）这样的接口允许操作员将对象存储桶挂载为文件系统，应用程序可以在不知道其数据存储在对象存储上的情况下使用。尽管如此，许多对象存储的 FUSE 接口缺乏系统可能依赖的 POSIX 功能，如非顺序写入或符号链接。
+>
+> 不同的系统以各种方式处理这些权衡。一些引入了 **分层存储** 架构，将较少访问的数据放在对象存储上，而新的或频繁访问的数据保存在更快的存储设备上，如 SSD、NVMe，甚至内存中。其他系统使用对象存储作为其主要存储层，但使用单独的低延迟存储系统（如 Amazon 的 EBS 或 Neon 的 Safekeepers [^12]）来存储其 WAL。最近，一些系统更进一步，采用了 **零磁盘架构**（ZDA）。基于 ZDA 的系统将所有数据持久化到对象存储，并严格将磁盘和内存用于缓存。这允许节点没有持久状态，这大大简化了运维。WarpStream、Confluent Freight、Buf 的 Bufstream 和 Redpanda Serverless 都是使用零磁盘架构构建的兼容 Kafka 的系统。几乎每个现代云数据仓库也采用这种架构，Turbopuffer（向量搜索引擎）和 SlateDB（云原生 LSM 存储引擎）也是如此。
 
 --------
 
 ### 处理节点故障 {#sec_replication_failover}
 
-Any node in the system can go down, perhaps unexpectedly due to a fault, but just as likely due to
-planned maintenance (for example, rebooting a machine to install a kernel security patch). Being
-able to reboot individual nodes without downtime is a big advantage for operations and maintenance.
-Thus, our goal is to keep the system as a whole running despite individual node failures, and to keep
-the impact of a node outage as small as possible.
+系统中的任何节点都可能发生故障，可能是由于故障意外发生，但同样可能是由于计划维护（例如，重新启动机器以安装内核安全补丁）。能够在不停机的情况下重新启动单个节点对于操作和维护来说是一个很大的优势。因此，我们的目标是尽管单个节点发生故障，但保持整个系统运行，并尽可能减小节点中断的影响。
 
-How do you achieve high availability with leader-based replication?
+如何通过基于主节点的复制实现高可用性？
 
 #### 从节点故障：追赶恢复 {#follower-failure-catch-up-recovery}
 
-On its local disk, each follower keeps a log of the data changes it has received from the leader. If
-a follower crashes and is restarted, or if the network between the leader and the follower is
-temporarily interrupted, the follower can recover quite easily: from its log, it knows the last
-transaction that was processed before the fault occurred. Thus, the follower can connect to the
-leader and request all the data changes that occurred during the time when the follower was
-disconnected. When it has applied these changes, it has caught up to the leader and can continue
-receiving a stream of data changes as before.
+在其本地磁盘上，每个从节点保留从主节点接收的数据变更日志。如果从节点崩溃并重新启动，或者如果主节点和从节点之间的网络暂时中断，从节点可以很容易地恢复：从其日志中，它知道在故障发生之前处理的最后一个事务。因此，从节点可以连接到主节点并请求在从节点断开连接期间发生的所有数据变更。当它应用了这些变更后，它就赶上了主节点，可以像以前一样继续接收数据变更流。
 
-Although follower recovery is conceptually simple, it can be challenging in terms of performance: if
-the database has a high write throughput or if the follower has been offline for a long time, there
-might be a lot of writes to catch up on. There will be high load on both the recovering follower and
-the leader (which needs to send the backlog of writes to the follower) while this catch-up is ongoing.
+尽管从节点恢复在概念上很简单，但在性能方面可能具有挑战性：如果数据库具有高写入吞吐量，或者如果从节点已离线很长时间，可能有很多写入需要赶上。在进行这种追赶时，恢复的从节点和主节点（需要将写入积压发送到从节点）都会有高负载。
 
-The leader can delete its log of writes once all followers have confirmed that they have processed
-it, but if a follower is unavailable for a long time, the leader faces a choice: either it retains
-the log until the follower recovers and catches up (at the risk of running out of disk space on the
-leader), or it deletes the log that the unavailable follower has not yet acknowledged (in which case
-the follower won’t be able to recover from the log, and will have to be restored from a backup when
-it comes back).
+一旦所有从节点都确认已处理了日志，主节点就可以删除其写入日志，但如果从节点长时间不可用，主节点面临选择：要么保留日志直到从节点恢复并赶上（冒着主节点磁盘空间耗尽的风险），要么删除不可用从节点尚未确认的日志（在这种情况下，从节点无法从日志中恢复，并且在它回来时必须从备份中恢复）。
 
 #### 领导者故障：故障转移 {#leader-failure-failover}
 
-Handling a failure of the leader is trickier: one of the followers needs to be promoted to be the
-new leader, clients need to be reconfigured to send their writes to the new leader, and the other
-followers need to start consuming data changes from the new leader. This process is called
-*failover*.
+处理主节点故障更加棘手：其中一个从节点需要被提升为新的主节点，客户端需要重新配置以将其写入发送到新的主节点，其他从节点需要开始从新的主节点消费数据变更。这个过程称为 **故障转移**。
 
-Failover can happen manually (an administrator is notified that the leader has failed and takes the
-necessary steps to make a new leader) or automatically. An automatic failover process usually
-consists of the following steps:
+故障转移可以手动发生（管理员收到主节点失败的通知并采取必要步骤来创建新的主节点）或自动发生。自动故障转移过程通常包括以下步骤：
 
-1. *Determining that the leader has failed.* There are many things that could potentially go wrong:
-   crashes, power outages, network issues, and more. There is no foolproof way of detecting what
-   has gone wrong, so most systems simply use a timeout: nodes frequently bounce messages back and
-   forth between each other, and if a node doesn’t respond for some period of time—say, 30
-   seconds—it is assumed to be dead. (If the leader is deliberately taken down for planned
-   maintenance, this doesn’t apply.)
-2. *Choosing a new leader.* This could be done through an election process (where the leader is chosen by
-   a majority of the remaining replicas), or a new leader could be appointed by a previously
-   established *controller node* [^13].
-   The best candidate for leadership is usually the replica with the most up-to-date data changes
-   from the old leader (to minimize any data loss). Getting all the nodes to agree on a new leader
-   is a consensus problem, discussed in detail in [Chapter 10](/en/ch10#ch_consistency).
-3. *Reconfiguring the system to use the new leader.* Clients now need to send
-   their write requests to the new leader (we discuss this
-   in [“Request Routing”](/en/ch7#sec_sharding_routing)). If the old leader comes back, it might still believe that it is
-   the leader, not realizing that the other replicas have
-   forced it to step down. The system needs to ensure that the old leader becomes a follower and
-   recognizes the new leader.
+1. **确定主节点已失败。** 可能会出现许多问题：崩溃、停电、网络问题等。没有万无一失的方法来检测出了什么问题，所以大多数系统只是使用超时：节点经常相互反弹消息，如果节点在一段时间内没有响应——比如 30 秒——它被认为已死。（如果主节点被故意关闭以进行计划维护，这不适用。）
+2. **选择新的主节点。** 这可以通过选举过程完成（其中主节点由剩余副本的多数选择），或者新的主节点可以由先前建立的 **控制器节点** 任命 [^13]。领导的最佳候选者通常是具有来自旧主节点的最新数据变更的副本（以最小化任何数据丢失）。让所有节点就新主节点达成一致是一个共识问题，在 [第 10 章](/ch10#ch_consistency) 中详细讨论。
+3. **重新配置系统以使用新的主节点。** 客户端现在需要将其写入请求发送到新的主节点（我们在 ["请求路由"](/ch7#sec_sharding_routing) 中讨论这个问题）。如果旧的主节点恢复，它可能仍然认为自己是主节点，没有意识到其他副本已经迫使它下台。系统需要确保旧的主节点成为从节点并识别新的主节点。
 
-Failover is fraught with things that can go wrong:
+故障转移充满了可能出错的事情：
 
-* If asynchronous replication is used, the new leader may not have received all the writes from the old
-  leader before it failed. If the former leader rejoins the cluster after a new leader has been
-  chosen, what should happen to those writes? The new leader may have received conflicting writes
-  in the meantime. The most common solution is for the old leader’s unreplicated writes to simply be
-  discarded, which means that writes you believed to be committed actually weren’t durable after all.
-* Discarding writes is especially dangerous if other storage systems outside of the database need to
-  be coordinated with the database contents. For example, in one incident at GitHub [^14],
-  an out-of-date MySQL follower
-  was promoted to leader. The database used an autoincrementing counter to assign primary keys to
-  new rows, but because the new leader’s counter lagged behind the old leader’s, it reused some
-  primary keys that were previously assigned by the old leader. These primary keys were also used in
-  a Redis store, so the reuse of primary keys resulted in inconsistency between MySQL and Redis,
-  which caused some private data to be disclosed to the wrong users.
-* In certain fault scenarios (see [Chapter 9](/en/ch9#ch_distributed)), it could happen that two nodes both believe
-  that they are the leader. This situation is called *split brain*, and it is dangerous: if both
-  leaders accept writes, and there is no process for resolving conflicts (see
-  [“Multi-Leader Replication”](/en/ch6#sec_replication_multi_leader)), data is likely to be lost or corrupted. As a safety catch, some
-  systems have a mechanism to shut down one node if two leaders are detected. However, if this
-  mechanism is not carefully designed, you can end up with both nodes being shut down [^15].
-  Moreover, there is a risk that by the time the split brain is detected and the old node is shut
-  down, it is already too late and data has already been corrupted.
-* What is the right timeout before the leader is declared dead? A longer timeout means a longer
-  time to recovery in the case where the leader fails. However, if the timeout is too short, there
-  could be unnecessary failovers. For example, a temporary load spike could cause a node’s response
-  time to increase above the timeout, or a network glitch could cause delayed packets. If the system
-  is already struggling with high load or network problems, an unnecessary failover is likely to
-  make the situation worse, not better.
+* 如果使用异步复制，新的主节点可能在失败之前没有收到来自旧主节点的所有写入。如果前主节点在选择了新主节点后重新加入集群，那些写入应该怎么办？新的主节点可能同时收到了冲突的写入。最常见的解决方案是简单地丢弃旧主节点未复制的写入，这意味着你认为已提交的写入实际上并不持久。
+* 如果数据库之外的其他存储系统需要与数据库内容协调，丢弃写入尤其危险。例如，在 GitHub 的一次事故中 [^14]，一个过时的 MySQL 从节点被提升为主节点。数据库使用自增计数器为新行分配主键，但由于新主节点的计数器落后于旧主节点，它重用了旧主节点先前分配的一些主键。这些主键也在 Redis 存储中使用，因此主键的重用导致 MySQL 和 Redis 之间的不一致，这导致一些私人数据被错误地披露给错误的用户。
+* 在某些故障场景中（见 [第 9 章](/ch9#ch_distributed)），可能会发生两个节点都认为自己是主节点的情况。这种情况称为 **脑裂**，这是危险的：如果两个主节点都接受写入，并且没有解决冲突的过程（见 ["多主复制"](/ch6#sec_replication_multi_leader)），数据很可能会丢失或损坏。作为安全措施，一些系统在检测到两个主节点时有一种机制来关闭一个节点。然而，如果这种机制设计不当，你最终可能会关闭两个节点 [^15]。此外，当检测到脑裂并关闭旧节点时，可能为时已晚，数据已经损坏。
+* 在宣布主节点死亡之前，正确的超时是什么？更长的超时意味着在主节点失败的情况下恢复时间更长。然而，如果超时太短，可能会有不必要的故障转移。例如，临时负载峰值可能导致节点的响应时间增加到超时以上，或者网络故障可能导致数据包延迟。如果系统已经在高负载或网络问题上挣扎，不必要的故障转移可能会使情况变得更糟，而不是更好。
 
 --------
 
 > [!NOTE]
-> Guarding against split brain by limiting or shutting down old leaders is known as *fencing* or, more
-> emphatically, *Shoot The Other Node In The Head* (STONITH). We will discuss fencing in more detail
-> in [“Distributed Locks and Leases”](/en/ch9#sec_distributed_lock_fencing).
+> 通过限制或关闭旧主节点来防止脑裂被称为 **栅栏机制**，或者更强调地说，**向头部开枪**（STONITH）。我们将在 ["分布式锁和租约"](/ch9#sec_distributed_lock_fencing) 中更详细地讨论栅栏机制。
 
 --------
 
-There are no easy solutions to these problems. For this reason, some operations teams prefer to
-perform failovers manually, even if the software supports automatic failover.
+这些问题没有简单的解决方案。因此，一些运维团队更喜欢手动执行故障转移，即使软件支持自动故障转移。
 
-The most important thing with failover is to pick an up-to-date follower as the new leader—if
-synchronous or semi-synchronous replication is used, this would be the follower that the old leader
-waited for before acknowledging writes. With asynchronous replication, you can pick the follower
-with the greatest log sequence number. This minimizes the amount of data that is lost during
-failover: losing a fraction of a second of writes may be tolerable, but picking a follower that is
-behind by several days could be catastrophic.
+故障转移最重要的是选择一个最新的从节点作为新的主节点——如果使用同步或半同步复制，这将是旧主节点在确认写入之前等待的从节点。使用异步复制，你可以选择具有最大日志序列号的从节点。这最小化了故障转移期间丢失的数据量：丢失几分之一秒的写入可能是可以容忍的，但选择落后几天的从节点可能是灾难性的。
 
-These issues—node failures; unreliable networks; and trade-offs around replica consistency,
-durability, availability, and latency—are in fact fundamental problems in distributed systems.
-In [Chapter 9](/en/ch9#ch_distributed) and [Chapter 10](/en/ch10#ch_consistency) we will discuss them in greater depth.
+这些问题——节点故障；不可靠的网络；以及围绕副本一致性、持久性、可用性和延迟的权衡——实际上是分布式系统中的基本问题。在 [第 9 章](/ch9#ch_distributed) 和 [第 10 章](/ch10#ch_consistency) 中，我们将更深入地讨论它们。
 
 ### 复制日志的实现 {#sec_replication_implementation}
 
-How does leader-based replication work under the hood? Several different replication methods are
-used in practice, so let’s look at each one briefly.
+基于主节点的复制在底层是如何工作的？让我们简要地看看实践中使用的几种不同的复制方法。
 
 #### 基于语句的复制 {#statement-based-replication}
 
-In the simplest case, the leader logs every write request (*statement*) that it executes and sends
-that statement log to its followers. For a relational database, this means that every `INSERT`,
-`UPDATE`, or `DELETE` statement is forwarded to followers, and each follower parses and executes
-that SQL statement as if it had been received from a client.
+在最简单的情况下，主节点记录它执行的每个写入请求（**语句**）并将该语句日志发送给其从节点。对于关系数据库，这意味着每个 `INSERT`、`UPDATE` 或 `DELETE` 语句都被转发到从节点，每个从节点解析并执行该 SQL 语句，就像它是从客户端接收的一样。
 
-Although this may sound reasonable, there are various ways in which this approach to replication can
-break down:
+虽然这听起来合理，但这种复制方法可能会出现各种问题：
 
-* Any statement that calls a nondeterministic function, such as `NOW()` to get the current date
-  and time or `RAND()` to get a random number, is likely to generate a different value on each
-  replica.
-* If statements use an autoincrementing column, or if they depend on the existing data in the
-  database (e.g., `UPDATE …​ WHERE <some condition>`), they must be executed in exactly the same
-  order on each replica, or else they may have a different effect. This can be limiting when there
-  are multiple concurrently executing transactions.
-* Statements that have side effects (e.g., triggers, stored procedures, user-defined functions) may
-  result in different side effects occurring on each replica, unless the side effects are absolutely
-  deterministic.
+* 任何调用非确定性函数的语句，例如 `NOW()` 获取当前日期和时间或 `RAND()` 获取随机数，可能会在每个副本上生成不同的值。
+* 如果语句使用自增列，或者如果它们依赖于数据库中的现有数据（例如，`UPDATE … WHERE <某条件>`），它们必须在每个副本上以完全相同的顺序执行，否则它们可能会产生不同的效果。当有多个并发执行的事务时，这可能会受到限制。
+* 具有副作用的语句（例如，触发器、存储过程、用户定义的函数）可能会导致每个副本上发生不同的副作用，除非副作用是绝对确定的。
 
-It is possible to work around those issues—for example, the leader can replace any nondeterministic
-function calls with a fixed return value when the statement is logged so that the followers all get
-the same value. The idea of executing deterministic statements in a fixed order is similar to the
-event sourcing model that we previously discussed in [“Event Sourcing and CQRS”](/en/ch3#sec_datamodels_events). This approach is
-also known as *state machine replication*, and we will discuss the theory behind it in
-[“Using shared logs”](/en/ch10#sec_consistency_smr).
+可以解决这些问题——例如，主节点可以在记录语句时用固定的返回值替换任何非确定性函数调用，以便从节点都获得相同的值。以固定顺序执行确定性语句的想法类似于我们之前在 ["事件溯源与 CQRS"](/ch3#sec_datamodels_events) 中讨论的事件溯源模型。这种方法也称为 **状态机复制**，我们将在 ["使用共享日志"](/ch10#sec_consistency_smr) 中讨论其背后的理论。
 
-Statement-based replication was used in MySQL before version 5.1. It is still sometimes used today,
-as it is quite compact, but by default MySQL now switches to row-based replication (discussed shortly) if
-there is any nondeterminism in a statement. VoltDB uses statement-based replication, and makes it
-safe by requiring transactions to be deterministic [^16]. However, determinism can be hard to guarantee 
-in practice, so many databases prefer other replication methods.
+基于语句的复制在 MySQL 5.1 版本之前使用。它今天有时仍在使用，因为它相当紧凑，但默认情况下，如果语句中有任何非确定性，MySQL 现在会切换到基于行的复制（稍后讨论）。VoltDB 使用基于语句的复制，并通过要求事务是确定性的来使其安全 [^16]。然而，确定性在实践中很难保证，因此许多数据库更喜欢其他复制方法。
 
 #### 预写日志（WAL）传输 {#write-ahead-log-wal-shipping}
 
-In [Chapter 4](/en/ch4#ch_storage) we saw that a write-ahead log is needed to make B-tree storage engines robust:
-every modification is first written to the WAL so that the tree can be restored to a consistent
-state after a crash. Since the WAL contains all the information necessary to restore the indexes and
-heap into a consistent state, we can use the exact same log to build a replica on another node:
-besides writing the log to disk, the leader also sends it across the network to its followers. When
-the follower processes this log, it builds a copy of the exact same files as found on the leader.
+在 [第 4 章](/ch4#ch_storage) 中，我们看到预写日志是使 B 树存储引擎健壮所必需的：每个修改首先写入 WAL，以便在崩溃后可以将树恢复到一致状态。由于 WAL 包含将索引和堆恢复到一致状态所需的所有信息，我们可以使用完全相同的日志在另一个节点上构建副本：除了将日志写入磁盘外，主节点还通过网络将其发送给其从节点。当从节点处理此日志时，它构建了与主节点上找到的完全相同的文件副本。
 
-This method of replication is used in PostgreSQL and Oracle, among others [^17] [^18]
-The main disadvantage is that the log describes the data on a very low level: a WAL contains details
-of which bytes were changed in which disk blocks. This makes replication tightly coupled to the
-storage engine. If the database changes its storage format from one version to another, it is
-typically not possible to run different versions of the database software on the leader and the
-followers.
+此复制方法在 PostgreSQL 和 Oracle 等中使用 [^17] [^18]。主要缺点是日志在非常低的级别描述数据：WAL 包含哪些字节在哪些磁盘块中被更改的详细信息。这使得复制与存储引擎紧密耦合。如果数据库从一个版本更改其存储格式到另一个版本，通常不可能在主节点和从节点上运行不同版本的数据库软件。
 
-That may seem like a minor implementation detail, but it can have a big operational impact. If the
-replication protocol allows the follower to use a newer software version than the leader, you can
-perform a zero-downtime upgrade of the database software by first upgrading the followers and then
-performing a failover to make one of the upgraded nodes the new leader. If the replication protocol
-does not allow this version mismatch, as is often the case with WAL shipping, such upgrades require
-downtime.
+这可能看起来像是一个小的实现细节，但它可能会产生很大的操作影响。如果复制协议允许从节点使用比主节点更新的软件版本，你可以通过首先升级从节点然后执行故障转移以使其中一个升级的节点成为新的主节点来执行数据库软件的零停机升级。如果复制协议不允许此版本不匹配（如 WAL 传输的情况），此类升级需要停机。
 
 #### 逻辑（基于行）日志复制 {#logical-row-based-log-replication}
 
-An alternative is to use different log formats for replication and for the storage engine, which
-allows the replication log to be decoupled from the storage engine internals. This kind of
-replication log is called a *logical log*, to distinguish it from the storage engine’s (*physical*)
-data representation.
+另一种选择是为复制和存储引擎使用不同的日志格式，这允许复制日志与存储引擎内部解耦。这种复制日志称为 **逻辑日志**，以区别于存储引擎的（**物理**）数据表示。
 
-A logical log for a relational database is usually a sequence of records describing writes to
-database tables at the granularity of a row:
+关系数据库的逻辑日志通常是描述以行粒度对数据库表的写入的记录序列：
 
-* For an inserted row, the log contains the new values of all columns.
-* For a deleted row, the log contains enough information to uniquely identify the row that was
-  deleted. Typically this would be the primary key, but if there is no primary key on the table, the
-  old values of all columns need to be logged.
-* For an updated row, the log contains enough information to uniquely identify the updated row, and
-  the new values of all columns (or at least the new values of all columns that changed).
+* 对于插入的行，日志包含所有列的新值。
+* 对于删除的行，日志包含足够的信息来唯一标识被删除的行。通常这将是主键，但如果表上没有主键，则需要记录所有列的旧值。
+* 对于更新的行，日志包含足够的信息来唯一标识更新的行，以及所有列的新值（或至少所有已更改的列的新值）。
 
-A transaction that modifies several rows generates several such log records, followed by a record
-indicating that the transaction was committed. MySQL keeps a separate logical replication log,
-called the *binlog*, in addition to the WAL (when configured to use row-based replication).
-PostgreSQL implements logical replication by decoding the physical WAL into row
-insertion/update/delete events [^19].
+修改多行的事务会生成多个这样的日志记录，后跟指示事务已提交的记录。MySQL 除了 WAL 之外还保留一个单独的逻辑复制日志，称为 **binlog**（当配置为使用基于行的复制时）。PostgreSQL 通过将物理 WAL 解码为行插入/更新/删除事件来实现逻辑复制 [^19]。
 
-Since a logical log is decoupled from the storage engine internals, it can more easily be kept
-backward compatible, allowing the leader and the follower to run different versions of the database
-software. This in turn enables upgrading to a new version with minimal downtime [^20].
+由于逻辑日志与存储引擎内部解耦，因此可以更容易地保持向后兼容，允许主节点和从节点运行不同版本的数据库软件。这反过来又可以以最少的停机时间升级到新版本 [^20]。
 
-A logical log format is also easier for external applications to parse. This aspect is useful if you want
-to send the contents of a database to an external system, such as a data warehouse for offline
-analysis, or for building custom indexes and caches [^21].
-This technique is called *change data capture*, and we will return to it in [Link to Come].
+逻辑日志格式也更容易供外部应用程序解析。如果你想将数据库的内容发送到外部系统（例如用于离线分析的数据仓库），或者构建自定义索引和缓存 [^21]，这方面很有用。这种技术称为 **变更数据捕获**，我们将在 [Link to Come] 中回到它。
 
 
 ## 复制延迟的问题 {#sec_replication_lag}
 
-Being able to tolerate node failures is just one reason for wanting replication. As mentioned
-in [“Distributed versus Single-Node Systems”](/en/ch1#sec_introduction_distributed), other reasons are scalability (processing more
-requests than a single machine can handle) and latency (placing replicas geographically closer to users).
+能够容忍节点故障只是想要复制的一个原因。如 ["分布式与单节点系统"](/ch1#sec_introduction_distributed) 中所述，其他原因是可伸缩性（处理比单台机器能够处理的更多请求）和延迟（将副本在地理上放置得更接近用户）。
 
-Leader-based replication requires all writes to go through a single node, but read-only queries can
-go to any replica. For workloads that consist of mostly reads and only a small percentage of writes
-(which is often the case with online services), there is an attractive option: create many followers, and distribute
-the read requests across those followers. This removes load from the leader and allows read requests to be
-served by nearby replicas.
+基于主节点的复制要求所有写入都通过单个节点，但只读查询可以转到任何副本。对于主要由读取和只有少量写入组成的工作负载（这通常是在线服务的情况），有一个有吸引力的选择：创建许多从节点，并将读取请求分布在这些从节点上。这减轻了主节点的负载，并允许附近的副本提供读取请求。
 
-In this *read-scaling* architecture, you can increase the capacity for serving read-only requests
-simply by adding more followers. However, this approach only realistically works with asynchronous
-replication—if you tried to synchronously replicate to all followers, a single node failure or
-network outage would make the entire system unavailable for writing. And the more nodes you have,
-the likelier it is that one will be down, so a fully synchronous configuration would be very unreliable.
+在这种 **读扩展** 架构中，你可以通过添加更多从节点来简单地增加服务只读请求的容量。然而，这种方法只有在使用异步复制时才现实可行——如果你试图同步复制到所有从节点，单个节点故障或网络中断将使整个系统无法写入。而且你拥有的节点越多，其中一个节点宕机的可能性就越大，因此完全同步的配置将非常不可靠。
 
-Unfortunately, if an application reads from an *asynchronous* follower, it may see outdated
-information if the follower has fallen behind. This leads to apparent inconsistencies in the
-database: if you run the same query on the leader and a follower at the same time, you may get
-different results, because not all writes have been reflected in the follower. This inconsistency is
-just a temporary state—if you stop writing to the database and wait a while, the followers will
-eventually catch up and become consistent with the leader. For that reason, this effect is known
-as *eventual consistency* [^22].
+不幸的是，如果应用程序从 **异步** 从节点读取，如果从节点已落后，它可能会看到过时的信息。这导致数据库中出现明显的不一致：如果你同时在主节点和从节点上运行相同的查询，你可能会得到不同的结果，因为并非所有写入都已反映在从节点中。这种不一致只是一种临时状态——如果你停止向数据库写入并等待一段时间，从节点最终将赶上并与主节点保持一致。因此，这种效果被称为 **最终一致性** [^22]。
 
 --------
 
 > [!NOTE]
-> The term *eventual consistency* was coined by Douglas Terry et al. [^23], popularized by Werner Vogels [^24],
-> and became the battle cry of many NoSQL projects. However, not only NoSQL databases are eventually
-> consistent: followers in an asynchronously replicated relational database have the same characteristics.
+> 术语 **最终一致性** 由 Douglas Terry 等人创造 [^23]，由 Werner Vogels 推广 [^24]，并成为许多 NoSQL 项目的战斗口号。然而，不仅 NoSQL 数据库是最终一致的：异步复制的关系数据库中的从节点具有相同的特征。
 
 --------
 
-The term “eventually” is deliberately vague: in general, there is no limit to how far a replica can
-fall behind. In normal operation, the delay between a write happening on the leader and being
-reflected on a follower—the *replication lag*—may be only a fraction of a second, and not
-noticeable in practice. However, if the system is operating near capacity or if there is a problem
-in the network, the lag can easily increase to several seconds or even minutes.
+术语"最终"是故意模糊的：一般来说，副本可以落后多远没有限制。在正常操作中，写入发生在主节点上并反映在从节点上之间的延迟——**复制延迟**——可能只是几分之一秒，在实践中不会被注意到。然而，如果系统在接近容量运行或网络中存在问题，延迟可以轻易增加到几秒甚至几分钟。
 
-When the lag is so large, the inconsistencies it introduces are not just a theoretical issue but a
-real problem for applications. In this section we will highlight three examples of problems that are
-likely to occur when there is replication lag. We’ll also outline some approaches to solving them.
+当延迟如此之大时，它引入的不一致不仅仅是一个理论问题，而是应用程序的真正问题。在本节中，我们将重点介绍复制延迟时可能发生的三个问题示例。我们还将概述解决它们的一些方法。
 
 ### 读己之写 {#sec_replication_ryw}
 
-Many applications let the user submit some data and then view what they have submitted. This might
-be a record in a customer database, or a comment on a discussion thread, or something else of that sort.
-When new data is submitted, it must be sent to the leader, but when the user views the data, it can
-be read from a follower. This is especially appropriate if data is frequently viewed but only
-occasionally written.
+许多应用程序让用户提交一些数据，然后查看他们提交的内容。这可能是客户数据库中的记录，或讨论线程上的评论，或其他类似的东西。提交新数据时，必须将其发送到主节点，但当用户查看数据时，可以从从节点读取。如果数据经常被查看但只是偶尔被写入，这尤其合适。
 
-With asynchronous replication, there is a problem, illustrated in
-[Figure 6-3](/en/ch6#fig_replication_read_your_writes): if the user views the data shortly after making a write, the
-new data may not yet have reached the replica. To the user, it looks as though the data they
-submitted was lost, so they will be understandably unhappy.
+使用异步复制，存在一个问题，如 [图 6-3](/ch6#fig_replication_read_your_writes) 所示：如果用户在写入后不久查看数据，新数据可能尚未到达副本。对用户来说，看起来他们提交的数据丢失了，所以他们会理解地不高兴。
 
-{{< figure src="/fig/ddia_0603.png" id="fig_replication_read_your_writes" caption="Figure 6-3. A user makes a write, followed by a read from a stale replica. To prevent this anomaly, we need read-after-write consistency." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0603.png" id="fig_replication_read_your_writes" caption="图 6-3. 用户进行写入，然后从陈旧副本读取。为了防止这种异常，我们需要写后读一致性。" class="w-full my-4" >}}
 
-In this situation, we need *read-after-write consistency*, also known as *read-your-writes consistency* [^23].
-This is a guarantee that if the user reloads the page, they will always see any updates they
-submitted themselves. It makes no promises about other users: other users’ updates may not be
-visible until some later time. However, it reassures the user that their own input has been saved
-correctly.
+在这种情况下，我们需要 **写后读一致性**，也称为 **读己之写一致性** [^23]。这是一种保证，如果用户重新加载页面，他们将始终看到他们自己提交的任何更新。它不对其他用户做出承诺：其他用户的更新可能直到稍后才可见。然而，它向用户保证他们自己的输入已正确保存。
 
-How can we implement read-after-write consistency in a system with leader-based replication? There
-are various possible techniques. To mention a few:
+我们如何在基于主节点的复制系统中实现写后读一致性？有各种可能的技术。提及其中几个：
 
-* When reading something that the user may have modified, read it from the leader or a synchronously
-  updated follower; otherwise, read it from an asynchronously updated follower.
-  This requires that you have some way of knowing whether something might have been
-  modified, without actually querying it. For example, user profile information on a social network
-  is normally only editable by the owner of the profile, not by anybody else. Thus, a simple
-  rule is: always read the user’s own profile from the leader, and any other users’ profiles from a
-  follower.
-* If most things in the application are potentially editable by the user, that approach won’t be
-  effective, as most things would have to be read from the leader (negating the benefit of read
-  scaling). In that case, other criteria may be used to decide whether to read from the leader. For
-  example, you could track the time of the last update and, for one minute after the last update, make all
-  reads from the leader [^25].
-  You could also monitor the replication lag on followers and prevent queries on any follower that
-  is more than one minute behind the leader.
-* The client can remember the timestamp of its most recent write—then the system can ensure that the
-  replica serving any reads for that user reflects updates at least until that timestamp. If a
-  replica is not sufficiently up to date, either the read can be handled by another replica or the
-  query can wait until the replica has caught up [^26].
-  The timestamp could be a *logical timestamp* (something that indicates ordering of writes, such as
-  the log sequence number) or the actual system clock (in which case clock synchronization becomes
-  critical; see [“Unreliable Clocks”](/en/ch9#sec_distributed_clocks)).
-* If your replicas are distributed across regions (for geographical proximity to users or for
-  availability), there is additional complexity. Any request that needs to be served by the leader
-  must be routed to the region that contains the leader.
+* 当读取用户可能已修改的内容时，从主节点或同步更新的从节点读取；否则，从异步更新的从节点读取。这要求你有某种方法知道某物是否可能已被修改，而无需实际查询它。例如，社交网络上的用户个人资料信息通常只能由个人资料的所有者编辑，而不能由其他任何人编辑。因此，一个简单的规则是：始终从主节点读取用户自己的个人资料，从从节点读取任何其他用户的个人资料。
+* 如果应用程序中的大多数东西都可能被用户编辑，那种方法将不会有效，因为大多数东西都必须从主节点读取（否定了读扩展的好处）。在这种情况下，可以使用其他标准来决定是否从主节点读取。例如，你可以跟踪上次更新的时间，并在上次更新后的一分钟内，使所有读取都来自主节点 [^25]。你还可以监控从节点上的复制延迟，并防止在落后主节点超过一分钟的任何从节点上进行查询。
+* 客户端可以记住其最近写入的时间戳——然后系统可以确保为该用户提供任何读取的副本至少反映该时间戳之前的更新。如果副本不够最新，则可以由另一个副本处理读取，或者查询可以等待直到副本赶上 [^26]。时间戳可以是 **逻辑时间戳**（指示写入顺序的东西，例如日志序列号）或实际系统时钟（在这种情况下，时钟同步变得至关重要；见 ["不可靠的时钟"](/ch9#sec_distributed_clocks)）。
+* 如果你的副本分布在各个地区（为了地理上接近用户或为了可用性），还有额外的复杂性。任何需要由主节点提供的请求都必须路由到包含主节点的地区。
 
-Another complication arises when the same user is accessing your service from multiple devices, for
-example a desktop web browser and a mobile app. In this case you may want to provide *cross-device*
-read-after-write consistency: if the user enters some information on one device and then views it
-on another device, they should see the information they just entered.
+当同一用户从多个设备访问你的服务时，会出现另一个复杂情况，例如桌面网络浏览器和移动应用程序。在这种情况下，你可能希望提供 **跨设备** 写后读一致性：如果用户在一个设备上输入一些信息，然后在另一个设备上查看它，他们应该看到他们刚刚输入的信息。
 
-In this case, there are some additional issues to consider:
+在这种情况下，需要考虑一些额外的问题：
 
-* Approaches that require remembering the timestamp of the user’s last update become more difficult,
-  because the code running on one device doesn’t know what updates have happened on the other
-  device. This metadata will need to be centralized.
-* If your replicas are distributed across different regions, there is no guarantee that connections
-  from different devices will be routed to the same region. (For example, if the user’s desktop
-  computer uses the home broadband connection and their mobile device uses the cellular data network,
-  the devices’ network routes may be completely different.) If your approach requires reading from the
-  leader, you may first need to route requests from all of a user’s devices to the same region.
+* 需要记住用户上次更新的时间戳的方法变得更加困难，因为在一个设备上运行的代码不知道在另一个设备上发生了什么更新。此元数据将需要集中化。
+* 如果你的副本分布在不同的地区，则无法保证来自不同设备的连接将路由到同一地区。（例如，如果用户的台式计算机使用家庭宽带连接，而他们的移动设备使用蜂窝数据网络，则设备的网络路由可能完全不同。）如果你的方法需要从主节点读取，你可能首先需要将来自用户所有设备的请求路由到同一地区。
 
 --------
 
-> ![TIP] Regions and Availability Zones
-
-We use the term *region* to refer to one or more datacenters in a single geographic location. Cloud
-providers locate multiple datacenters in the same geographic region. Each datacenter is referred to
-as an *availability zone* or simply *zone*. Thus, a single cloud region is made up of multiple
-zones. Each zone is a separate datacenter located in separate physical facility with its own
-power, cooling, and so on.
-
-Zones in the same region are connected by very high speed network connections. Latency is low enough
-that most distributed systems can run with nodes spread across multiple zones in the same region as
-though they were in a single zone. Multi-zone configurations allow distributed systems to survive
-zonal outages where one zone goes offline, but they do not protect against regional outages where
-all zones in a region are unavailable. To survive a regional outage, a distributed system must be
-deployed across multiple regions, which can result in higher latencies, lower throughput, and
-increased cloud networking bills. We will discuss these tradeoffs more in
-[“Multi-leader replication topologies”](/en/ch6#sec_replication_topologies). For now, just know that when we say region, we mean a collection of
-zones/datacenters in a single geographic location.
+> ![TIP] 地区和可用区
+>
+> 我们使用术语 **地区** 来指代单个地理位置中的一个或多个数据中心。云提供商在同一地理区域中定位多个数据中心。每个数据中心被称为 **可用区** 或简称 **区域**。因此，单个云区域由多个区域组成。每个区域是位于独立物理设施中的独立数据中心，具有自己的电源、冷却等。
+>
+> 同一地区的区域通过非常高速的网络连接连接。延迟足够低，以至于大多数分布式系统可以在同一地区的多个区域中运行节点，就好像它们在单个区域中一样。多区域配置允许分布式系统在一个区域离线的区域中断中幸存，但它们不能防止所有区域不可用的区域中断。为了在区域中断中幸存，分布式系统必须部署在多个地区，这可能导致更高的延迟、更低的吞吐量和增加的云网络账单。我们将在 ["多主复制拓扑"](/ch6#sec_replication_topologies) 中更多地讨论这些权衡。现在，只要知道当我们说地区时，我们指的是单个地理位置中的区域/数据中心集合。
 
 --------
 
 ### 单调读 {#sec_replication_monotonic_reads}
 
-Our second example of an anomaly that can occur when reading from asynchronous followers is that it’s
-possible for a user to see things *moving backward in time*.
+从异步从节点读取时可能发生的第二个异常示例是，用户可能会看到事物 **在时间上倒退**。
 
-This can happen if a user makes several reads from different replicas. For example,
-[Figure 6-4](/en/ch6#fig_replication_monotonic_reads) shows user 2345 making the same query twice, first to a follower
-with little lag, then to a follower with greater lag. (This scenario is quite likely if the user
-refreshes a web page, and each request is routed to a random server.) The first query returns a
-comment that was recently added by user 1234, but the second query doesn’t return anything because
-the lagging follower has not yet picked up that write. In effect, the second query observes the
-system state at an earlier point in time than the first query. This wouldn’t be so bad if the first query
-hadn’t returned anything, because user 2345 probably wouldn’t know that user 1234 had recently added
-a comment. However, it’s very confusing for user 2345 if they first see user 1234’s comment appear,
-and then see it disappear again.
+如果用户从不同的副本进行多次读取，就可能发生这种情况。例如，[图 6-4](/ch6#fig_replication_monotonic_reads) 显示用户 2345 进行相同的查询两次，首先到延迟很小的从节点，然后到延迟更大的从节点。（如果用户刷新网页，并且每个请求都路由到随机服务器，这种情况很可能发生。）第一个查询返回用户 1234 最近添加的评论，但第二个查询没有返回任何内容，因为滞后的从节点尚未获取该写入。实际上，第二个查询观察到的系统状态比第一个查询更早的时间点。如果第一个查询没有返回任何内容，这不会那么糟糕，因为用户 2345 可能不知道用户 1234 最近添加了评论。然而，如果用户 2345 首先看到用户 1234 的评论出现，然后又看到它消失，这对用户 2345 来说非常令人困惑。
 
-{{< figure src="/fig/ddia_0604.png" id="fig_replication_monotonic_reads" caption="Figure 6-4. A user first reads from a fresh replica, then from a stale replica. Time appears to go backward. To prevent this anomaly, we need monotonic reads." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0604.png" id="fig_replication_monotonic_reads" caption="图 6-4. 用户首先从新鲜副本读取，然后从陈旧副本读取。时间似乎倒退了。为了防止这种异常，我们需要单调读。" class="w-full my-4" >}}
 
-*Monotonic reads* [^22] is a guarantee that this
-kind of anomaly does not happen. It’s a lesser guarantee than strong consistency, but a stronger
-guarantee than eventual consistency. When you read data, you may see an old value; monotonic reads
-only means that if one user makes several reads in sequence, they will not see time go
-backward—i.e., they will not read older data after having previously read newer data.
+**单调读** [^22] 是一种保证这种异常不会发生的保证。它是比强一致性更弱的保证，但比最终一致性更强的保证。当你读取数据时，你可能会看到一个旧值；单调读只意味着如果一个用户按顺序进行多次读取，他们不会看到时间倒退——即，在之前读取较新数据后，他们不会读取较旧的数据。
 
-One way of achieving monotonic reads is to make sure that each user always makes their reads from
-the same replica (different users can read from different replicas). For example, the replica can be
-chosen based on a hash of the user ID, rather than randomly. However, if that replica fails, the
-user’s queries will need to be rerouted to another replica.
+实现单调读的一种方法是确保每个用户始终从同一副本进行读取（不同的用户可以从不同的副本读取）。例如，可以基于用户 ID 的哈希选择副本，而不是随机选择。然而，如果该副本失败，用户的查询将需要重新路由到另一个副本。
 
 ### 一致前缀读 {#sec_replication_consistent_prefix}
 
-Our third example of replication lag anomalies concerns violation of causality. Imagine the
-following short dialog between Mr. Poons and Mrs. Cake:
+我们的第三个复制延迟异常示例涉及违反因果关系。想象一下 Poons 先生和 Cake 夫人之间的以下简短对话：
 
-Mr. Poons
-:   How far into the future can you see, Mrs. Cake?
+Poons 先生
+:   你能看到多远的未来，Cake 夫人？
 
-Mrs. Cake
-:   About ten seconds usually, Mr. Poons.
+Cake 夫人
+:   通常大约十秒钟，Poons 先生。
 
-There is a causal dependency between those two sentences: Mrs. Cake heard Mr. Poons’s question and
-answered it.
+这两个句子之间存在因果依赖关系：Cake 夫人听到了 Poons 先生的问题并回答了它。
 
-Now, imagine a third person is listening to this conversation through followers. The things said by
-Mrs. Cake go through a follower with little lag, but the things said by Mr. Poons have a longer
-replication lag (see [Figure 6-5](/en/ch6#fig_replication_consistent_prefix)). This observer would hear the following:
+现在，想象第三个人通过从节点听这个对话。Cake 夫人说的话通过延迟很小的从节点，但 Poons 先生说的话有更长的复制延迟（见 [图 6-5](/ch6#fig_replication_consistent_prefix)）。这个观察者会听到以下内容：
 
-Mrs. Cake
-:   About ten seconds usually, Mr. Poons.
+Cake 夫人
+:   通常大约十秒钟，Poons 先生。
 
-Mr. Poons
-:   How far into the future can you see, Mrs. Cake?
+Poons 先生
+:   你能看到多远的未来，Cake 夫人？
 
-To the observer it looks as though Mrs. Cake is answering the question before Mr. Poons has even asked
-it. Such psychic powers are impressive, but very confusing [^27].
+对观察者来说，看起来 Cake 夫人在 Poons 先生甚至提出问题之前就回答了问题。这种通灵能力令人印象深刻，但非常令人困惑 [^27]。
 
-{{< figure src="/fig/ddia_0605.png" id="fig_replication_consistent_prefix" caption="Figure 6-5. If some shards are replicated slower than others, an observer may see the answer before they see the question." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0605.png" id="fig_replication_consistent_prefix" caption="图 6-5. 如果某些分片的复制比其他分片慢，观察者可能会在看到问题之前看到答案。" class="w-full my-4" >}}
 
-Preventing this kind of anomaly requires another type of guarantee: *consistent prefix reads* [^22]. 
-This guarantee says that if a sequence of writes happens in a certain order, 
-then anyone reading those writes will see them appear in the same order.
+防止这种异常需要另一种类型的保证：**一致前缀读** [^22]。这种保证说，如果一系列写入以某个顺序发生，那么任何读取这些写入的人都会看到它们以相同的顺序出现。
 
-This is a particular problem in sharded (partitioned) databases, which we will discuss in
-[Chapter 7](/en/ch7#ch_sharding). If the database always applies writes in the same order, reads always see a
-consistent prefix, so this anomaly cannot happen. However, in many distributed databases, different
-shards operate independently, so there is no global ordering of writes: when a user reads from the
-database, they may see some parts of the database in an older state and some in a newer state.
+这是分片（分区）数据库中的一个特殊问题，我们将在 [第 7 章](/ch7#ch_sharding) 中讨论。如果数据库始终以相同的顺序应用写入，读取始终会看到一致的前缀，因此这种异常不会发生。然而，在许多分布式数据库中，不同的分片独立运行，因此没有全局的写入顺序：当用户从数据库读取时，他们可能会看到数据库的某些部分处于较旧状态，而某些部分处于较新状态。
 
-One solution is to make sure that any writes that are causally related to each other are written to
-the same shard—but in some applications that cannot be done efficiently. There are also algorithms
-that explicitly keep track of causal dependencies, a topic that we will return to in
-[“The “happens-before” relation and concurrency”](/en/ch6#sec_replication_happens_before).
+一种解决方案是确保任何因果相关的写入都写入同一分片——但在某些应用程序中，这无法有效完成。还有一些算法明确跟踪因果依赖关系，这是我们将在 [""先发生"关系与并发"](/ch6#sec_replication_happens_before) 中回到的主题。
 
 ### 复制延迟的解决方案 {#id131}
 
-When working with an eventually consistent system, it is worth thinking about how the application
-behaves if the replication lag increases to several minutes or even hours. If the answer is “no
-problem,” that’s great. However, if the result is a bad experience for users, it’s important to
-design the system to provide a stronger guarantee, such as read-after-write. Pretending that
-replication is synchronous when in fact it is asynchronous is a recipe for problems down the line.
+在使用最终一致系统时，值得思考如果复制延迟增加到几分钟甚至几小时，应用程序的行为如何。如果答案是"没问题"，那很好。然而，如果结果对用户来说是糟糕的体验，那么设计系统以提供更强的保证（如写后读）很重要。假装复制是同步的，而实际上它是异步的，是以后出现问题的秘诀。
 
-As discussed earlier, there are ways in which an application can provide a stronger guarantee than
-the underlying database—for example, by performing certain kinds of reads on the leader or a
-synchronously updated follower. However, dealing with these issues in application code is complex
-and easy to get wrong.
+如前所述，应用程序可以提供比底层数据库更强的保证——例如，通过在主节点或同步更新的从节点上执行某些类型的读取。然而，在应用程序代码中处理这些问题很复杂且容易出错。
 
-The simplest programming model for application developers is to choose a database that provides a
-strong consistency guarantee for replicas such as linearizability (see [Chapter 10](/en/ch10#ch_consistency)), and ACID
-transactions (see [Chapter 8](/en/ch8#ch_transactions)). This allows you to mostly ignore the challenges that arise
-from replication, and treat the database as if it had just a single node. In the early 2010s the
-*NoSQL* movement promoted the view that these features limited scalability, and that large-scale
-systems would have to embrace eventual consistency.
+对于应用程序开发人员来说，最简单的编程模型是选择一个为副本提供强一致性保证的数据库，例如线性一致性（见 [第 10 章](/ch10#ch_consistency)）和 ACID 事务（见 [第 8 章](/ch8#ch_transactions)）。这允许你大部分忽略复制带来的挑战，并将数据库视为只有一个节点。在 2010 年代初期，**NoSQL** 运动推广了这样的观点，即这些功能限制了可伸缩性，大规模系统必须接受最终一致性。
 
-However, since then, a number of databases started providing strong consistency and transactions
-while also offering the fault tolerance, high availability, and scalability advantages of a
-distributed database. As mentioned in [“Relational Model versus Document Model”](/en/ch3#sec_datamodels_history), this trend is known as *NewSQL* to
-contrast with NoSQL (although it’s less about SQL specifically, and more about new approaches to
-scalable transaction management).
+然而，从那时起，许多数据库开始提供强一致性和事务，同时还提供分布式数据库的容错、高可用性和可伸缩性优势。如 ["关系模型与文档模型"](/ch3#sec_datamodels_history) 中所述，这种趋势被称为 **NewSQL**，以与 NoSQL 形成对比（尽管它不太关于 SQL 本身，而更多关于可伸缩事务管理的新方法）。
 
-Even though scalable, strongly consistent distributed databases are now available, there are still
-good reasons why some applications choose to use different forms of replication that offer weaker
-consistency guarantees: they can offer stronger resilience in the face of network interruptions, and
-have lower overheads compared to transactional systems. We will explore such approaches in the rest
-of this chapter.
+尽管现在可以使用可伸缩、强一致的分布式数据库，但某些应用程序选择使用提供较弱一致性保证的不同形式的复制仍然有充分的理由：它们可以在面对网络中断时提供更强的韧性，并且与事务系统相比具有较低的开销。我们将在本章的其余部分探讨这些方法。
 
 
 
 ## 多主复制 {#sec_replication_multi_leader}
 
-So far in this chapter we have only considered replication architectures using a single leader.
-Although that is a common approach, there are interesting alternatives.
+到目前为止，本章中我们只考虑了使用单个主节点的复制架构。尽管这是一种常见的方法，但还有一些有趣的替代方案。
 
-Single-leader replication has one major downside: all writes must go through the one leader. If you
-can’t connect to the leader for any reason, for example due to a network interruption between you
-and the leader, you can’t write to the database.
+单主复制有一个主要缺点：所有写入都必须通过一个主节点。如果由于任何原因无法连接到主节点，例如你和主节点之间的网络中断，你就无法写入数据库。
 
-A natural extension of the single-leader replication model is to allow more than one node to accept
-writes. Replication still happens in the same way: each node that processes a write must forward
-that data change to all the other nodes. We call this a *multi-leader* configuration (also known as
-*active/active* or *bidirectional* replication). In this setup, each leader simultaneously acts as a
-follower to the other leaders.
+单主复制模型的自然扩展是允许多个节点接受写入。复制仍然以相同的方式进行：每个处理写入的节点必须将该数据变更转发给所有其他节点。我们称之为 **多主** 配置（也称为 **主动/主动** 或 **双向** 复制）。在这种设置中，每个主节点同时充当其他主节点的从节点。
 
-As with single-leader replication, there is a choice between making it synchronous or asynchronous.
-Let’s say you have two leaders, *A* and *B*, and you’re trying to write to *A*. If writes are
-synchronously replicated from *A* to *B*, and the network between the two nodes is interrupted, you
-can’t write to *A* until the network comes back. Synchronous multi-leader replication thus gives you
-a model that is very similar to single-leader replication, i.e. if you had made *B* the leader and
-*A* simply forwards any write requests to *B* to be executed.
+与单主复制一样，可以选择使其同步或异步。假设你有两个主节点，*A* 和 *B*，你正在尝试写入 *A*。如果写入从 *A* 同步复制到 *B*，并且两个节点之间的网络中断，你就无法写入 *A* 直到网络恢复。同步多主复制因此给你一个非常类似于单主复制的模型，即如果你让 *B* 成为主节点，*A* 只是将任何写入请求转发给 *B* 执行。
 
-For that reason, we won’t go further into synchronous multi-leader replication, and simply treat it
-as equivalent to single-leader replication. The rest of this section focusses on asynchronous
-multi-leader replication, in which any leader can process writes even when its connection to the
-other leaders is interrupted.
+因此，我们不会进一步讨论同步多主复制，而只是将其视为等同于单主复制。本节的其余部分专注于异步多主复制，其中任何主节点都可以处理写入，即使其与其他主节点的连接中断。
 
 ### 跨地域运行 {#sec_replication_multi_dc}
 
-It rarely makes sense to use a multi-leader setup within a single region, because the benefits
-rarely outweigh the added complexity. However, there are some situations in which this configuration
-is reasonable.
+在单个地区内使用多主设置很少有意义，因为好处很少超过增加的复杂性。然而，在某些情况下，这种配置是合理的。
 
-Imagine you have a database with replicas in several different regions (perhaps so that you can
-tolerate the failure of an entire region, or perhaps in order to be closer to your users). This is
-known as a *geographically distributed*, *geo-distributed* or *geo-replicated* setup. With
-single-leader replication, the leader has to be in *one* of the regions, and all writes must go
-through that region.
+想象你有一个数据库，在几个不同的地区有副本（也许是为了能够容忍整个地区的故障，或者是为了更接近你的用户）。这被称为 **地理分布式**、**地域分布式** 或 **地域复制** 设置。使用单主复制，主节点必须在 **一个** 地区，所有写入都必须通过该地区。
 
-In a multi-leader configuration, you can have a leader in *each* region.
-[Figure 6-6](/en/ch6#fig_replication_multi_dc) shows what this architecture might look like. Within each region,
-regular leader–follower replication is used (with followers maybe in a different availability zone
-from the leader); between regions, each region’s leader replicates its changes to the leaders in
-other regions.
+在多主配置中，你可以在 **每个** 地区都有一个主节点。[图 6-6](/ch6#fig_replication_multi_dc) 显示了这种架构可能的样子。在每个地区内，使用常规的主从复制（从节点可能在与主节点不同的可用区中）；在地区之间，每个地区的主节点将其变更复制到其他地区的主节点。
 
-{{< figure src="/fig/ddia_0606.png" id="fig_replication_multi_dc" caption="Figure 6-6. Multi-leader replication across multiple regions." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0606.png" id="fig_replication_multi_dc" caption="图 6-6. 跨多个地区的多主复制。" class="w-full my-4" >}}
 
-Let’s compare how the single-leader and multi-leader configurations fare in a multi-region deployment:
+让我们比较单主和多主配置在多地区部署中的表现：
 
-Performance
-:   In a single-leader configuration, every write must go over the internet to the region with the
-    leader. This can add significant latency to
-    writes and might contravene the purpose of having multiple regions in the first place. In a
-    multi-leader configuration, every write can be processed in the local region and is replicated
-    asynchronously to the other regions. Thus, the inter-region network delay is hidden from
-    users, which means the perceived performance may be better.
+性能
+:   在单主配置中，每次写入都必须通过互联网到拥有主节点的地区。这可能会给写入增加显著的延迟，并可能违背首先拥有多个地区的目的。在多主配置中，每次写入都可以在本地地区处理，并异步复制到其他地区。因此，跨地区网络延迟对用户是隐藏的，这意味着感知性能可能更好。
 
-Tolerance of regional outages
-:   In a single-leader configuration, if the region with the leader becomes unavailable, failover can
-    promote a follower in another region to be leader. In a multi-leader configuration, each region
-    can continue operating independently of the others, and replication catches up when the offline
-    region comes back online.
+地区故障容忍
+:   在单主配置中，如果拥有主节点的地区变得不可用，故障转移可以将另一个地区的从节点提升为主节点。在多主配置中，每个地区可以独立于其他地区继续运行，并在离线地区恢复上线时赶上复制。
 
-Tolerance of network problems
-:   Even with dedicated connections, traffic between regions
+网络问题容忍
+:   即使有专用连接，地区之间的流量也可能比同一地区内或单个区域内的流量更不可靠。单主配置对这种跨地区链路中的问题非常敏感，因为当一个地区的客户端想要写入另一个地区的主节点时，它必须通过该链路发送其请求并等待响应才能完成。
 
-    can be less reliable than traffic between zones in the same region or within a single zone. A
-    single-leader configuration is very sensitive to problems in this inter-region link, because when
-    a client in one region wants to write to a leader in another region, it has to send its request
-    over that link and wait for the response before it can complete.
+    具有异步复制的多主配置可以更好地容忍网络问题：在临时网络中断期间，每个地区的主节点可以继续独立处理写入。
 
-    A multi-leader configuration with asynchronous replication can tolerate network problems better:
-    during a temporary network interruption, each region’s leader can continue independently processing writes.
+一致性
+:   单主系统可以提供强一致性保证，例如可串行化事务，我们将在 [第 8 章](/ch8#ch_transactions) 中讨论。多主系统的最大缺点是它们能够实现的一致性要弱得多。例如，你不能保证银行账户不会变成负数或用户名是唯一的：不同的主节点总是可能处理单独没问题的写入（从账户中支付一些钱，注册特定用户名），但当与另一个主节点上的另一个写入结合时违反了约束。
 
-Consistency
-:   A single-leader system can provide strong consistency guarantees, such as serializable
-    transactions, which we will discuss in [Chapter 8](/en/ch8#ch_transactions). The biggest downside of multi-leader
-    systems is that the consistency they can achieve is much weaker. For example, you can’t guarantee
-    that a bank account won’t go negative or that a username is unique: it’s always possible for
-    different leaders to process writes that are individually fine (paying out some of the money in an
-    account, registering a particular username), but which violate the constraint when taken together
-    with another write on another leader.
+    这只是分布式系统的基本限制 [^28]。如果你需要强制执行此类约束，因此你最好使用单主系统。然而，正如我们将在 ["处理写入冲突"](/ch6#sec_replication_write_conflicts) 中看到的，多主系统仍然可以实现在不需要此类约束的广泛应用程序中有用的一致性属性。
 
-    This is simply a fundamental limitation of distributed systems [^28].
-    If you need to enforce such constraints, you’re therefore better off with a single-leader system.
-    However, as we will see in [“Dealing with Conflicting Writes”](/en/ch6#sec_replication_write_conflicts), multi-leader systems can still
-    achieve consistency properties that are useful in a wide range of apps that don’t need such constraints.
+多主复制不如单主复制常见，但许多数据库仍然支持它，包括 MySQL、Oracle、SQL Server 和 YugabyteDB。在某些情况下，它是一个外部附加功能，例如在 Redis Enterprise、EDB Postgres Distributed 和 pglogical 中 [^29]。
 
-Multi-leader replication is less common than single-leader replication, but it is still supported by
-many databases, including MySQL, Oracle, SQL Server, and YugabyteDB. In some cases it is an external
-add-on feature, for example in Redis Enterprise, EDB Postgres Distributed, and pglogical [^29].
-
-As multi-leader replication is a somewhat retrofitted feature in many databases, there are often
-subtle configuration pitfalls and surprising interactions with other database features. For example,
-autoincrementing keys, triggers, and integrity constraints can be problematic. For this reason,
-multi-leader replication is often considered dangerous territory that should be avoided if possible [^30].
+由于多主复制在许多数据库中是一个有点改装的功能，因此通常存在微妙的配置陷阱和与其他数据库功能的令人惊讶的交互。例如，自增键、触发器和完整性约束可能会有问题。因此，多主复制通常被认为是应该尽可能避免的危险领域 [^30]。
 
 #### 多主复制拓扑 {#sec_replication_topologies}
 
-A *replication topology* describes the communication paths along which writes are propagated from
-one node to another. If you have two leaders, like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), there is
-only one plausible topology: leader 1 must send all of its writes to leader 2, and vice versa. With
-more than two leaders, various different topologies are possible. Some examples are illustrated in
-[Figure 6-7](/en/ch6#fig_replication_topologies).
+**复制拓扑** 描述了写入从一个节点传播到另一个节点的通信路径。如果你有两个主节点，如 [图 6-9](/ch6#fig_replication_write_conflict) 中，只有一种合理的拓扑：主节点 1 必须将其所有写入发送到主节点 2，反之亦然。有了两个以上的主节点，各种不同的拓扑是可能的。[图 6-7](/ch6#fig_replication_topologies) 中说明了一些示例。
 
-{{< figure src="/fig/ddia_0607.png" id="fig_replication_topologies" caption="Figure 6-7. Three example topologies in which multi-leader replication can be set up." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0607.png" id="fig_replication_topologies" caption="图 6-7. 可以设置多主复制的三个示例拓扑。" class="w-full my-4" >}}
 
-The most general topology is *all-to-all*, shown in [Figure 6-7](/en/ch6#fig_replication_topologies)(c),
-in which every leader sends its writes to every other leader. However, more restricted topologies
-are also used: for example a *circular topology* in which each node receives writes from one node
-and forwards those writes (plus any writes of its own) to one other node. Another popular topology
-has the shape of a *star*: one designated root node forwards writes to all of the other nodes. The
-star topology can be generalized to a tree.
-
+最通用的拓扑是 **全对全**，如 [图 6-7](/ch6#fig_replication_topologies)(c) 所示，其中每个主节点将其写入发送到每个其他主节点。然而，也使用更受限制的拓扑：例如 **环形拓扑**，其中每个节点从一个节点接收写入并将这些写入（加上其自己的任何写入）转发到另一个节点。另一种流行的拓扑具有 **星形** 形状：一个指定的根节点将写入转发到所有其他节点。星形拓扑可以推广到树形。
 
 --------
 
 > [!NOTE]
-> Don’t confuse a star-shaped network topology with a *star schema* (see
-> [“Stars and Snowflakes: Schemas for Analytics”](/en/ch3#sec_datamodels_analytics)), which describes the structure of a data model.
+> 不要将星形网络拓扑与 **星型模式** 混淆（见 ["星型与雪花型：分析模式"](/ch3#sec_datamodels_analytics)），后者描述了数据模型的结构。
 
 --------
 
-In circular and star topologies, a write may need to pass through several nodes before it reaches
-all replicas. Therefore, nodes need to forward data changes they receive from other nodes. To
-prevent infinite replication loops, each node is given a unique identifier, and in the replication
-log, each write is tagged with the identifiers of all the nodes it has passed through [^31].
-When a node receives a data change that is tagged with its own identifier, that data change is
-ignored, because the node knows that it has already been processed.
+在环形和星形拓扑中，写入可能需要通过几个节点才能到达所有副本。因此，节点需要转发它们从其他节点接收的数据变更。为了防止无限复制循环，每个节点都被赋予一个唯一标识符，并且在复制日志中，每个写入都用它经过的所有节点的标识符标记 [^31]。当节点接收到用其自己的标识符标记的数据变更时，该数据变更将被忽略，因为节点知道它已经被处理过了。
 
 #### 不同拓扑的问题 {#problems-with-different-topologies}
 
-A problem with circular and star topologies is that if just one node fails, it can interrupt the
-flow of replication messages between other nodes, leaving them unable to communicate until the
-node is fixed. The topology could be reconfigured to work around the failed node, but in most
-deployments such reconfiguration would have to be done manually. The fault tolerance of a more
-densely connected topology (such as all-to-all) is better because it allows messages to travel
-along different paths, avoiding a single point of failure.
+环形和星形拓扑的一个问题是，如果只有一个节点发生故障，它可能会中断其他节点之间的复制消息流，使它们无法通信，直到节点被修复。可以重新配置拓扑以绕过故障节点，但在大多数部署中，这种重新配置必须手动完成。更密集连接的拓扑（如全对全）的容错性更好，因为它允许消息沿着不同的路径传播，避免单点故障。
 
-On the other hand, all-to-all topologies can have issues too. In particular, some network links may
-be faster than others (e.g., due to network congestion), with the result that some replication
-messages may “overtake” others, as illustrated in [Figure 6-8](/en/ch6#fig_replication_causality).
+另一方面，全对全拓扑也可能有问题。特别是，一些网络链路可能比其他链路更快（例如，由于网络拥塞），结果是一些复制消息可能会"超越"其他消息，如 [图 6-8](/ch6#fig_replication_causality) 所示。
 
-{{< figure src="/fig/ddia_0608.png" id="fig_replication_causality" caption="Figure 6-8. With multi-leader replication, writes may arrive in the wrong order at some replicas." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0608.png" id="fig_replication_causality" caption="图 6-8. 使用多主复制，写入可能以错误的顺序到达某些副本。" class="w-full my-4" >}}
 
-In [Figure 6-8](/en/ch6#fig_replication_causality), client A inserts a row into a table on leader 1, and client B
-updates that row on leader 3. However, leader 2 may receive the writes in a different order: it may
-first receive the update (which, from its point of view, is an update to a row that does not exist
-in the database) and only later receive the corresponding insert (which should have preceded the
-update).
+在 [图 6-8](/ch6#fig_replication_causality) 中，客户端 A 在主节点 1 上向表中插入一行，客户端 B 在主节点 3 上更新该行。然而，主节点 2 可能以不同的顺序接收写入：它可能首先接收更新（从其角度来看，这是对数据库中不存在的行的更新），然后才接收相应的插入（应该在更新之前）。
 
-This is a problem of causality, similar to the one we saw in [“Consistent Prefix Reads”](/en/ch6#sec_replication_consistent_prefix):
-the update depends on the prior insert, so we need to make sure that all nodes process the insert
-first, and then the update. Simply attaching a timestamp to every write is not sufficient, because
-clocks cannot be trusted to be sufficiently in sync to correctly order these events at leader 2 (see
-[Chapter 9](/en/ch9#ch_distributed)).
+这是一个因果关系问题，类似于我们在 ["一致前缀读"](/ch6#sec_replication_consistent_prefix) 中看到的问题：更新依赖于先前的插入，因此我们需要确保所有节点首先处理插入，然后处理更新。简单地为每个写入附加时间戳是不够的，因为时钟不能被信任足够同步以在主节点 2 上正确排序这些事件（见 [第 9 章](/ch9#ch_distributed)）。
 
-To order these events correctly, a technique called *version vectors* can be used, which we will
-discuss later in this chapter (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)). However, many multi-leader
-replication systems don’t use good techniques for ordering updates, leaving them vulnerable to
-issues like the one in [Figure 6-8](/en/ch6#fig_replication_causality). If you are using multi-leader replication, it
-is worth being aware of these issues, carefully reading the documentation, and thoroughly testing
-your database to ensure that it really does provide the guarantees you believe it to have.
+为了正确排序这些事件，可以使用一种称为 **版本向量** 的技术，我们将在本章后面讨论（见 ["检测并发写入"](/ch6#sec_replication_concurrent)）。然而，许多多主复制系统不使用良好的技术来排序更新，使它们容易受到像 [图 6-8](/ch6#fig_replication_causality) 中的问题的影响。如果你使用多主复制，值得了解这些问题，仔细阅读文档，并彻底测试你的数据库，以确保它真正提供你认为它具有的保证。
 
 ### 同步引擎与本地优先软件 {#sec_replication_offline_clients}
 
-Another situation in which multi-leader replication is appropriate is if you have an application
-that needs to continue to work while it is disconnected from the internet.
+另一种适合多主复制的情况是，如果你有一个需要在与互联网断开连接时继续工作的应用程序。
 
-For example, consider the calendar apps on your mobile phone, your laptop, and other devices. You
-need to be able to see your meetings (make read requests) and enter new meetings (make write
-requests) at any time, regardless of whether your device currently has an internet connection. If
-you make any changes while you are offline, they need to be synced with a server and your other
-devices when the device is next online.
+例如，考虑你的手机、笔记本电脑和其他设备上的日历应用程序。你需要能够随时查看你的会议（进行读取请求）并输入新会议（进行写入请求），无论你的设备当前是否有互联网连接。如果你在离线时进行任何更改，它们需要在设备下次上线时与服务器和你的其他设备同步。
 
-In this case, every device has a local database replica that acts as a leader (it accepts write
-requests), and there is an asynchronous multi-leader replication process (sync) between the replicas
-of your calendar on all of your devices. The replication lag may be hours or even days, depending on
-when you have internet access available.
+在这种情况下，每个设备都有一个充当主节点的本地数据库副本（它接受写入请求），并且在你所有设备上的日历副本之间有一个异步多主复制过程（同步）。复制延迟可能是几小时甚至几天，具体取决于你何时有可用的互联网访问。
 
-From an architectural point of view, this setup is very similar to multi-leader replication between
-regions, taken to the extreme: each device is a “region,” and the network connection between them is
-extremely unreliable.
+从架构的角度来看，这种设置与地区之间的多主复制非常相似，达到了极端：每个设备是一个"地区"，它们之间的网络连接极其不可靠。
 
 #### 实时协作、离线优先和本地优先应用 {#real-time-collaboration-offline-first-and-local-first-apps}
 
-Moreover, many modern web apps offer *real-time collaboration* features, such as Google Docs and
-Sheets for text documents and spreadsheets, Figma for graphics, and Linear for project management.
-What makes these apps so responsive is that user input is immediately reflected in the user
-interface, without waiting for a network round-trip to the server, and edits by one user are shown
-to their collaborators with low latency [^32] [^33] [^34]
+此外，许多现代 Web 应用程序提供 **实时协作** 功能，例如用于文本文档和电子表格的 Google Docs 和 Sheets，用于图形的 Figma，以及用于项目管理的 Linear。使这些应用程序如此响应的原因是用户输入立即反映在用户界面中，无需等待到服务器的网络往返，并且一个用户的编辑以低延迟显示给他们的协作者 [^32] [^33] [^34]。
 
-This again results in a multi-leader architecture: each web browser tab that has opened the shared
-file is a replica, and any updates that you make to the file are asynchronously replicated to the
-devices of the other users who have opened the same file. Even if the app does not allow you to
-continue editing a file while offline, the fact that multiple users can make edits without waiting
-for a response from the server already makes it multi-leader.
+这再次导致多主架构：每个打开共享文件的 Web 浏览器选项卡都是一个副本，你对文件进行的任何更新都会异步复制到打开同一文件的其他用户的设备。即使应用程序不允许你在离线时继续编辑文件，多个用户可以进行编辑而无需等待服务器的响应这一事实已经使其成为多主。
 
-Both offline editing and real-time collaboration require a similar replication infrastructure: the
-application needs to capture any changes that the user makes to a file, and either send them to
-collaborators immediately (if online), or store them locally for sending later (if offline).
-Additionally, the application needs to receive changes from collaborators, merge them into the
-user’s local copy of the file, and update the user interface to reflect the latest version. If
-multiple users have changed the file concurrently, conflict resolution logic may be needed to merge
-those changes.
+离线编辑和实时协作都需要类似的复制基础设施：应用程序需要捕获用户对文件所做的任何更改，并立即将它们发送给协作者（如果在线），或本地存储它们以供稍后发送（如果离线）。此外，应用程序需要接收来自协作者的更改，将它们合并到用户的文件本地副本中，并更新用户界面以反映最新版本。如果多个用户同时更改了文件，可能需要冲突解决逻辑来合并这些更改。
 
-A software library that supports this process is called a *sync engine*. Although the idea has
-existed for a long time, the term has recently gained attention [^35] [^36] [^37].
-An application that allows a user to continue editing a file while offline (which may be implemented
-using a sync engine) is called *offline-first* [^38].
-The term *local-first software* refers to collaborative apps that are not only offline-first, but
-are also designed to continue working even if the developer who made the software shuts down all of
-their online services [^39].
-This can be achieved by using a sync engine with an open standard sync protocol for which multiple
-service providers are available [^40].
-For example, Git is a local-first collaboration system (albeit one that doesn’t support real-time
-collaboration) since you can sync via GitHub, GitLab, or any other repository hosting service.
+支持此过程的软件库称为 **同步引擎**。尽管这个想法已经存在很长时间了，但这个术语最近才受到关注 [^35] [^36] [^37]。允许用户在离线时继续编辑文件的应用程序（可能使用同步引擎实现）称为 **离线优先** [^38]。术语 **本地优先软件** 指的是不仅是离线优先的协作应用程序，而且即使制作软件的开发人员关闭了他们的所有在线服务，也被设计为继续工作 [^39]。这可以通过使用具有开放标准同步协议的同步引擎来实现，该协议有多个服务提供商可用 [^40]。例如，Git 是一个本地优先的协作系统（尽管不支持实时协作），因为你可以通过 GitHub、GitLab 或任何其他存储库托管服务进行同步。
 
 #### 同步引擎的利弊 {#pros-and-cons-of-sync-engines}
 
-The dominant way of building web apps today is to keep very little persistent state on the client,
-and to rely on making requests to a server whenever a new piece of data needs to be displayed or
-some data needs to be updated. In contrast, when using a sync engine, you have persistent state on
-the client, and communication with the server is moved into a background process. The sync engine
-approach has a number of advantages:
+今天构建 Web 应用程序的主导方式是在客户端保留很少的持久状态，并在需要显示新数据或需要更新某些数据时依赖向服务器发出请求。相比之下，当使用同步引擎时，你在客户端有持久状态，与服务器的通信被移到后台进程中。同步引擎方法有许多优点：
 
-* Having the data locally means the user interface can be much faster to respond than if it had to
-  wait for a service call to fetch some data. Some apps aim to respond to user input in the *next
-  frame* of the graphics system, which means rendering within 16 ms on a display with a
-  60 Hz refresh rate.
-* Allowing users to continue working while offline is valuable, especially on mobile devices with
-  intermittent connectivity. With a sync engine, an app doesn’t need a separate offline mode: being
-  offline is the same as having very large network delay.
-* A sync engine simplifies the programming model for frontend apps, compared to performing explicit
-  service calls in application code. Every service call requires error handling, as discussed in
-  [“The problems with remote procedure calls (RPCs)”](/en/ch5#sec_problems_with_rpc): for example, if a request to update data on a server fails, the user
-  interface needs to somehow reflect that error. A sync engine allows the app to perform reads and
-  writes on local data, which almost never fails, leading to a more declarative programming style [^41].
-* In order to display edits from other users in real-time, you need to receive notifications of
-  those edits and efficiently update the user interface accordingly. A sync engine combined with a
-  *reactive programming* model is a good way of implementing this [^42].
+* 在本地拥有数据意味着用户界面的响应速度可以比必须等待服务调用获取某些数据时快得多。一些应用程序的目标是在图形系统的 **下一帧** 响应用户输入，这意味着在 60 Hz 刷新率的显示器上在 16 毫秒内渲染。
+* 允许用户在离线时继续工作是有价值的，特别是在具有间歇性连接的移动设备上。使用同步引擎，应用程序不需要单独的离线模式：离线与具有非常大的网络延迟相同。
+* 与在应用程序代码中执行显式服务调用相比，同步引擎简化了前端应用程序的编程模型。每个服务调用都需要错误处理，如 ["远程过程调用（RPC）的问题"](/ch5#sec_problems_with_rpc) 中所讨论的：例如，如果更新服务器上的数据的请求失败，用户界面需要以某种方式反映该错误。同步引擎允许应用程序对本地数据执行读写，这几乎从不失败，导致更具声明性的编程风格 [^41]。
+* 为了实时显示其他用户的编辑，你需要接收这些编辑的通知并相应地有效更新用户界面。同步引擎与 **响应式编程** 模型相结合是实现此目的的好方法 [^42]。
 
-Sync engines work best when all the data that the user may need is downloaded in advance and stored
-persistently on the client. This means that the data is available for offline access when needed,
-but it also means that sync engines are not suitable if the user has access to a very large amount
-of data. For example, downloading all the files that the user themselves created is probably fine
-(one user generally doesn’t generate that much data), but downloading the entire catalog of an
-e-commerce website probably doesn’t make sense.
+当用户可能需要的所有数据都提前下载并持久存储在客户端时，同步引擎效果最佳。这意味着数据可用于离线访问，但这也意味着如果用户可以访问非常大量的数据，同步引擎就不适合。例如，下载用户自己创建的所有文件可能很好（一个用户通常不会生成那么多数据），但下载电子商务网站的整个目录可能没有意义。
 
-The sync engine was pioneered by Lotus Notes in the 1980s [^43]
-(without using that term), and sync for specific apps such as calendars has also existed for a long
-time. Today there are a number of general-purpose sync engines, some of which use a proprietary
-backend service (e.g., Google Firestore, Realm, or Ditto), and some have an open source backend,
-making them suitable for creating local-first software (e.g., PouchDB/CouchDB, Automerge, or Yjs).
+同步引擎由 Lotus Notes 在 20 世纪 80 年代开创 [^43]（没有使用该术语），特定应用程序（如日历）的同步也已经存在很长时间了。今天有许多通用同步引擎，其中一些使用专有后端服务（例如，Google Firestore、Realm 或 Ditto），有些具有开源后端，使它们适合创建本地优先软件（例如，PouchDB/CouchDB、Automerge 或 Yjs）。
 
-Multiplayer video games have a similar need to respond immediately to the user’s local actions, and
-reconcile them with other players’ actions received asynchronously over the network. In game
-development jargon the equivalent of a sync engine is called *netcode*. The techniques used in
-netcode are quite specific to the requirements of games [^44], and don’t directly
-carry over to other types of software, so we won’t consider them further in this book.
+多人视频游戏有类似的需求，需要立即响应用户的本地操作，并将它们与通过网络异步接收的其他玩家的操作协调。在游戏开发术语中，同步引擎的等效物称为 **网络代码**。网络代码中使用的技术非常特定于游戏的要求 [^44]，并且不能直接应用于其他类型的软件，因此我们不会在本书中进一步考虑它们。
 
 
 ### 处理写入冲突 {#sec_replication_write_conflicts}
 
-The biggest problem with multi-leader replication—both in a geo-distributed server-side database and
-a local-first sync engine on end user devices—is that concurrent writes on different leaders can
-lead to conflicts that need to be resolved.
+多主复制的最大问题——无论是在地域分布式服务器端数据库中还是在终端用户设备上的本地优先同步引擎中——是不同主节点上的并发写入可能导致需要解决的冲突。
 
-For example, consider a wiki page that is simultaneously being edited by two users, as shown in
-[Figure 6-9](/en/ch6#fig_replication_write_conflict). User 1 changes the title of the page from A to B, and user 2
-independently changes the title from A to C. Each user’s change is successfully applied to their
-local leader. However, when the changes are asynchronously replicated, a conflict is detected.
-This problem does not occur in a single-leader database.
+例如，考虑一个维基页面同时被两个用户编辑，如 [图 6-9](/ch6#fig_replication_write_conflict) 所示。用户 1 将页面标题从 A 更改为 B，用户 2 独立地将标题从 A 更改为 C。每个用户的更改成功应用于其本地主节点。然而，当更改异步复制时，检测到冲突。这个问题在单主数据库中不会发生。
 
-{{< figure src="/fig/ddia_0609.png" id="fig_replication_write_conflict" caption="Figure 6-9. A write conflict caused by two leaders concurrently updating the same record." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0609.png" id="fig_replication_write_conflict" caption="图 6-9. 两个主节点并发更新同一记录导致的写入冲突。" class="w-full my-4" >}}
 
 > [!NOTE]
-> We say that the two writes in [Figure 6-9](/en/ch6#fig_replication_write_conflict) are *concurrent* because neither
-> was “aware” of the other at the time the write was originally made. It doesn’t matter whether the
-> writes literally happened at the same time; indeed, if the writes were made while offline, they
-> might have actually happened some time apart. What matters is whether one write occurred in a state
-> where the other write has already taken effect.
+> 我们说 [图 6-9](/ch6#fig_replication_write_conflict) 中的两个写入是 **并发的**，因为在最初进行写入时，两者都不"知道"另一个。写入是否真的在同一时间发生并不重要；实际上，如果写入是在离线时进行的，它们实际上可能相隔一段时间。重要的是一个写入是否发生在另一个写入已经生效的状态下。
 
-In [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent) we will tackle the question of how a database can determine
-whether two writes are concurrent. For now we will assume that we can detect conflicts, and we want
-to figure out the best way of resolving them.
+在 ["检测并发写入"](/ch6#sec_replication_concurrent) 中，我们将解决数据库如何确定两个写入是否并发的问题。现在我们假设我们可以检测冲突，并且我们想找出解决它们的最佳方法。
 
 #### 冲突避免 {#conflict-avoidance}
 
-One strategy for conflicts is to avoid them occurring in the first place. For example, if the
-application can ensure that all writes for a particular record go through the same leader, then
-conflicts cannot occur, even if the database as a whole is multi-leader. This approach is not
-possible in the case of a sync engine client being updated offline, but it is sometimes possible in
-geo-replicated server systems [^30].
+冲突的一种策略是首先避免它们发生。例如，如果应用程序可以确保特定记录的所有写入都通过同一主节点，那么即使整个数据库是多主的，也不会发生冲突。这种方法在同步引擎客户端离线更新的情况下是不可能的，但在地域复制的服务器系统中有时是可能的 [^30]。
 
-For example, in an application where a user can only edit their own data, you can ensure that
-requests from a particular user are always routed to the same region and use the leader in that
-region for reading and writing. Different users may have different “home” regions (perhaps picked
-based on geographic proximity to the user), but from any one user’s point of view the configuration
-is essentially single-leader.
+例如，在一个用户只能编辑自己数据的应用程序中，你可以确保来自特定用户的请求始终路由到同一地区，并使用该地区的主节点进行读写。不同的用户可能有不同的"主"地区（可能基于与用户的地理接近程度选择），但从任何一个用户的角度来看，配置本质上是单主的。
 
-However, sometimes you might want to change the designated leader for a record—perhaps because
-one region is unavailable and you need to reroute traffic to another region, or perhaps because
-a user has moved to a different location and is now closer to a different region. There is now a
-risk that the user performs a write while the change of designated leader is in progress, leading to
-a conflict that would have to be resolved using one of the methods below. Thus, conflict avoidance
-breaks down if you allow the leader to be changed.
+然而，有时你可能想要更改记录的指定主节点——也许是因为一个地区不可用，你需要将流量重新路由到另一个地区，或者也许是因为用户已经移动到不同的位置，现在更接近不同的地区。现在存在风险，即用户在指定主节点更改正在进行时执行写入，导致必须使用下面的方法之一解决的冲突。因此，如果你允许更改主节点，冲突避免就会失效。
 
-Another example of conflict avoidance: imagine you want to insert new records and generate unique
-IDs for them based on an auto-incrementing counter. If you have two leaders, you could set them up
-so that one leader only generates odd numbers and the other only generates even numbers. That way
-you can be sure that the two leaders won’t concurrently assign the same ID to different records.
-We will discuss other ID assignment schemes in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).
+冲突避免的另一个例子：想象你想要插入新记录并基于自增计数器为它们生成唯一 ID。如果你有两个主节点，你可以设置它们，使得一个主节点只生成奇数，另一个只生成偶数。这样你可以确保两个主节点不会同时为不同的记录分配相同的 ID。我们将在 ["ID 生成器和逻辑时钟"](/ch10#sec_consistency_logical) 中讨论其他 ID 分配方案。
 
 
 #### 最后写入者胜（丢弃并发写入） {#sec_replication_lww}
 
-If conflicts can’t be avoided, the simplest way of resolving them is to attach a timestamp to each
-write, and to always use the value with the greatest timestamp. For example, in
-[Figure 6-9](/en/ch6#fig_replication_write_conflict), let’s say that the timestamp of user 1’s write is greater than
-the timestamp of user 2’s write. In that case, both leaders will determine that the new title of the
-page should be B, and they discard the write that sets it to C. If the writes coincidentally have
-the same timestamp, the winner can be chosen by comparing the values (e.g., in the case of strings,
-taking the one that’s earlier in the alphabet).
+如果无法避免冲突，解决它们的最简单方法是为每个写入附加时间戳，并始终使用具有最大时间戳的值。例如，在 [图 6-9](/ch6#fig_replication_write_conflict) 中，假设用户 1 的写入时间戳大于用户 2 的写入时间戳。在这种情况下，两个主节点都将确定页面的新标题应该是 B，并丢弃将其设置为 C 的写入。如果写入巧合地具有相同的时间戳，可以通过比较值来选择获胜者（例如，在字符串的情况下，取字母表中较早的那个）。
 
-This approach is called *last write wins* (LWW) because the write with the greatest timestamp can be
-considered the “last” one. The term is misleading though, because when two writes are concurrent
-like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), which one is older and which is later is undefined, and
-so the timestamp order of concurrent writes is essentially random.
+这种方法称为 **最后写入者胜**（LWW），因为具有最大时间戳的写入可以被认为是"最后"的。然而，这个术语是误导性的，因为当两个写入像 [图 6-9](/ch6#fig_replication_write_conflict) 中那样并发时，哪个更旧，哪个更新是未定义的，因此并发写入的时间戳顺序本质上是随机的。
 
-Therefore the real meaning of LWW is: when the same record is concurrently written on different
-leaders, one of those writes is randomly chosen to be the winner, and the other writes are silently
-discarded, even though they were successfully processed at their respective leaders. This achieves
-the goal that eventually all replicas end up in a consistent state, but at the cost of data loss.
+因此，LWW 的真正含义是：当同一记录在不同的主节点上并发写入时，其中一个写入被随机选择为获胜者，其他写入被静默丢弃，即使它们在各自的主节点上成功处理。这实现了最终所有副本都处于一致状态的目标，但代价是数据丢失。
 
-If you can avoid conflicts—for example, by only inserting records with a unique key such as a UUID,
-and never updating them—then LWW is no problem. But if you update existing
-records, or if different leaders may insert records with the same key, then you have to decide
-whether lost updates are a problem for your application. If lost updates are not acceptable, you
-need to use one of the conflict resolution approaches described below.
+如果你可以避免冲突——例如，通过只插入具有唯一键（如 UUID）的记录，而从不更新它们——那么 LWW 没有问题。但是，如果你更新现有记录，或者如果不同的主节点可能插入具有相同键的记录，那么你必须决定丢失的更新对你的应用程序是否是个问题。如果丢失的更新是不可接受的，你需要使用下面描述的冲突解决方法之一。
 
-Another problem with LWW is that if a real-time clock (e.g. a Unix timestamp) is used as timestamp
-for the writes, the system becomes very sensitive to clock synchronization. If one node has a clock
-that is ahead of the others, and you try to overwrite a value written by that node, your write may
-be ignored as it may have a lower timestamp, even though it clearly occurred later. This problem can
-be solved by using a *logical clock*, which we will discuss in [“ID Generators and Logical Clocks”](/en/ch10#sec_consistency_logical).
+LWW 的另一个问题是，如果使用实时时钟（例如 Unix 时间戳）作为写入的时间戳，系统对时钟同步变得非常敏感。如果一个节点的时钟领先于其他节点，并且你尝试覆盖该节点写入的值，你的写入可能会被忽略，因为它可能具有较低的时间戳，即使它明显发生得更晚。这个问题可以通过使用 **逻辑时钟** 来解决，我们将在 ["ID 生成器和逻辑时钟"](/ch10#sec_consistency_logical) 中讨论。
 
 #### 手动冲突解决 {#manual-conflict-resolution}
 
-If randomly discarding some of your writes is not desirable, the next option is to resolve the
-conflict manually. You may be familiar with manual conflict resolution from Git and other version
-control systems: if commits on two different branches edit the same lines of the same file, and you
-try to merge those branches, you will get a merge conflict that needs to be resolved before the
-merge is complete.
+如果随机丢弃你的一些写入是不可取的，下一个选择是手动解决冲突。你可能熟悉 Git 和其他版本控制系统中的手动冲突解决：如果两个不同分支上的提交编辑同一文件的相同行，并且你尝试合并这些分支，你将得到一个需要在合并完成之前解决的合并冲突。
 
-In a database, it would be impractical for a conflict to stop the entire replication process until a
-human has resolved it. Instead, databases typically store all the concurrently written values for a
-given record—for example, both B and C in [Figure 6-9](/en/ch6#fig_replication_write_conflict). These values are
-sometimes called *siblings*. The next time you query that record, the database returns *all* those
-values, rather than just the latest one. You can then resolve those values in whatever way you want,
-either automatically in application code (for example, you could concatenate B and C into “B/C”), or
-by asking the user. You then write back a new value to the database to resolve the conflict.
+在数据库中，冲突停止整个复制过程直到人类解决它是不切实际的。相反，数据库通常存储给定记录的所有并发写入值——例如，[图 6-9](/ch6#fig_replication_write_conflict) 中的 B 和 C。这些值有时称为 **兄弟节点**。下次查询该记录时，数据库返回 **所有** 这些值，而不仅仅是最新的值。然后，你可以以任何你想要的方式解决这些值，无论是在应用程序代码中自动（例如，你可以将 B 和 C 连接成"B/C"），还是通过询问用户。然后，你将新值写回数据库以解决冲突。
 
-This approach to conflict resolution is used in some systems, such as CouchDB. However, it also
-suffers from a number of problems:
+这种冲突解决方法在某些系统中使用，例如 CouchDB。然而，它也存在许多问题：
 
-* The API of the database changes: for example, where previously the title of the wiki page was just
-  a string, it now becomes a set of strings that usually contains one element, but may sometimes
-  contain multiple elements if there is a conflict. This can make the data awkward to work with in
-  application code.
-* Asking the user to manually merge the siblings is a lot of work, both for the app developer (who
-  needs to build the user interface for conflict resolution) and for the user (who may be confused
-  about what they are being asked to do, and why). In many cases, it’s better to merge automatically
-  than to bother the user.
-* Merging siblings automatically can lead to surprising behavior if it is not done carefully. For
-  example, the shopping cart on Amazon used to allow concurrent updates, which were then merged by
-  keeping all the shopping cart items that appeared in any of the siblings (i.e., taking the set
-  union of the carts). This meant that if the customer had removed an item from their cart in one
-  sibling, but another sibling still contained that old item, the removed item would unexpectedly
-  reappear in the customer’s cart [^45]. [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
-  cart and concurrently Device 2 removes DVD, but after merging the conflict both items reappear.
-* If multiple nodes observe the conflict and concurrently resolve it, the conflict resolution
-  process can itself introduce a new conflict. Those resolutions could even be inconsistent: for
-  example, one node may merge B and C into “B/C” and another may merge them into “C/B” if you are
-  not careful to order them consistently. When the conflict between “B/C” and “C/B” is merged, it
-  may result in “B/C/C/B” or something similarly surprising.
+* 数据库的 API 发生变化：例如，以前维基页面的标题只是一个字符串，现在它变成了一组字符串，通常包含一个元素，但如果有冲突，有时可能包含多个元素。这可能使应用程序代码中的数据难以处理。
+* 要求用户手动合并兄弟节点是很多工作，无论是对应用程序开发人员（需要构建冲突解决的用户界面）还是对用户（可能对他们被要求做什么以及为什么感到困惑）。在许多情况下，自动合并比打扰用户更好。
+* 如果不仔细进行，自动合并兄弟节点可能会导致令人惊讶的行为。例如，亚马逊的购物车曾经允许并发更新，然后通过保留出现在任何兄弟节点中的所有购物车项目（即，取购物车的集合并集）来合并。这意味着如果客户在一个兄弟节点中从购物车中删除了一个项目，但另一个兄弟节点仍然包含该旧项目，删除的项目会意外地重新出现在客户的购物车中 [^45]。[图 6-10](/ch6#fig_replication_amazon_anomaly) 显示了一个示例，其中设备 1 从购物车中删除 Book，并发地设备 2 删除 DVD，但合并冲突后两个项目都重新出现。
+* 如果多个节点观察到冲突并并发解决它，冲突解决过程本身可能会引入新的冲突。这些解决方案甚至可能不一致：例如，如果你不小心一致地排序它们，一个节点可能将 B 和 C 合并为"B/C"，另一个可能将它们合并为"C/B"。当"B/C"和"C/B"之间的冲突被合并时，它可能导致"B/C/C/B"或类似令人惊讶的东西。
 
-{{< figure src="/fig/ddia_0610.png" id="fig_replication_amazon_anomaly" caption="Figure 6-10. Example of Amazon's shopping cart anomaly: if conflicts on a shopping cart are merged by taking the union, deleted items may reappear." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0610.png" id="fig_replication_amazon_anomaly" caption="图 6-10. 亚马逊购物车异常的示例：如果购物车上的冲突通过取并集合并，删除的项目可能会重新出现。" class="w-full my-4" >}}
 
 
 #### 自动冲突解决 {#automatic-conflict-resolution}
 
-For many applications, the best way of handling conflicts is to use an algorithm that automatically
-merges concurrent writes into a consistent state. Automatic conflict resolution ensures that all
-replicas *converge* to the same state—i.e., all replicas that have processed the same set of writes
-have the same state, regardless of the order in which the writes arrived.
+对于许多应用程序，处理冲突的最佳方法是使用自动将并发写入合并为一致状态的算法。自动冲突解决确保所有副本 **收敛** 到相同的状态——即，处理了相同写入集的所有副本都具有相同的状态，无论写入到达的顺序如何。
 
-LWW is a simple example of a conflict resolution algorithm. More sophisticated merge algorithms have
-been developed for different types of data, with the goal of preserving the intended effect of all
-updates as much as possible, and hence avoiding data loss:
+LWW 是冲突解决算法的一个简单示例。已经为不同类型的数据开发了更复杂的合并算法，目标是尽可能保留所有更新的预期效果，从而避免数据丢失：
 
-* If the data is text (e.g., the title or body of a wiki page), we can detect which characters have
-  been inserted or deleted from one version to the next. The merged result then preserves all the
-  insertions and deletions made in any of the siblings. If users concurrently insert text at the
-  same position, it can be ordered deterministically so that all nodes get the same merged outcome.
-* If the data is a collection of items (ordered like a to-do list, or unordered like a shopping
-  cart), we can merge it similarly to text by tracking insertions and deletions. To avoid the
-  shopping cart issue in [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly), the algorithms track the fact that Book
-  and DVD were deleted, so the merged result is Cart = {Soap}.
-* If the data is an integer representing a counter that can be incremented or decremented (e.g., the
-  number of likes on a social media post), the merge algorithm can tell how many increments and
-  decrements happened on each sibling, and add them together correctly so that the result does not
-  double-count and does not drop updates.
-* If the data is a key-value mapping, we can merge updates to the same key by applying one of the
-  other conflict resolution algorithms to the values under that key. Updates to different keys can
-  be handled independently from each other.
+* 如果数据是文本（例如，维基页面的标题或正文），我们可以检测从一个版本到下一个版本插入或删除了哪些字符。合并的结果然后保留在任何兄弟节点中进行的所有插入和删除。如果用户并发地在同一位置插入文本，可以确定性地排序，以便所有节点获得相同的合并结果。
+* 如果数据是项目集合（像待办事项列表那样有序，或像购物车那样无序），我们可以通过跟踪插入和删除类似于文本来合并它。为了避免 [图 6-10](/ch6#fig_replication_amazon_anomaly) 中的购物车问题，算法跟踪 Book 和 DVD 被删除的事实，因此合并的结果是 Cart = {Soap}。
+* 如果数据是表示可以递增或递减的计数器的整数（例如，社交媒体帖子上的点赞数），合并算法可以告诉每个兄弟节点上发生了多少次递增和递减，并正确地将它们相加，以便结果不会重复计数也不会丢弃更新。
+* 如果数据是键值映射，我们可以通过将其他冲突解决算法之一应用于该键下的值来合并对同一键的更新。对不同键的更新可以相互独立处理。
 
-There are limits to what is possible with conflict resolution. For example, if you want to enforce
-that a list contains no more than five items, and multiple users concurrently add items to the list
-so that there are more than five in total, your only option is to drop some of the items.
-Nevertheless, automatic conflict resolution is sufficient to build many useful apps. And if you
-start from the requirement of wanting to build a collaborative offline-first or local-first app,
-then conflict resolution is inevitable, and automating it is often the best approach.
+冲突解决的可能性是有限的。例如，如果你想强制一个列表不包含超过五个项目，并且多个用户并发地向列表添加项目，使得总共有五个以上，你唯一的选择是丢弃一些项目。尽管如此，自动冲突解决足以构建许多有用的应用程序。如果你从想要构建协作离线优先或本地优先应用程序的要求开始，那么冲突解决是不可避免的，自动化它通常是最好的方法。
 
 ### CRDT 与操作变换 {#sec_replication_crdts}
 
-Two families of algorithms are commonly used to implement automatic conflict resolution:
-*Conflict-free replicated datatypes* (CRDTs) [^46] and *Operational Transformation* (OT) [^47].
-They have different design philosophies and performance characteristics, but both are able to
-perform automatic merges for all the aforementioned types of data.
+两个算法族通常用于实现自动冲突解决：**无冲突复制数据类型**（CRDT）[^46] 和 **操作变换**（OT）[^47]。它们具有不同的设计理念和性能特征，但都能够为前面提到的所有类型的数据执行自动合并。
 
-[Figure 6-11](/en/ch6#fig_replication_ot_crdt) shows an example of how OT and a CRDT merge concurrent updates to a
-text. Assume you have two replicas that both start off with the text “ice”. One replica prepends the
-letter “n” to make “nice”, while concurrently the other replica appends an exclamation mark to make “ice!”.
+[图 6-11](/ch6#fig_replication_ot_crdt) 显示了 OT 和 CRDT 如何合并对文本的并发更新的示例。假设你有两个副本，都从文本"ice"开始。一个副本在前面添加字母"n"以制作"nice"，而另一个副本并发地附加感叹号以制作"ice!"。
 
-{{< figure src="/fig/ddia_0611.png" id="fig_replication_ot_crdt" caption="Figure 6-11. How two concurrent insertions into a string are merged by OT and a CRDT respectively." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0611.png" id="fig_replication_ot_crdt" caption="图 6-11. OT 和 CRDT 如何分别合并对字符串的两个并发插入。" class="w-full my-4" >}}
 
-The merged result “nice!” is achieved differently by both types of algorithms:
+合并的结果"nice!"由两种类型的算法以不同的方式实现：
 
 OT
-:   We record the index at which characters are inserted or deleted: “n” is inserted at index 0, and
-    “!” at index 3. Next, the replicas exchange their operations. The insertion of “n” at 0 can be
-    applied as-is, but if the insertion of “!” at 3 were applied to the state “nice” we would get
-    “nic!e”, which is incorrect. We therefore need to transform the index of each operation to account
-    for concurrent operations that have already been applied; in this case, the insertion of “!” is
-    transformed to index 4 to account for the insertion of “n” at an earlier index.
+:   我们记录插入或删除字符的索引："n"插入在索引 0，"!"插入在索引 3。接下来，副本交换它们的操作。在 0 处插入"n"可以按原样应用，但如果在 3 处插入"!"应用于状态"nice"，我们将得到"nic!e"，这是不正确的。因此，我们需要转换每个操作的索引以考虑已经应用的并发操作；在这种情况下，"!"的插入被转换为索引 4 以考虑在较早索引处插入"n"。
 
 CRDT
-:   Most CRDTs give each character a unique, immutable ID and use those to determine the positions of
-    insertions/deletions, instead of indexes. For example, in [Figure 6-11](/en/ch6#fig_replication_ot_crdt) we assign
-    the ID 1A to “i”, the ID 2A to “c”, etc. When inserting the exclamation mark, we generate an
-    operation containing the ID of the new character (4B) and the ID of the existing character after
-    which we want to insert (3A). To insert at the beginning of the string we give “nil” as the
-    preceding character ID. Concurrent insertions at the same position are ordered by the IDs of the
-    characters. This ensures that replicas converge without performing any transformation.
+:   大多数 CRDT 为每个字符提供唯一的、不可变的 ID，并使用这些 ID 来确定插入/删除的位置，而不是索引。例如，在 [图 6-11](/ch6#fig_replication_ot_crdt) 中，我们将 ID 1A 分配给"i"，ID 2A 分配给"c"等。插入感叹号时，我们生成一个包含新字符的 ID（4B）和我们想要在其后插入的现有字符的 ID（3A）的操作。要在字符串的开头插入，我们将"nil"作为前面的字符 ID。在同一位置的并发插入按字符的 ID 排序。这确保副本收敛而不执行任何转换。
 
-There are many algorithms based on variations of these ideas. Lists/arrays can be supported
-similarly, using list elements instead of characters, and other datatypes such as key-value maps can
-be added quite easily. There are some performance and functionality trade-offs between OT and CRDTs,
-but it’s possible to combine the advantages of CRDTs and OT in one algorithm [^48].
+有许多基于这些想法变体的算法。列表/数组可以类似地支持，使用列表元素而不是字符，其他数据类型（如键值映射）可以很容易地添加。OT 和 CRDT 之间存在一些性能和功能权衡，但可以在一个算法中结合 CRDT 和 OT 的优点 [^48]。
 
-OT is most often used for real-time collaborative editing of text, e.g. in Google Docs [^32], whereas CRDTs can be found in
-distributed databases such as Redis Enterprise, Riak, and Azure Cosmos DB [^49].
-Sync engines for JSON data can be implemented both with CRDTs (e.g., Automerge or Yjs) and with OT (e.g., ShareDB).
+OT 最常用于文本的实时协作编辑，例如在 Google Docs 中 [^32]，而 CRDT 可以在分布式数据库中找到，例如 Redis Enterprise、Riak 和 Azure Cosmos DB [^49]。JSON 数据的同步引擎可以使用 CRDT（例如，Automerge 或 Yjs）和 OT（例如，ShareDB）实现。
 
 #### 什么是冲突？ {#what-is-a-conflict}
 
-Some kinds of conflict are obvious. In the example in [Figure 6-9](/en/ch6#fig_replication_write_conflict), two writes
-concurrently modified the same field in the same record, setting it to two different values. There
-is little doubt that this is a conflict.
+某些类型的冲突是显而易见的。在 [图 6-9](/ch6#fig_replication_write_conflict) 的示例中，两个写入并发修改了同一记录中的同一字段，将其设置为两个不同的值。毫无疑问，这是一个冲突。
 
-Other kinds of conflict can be more subtle to detect. For example, consider a meeting room booking
-system: it tracks which room is booked by which group of people at which time. This application
-needs to ensure that each room is only booked by one group of people at any one time (i.e., there
-must not be any overlapping bookings for the same room). In this case, a conflict may arise if two
-different bookings are created for the same room at the same time. Even if the application checks
-availability before allowing a user to make a booking, there can be a conflict if the two bookings
-are made on two different leaders.
+其他类型的冲突可能更难以检测。例如，考虑一个会议室预订系统：它跟踪哪个房间由哪组人在什么时间预订。此应用程序需要确保每个房间在任何时间只由一组人预订（即，同一房间不得有任何重叠的预订）。在这种情况下，如果为同一房间同时创建两个不同的预订，可能会出现冲突。即使应用程序在允许用户进行预订之前检查可用性，如果两个预订是在两个不同的主节点上进行的，也可能会发生冲突。
 
-There isn’t a quick ready-made answer, but in the following chapters we will trace a path toward a
-good understanding of this problem. We will see some more examples of conflicts in
-[Chapter 8](/en/ch8#ch_transactions), and in [Link to Come] we will discuss scalable approaches for detecting and
-resolving conflicts in a replicated system.
+没有快速现成的答案，但在以下章节中，我们将追踪通向对这个问题的良好理解的路径。我们将在 [第 8 章](/ch8#ch_transactions) 中看到更多冲突的例子，并在 [Link to Come] 中讨论在复制系统中检测和解决冲突的可伸缩方法。
 
 
 ## 无主复制 {#sec_replication_leaderless}
 
-The replication approaches we have discussed so far in this chapter—single-leader and
-multi-leader replication—are based on the idea that a client sends a write request to one node
-(the leader), and the database system takes care of copying that write to the other replicas. A
-leader determines the order in which writes should be processed, and followers apply the leader’s
-writes in the same order.
+到目前为止，我们在本章中讨论的复制方法——单主和多主复制——都基于这样的想法：客户端向一个节点（主节点）发送写入请求，数据库系统负责将该写入复制到其他副本。主节点确定写入应该处理的顺序，从节点以相同的顺序应用主节点的写入。
 
-Some data storage systems take a different approach, abandoning the concept of a leader and
-allowing any replica to directly accept writes from clients. Some of the earliest replicated data
-systems were leaderless [^1] [^50], but the idea was mostly forgotten during the era of dominance of relational databases. It once again became
-a fashionable architecture for databases after Amazon used it for its in-house *Dynamo* system in
-2007 [^45]. Riak, Cassandra, and ScyllaDB are open source datastores with leaderless replication models inspired
-by Dynamo, so this kind of database is also known as *Dynamo-style*.
+一些数据存储系统采用不同的方法，放弃主节点的概念，并允许任何副本直接接受来自客户端的写入。一些最早的复制数据系统是无主的 [^1] [^50]，但在关系数据库主导的时代，这个想法基本上被遗忘了。在亚马逊于 2007 年将其用于其内部 **Dynamo** 系统后，它再次成为数据库的时尚架构 [^45]。Riak、Cassandra 和 ScyllaDB 是受 Dynamo 启发的具有无主复制模型的开源数据存储，因此这种数据库也被称为 **Dynamo 风格**。
 
 --------
 
 > [!NOTE]
-> The original *Dynamo* system was only described in a paper [^45], but never released outside of Amazon. 
-> The similarly-named *DynamoDB* is a more recent cloud database from AWS, but it has a completely different architecture: 
-> it uses single-leader replication based on the Multi-Paxos consensus algorithm [^5].
+> 原始的 **Dynamo** 系统仅在论文中描述 [^45]，但从未在亚马逊之外发布。AWS 的名称相似的 **DynamoDB** 是一个更新的云数据库，但它具有完全不同的架构：它使用基于 Multi-Paxos 共识算法的单主复制 [^5]。
 
 --------
 
-In some leaderless implementations, the client directly sends its writes to several replicas, while
-in others, a coordinator node does this on behalf of the client. However, unlike a leader database,
-that coordinator does not enforce a particular ordering of writes. As we shall see, this difference in design has
-profound consequences for the way the database is used.
+在某些无主实现中，客户端直接将其写入发送到多个副本，而在其他实现中，协调器节点代表客户端执行此操作。然而，与主节点数据库不同，该协调器不强制执行特定的写入顺序。正如我们将看到的，这种设计差异对数据库的使用方式产生了深远的影响。
 
 ### 当节点故障时写入数据库 {#id287}
 
-Imagine you have a database with three replicas, and one of the replicas is currently
-unavailable—​perhaps it is being rebooted to install a system update. In a single-leader
-configuration, if you want to continue processing writes, you may need to perform a failover (see
-[“Handling Node Outages”](/en/ch6#sec_replication_failover)).
+想象你有一个具有三个副本的数据库，其中一个副本当前不可用——也许它正在重新启动以安装系统更新。在单主配置中，如果你想继续处理写入，你可能需要执行故障转移（见 ["处理节点故障"](/ch6#sec_replication_failover)）。
 
-On the other hand, in a leaderless configuration, failover does not exist.
-[Figure 6-12](/en/ch6#fig_replication_quorum_node_outage) shows what happens: the client (user 1234) sends the write to
-all three replicas in parallel, and the two available replicas accept the write but the unavailable
-replica misses it. Let’s say that it’s sufficient for two out of three replicas to
-acknowledge the write: after user 1234 has received two *ok* responses, we consider the write to be
-successful. The client simply ignores the fact that one of the replicas missed the write.
+另一方面，在无主配置中，故障转移不存在。[图 6-12](/ch6#fig_replication_quorum_node_outage) 显示了发生的情况：客户端（用户 1234）将写入并行发送到所有三个副本，两个可用副本接受写入，但不可用副本错过了它。假设三个副本中有两个确认写入就足够了：在用户 1234 收到两个 **ok** 响应后，我们认为写入成功。客户端只是忽略了其中一个副本错过写入的事实。
 
-{{< figure src="/fig/ddia_0612.png" id="fig_replication_quorum_node_outage" caption="Figure 6-12. A quorum write, quorum read, and read repair after a node outage." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0612.png" id="fig_replication_quorum_node_outage" caption="图 6-12. 节点中断后的仲裁写入、仲裁读取和读修复。" class="w-full my-4" >}}
 
 
-Now imagine that the unavailable node comes back online, and clients start reading from it. Any
-writes that happened while the node was down are missing from that node. Thus, if you read from that
-node, you may get *stale* (outdated) values as responses.
+现在想象不可用节点恢复上线，客户端开始从它读取。在节点宕机期间发生的任何写入都从该节点丢失。因此，如果你从该节点读取，你可能会得到 **陈旧**（过时）值作为响应。
 
-To solve that problem, when a client reads from the database, it doesn’t just send its request to
-one replica: *read requests are also sent to several nodes in parallel*. The client may get
-different responses from different nodes; for example, the up-to-date value from one node and a
-stale value from another.
+为了解决这个问题，当客户端从数据库读取时，它不只是将其请求发送到一个副本：**读取请求也并行发送到多个节点**。客户端可能会从不同的节点获得不同的响应；例如，从一个节点获得最新值，从另一个节点获得陈旧值。
 
-In order to tell which responses are up-to-date and which are outdated, every value that is written
-needs to be tagged with a version number or timestamp, similarly to what we saw in
-[“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww). When a client receives multiple values in response to a read, it uses the
-one with the greatest timestamp (even if that value was only returned by one replica, and several
-other replicas returned older values). See [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent) for more details.
+为了区分哪些响应是最新的，哪些是过时的，写入的每个值都需要用版本号或时间戳标记，类似于我们在 ["最后写入者胜（丢弃并发写入）"](/ch6#sec_replication_lww) 中看到的。当客户端收到对读取的多个值响应时，它使用具有最大时间戳的值（即使该值仅由一个副本返回，而其他几个副本返回较旧的值）。有关更多详细信息，请参见 ["检测并发写入"](/ch6#sec_replication_concurrent)。
 
 #### 追赶错过的写入 {#sec_replication_read_repair}
 
-The replication system should ensure that eventually all the data is copied to every replica. After
-an unavailable node comes back online, how does it catch up on the writes that it missed? Several
-mechanisms are used in Dynamo-style datastores:
+复制系统应确保最终所有数据都复制到每个副本。在不可用节点恢复上线后，它如何赶上它错过的写入？在 Dynamo 风格的数据存储中使用了几种机制：
 
-Read repair
-:   When a client makes a read from several nodes in parallel, it can detect any stale responses.
-    For example, in [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), user 2345 gets a version 6 value from
-    replica 3 and a version 7 value from replicas 1 and 2. The client sees that replica 3 has a stale
-    value and writes the newer value back to that replica. This approach works well for values that are
-    frequently read.
+读修复
+:   当客户端并行从多个节点进行读取时，它可以检测任何陈旧响应。例如，在 [图 6-12](/ch6#fig_replication_quorum_node_outage) 中，用户 2345 从副本 3 获得版本 6 值，从副本 1 和 2 获得版本 7 值。客户端看到副本 3 有陈旧值，并将较新的值写回该副本。这种方法适用于经常读取的值。
 
-Hinted handoff
-:   If one replica is unavailable, another replica may store writes on its behalf in the form of
-    *hints*. When the replica that was supposed to receive those writes comes back, the replica
-    storing the hints sends them to the recovered replica, and then deletes the hints. This *handoff*
-    process helps bring replicas up-to-date even for values that are never read, and therefore not
-    handled by read repair.
+提示移交
+:   如果一个副本不可用，另一个副本可能会以 **提示** 的形式代表其存储写入。当应该接收这些写入的副本恢复时，存储提示的副本将它们发送到恢复的副本，然后删除提示。这个 **移交** 过程有助于使副本保持最新，即使对于从未读取的值也是如此，因此不由读修复处理。
 
-Anti-entropy
-:   In addition, there is a background process that periodically looks for differences in
-    the data between replicas and copies any missing data from one replica to another. Unlike the
-    replication log in leader-based replication, this *anti-entropy process* does not copy writes in
-    any particular order, and there may be a significant delay before data is copied.
+反熵
+:   此外，还有一个后台进程定期查找副本之间数据的差异，并将任何缺失的数据从一个副本复制到另一个。与基于主节点的复制中的复制日志不同，这个 **反熵进程** 不以任何特定顺序复制写入，并且在复制数据之前可能会有显著的延迟。
 
 #### 读写仲裁 {#sec_replication_quorum_condition}
 
-In the example of [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), we considered the write to be successful
-even though it was only processed on two out of three replicas. What if only one out of three
-replicas accepted the write? How far can we push this?
+在 [图 6-12](/ch6#fig_replication_quorum_node_outage) 的例子中，即使写入仅在三个副本中的两个上处理，我们也认为写入成功。如果三个副本中只有一个接受了写入呢？我们能推多远？
 
-If we know that every successful write is guaranteed to be present on at least two out of three
-replicas, that means at most one replica can be stale. Thus, if we read from at least two replicas,
-we can be sure that at least one of the two is up to date. If the third replica is down or slow to
-respond, reads can nevertheless continue returning an up-to-date value.
+如果我们知道每次成功的写入都保证至少存在于三个副本中的两个上，这意味着最多一个副本可能是陈旧的。因此，如果我们从至少两个副本读取，我们可以确信两个中至少有一个是最新的。如果第三个副本宕机或响应缓慢，读取仍然可以继续返回最新值。
 
-More generally, if there are *n* replicas, every write must be confirmed by *w* nodes to be
-considered successful, and we must query at least *r* nodes for each read. (In our example,
-*n* = 3, *w* = 2, *r* = 2.) As long as *w* + *r* > *n*, 
-we expect to get an up-to-date value when reading, because at least one of the *r* nodes we’re
-reading from must be up to date. Reads and writes that obey these *r* and *w* values are called *quorum* reads and writes [^50].
-You can think of *r* and *w* as the minimum number of votes required for the read or write to be valid.
+更一般地说，如果有 *n* 个副本，每次写入必须由 *w* 个节点确认才能被认为成功，并且我们必须为每次读取查询至少 *r* 个节点。（在我们的例子中，*n* = 3，*w* = 2，*r* = 2。）只要 *w* + *r* > *n*，我们在读取时期望获得最新值，因为我们读取的 *r* 个节点中至少有一个必须是最新的。遵守这些 *r* 和 *w* 值的读取和写入称为 **仲裁** 读取和写入 [^50]。你可以将 *r* 和 *w* 视为读取或写入有效所需的最小投票数。
 
-In Dynamo-style databases, the parameters *n*, *w*, and *r* are typically configurable. A common
-choice is to make *n* an odd number (typically 3 or 5) and to set *w* = *r* =
-(*n* + 1) / 2 (rounded up). However, you can vary the numbers as you see fit.
-For example, a workload with few writes and many reads may benefit from setting *w* = *n* and
-*r* = 1. This makes reads faster, but has the disadvantage that just one failed node causes all
-database writes to fail.
+在 Dynamo 风格的数据库中，参数 *n*、*w* 和 *r* 通常是可配置的。常见的选择是使 *n* 为奇数（通常为 3 或 5），并设置 *w* = *r* = (*n* + 1) / 2（向上舍入）。然而，你可以根据需要更改数字。例如，写入很少而读取很多的工作负载可能受益于设置 *w* = *n* 和 *r* = 1。这使读取更快，但缺点是仅一个失败的节点就会导致所有数据库写入失败。
 
 --------
 
 > [!NOTE]
-> There may be more than *n* nodes in the cluster, but any given value is stored only on *n*
-> nodes. This allows the dataset to be sharded, supporting datasets that are larger than you can fit
-> on one node. We will return to sharding in [Chapter 7](/en/ch7#ch_sharding).
+> 集群中可能有超过 *n* 个节点，但任何给定值仅存储在 *n* 个节点上。这允许数据集进行分片，支持比单个节点能容纳的更大的数据集。我们将在 [第 7 章](/ch7#ch_sharding) 中回到分片。
 
 --------
 
-The quorum condition, *w* + *r* > *n*, allows the system to tolerate unavailable nodes
-as follows:
+仲裁条件 *w* + *r* > *n* 允许系统容忍不可用节点，如下所示：
 
-* If *w* < *n*, we can still process writes if a node is unavailable.
-* If *r* < *n*, we can still process reads if a node is unavailable.
-* With *n* = 3, *w* = 2, *r* = 2 we can tolerate one unavailable
-  node, like in [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage).
-* With *n* = 5, *w* = 3, *r* = 3 we can tolerate two unavailable nodes.
-  This case is illustrated in [Figure 6-13](/en/ch6#fig_replication_quorum_overlap).
+* 如果 *w* < *n*，如果节点不可用，我们仍然可以处理写入。
+* 如果 *r* < *n*，如果节点不可用，我们仍然可以处理读取。
+* 使用 *n* = 3，*w* = 2，*r* = 2，我们可以容忍一个不可用节点，如 [图 6-12](/ch6#fig_replication_quorum_node_outage) 中所示。
+* 使用 *n* = 5，*w* = 3，*r* = 3，我们可以容忍两个不可用节点。这种情况在 [图 6-13](/ch6#fig_replication_quorum_overlap) 中说明。
 
-Normally, reads and writes are always sent to all *n* replicas in parallel. The parameters *w* and *r* 
-determine how many nodes we wait for—i.e., how many of the *n* nodes need to report success
-before we consider the read or write to be successful.
+通常，读取和写入总是并行发送到所有 *n* 个副本。参数 *w* 和 *r* 确定我们等待多少个节点——即，在我们认为读取或写入成功之前，*n* 个节点中有多少个需要报告成功。
 
-{{< figure src="/fig/ddia_0613.png" id="fig_replication_quorum_overlap" caption="Figure 6-13. If *w* + *r* > *n*, at least one of the *r* replicas you read from must have seen the most recent successful write." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0613.png" id="fig_replication_quorum_overlap" caption="图 6-13. 如果 *w* + *r* > *n*，你读取的 *r* 个副本中至少有一个必须看到最近的成功写入。" class="w-full my-4" >}}
 
 
-If fewer than the required *w* or *r* nodes are available, writes or reads return an error. A node
-could be unavailable for many reasons: because the node is down (crashed, powered down), due to an
-error executing the operation (can’t write because the disk is full), due to a network interruption
-between the client and the node, or for any number of other reasons. We only care whether the node
-returned a successful response and don’t need to distinguish between different kinds of fault.
+如果少于所需的 *w* 或 *r* 个节点可用，写入或读取将返回错误。节点可能因许多原因不可用：因为节点宕机（崩溃、断电）、由于执行操作时出错（无法写入因为磁盘已满）、由于客户端和节点之间的网络中断，或任何其他原因。我们只关心节点是否返回了成功响应，不需要区分不同类型的故障。
 
 ### 仲裁一致性的局限 {#sec_replication_quorum_limitations}
 
-If you have *n* replicas, and you choose *w* and *r* such that *w* + *r* > *n*, you can
-generally expect every read to return the most recent value written for a key. This is the case because the
-set of nodes to which you’ve written and the set of nodes from which you’ve read must overlap. That
-is, among the nodes you read there must be at least one node with the latest value (illustrated in
-[Figure 6-13](/en/ch6#fig_replication_quorum_overlap)).
+如果你有 *n* 个副本，并且你选择 *w* 和 *r* 使得 *w* + *r* > *n*，你通常可以期望每次读取都返回为键写入的最新值。这是因为你写入的节点集和你读取的节点集必须重叠。也就是说，在你读取的节点中，必须至少有一个具有最新值的节点（如 [图 6-13](/ch6#fig_replication_quorum_overlap) 所示）。
 
-Often, *r* and *w* are chosen to be a majority (more than *n*/2) of nodes, because that ensures
-*w* + *r* > *n* while still tolerating up to *n*/2 (rounded down) node failures. But quorums are
-not necessarily majorities—it only matters that the sets of nodes used by the read and write
-operations overlap in at least one node. Other quorum assignments are possible, which allows some
-flexibility in the design of distributed algorithms [^51].
+通常，*r* 和 *w* 被选择为多数（超过 *n*/2）节点，因为这确保了 *w* + *r* > *n*，同时仍然容忍最多 *n*/2（向下舍入）个节点故障。但仲裁不一定是多数——重要的是读取和写入操作使用的节点集至少在一个节点中重叠。其他仲裁分配是可能的，这允许分布式算法设计中的一些灵活性 [^51]。
 
-You may also set *w* and *r* to smaller numbers, so that *w* + *r* ≤ *n* (i.e.,
-the quorum condition is not satisfied). In this case, reads and writes will still be sent to *n*
-nodes, but a smaller number of successful responses is required for the operation to succeed.
+你也可以将 *w* 和 *r* 设置为较小的数字，使得 *w* + *r* ≤ *n*（即，不满足仲裁条件）。在这种情况下，读取和写入仍将发送到 *n* 个节点，但需要较少的成功响应数才能使操作成功。
 
-With a smaller *w* and *r* you are more likely to read stale values, because it’s more likely that
-your read didn’t include the node with the latest value. On the upside, this configuration allows
-lower latency and higher availability: if there is a network interruption and many replicas become
-unreachable, there’s a higher chance that you can continue processing reads and writes. Only after
-the number of reachable replicas falls below *w* or *r* does the database become unavailable for
-writing or reading, respectively.
+使用较小的 *w* 和 *r*，你更有可能读取陈旧值，因为你的读取更可能没有包含具有最新值的节点。从好的方面来说，这种配置允许更低的延迟和更高的可用性：如果存在网络中断并且许多副本变得无法访问，你继续处理读取和写入的机会更高。只有在可访问副本的数量低于 *w* 或 *r* 之后，数据库才分别变得无法写入或读取。
 
-However, even with *w* + *r* > *n*, there are edge cases in which the consistency
-properties can be confusing. Some scenarios include:
+然而，即使使用 *w* + *r* > *n*，在某些边缘情况下，一致性属性可能会令人困惑。一些场景包括：
 
-* If a node carrying a new value fails, and its data is restored from a replica carrying an old
-  value, the number of replicas storing the new value may fall below *w*, breaking the quorum
-  condition.
-* While a rebalancing is in progress, where some data is moved from one node to another (see
-  [Chapter 7](/en/ch7#ch_sharding)), nodes may have inconsistent views of which nodes should be holding the *n*
-  replicas for a particular value. This can result in the read and write quorums no longer
-  overlapping.
-* If a read is concurrent with a write operation, the read may or may not see the concurrently
-  written value. In particular, it’s possible for one read to see the new value, and a subsequent
-  read to see the old value, as we shall see in [“Linearizability and quorums”](/en/ch10#sec_consistency_quorum_linearizable).
-* If a write succeeded on some replicas but failed on others (for example because the disks on some
-  nodes are full), and overall succeeded on fewer than *w* replicas, it is not rolled back on the
-  replicas where it succeeded. This means that if a write was reported as failed, subsequent reads
-  may or may not return the value from that write [^52].
-* If the database uses timestamps from a real-time clock to determine which write is newer (as
-  Cassandra and ScyllaDB do, for example), writes might be silently dropped if another node with a
-  faster clock has written to the same key—an issue we previously saw in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww).
-  We will discuss this in more detail in [“Relying on Synchronized Clocks”](/en/ch9#sec_distributed_clocks_relying).
-* If two writes occur concurrently, one of them might be processed first on one replica, and the
-  other might be processed first on another replica. This leads to a conflict, similarly to what we
-  saw for multi-leader replication (see [“Dealing with Conflicting Writes”](/en/ch6#sec_replication_write_conflicts)). We will return to this
-  topic in [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent).
+* 如果携带新值的节点失败，并且其数据从携带旧值的副本恢复，存储新值的副本数量可能低于 *w*，破坏仲裁条件。
+* 在重新平衡正在进行时，其中一些数据从一个节点移动到另一个节点（见 [第 7 章](/ch7#ch_sharding)），节点可能对哪些节点应该持有特定值的 *n* 个副本有不一致的视图。这可能导致读取和写入仲裁不再重叠。
+* 如果读取与写入操作并发，读取可能会或可能不会看到并发写入的值。特别是，一次读取可能看到新值，而后续读取看到旧值，正如我们将在 ["线性一致性与仲裁"](/ch10#sec_consistency_quorum_linearizable) 中看到的。
+* 如果写入在某些副本上成功但在其他副本上失败（例如，因为某些节点上的磁盘已满），并且总体上在少于 *w* 个副本上成功，它不会在成功的副本上回滚。这意味着如果写入被报告为失败，后续读取可能会或可能不会返回该写入的值 [^52]。
+* 如果数据库使用实时时钟的时间戳来确定哪个写入更新（如 Cassandra 和 ScyllaDB 所做的），如果另一个具有更快时钟的节点已写入同一键，写入可能会被静默丢弃——我们之前在 ["最后写入者胜（丢弃并发写入）"](/ch6#sec_replication_lww) 中看到的问题。我们将在 ["依赖同步时钟"](/ch9#sec_distributed_clocks_relying) 中更详细地讨论这一点。
+* 如果两个写入并发发生，其中一个可能首先在一个副本上处理，另一个可能首先在另一个副本上处理。这导致冲突，类似于我们在多主复制中看到的（见 ["处理写入冲突"](/ch6#sec_replication_write_conflicts)）。我们将在 ["检测并发写入"](/ch6#sec_replication_concurrent) 中回到这个主题。
 
-Thus, although quorums appear to guarantee that a read returns the latest written value, in practice
-it is not so simple. Dynamo-style databases are generally optimized for use cases that can tolerate
-eventual consistency. The parameters *w* and *r* allow you to adjust the probability of stale values
-being read [^53], but it’s wise to not take them as absolute guarantees.
+因此，尽管仲裁似乎保证读取返回最新写入的值，但实际上并不那么简单。Dynamo 风格的数据库通常针对可以容忍最终一致性的用例进行了优化。参数 *w* 和 *r* 允许你调整读取陈旧值的概率 [^53]，但明智的做法是不要将它们视为绝对保证。
 
 #### 监控陈旧性 {#monitoring-staleness}
 
-From an operational perspective, it’s important to monitor whether your databases are
-returning up-to-date results. Even if your application can tolerate stale reads, you need to be
-aware of the health of your replication. If it falls behind significantly, it should alert you so
-that you can investigate the cause (for example, a problem in the network or an overloaded node).
+从操作角度来看，监控你的数据库是否返回最新结果很重要。即使你的应用程序可以容忍陈旧读取，你也需要了解复制的健康状况。如果它明显落后，它应该提醒你，以便你可以调查原因（例如，网络中的问题或过载的节点）。
 
-For leader-based replication, the database typically exposes metrics for the replication lag, which
-you can feed into a monitoring system. This is possible because writes are applied to the leader and
-to followers in the same order, and each node has a position in the replication log (the number of
-writes it has applied locally). By subtracting a follower’s current position from the leader’s
-current position, you can measure the amount of replication lag.
+对于基于主节点的复制，数据库通常公开复制延迟的指标，你可以将其输入到监控系统。这是可能的，因为写入以相同的顺序应用于主节点和从节点，每个节点在复制日志中都有一个位置（它在本地应用的写入数）。通过从主节点的当前位置减去从节点的当前位置，你可以测量复制延迟的量。
 
-However, in systems with leaderless replication, there is no fixed order in which writes are
-applied, which makes monitoring more difficult. The number of hints that a replica stores for
-handoff can be one measure of system health, but it’s difficult to interpret usefully [^54].
-Eventual consistency is a deliberately vague guarantee, but for operability it’s important to be
-able to quantify “eventual.”
+然而，在具有无主复制的系统中，没有固定的写入应用顺序，这使得监控更加困难。副本为移交存储的提示数量可以是系统健康的一个度量，但很难有用地解释 [^54]。最终一致性是一个故意模糊的保证，但为了可操作性，能够量化"最终"很重要。
 
 
 ### 单主与无主复制的性能 {#sec_replication_leaderless_perf}
 
-A replication system based on a single leader can provide strong consistency guarantees that are
-difficult or impossible to achieve in a leaderless system. However, as we have seen in
-[“Problems with Replication Lag”](/en/ch6#sec_replication_lag), reads in a leader-based replicated system can also return stale values if
-you make them on an asynchronously updated follower.
+基于单个主节点的复制系统可以提供在无主系统中难以或不可能实现的强一致性保证。然而，正如我们在 ["复制延迟的问题"](/ch6#sec_replication_lag) 中看到的，如果你在异步更新的从节点上进行读取，基于主节点的复制系统中的读取也可能返回陈旧值。
 
-Reading from the leader ensures up-to-date responses, but it suffers from performance problems:
+从主节点读取确保最新响应，但它存在性能问题：
 
-* Read throughput is limited by the leader’s capacity to handle requests (in contrast with read
-  scaling, which distributes reads across asynchronously updated replicas that may return stale
-  values).
-* If the leader fails, you have to wait for the fault to be detected, and for the failover to
-  complete before you can continue handling requests. Even if the failover process is very quick,
-  users will notice it because of the temporarily increased response times; if failover takes a long
-  time, the system is unavailable for its duration.
-* The system is very sensitive to performance problems on the leader: if the leader is slow to
-  respond, e.g. due to overload or some resource contention, the increased response times
-  immediately affect users as well.
+* 读取吞吐量受主节点处理请求能力的限制（与读扩展相反，读扩展将读取分布在可能返回陈旧值的异步更新副本上）。
+* 如果主节点失败，你必须等待检测到故障，并在继续处理请求之前完成故障转移。即使故障转移过程非常快，用户也会因为临时增加的响应时间而注意到它；如果故障转移需要很长时间，系统在其持续时间内不可用。
+* 系统对主节点上的性能问题非常敏感：如果主节点响应缓慢，例如由于过载或某些资源争用，增加的响应时间也会立即影响用户。
 
-A big advantage of a leaderless architecture is that it is more resilient against such issues.
-Because there is no failover, and requests go to multiple replicas in parallel anyway, one replica
-becoming slow or unavailable has very little impact on response times: the client simply uses the
-responses from the other replicas that are faster to respond. Using the fastest responses is called
-*request hedging*, and it can significantly reduce tail latency [^55]).
+无主架构的一大优势是它对此类问题更有弹性。因为没有故障转移，并且请求无论如何都并行发送到多个副本，一个副本变慢或不可用对响应时间的影响很小：客户端只是使用响应更快的其他副本的响应。使用最快的响应称为 **请求对冲**，它可以显著减少尾部延迟 [^55]）。
 
-At its core, the resilience of a leaderless system comes from the fact that it doesn’t distinguish
-between the normal case and the failure case. This is especially helpful when handling so-called
-*gray failures*, in which a node isn’t completely down, but running in a degraded state where it is
-unusually slow to handle requests [^56], or when a node is simply overloaded (for example, if a node has been offline for a while, recovery
-via hinted handoff can cause a lot of additional load). A leader-based system has to decide whether
-the situation is bad enough to warrant a failover (which can itself cause further disruption),
-whereas in a leaderless system that question doesn’t even arise.
+从根本上说，无主系统的弹性来自于它不区分正常情况和故障情况的事实。这在处理所谓的 **灰色故障** 时特别有用，其中节点没有完全宕机，但以降级状态运行，处理请求异常缓慢 [^56]，或者当节点只是过载时（例如，如果节点已离线一段时间，通过提示移交恢复可能会导致大量额外负载）。基于主节点的系统必须决定情况是否足够糟糕以保证故障转移（这本身可能会导致进一步的中断），而在无主系统中，这个问题甚至不会出现。
 
-That said, leaderless systems can have performance problems as well:
+也就是说，无主系统也可能有性能问题：
 
-* Even though the system doesn’t need to perform failover, one replica does need to detect when
-  another replica is unavailable so that it can store hints about writes that the unavailable
-  replica missed. When the unavailable replica comes back, the handoff process needs to send it
-  those hints. This puts additional load on the replicas at a time when the system is already under strain [^54].
-* The more replicas you have, the bigger the size of your quorums, and the more responses you have
-  to wait for before a request can complete. Even if you wait only for the fastest *r* or *w*
-  replicas to respond, and even if you make the requests in parallel, a bigger *r* or *w* increases
-  the chance that you hit a slow replica, increasing the overall response time (see
-  [“Use of Response Time Metrics”](/en/ch2#sec_introduction_slo_sla)).
-* A large-scale network interruption that disconnects a client from a large number of replicas can
-  make it impossible to form a quorum. Some leaderless databases offer a configuration option that
-  allows any reachable replica to accept writes, even if it’s not one of the usual replicas for that
-  key (Riak and Dynamo call this a *sloppy quorum* [^45];
-  Cassandra and ScyllaDB call it *consistency level ANY*). There is no guarantee that subsequent
-  reads will see the written value, but depending on the application it may still be better than
-  having the write fail.
+* 即使系统不需要执行故障转移，一个副本确实需要检测另一个副本何时不可用，以便它可以存储有关不可用副本错过的写入的提示。当不可用副本恢复时，移交过程需要向其发送这些提示。这在系统已经处于压力下时给副本带来了额外的负载 [^54]。
+* 你拥有的副本越多，你的仲裁就越大，在请求完成之前你必须等待的响应就越多。即使你只等待最快的 *r* 或 *w* 个副本响应，即使你并行发出请求，更大的 *r* 或 *w* 增加了你遇到慢副本的机会，增加了总体响应时间（见 ["响应时间指标的应用"](/ch2#sec_introduction_slo_sla)）。
+* 大规模网络中断使客户端与大量副本断开连接，可能使形成仲裁变得不可能。一些无主数据库提供了一个配置选项，允许任何可访问的副本接受写入，即使它不是该键的通常副本之一（Riak 和 Dynamo 称之为 **宽松仲裁** [^45]；Cassandra 和 ScyllaDB 称之为 **一致性级别 ANY**）。不能保证后续读取会看到写入的值，但根据应用程序，它可能仍然比写入失败更好。
 
-Multi-leader replication can offer even greater resilience against network interruptions than
-leaderless replication, since reads and writes only require communication with one leader, which can
-be co-located with the client. However, since a write on one leader is propagated asynchronously to
-the others, reads can be arbitrarily out-of-date. Quorum reads and writes provide a compromise: good
-fault tolerance while also having a high likelihood of reading up-to-date data.
+多主复制可以提供比无主复制更大的网络中断弹性，因为读取和写入只需要与一个主节点通信，该主节点可以与客户端位于同一位置。然而，由于一个主节点上的写入异步传播到其他主节点，读取可能任意过时。仲裁读取和写入提供了一种折衷：良好的容错性，同时也有很高的可能性读取最新数据。
 
 #### 多地区操作 {#multi-region-operation}
 
-We previously discussed cross-region replication as a use case for multi-leader replication (see
-[“Multi-Leader Replication”](/en/ch6#sec_replication_multi_leader)). Leaderless replication is also suitable for
-multi-region operation, since it is designed to tolerate conflicting concurrent writes, network
-interruptions, and latency spikes.
+我们之前讨论了跨地区复制作为多主复制的用例（见 ["多主复制"](/ch6#sec_replication_multi_leader)）。无主复制也适合多地区操作，因为它被设计为容忍冲突的并发写入、网络中断和延迟峰值。
 
-Cassandra and ScyllaDB implement their multi-region support within the normal leaderless model: the
-client sends its writes directly to the replicas in all regions, and you can choose from a variety
-of consistency levels that determine how many responses are required for a request to be successful.
-For example, you can request a quorum across the replicas in all the regions, a separate quorum in
-each of the regions, or a quorum only in the client’s local region. A local quorum avoids having to
-wait for slow requests to other regions, but it is also more likely to return stale results.
+Cassandra 和 ScyllaDB 在正常的无主模型中实现了它们的多地区支持：客户端直接将其写入发送到所有地区的副本，你可以从各种一致性级别中进行选择，这些级别确定请求成功所需的响应数。例如，你可以请求所有地区中副本的仲裁、每个地区中的单独仲裁，或仅客户端本地地区的仲裁。本地仲裁避免了必须等待到其他地区的缓慢请求，但它也更可能返回陈旧结果。
 
-Riak keeps all communication between clients and database nodes local to one region, so *n*
-describes the number of replicas within one region. Cross-region replication between
-database clusters happens asynchronously in the background, in a style that is similar to
-multi-leader replication.
+Riak 将客户端和数据库节点之间的所有通信保持在一个地区本地，因此 *n* 描述了一个地区内的副本数。数据库集群之间的跨地区复制在后台异步发生，其风格类似于多主复制。
 
 
 ### 检测并发写入 {#sec_replication_concurrent}
 
-Like with multi-leader replication, leaderless databases allow concurrent writes to the same key,
-resulting in conflicts that need to be resolved. Such conflicts may occur as the writes happen, but
-not always: they could also be detected later during read repair, hinted handoff, or anti-entropy.
+与多主复制一样，无主数据库允许对同一键进行并发写入，导致需要解决的冲突。此类冲突可能在写入发生时发生，但并非总是如此：它们也可能在读修复、提示移交或反熵期间稍后检测到。
 
-The problem is that events may arrive in a different order at different nodes, due to variable
-network delays and partial failures. For example, [Figure 6-14](/en/ch6#fig_replication_concurrency) shows two clients,
-A and B, simultaneously writing to a key *X* in a three-node datastore:
+问题在于，由于可变的网络延迟和部分故障，事件可能以不同的顺序到达不同的节点。例如，[图 6-14](/ch6#fig_replication_concurrency) 显示了两个客户端 A 和 B 同时写入三节点数据存储中的键 *X*：
 
-* Node 1 receives the write from A, but never receives the write from B due to a transient outage.
-* Node 2 first receives the write from A, then the write from B.
-* Node 3 first receives the write from B, then the write from A.
+* 节点 1 接收来自 A 的写入，但由于瞬时中断从未接收来自 B 的写入。
+* 节点 2 首先接收来自 A 的写入，然后接收来自 B 的写入。
+* 节点 3 首先接收来自 B 的写入，然后接收来自 A 的写入。
 
-{{< figure src="/fig/ddia_0614.png" id="fig_replication_concurrency" caption="Figure 6-14. Concurrent writes in a Dynamo-style datastore: there is no well-defined ordering." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0614.png" id="fig_replication_concurrency" caption="图 6-14. Dynamo 风格数据存储中的并发写入：没有明确定义的顺序。" class="w-full my-4" >}}
 
+如果每个节点在接收到来自客户端的写入请求时只是覆盖键的值，节点将变得永久不一致，如 [图 6-14](/ch6#fig_replication_concurrency) 中的最终 *get* 请求所示：节点 2 认为 *X* 的最终值是 B，而其他节点认为值是 A。
 
-If each node simply overwrote the value for a key whenever it received a write request from a
-client, the nodes would become permanently inconsistent, as shown by the final *get* request in
-[Figure 6-14](/en/ch6#fig_replication_concurrency): node 2 thinks that the final value of *X* is B, whereas the other
-nodes think that the value is A.
+为了最终保持一致，副本应该收敛到相同的值。为此，我们可以使用我们之前在 ["处理写入冲突"](/ch6#sec_replication_write_conflicts) 中讨论的任何冲突解决机制，例如最后写入者胜（由 Cassandra 和 ScyllaDB 使用）、手动解决或 CRDT（在 ["CRDT 与操作变换"](/ch6#sec_replication_crdts) 中描述，并由 Riak 使用）。
 
-In order to become eventually consistent, the replicas should converge toward the same value. For
-this, we can use any of the conflict resolution mechanisms we previously discussed in
-[“Dealing with Conflicting Writes”](/en/ch6#sec_replication_write_conflicts), such as last-write-wins (used by Cassandra and ScyllaDB),
-manual resolution, or CRDTs (described in [“CRDTs and Operational Transformation”](/en/ch6#sec_replication_crdts), and used by Riak).
-
-Last-write-wins is easy to implement: each write is tagged with a timestamp, and a value with a
-higher timestamp always overwrites a value with a lower timestamp. However, a timestamp doesn’t tell
-you whether two values are actually conflicting (i.e., they were written concurrently) or not (they
-were written one after another). If you want to resolve conflicts explicitly, the system needs to
-take more care to detect concurrent writes.
+最后写入者胜很容易实现：每个写入都标有时间戳，具有更高时间戳的值总是覆盖具有较低时间戳的值。然而，时间戳不会告诉你两个值是否实际上冲突（即，它们是并发写入的）或不冲突（它们是一个接一个写入的）。如果你想显式解决冲突，系统需要更加小心地检测并发写入。
 
 #### "先发生"关系与并发 {#sec_replication_happens_before}
 
-How do we decide whether two operations are concurrent or not? To develop an intuition, let’s look
-at some examples:
+我们如何决定两个操作是否并发？为了培养直觉，让我们看一些例子：
 
-* In [Figure 6-8](/en/ch6#fig_replication_causality), the two writes are not concurrent: A’s insert *happens before*
-  B’s increment, because the value incremented by B is the value inserted by A. In other words, B’s
-  operation builds upon A’s operation, so B’s operation must have happened later.
-  We also say that B is *causally dependent* on A.
-* On the other hand, the two writes in [Figure 6-14](/en/ch6#fig_replication_concurrency) are concurrent: when each
-  client starts the operation, it does not know that another client is also performing an operation
-  on the same key. Thus, there is no causal dependency between the operations.
+* 在 [图 6-8](/ch6#fig_replication_causality) 中，两个写入不是并发的：A 的插入 **先发生于** B 的递增，因为 B 递增的值是 A 插入的值。换句话说，B 的操作建立在 A 的操作之上，所以 B 的操作必须稍后发生。我们也说 B **因果依赖** 于 A。
+* 另一方面，[图 6-14](/ch6#fig_replication_concurrency) 中的两个写入是并发的：当每个客户端开始操作时，它不知道另一个客户端也在对同一键执行操作。因此，操作之间没有因果依赖关系。
 
-An operation A *happens before* another operation B if B knows about A, or depends on A, or builds
-upon A in some way. Whether one operation happens before another operation is the key to defining
-what concurrency means. In fact, we can simply say that two operations are *concurrent* if neither
-happens before the other (i.e., neither knows about the other) [^57].
+如果操作 B 知道 A，或依赖于 A，或以某种方式建立在 A 之上，则操作 A **先发生于** 另一个操作 B。一个操作是否先发生于另一个操作是定义并发含义的关键。事实上，我们可以简单地说，如果两个操作都不先发生于另一个（即，两者都不知道另一个），则它们是 **并发的** [^57]。
 
-Thus, whenever you have two operations A and B, there are three possibilities: either A happened
-before B, or B happened before A, or A and B are concurrent. What we need is an algorithm to tell us
-whether two operations are concurrent or not. If one operation happened before another, the later
-operation should overwrite the earlier operation, but if the operations are concurrent, we have a
-conflict that needs to be resolved.
+因此，每当你有两个操作 A 和 B 时，有三种可能性：要么 A 先发生于 B，要么 B 先发生于 A，要么 A 和 B 是并发的。我们需要的是一个算法来告诉我们两个操作是否并发。如果一个操作先发生于另一个，后面的操作应该覆盖前面的操作，但如果操作是并发的，我们有一个需要解决的冲突。
 
 --------
 
-> ![TIP] Concurrency, Time, and Relativity
-
-It may seem that two operations should be called concurrent if they occur “at the same time”—but
-in fact, it is not important whether they literally overlap in time. Because of problems with clocks
-in distributed systems, it is actually quite difficult to tell whether two things happened
-at exactly the same time—an issue we will discuss in more detail in [Chapter 9](/en/ch9#ch_distributed).
-
-For defining concurrency, exact time doesn’t matter: we simply call two operations concurrent if
-they are both unaware of each other, regardless of the physical time at which they occurred. People
-sometimes make a connection between this principle and the special theory of relativity in physics
-[^57], which introduced the idea that
-information cannot travel faster than the speed of light. Consequently, two events that occur some
-distance apart cannot possibly affect each other if the time between the events is shorter than the
-time it takes light to travel the distance between them.
-
-In computer systems, two operations might be concurrent even though the speed of light would in
-principle have allowed one operation to affect the other. For example, if the network was slow or
-interrupted at the time, two operations can occur some time apart and still be concurrent, because
-the network problems prevented one operation from being able to know about the other.
+> ![TIP] 并发、时间和相对论
+>
+> 似乎两个操作如果"同时"发生，应该称为并发——但实际上，它们是否真的在时间上重叠并不重要。由于分布式系统中的时钟问题，实际上很难判断两件事是否恰好在同一时间发生——我们将在 [第 9 章](/ch9#ch_distributed) 中更详细地讨论这个问题。
+>
+> 为了定义并发，确切的时间并不重要：我们只是称两个操作并发，如果它们都不知道对方，无论它们发生的物理时间如何。人们有时将这一原则与物理学中的狭义相对论联系起来 [^57]，它引入了信息不能比光速传播更快的想法。因此，如果两个事件之间的时间短于光在它们之间传播的时间，那么相隔一定距离发生的两个事件不可能相互影响。
+>
+> 在计算机系统中，即使光速原则上允许一个操作影响另一个，两个操作也可能是并发的。例如，如果网络在当时很慢或中断，两个操作可以相隔一段时间发生，仍然是并发的，因为网络问题阻止了一个操作能够知道另一个。
 
 --------
 
 #### 捕获先发生关系 {#capturing-the-happens-before-relationship}
 
-Let’s look at an algorithm that determines whether two operations are concurrent, or whether one
-happened before another. To keep things simple, let’s start with a database that has only one
-replica. Once we have worked out how to do this on a single replica, we can generalize the approach
-to a leaderless database with multiple replicas.
+让我们看一个确定两个操作是否并发或一个先发生于另一个的算法。为了简单起见，让我们从只有一个副本的数据库开始。一旦我们弄清楚如何在单个副本上执行此操作，我们就可以将该方法推广到具有多个副本的无主数据库。
 
-[Figure 6-15](/en/ch6#fig_replication_causality_single) shows two clients concurrently adding items to the same
-shopping cart. (If that example strikes you as too inane, imagine instead two air traffic
-controllers concurrently adding aircraft to the sector they are tracking.) Initially, the cart is
-empty. Between them, the clients make five writes to the database:
+[图 6-15](/ch6#fig_replication_causality_single) 显示了两个客户端并发地向同一购物车添加项目。（如果这个例子让你觉得太无聊，想象一下两个空中交通管制员并发地向他们正在跟踪的扇区添加飞机。）最初，购物车是空的。客户端之间向数据库进行了五次写入：
 
-1. Client 1 adds `milk` to the cart. This is the first write to that key, so the server successfully
-   stores it and assigns it version 1. The server also echoes the value back to the client, along
-   with the version number.
-2. Client 2 adds `eggs` to the cart, not knowing that client 1 concurrently added `milk` (client 2
-   thought that its `eggs` were the only item in the cart). The server assigns version 2 to this
-   write, and stores `eggs` and `milk` as two separate values (siblings). It then returns *both*
-   values to the client, along with the version number of 2.
-3. Client 1, oblivious to client 2’s write, wants to add `flour` to the cart, so it thinks the
-   current cart contents should be `[milk, flour]`. It sends this value to the server, along with
-   the version number 1 that the server gave client 1 previously. The server can tell from the
-   version number that the write of `[milk, flour]` supersedes the prior value of `[milk]` but that
-   it is concurrent with `[eggs]`. Thus, the server assigns version 3 to `[milk, flour]`, overwrites
-   the version 1 value `[milk]`, but keeps the version 2 value `[eggs]` and returns both remaining
-   values to the client.
-4. Meanwhile, client 2 wants to add `ham` to the cart, unaware that client 1 just added `flour`.
-   Client 2 received the two values `[milk]` and `[eggs]` from the server in the last response, so
-   the client now merges those values and adds `ham` to form a new value, `[eggs, milk, ham]`. It
-   sends that value to the server, along with the previous version number 2. The server detects that
-   version 2 overwrites `[eggs]` but is concurrent with `[milk, flour]`, so the two remaining
-   values are `[milk, flour]` with version 3, and `[eggs, milk, ham]` with version 4.
-5. Finally, client 1 wants to add `bacon`. It previously received `[milk, flour]` and `[eggs]` from
-   the server at version 3, so it merges those, adds `bacon`, and sends the final value
-   `[milk, flour, eggs, bacon]` to the server, along with the version number 3. This overwrites
-   `[milk, flour]` (note that `[eggs]` was already overwritten in the last step) but is concurrent
-   with `[eggs, milk, ham]`, so the server keeps those two concurrent values.
+1. 客户端 1 将 `milk` 添加到购物车。这是对该键的第一次写入，因此服务器成功存储它并为其分配版本 1。服务器还将值连同版本号一起回显给客户端。
+2. 客户端 2 将 `eggs` 添加到购物车，不知道客户端 1 并发地添加了 `milk`（客户端 2 认为它的 `eggs` 是购物车中的唯一项目）。服务器为此写入分配版本 2，并将 `eggs` 和 `milk` 存储为两个单独的值（兄弟节点）。然后，它将 **两个** 值连同版本号 2 一起返回给客户端。
+3. 客户端 1，不知道客户端 2 的写入，想要将 `flour` 添加到购物车，因此它认为当前购物车内容应该是 `[milk, flour]`。它将此值连同服务器之前给客户端 1 的版本号 1 一起发送到服务器。服务器可以从版本号判断 `[milk, flour]` 的写入取代了 `[milk]` 的先前值，但它与 `[eggs]` 并发。因此，服务器将版本 3 分配给 `[milk, flour]`，覆盖版本 1 值 `[milk]`，但保留版本 2 值 `[eggs]` 并将两个剩余值返回给客户端。
+4. 同时，客户端 2 想要将 `ham` 添加到购物车，不知道客户端 1 刚刚添加了 `flour`。客户端 2 在上次响应中从服务器接收了两个值 `[milk]` 和 `[eggs]`，因此客户端现在合并这些值并添加 `ham` 以形成新值 `[eggs, milk, ham]`。它将该值连同先前的版本号 2 一起发送到服务器。服务器检测到版本 2 覆盖 `[eggs]` 但与 `[milk, flour]` 并发，因此两个剩余值是版本 3 的 `[milk, flour]` 和版本 4 的 `[eggs, milk, ham]`。
+5. 最后，客户端 1 想要添加 `bacon`。它之前从服务器接收了版本 3 的 `[milk, flour]` 和 `[eggs]`，因此它合并这些，添加 `bacon`，并将最终值 `[milk, flour, eggs, bacon]` 连同版本号 3 一起发送到服务器。这覆盖了 `[milk, flour]`（注意 `[eggs]` 已经在上一步中被覆盖）但与 `[eggs, milk, ham]` 并发，因此服务器保留这两个并发值。
 
-{{< figure src="/fig/ddia_0615.png" id="fig_replication_causality_single" caption="Figure 6-15. Capturing causal dependencies between two clients concurrently editing a shopping cart." class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0615.png" id="fig_replication_causality_single" caption="图 6-15. 捕获两个客户端并发编辑购物车之间的因果依赖关系。" class="w-full my-4" >}}
 
 
-The dataflow between the operations in [Figure 6-15](/en/ch6#fig_replication_causality_single) is illustrated
-graphically in [Figure 6-16](/en/ch6#fig_replication_causal_dependencies). The arrows indicate which operation
-*happened before* which other operation, in the sense that the later operation *knew about* or
-*depended on* the earlier one. In this example, the clients are never fully up to date with the data
-on the server, since there is always another operation going on concurrently. But old versions of
-the value do get overwritten eventually, and no writes are lost.
+[图 6-15](/ch6#fig_replication_causality_single) 中操作之间的数据流在 [图 6-16](/ch6#fig_replication_causal_dependencies) 中以图形方式说明。箭头指示哪个操作 **先发生于** 哪个其他操作，即后面的操作 **知道** 或 **依赖于** 前面的操作。在这个例子中，客户端从未完全了解服务器上的数据，因为总是有另一个并发进行的操作。但是值的旧版本最终会被覆盖，并且不会丢失任何写入。
 
-{{< figure link="#fig_replication_causality_single" src="/fig/ddia_0616.png" id="fig_replication_causal_dependencies" caption="Figure 6-16. Graph of causal dependencies in Figure 6-15." class="w-full my-4" >}}
+{{< figure link="#fig_replication_causality_single" src="/fig/ddia_0616.png" id="fig_replication_causal_dependencies" caption="图 6-16. 图 6-15 中因果依赖关系的图。" class="w-full my-4" >}}
 
 
-Note that the server can determine whether two operations are concurrent by looking at the version
-numbers—it does not need to interpret the value itself (so the value could be any data
-structure). The algorithm works as follows:
+请注意，服务器可以通过查看版本号来确定两个操作是否并发——它不需要解释值本身（因此值可以是任何数据结构）。算法的工作原理如下：
 
-* The server maintains a version number for every key, increments the version number every time that
-  key is written, and stores the new version number along with the value written.
-* When a client reads a key, the server returns all siblings, i.e., all values that have not been
-  overwritten, as well as the latest version number. A client must read a key before writing.
-* When a client writes a key, it must include the version number from the prior read, and it must
-  merge together all values that it received in the prior read, e.g. using a CRDT or by asking the
-  user. The response from a write request is like a read, returning all siblings, which allows us to
-  chain several writes like in the shopping cart example.
-* When the server receives a write with a particular version number, it can overwrite all values
-  with that version number or below (since it knows that they have been merged into the new value),
-  but it must keep all values with a higher version number (because those values are concurrent with
-  the incoming write).
+* 服务器为每个键维护一个版本号，每次写入该键时递增版本号，并将新版本号与写入的值一起存储。
+* 当客户端读取键时，服务器返回所有兄弟节点，即所有未被覆盖的值，以及最新的版本号。客户端必须在写入之前读取键。
+* 当客户端写入键时，它必须包含来自先前读取的版本号，并且必须合并它在先前读取中收到的所有值，例如使用 CRDT 或通过询问用户。写入请求的响应就像读取一样，返回所有兄弟节点，这允许我们像购物车示例中那样链接多个写入。
+* 当服务器接收到具有特定版本号的写入时，它可以覆盖具有该版本号或更低版本号的所有值（因为它知道它们已合并到新值中），但它必须保留具有更高版本号的所有值（因为这些值与传入写入并发）。
 
-When a write includes the version number from a prior read, that tells us which previous state the
-write is based on. If you make a write without including a version number, it is concurrent with all
-other writes, so it will not overwrite anything—it will just be returned as one of the values
-on subsequent reads.
+当写入包含来自先前读取的版本号时，这告诉我们写入基于哪个先前状态。如果你在不包含版本号的情况下进行写入，它与所有其他写入并发，因此它不会覆盖任何内容——它只会作为后续读取的值之一返回。
 
 #### 版本向量 {#version-vectors}
 
-The example in [Figure 6-15](/en/ch6#fig_replication_causality_single) used only a single replica. How does the
-algorithm change when there are multiple replicas, but no leader?
+[图 6-15](/ch6#fig_replication_causality_single) 中的示例仅使用了单个副本。当有多个副本但没有主节点时，算法如何变化？
 
-[Figure 6-15](/en/ch6#fig_replication_causality_single) uses a single version number to capture dependencies between
-operations, but that is not sufficient when there are multiple replicas accepting writes
-concurrently. Instead, we need to use a version number *per replica* as well as per key. Each
-replica increments its own version number when processing a write, and also keeps track of the
-version numbers it has seen from each of the other replicas. This information indicates which values
-to overwrite and which values to keep as siblings.
+[图 6-15](/ch6#fig_replication_causality_single) 使用单个版本号来捕获操作之间的依赖关系，但当有多个副本并发接受写入时，这是不够的。相反，我们需要使用 **每个副本** 以及每个键的版本号。每个副本在处理写入时递增其自己的版本号，并且还跟踪它从其他每个副本看到的版本号。此信息指示要覆盖哪些值以及保留哪些值作为兄弟节点。
 
-The collection of version numbers from all the replicas is called a *version vector* [^58].
-A few variants of this idea are in use, but the most interesting is probably the *dotted version vector* [^59] [^60],
-which is used in Riak 2.0 [^61] [^62].
-We won’t go into the details, but the way it works is quite similar to what we saw in our cart example.
+来自所有副本的版本号集合称为 **版本向量** [^58]。正在使用此想法的几个变体，但最有趣的可能是 **点化版本向量** [^59] [^60]，它在 Riak 2.0 中使用 [^61] [^62]。我们不会详细介绍，但它的工作方式与我们在购物车示例中看到的非常相似。
 
-Like the version numbers in [Figure 6-15](/en/ch6#fig_replication_causality_single), version vectors are sent from the
-database replicas to clients when values are read, and need to be sent back to the database when a
-value is subsequently written. (Riak encodes the version vector as a string that it calls *causal
-context*.) The version vector allows the database to distinguish between overwrites and concurrent
-writes.
+像 [图 6-15](/ch6#fig_replication_causality_single) 中的版本号一样，版本向量在读取值时从数据库副本发送到客户端，并且在随后写入值时需要发送回数据库。（Riak 将版本向量编码为它称为 **因果上下文** 的字符串。）版本向量允许数据库区分覆盖和并发写入。
 
-The version vector also ensures that it is safe to read from one replica and subsequently write back
-to another replica. Doing so may result in siblings being created, but no data is lost as long as
-siblings are merged correctly.
+版本向量还确保从一个副本读取然后写回另一个副本是安全的。这样做可能会导致创建兄弟节点，但只要正确合并兄弟节点，就不会丢失数据。
 
 --------
 
-> [!TIP] 版本向量与向量时钟
-
-A *version vector* is sometimes also called a *vector clock*, even though they are not quite the
-same. The difference is subtle—please see the references for details [^60] [^63] [^64]. In brief, when
-comparing the state of replicas, version vectors are the right data structure to use.
+> [!TIP] 版本向量和向量时钟
+>
+> **版本向量** 有时也称为 **向量时钟**，尽管它们不完全相同。差异很微妙——请参阅参考资料以获取详细信息 [^60] [^63] [^64]。简而言之，在比较副本状态时，版本向量是要使用的正确数据结构。
 
 --------
 
 ## 总结 {#summary}
 
-In this chapter we looked at the issue of replication. Replication can serve several purposes:
+在本章中，我们研究了复制问题。复制可以服务于多种目的：
 
-*High availability*
-:   Keeping the system running, even when one machine (or several machines, a
-    zone, or even an entire region) goes down
+**高可用性**
+:   即使一台机器（或几台机器、一个区域，甚至整个地区）宕机，也能保持系统运行
 
-*Disconnected operation*
-:   Allowing an application to continue working when there is a network
-    interruption
+**断开操作**
+:   允许应用程序在网络中断时继续工作
 
-*Latency*
-:   Placing data geographically close to users, so that users can interact with it faster
+**延迟**
+:   将数据在地理上放置在靠近用户的位置，以便用户可以更快地与其交互
 
-*Scalability*
-:   Being able to handle a higher volume of reads than a single machine could handle,
-    by performing reads on replicas
+**可伸缩性**
+:   通过在副本上执行读取，能够处理比单台机器能够处理的更高的读取量
 
-Despite being a simple goal—keeping a copy of the same data on several machines—replication turns out
-to be a remarkably tricky problem. It requires carefully thinking about concurrency and about all
-the things that can go wrong, and dealing with the consequences of those faults. At a minimum, we
-need to deal with unavailable nodes and network interruptions (and that’s not even considering the
-more insidious kinds of fault, such as silent data corruption due to software bugs or hardware errors).
+尽管目标很简单——在几台机器上保留相同数据的副本——复制却是一个非常棘手的问题。它需要仔细考虑并发性以及所有可能出错的事情，并处理这些故障的后果。至少，我们需要处理不可用的节点和网络中断（这甚至还没有考虑更隐蔽的故障类型，例如由于软件错误或硬件错误导致的静默数据损坏）。
 
-We discussed three main approaches to replication:
+我们讨论了三种主要的复制方法：
 
-*Single-leader replication*
-:   Clients send all writes to a single node (the leader), which sends a
-    stream of data change events to the other replicas (followers). Reads can be performed on any
-    replica, but reads from followers might be stale.
+**单主复制**
+:   客户端将所有写入发送到单个节点（主节点），该节点将数据变更事件流发送到其他副本（从节点）。读取可以在任何副本上执行，但从从节点读取可能是陈旧的。
 
-*Multi-leader replication*
-:   Clients send each write to one of several leader nodes, any of which
-    can accept writes. The leaders send streams of data change events to each other and to any
-    follower nodes.
+**多主复制**
+:   客户端将每个写入发送到几个主节点之一，任何主节点都可以接受写入。主节点相互发送数据变更事件流，并发送到任何从节点。
 
-*Leaderless replication*
-:   Clients send each write to several nodes, and read from several nodes
-    in parallel in order to detect and correct nodes with stale data.
+**无主复制**
+:   客户端将每个写入发送到多个节点，并行从多个节点读取，以检测和纠正具有陈旧数据的节点。
 
-Each approach has advantages and disadvantages. Single-leader replication is popular because it is
-fairly easy to understand and it offers strong consistency. Multi-leader and leaderless replication
-can be more robust in the presence of faulty nodes, network interruptions, and latency spikes—at the
-cost of requiring conflict resolution and providing weaker consistency guarantees.
+每种方法都有优缺点。单主复制很受欢迎，因为它相当容易理解，并且提供强一致性。多主和无主复制在存在故障节点、网络中断和延迟峰值时可以更加健壮——代价是需要冲突解决并提供较弱的一致性保证。
 
-Replication can be synchronous or asynchronous, which has a profound effect on the system behavior
-when there is a fault. Although asynchronous replication can be fast when the system is running
-smoothly, it’s important to figure out what happens when replication lag increases and servers fail.
-If a leader fails and you promote an asynchronously updated follower to be the new leader, recently
-committed data may be lost.
+复制可以是同步的或异步的，这对系统在出现故障时的行为有深远的影响。尽管异步复制在系统平稳运行时可能很快，但重要的是要弄清楚当复制延迟增加和服务器失败时会发生什么。如果主节点失败并且你将异步更新的从节点提升为新的主节点，最近提交的数据可能会丢失。
 
-We looked at some strange effects that can be caused by replication lag, and we discussed a few
-consistency models which are helpful for deciding how an application should behave under replication
-lag:
+我们研究了复制延迟可能导致的一些奇怪效果，并讨论了一些有助于决定应用程序在复制延迟下应如何表现的一致性模型：
 
-*Read-after-write consistency*
-:   Users should always see data that they submitted themselves.
+**写后读一致性**
+:   用户应该始终看到他们自己提交的数据。
 
-*Monotonic reads*
-:   After users have seen the data at one point in time, they shouldn’t later see
-    the data from some earlier point in time.
+**单调读**
+:   在用户在某个时间点看到数据后，他们不应该稍后从某个较早的时间点看到数据。
 
-*Consistent prefix reads*
-:   Users should see the data in a state that makes causal sense:
-    for example, seeing a question and its reply in the correct order.
+**一致前缀读**
+:   用户应该看到处于因果意义状态的数据：例如，按正确顺序看到问题及其回复。
 
-Finally, we discussed how multi-leader and leaderless replication ensure that all replicas
-eventually converge to a consistent state: by using a version vector or similar algorithm to detect
-which writes are concurrent, and by using a conflict resolution algorithm such as a CRDT to merge
-the concurrently written values. Last-write-wins and manual conflict resolution are also possible.
+最后，我们讨论了多主和无主复制如何确保所有副本最终收敛到一致状态：通过使用版本向量或类似算法来检测哪些写入是并发的，并通过使用冲突解决算法（如 CRDT）来合并并发写入的值。最后写入者胜和手动冲突解决也是可能的。
 
-This chapter has assumed that every replica stores a full copy of the whole database, which is
-unrealistic for large datasets. In the next chapter we will look at *sharding*, which allows each
-machine to store only a subset of the data.
-
-
+本章假设每个副本都存储整个数据库的完整副本，这对于大型数据集是不现实的。在下一章中，我们将研究 **分片**，它允许每台机器只存储数据的子集。
 
 
 ### 参考
-
 
 [^1]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)
 [^2]: Kenny Gryp. [MySQL Terminology Updates](https://dev.mysql.com/blog-archive/mysql-terminology-updates/). *dev.mysql.com*, July 2020. Archived at [perma.cc/S62G-6RJ2](https://perma.cc/S62G-6RJ2)

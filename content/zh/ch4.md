@@ -4,6 +4,8 @@ weight: 104
 breadcrumbs: false
 ---
 
+![](/map/ch03.png)
+
 > *生活中的一大痛苦是，每个人给事物起的名字都有一点点不对。这让世界上的一切都比换个名字后更难理解。计算机主要并不是在算术意义上进行计算。[...] 它们主要是归档系统。*
 >
 > [Richard Feynman](https://www.youtube.com/watch?v=EKWGGDXe5MA&t=296s)，
