@@ -63,7 +63,7 @@ current state of the database in primary storage.
 
 --------
 
-## Single-Leader Replication {#single-leader-replication}
+## Single-Leader Replication {#sec_replication_leader}
 
 Each node that stores a copy of the database is called a *replica*. With multiple replicas, a
 question inevitably arises: how do we ensure that all the data ends up on all the replicas?
@@ -107,7 +107,7 @@ elect a new leader if the old one fails (we will discuss consensus in more detai
 
 --------
 
-### Synchronous Versus Asynchronous Replication {#synchronous-versus-asynchronous-replication}
+### Synchronous Versus Asynchronous Replication {#sec_replication_sync_async}
 
 An important detail of a replicated system is whether the replication happens *synchronously* or
 *asynchronously*. (In relational databases, this is often a configurable option; other systems are
@@ -589,7 +589,7 @@ zones/datacenters in a single geographic location.
 
 --------
 
-### Monotonic Reads {#monotonic-reads}
+### Monotonic Reads {#sec_replication_monotonic_reads}
 
 Our second example of an anomaly that can occur when reading from asynchronous followers is that it’s
 possible for a user to see things *moving backward in time*.
@@ -662,7 +662,7 @@ the same shard—but in some applications that cannot be done efficiently. There
 that explicitly keep track of causal dependencies, a topic that we will return to in
 [“The “happens-before” relation and concurrency”](/en/ch6#sec_replication_happens_before).
 
-### Solutions for Replication Lag {#solutions-for-replication-lag}
+### Solutions for Replication Lag {#id131}
 
 When working with an eventually consistent system, it is worth thinking about how the application
 behaves if the replication lag increases to several minutes or even hours. If the answer is “no
@@ -1210,7 +1210,7 @@ in others, a coordinator node does this on behalf of the client. However, unlike
 that coordinator does not enforce a particular ordering of writes. As we shall see, this difference in design has
 profound consequences for the way the database is used.
 
-### Writing to the Database When a Node Is Down {#writing-to-the-database-when-a-node-is-down}
+### Writing to the Database When a Node Is Down {#id287}
 
 Imagine you have a database with three replicas, and one of the replicas is currently
 unavailable—​perhaps it is being rebooted to install a system update. In a single-leader
@@ -1401,7 +1401,7 @@ Eventual consistency is a deliberately vague guarantee, but for operability it�
 able to quantify “eventual.”
 
 
-### Single-Leader vs. Leaderless Replication Performance {#single-leader-vs-leaderless-replication-performance}
+### Single-Leader vs. Leaderless Replication Performance {#sec_replication_leaderless_perf}
 
 A replication system based on a single leader can provide strong consistency guarantees that are
 difficult or impossible to achieve in a leaderless system. However, as we have seen in
@@ -1750,7 +1750,7 @@ machine to store only a subset of the data.
 
 
 
-### References {#references}
+### References
 
 
 [^1]: B. G. Lindsay, P. G. Selinger, C. Galtieri, J. N. Gray, R. A. Lorie, T. G. Price, F. Putzolu, I. L. Traiger, and B. W. Wade. [Notes on Distributed Databases](https://dominoweb.draco.res.ibm.com/reports/RJ2571.pdf). IBM Research, Research Report RJ2571(33471), July 1979. Archived at [perma.cc/EPZ3-MHDD](https://perma.cc/EPZ3-MHDD)

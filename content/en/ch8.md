@@ -63,7 +63,7 @@ Concurrency control is relevant for both single-node and distributed databases. 
 chapter, in [“Distributed Transactions”](/en/ch8#sec_transactions_distributed), we will examine the *two-phase commit* protocol and
 the challenge of achieving atomicity in a distributed transaction.
 
-## What Exactly Is a Transaction? {#what-exactly-is-a-transaction}
+## What Exactly Is a Transaction? {#sec_transactions_overview}
 
 Almost all relational databases today, and some nonrelational databases, support transactions. Most
 of them follow the style that was introduced in 1975 by IBM System R, the first SQL database [^2] [^3] [^4].
@@ -91,7 +91,7 @@ technical design choice, transactions have advantages and limitations. In order 
 trade-offs, let’s go into the details of the guarantees that transactions can provide—both in normal
 operation and in various extreme (but realistic) circumstances.
 
-## #The Meaning of ACID {#the-meaning-of-acid}
+### The Meaning of ACID {#sec_transactions_acid}
 
 The safety guarantees provided by transactions are often described by the well-known acronym *ACID*,
 which stands for *Atomicity*, *Consistency*, *Isolation*, and *Durability*. It was coined in 1983 by
@@ -272,7 +272,7 @@ backups—​and they can and should be used together. As always, it’s wise to
 
 --------
 
-### Single-Object and Multi-Object Operations {#single-object-and-multi-object-operations}
+### Single-Object and Multi-Object Operations {#sec_transactions_multi_object}
 
 To recap, in ACID, atomicity and isolation describe what the database should do if a client makes
 several writes within the same transaction:
@@ -1911,7 +1911,7 @@ cannot guarantee atomicity.
 A better solution in practice is to replace the single-node coordinator with a fault-tolerant
 consensus protocol. We will see how to do this in [Chapter 10](/en/ch10#ch_consistency).
 
-### Distributed Transactions Across Different Systems {#distributed-transactions-across-different-systems}
+### Distributed Transactions Across Different Systems {#sec_transactions_xa}
 
 Distributed transactions and two-phase commit have a mixed reputation. On the one hand, they are
 seen as providing an important safety guarantee that would be hard to achieve otherwise; on the
@@ -2086,7 +2086,7 @@ However, keeping several heterogeneous data systems consistent with each other i
 important problem, so we need to find a different solution to it. This can be done, as we will see
 in the next section and in [Link to Come].
 
-### Database-internal Distributed Transactions {#database-internal-distributed-transactions}
+### Database-internal Distributed Transactions {#sec_transactions_internal}
 
 As explained previously, there is a big difference between distributed transactions that span
 multiple heterogeneous storage technologies, and those that are internal to a system—i.e., where all
@@ -2260,7 +2260,7 @@ The examples in this chapter used a relational data model. However, as discussed
 
 
 
-### References {#references}
+### References
 
 [^1]: Steven J. Murdoch. [What went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021. Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F) 
 [^2]: Donald D. Chamberlin, Morton M. Astrahan, Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl, Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz, Irving L. Traiger, Bradford W. Wade, and Robert A. Yost. [A History and Evaluation of System R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981. [doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784) 

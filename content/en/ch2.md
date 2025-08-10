@@ -51,7 +51,7 @@ Let’s also assume that the average user follows 200 people and has 200 followe
 a very wide range: most people have only a handful of followers, and a few celebrities such as
 Barack Obama have over 100 million followers).
 
-### Representing Users, Posts, and Follows {#representing-users-posts-and-follows}
+### Representing Users, Posts, and Follows {#id20}
 
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
 have one table for users, one table for posts, and one table for follow relationships.
@@ -201,7 +201,7 @@ the current hardware can handle, the capacity needs to be expanded; a system is 
 In this section we will focus primarily on response times, and we will return to throughput and
 scalability in [“Scalability”](/en/ch2#sec_introduction_scalability).
 
-### Latency and Response Time {#latency-and-response-time}
+### Latency and Response Time {#id23}
 
 “Latency” and “response time” are sometimes used interchangeably, but in this book we will use the
 terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)):
@@ -237,7 +237,7 @@ service times, the client will see a slow overall response time due to the time 
 prior request to complete. The queueing delay is not part of the service time, and for this reason
 it is important to measure response times on the client side.
 
-### Average, Median, and Percentiles {#average-median-and-percentiles}
+### Average, Median, and Percentiles {#id24}
 
 Because the response time varies from one request to the next, we need to think of it not as a
 single number, but as a *distribution* of values that you can measure. In [Figure 2-5](/en/ch2#fig_lognormal), each
@@ -382,7 +382,7 @@ However, if the system you’re talking about contains many hard drives, then th
 hard drive is only a fault from the point of view of the bigger system, and the bigger system might
 be able to tolerate that fault by having a copy of the data on another hard drive.
 
-### Fault Tolerance {#fault-tolerance}
+### Fault Tolerance {#id27}
 
 We call a system *fault-tolerant* if it continues providing the required service to the user in
 spite of certain faults occurring. If a system cannot tolerate a certain part becoming faulty, we
@@ -512,7 +512,7 @@ help: carefully thinking about assumptions and interactions in the system; thoro
 isolation; allowing processes to crash and restart; avoiding feedback loops such as retry storms
 (see [“When an overloaded system won’t recover”](/en/ch2#sidebar_metastable)); measuring, monitoring, and analyzing system behavior in production.
 
-### Humans and Reliability {#humans-and-reliability}
+### Humans and Reliability {#id31}
 
 Humans design and build software systems, and the operators who keep the systems running are also
 human. Unlike machines, humans don’t just follow rules; their strength is being creative and
@@ -620,7 +620,7 @@ you will learn where your performance bottlenecks lie, and therefore you will kn
 dimensions you need to scale. At that point it’s time to start worrying about techniques for
 scalability.
 
-### Describing Load {#describing-load}
+### Describing Load {#id33}
 
 First, we need to succinctly describe the current load on the system; only then can we discuss
 growth questions (what happens if our load doubles?). Often this will be a measure of throughput:
@@ -699,7 +699,7 @@ scalability problems of older systems: instead of providing a filesystem (NAS) o
 abstraction, the storage service offers a specialized API that is designed for the specific needs of
 the database [^83].
 
-### Principles for Scalability {#principles-for-scalability}
+### Principles for Scalability {#id35}
 
 The architecture of systems that operate at large scale is usually highly specific to the
 application—there is no such thing as a generic, one-size-fits-all scalable architecture
@@ -767,7 +767,7 @@ Evolvability
  it for unanticipated use cases as requirements change.
 
 
-### Operability: Making Life Easy for Operations {#operability-making-life-easy-for-operations}
+### Operability: Making Life Easy for Operations {#id37}
 
 We previously discussed the role of operations in [“Operations in the Cloud Era”](/en/ch1#sec_introduction_operations), and we saw that
 human processes are at least as important for reliable operations as software tools. In fact, it has
@@ -790,8 +790,7 @@ on high-value activities. Data systems can do various things to make routine tas
 
 * Allowing monitoring tools to check the system’s key metrics, and supporting observability tools
  (see [“Problems with Distributed Systems”](/en/ch1#sec_introduction_dist_sys_problems)) to give insights into the system’s runtime behavior.
- A variety of commercial and open source tools can help here
- [^90].
+ A variety of commercial and open source tools can help here [^90].
 * Avoiding dependency on individual machines (allowing machines to be taken down for maintenance
  while the system as a whole continues running uninterrupted)
 * Providing good documentation and an easy-to-understand operational model (“If I do X, Y will happen”)
@@ -799,7 +798,7 @@ on high-value activities. Data systems can do various things to make routine tas
 * Self-healing where appropriate, but also giving administrators manual control over the system state when needed
 * Exhibiting predictable behavior, minimizing surprises
 
-### Simplicity: Managing Complexity {#simplicity-managing-complexity}
+### Simplicity: Managing Complexity {#id38}
 
 Small software projects can have delightfully simple and expressive code, but as projects get
 larger, they often become very complex and difficult to understand. This complexity slows down
@@ -896,7 +895,7 @@ There are no easy answers on how to achieve these things, but one thing that can
 applications using well-understood building blocks that provide useful abstractions. The rest of
 this book will cover a selection of building blocks that have proved to be valuable in practice.
 
-### References {#references}
+### References
 
 [^1]: Mike Cvet. [How We Learned to Stop Worrying and Love Fan-In at Twitter](https://www.youtube.com/watch?v=WEgCjwyXvwc). At *QCon San Francisco*, December 2016. 
 [^2]: Raffi Krikorian. [Timelines at Scale](https://www.infoq.com/presentations/Twitter-Timeline-Scalability/). At *QCon San Francisco*, November 2012. Archived at [perma.cc/V9G5-KLYK](https://perma.cc/V9G5-KLYK) 

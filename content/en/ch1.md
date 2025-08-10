@@ -438,7 +438,7 @@ cloud or on-premises—for example, whether you use an orchestration framework s
 However, choice of deployment tooling is out of scope of this book, since other factors have a
 greater influence on the architecture of data systems.
 
-### Pros and Cons of Cloud Services {#pros-and-cons-of-cloud-services}
+### Pros and Cons of Cloud Services {#sec_introduction_cloud_tradeoffs}
 
 Using a cloud service, rather than running comparable software yourself, essentially outsources the
 operation of that software to the cloud provider. There are good arguments for and against cloud
@@ -832,7 +832,7 @@ a metered billing model, the serverless approach is bringing metered billing to 
 only pay for the time that your application code is actually running, rather than having to
 provision resources in advance.
 
-### Cloud Computing versus Supercomputing {#cloud-computing-versus-supercomputing}
+### Cloud Computing versus Supercomputing {#id17}
 
 Cloud computing is not the only way of building large-scale computing systems; an alternative is
 *high-performance computing* (HPC), also known as *supercomputing*. Although there are overlaps, HPC
@@ -973,7 +973,7 @@ data is being processed—an aspect that many engineers are prone to ignoring. H
 requirements into technical implementations is not yet well understood, but it’s important to keep
 this question in mind as we move through the rest of this book.
 
-### References {#references}
+### References
 
 [^1]: Richard T. Kouzes, Gordon A. Anderson, Stephen T. Elbert, Ian Gorton, and Deborah K. Gracio. [The Changing Paradigm of Data-Intensive Computing](http://www2.ic.uff.br/~boeres/slides_AP/papers/TheChanginParadigmDataIntensiveComputing_2009.pdf). *IEEE Computer*, volume 42, issue 1, January 2009. [doi:10.1109/MC.2009.26](https://doi.org/10.1109/MC.2009.26)
 [^2]: Martin Kleppmann, Adam Wiggins, Peter van Hardenberg, and Mark McGranaghan. [Local-first software: you own your data, in spite of the cloud](https://www.inkandswitch.com/local-first/). At *2019 ACM SIGPLAN International Symposium on New Ideas, New Paradigms, and Reflections on Programming and Software* (Onward!), October 2019. [doi:10.1145/3359591.3359737](https://doi.org/10.1145/3359591.3359737)

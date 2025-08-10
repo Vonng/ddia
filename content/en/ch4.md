@@ -37,7 +37,7 @@ Later in [“Data Storage for Analytics”](/en/ch4#sec_storage_analytics) we’
 analytics, and in [“Multidimensional and Full-Text Indexes”](/en/ch4#sec_storage_multidimensional) we’ll briefly look at indexes for more advanced
 queries, such as text retrieval.
 
-## Storage and Indexing for OLTP {#storage-and-indexing-for-oltp}
+## Storage and Indexing for OLTP {#sec_storage_oltp}
 
 Consider the world’s simplest database, implemented as two Bash functions:
 
@@ -133,7 +133,7 @@ writing the application or administering the database—to choose indexes manual
 knowledge of the application’s typical query patterns. You can then choose the indexes that give
 your application the greatest benefit, without introducing more overhead on writes than necessary.
 
-### Log-Structured Storage {#log-structured-storage}
+### Log-Structured Storage {#sec_storage_log_structured}
 
 To start, let’s assume that you want to continue storing data in the append-only file written by
 `db_set`, and you just want to speed up reads. One way you could do this is by keeping a hash map in
@@ -726,7 +726,7 @@ and analytical processing (HTAP) databases (introduced in [“Data Warehousing�
 becoming two separate storage and query engines, which happen to be accessible through a common SQL
 interface [^50] [^51] [^52] [^53].
 
-### Cloud Data Warehouses {#cloud-data-warehouses}
+### Cloud Data Warehouses {#sec_cloud_data_warehouses}
 
 Data warehouse vendors such as Teradata, Vertica, and SAP HANA sell both on-premises warehouses
 under commercial licenses and cloud-based solutions. But as many of their customers move to the
@@ -779,7 +779,7 @@ Data catalog
  integrated, but decoupling them has enabled data discovery and data governance systems
  (discussed in [“Data Systems, Law, and Society”](/en/ch1#sec_introduction_compliance)) to access a catalog’s metadata as well.
 
-### Column-Oriented Storage {#column-oriented-storage}
+### Column-Oriented Storage {#sec_storage_column}
 
 As discussed in [“Stars and Snowflakes: Schemas for Analytics”](/en/ch3#sec_datamodels_analytics), data warehouses by convention often use a relational
 schema with a big fact table that contains foreign key references into dimension tables.
@@ -1018,7 +1018,7 @@ performance by taking advantages of the characteristics of modern CPUs:
 * operating directly on compressed data without decoding it into a separate in-memory
  representation, which saves memory allocation and copying costs.
 
-### Materialized Views and Data Cubes {#materialized-views-and-data-cubes}
+### Materialized Views and Data Cubes {#sec_storage_materialized_views}
 
 We previously encountered *materialized views* in [“Materializing and Updating Timelines”](/en/ch2#sec_introduction_materializing):
 in a relational data model, they are table-like object whose contents are the results of some
@@ -1156,7 +1156,7 @@ It does this by storing the set of terms as a finite state automaton over the ch
 and transforming it into a *Levenshtein automaton*, which supports efficient search for words within a given edit distance [^97].
 
 
-### Vector Embeddings {#vector-embeddings}
+### Vector Embeddings {#id92}
 
 Semantic search goes beyond synonyms and typos to try and understand document concepts
 and user intentions. For example, if your help pages contain a page titled “cancelling your
@@ -1288,7 +1288,7 @@ documentation for the database of your choice.
 
 
 
-### References {#references}
+### References
 
 [^1]: Nikolay Samokhvalov. [How partial, covering, and multicolumn indexes may slow down UPDATEs in PostgreSQL](https://postgres.ai/blog/20211029-how-partial-and-covering-indexes-affect-update-performance-in-postgresql). *postgres.ai*, October 2021. Archived at [perma.cc/PBK3-F4G9](https://perma.cc/PBK3-F4G9) 
 [^2]: Goetz Graefe. [Modern B-Tree Techniques](https://w6113.github.io/files/papers/btreesurvey-graefe.pdf). *Foundations and Trends in Databases*, volume 3, issue 4, pages 203–402, August 2011. [doi:10.1561/1900000028](https://doi.org/10.1561/1900000028) 

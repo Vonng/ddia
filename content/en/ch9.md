@@ -34,7 +34,7 @@ explore how to think about the state of a distributed system and how to reason a
 have happened ([“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth)). Later, in [Chapter 10](/en/ch10#ch_consistency), we will look at some
 examples of how we can achieve fault tolerance in the face of those faults.
 
-## Faults and Partial Failures {#faults-and-partial-failures}
+## Faults and Partial Failures {#sec_distributed_partial_failure}
 
 When you are writing a program on a single computer, it normally behaves in a fairly predictable
 way: either it works or it doesn’t. Buggy software may give the appearance that the computer is
@@ -129,7 +129,7 @@ the response is not going to arrive. However, when a timeout occurs, you still d
 the remote node got your request or not (and if the request is still queued somewhere, it may still
 be delivered to the recipient, even if the sender has given up on it).
 
-### The Limitations of TCP {#the-limitations-of-tcp}
+### The Limitations of TCP {#sec_distributed_tcp}
 
 Network packets have a maximum size (generally a few kilobytes), but many applications need to send
 messages (requests, responses) that are too big to fit in one packet. These applications most often
@@ -238,7 +238,7 @@ and ensure that the system can recover from them.
 It may make sense to deliberately trigger network problems and test the system’s response (this is
 known as *fault injection*; see [“Fault injection”](/en/ch9#sec_fault_injection)).
 
-### Detecting Faults {#detecting-faults}
+### Detecting Faults {#id307}
 
 Many systems need to automatically detect faulty nodes. For example:
 
@@ -377,7 +377,7 @@ observed response time distribution. The Phi Accrual failure detector [^32],
 which is used for example in Akka and Cassandra [^33]
 is one way of doing this. TCP retransmission timeouts also work similarly [^5].
 
-### Synchronous Versus Asynchronous Networks {#synchronous-versus-asynchronous-networks}
+### Synchronous Versus Asynchronous Networks {#sec_distributed_sync_networks}
 
 Distributed systems would be a lot simpler if we could rely on the network to deliver packets with
 some fixed maximum delay, and not to drop packets. Why can’t we solve this at the hardware level
@@ -519,7 +519,7 @@ synchronize clocks to some degree: the most commonly used mechanism is the Netwo
 allows the computer clock to be adjusted according to the time reported by a group of servers [^39].
 The servers in turn get their time from a more accurate time source, such as a GPS receiver.
 
-### Monotonic Versus Time-of-Day Clocks {#monotonic-versus-time-of-day-clocks}
+### Monotonic Versus Time-of-Day Clocks {#sec_distributed_monotonic_timeofday}
 
 Modern computers have at least two different kinds of clocks: a *time-of-day clock* and a *monotonic
 clock*. Although they both measure time, it is important to distinguish the two, since they serve
@@ -580,7 +580,7 @@ In a distributed system, using a monotonic clock for measuring elapsed time (e.g
 usually fine, because it doesn’t assume any synchronization between different nodes’ clocks and is
 not sensitive to slight inaccuracies of measurement.
 
-### Clock Synchronization and Accuracy {#clock-synchronization-and-accuracy}
+### Clock Synchronization and Accuracy {#sec_distributed_clock_accuracy}
 
 Monotonic clocks don’t need synchronization, but time-of-day clocks need to be set according to an
 NTP server or other external time source in order to be useful. Unfortunately, our methods for
@@ -1033,7 +1033,7 @@ we can make and the guarantees we may want to provide. In [Chapter 10](/en/ch10
 look at some examples of distributed algorithms that provide particular guarantees under particular
 assumptions.
 
-### The Majority Rules {#the-majority-rules}
+### The Majority Rules {#sec_distributed_majority}
 
 Imagine a network with an asymmetric fault: a node is able to receive all messages sent to it, but
 any outgoing messages from that node are dropped or delayed [^22]. Even though that node is working
@@ -1483,7 +1483,7 @@ They are incredibly helpful for distilling down the complexity of real systems t
 of faults that we can reason about, so that we can understand the problem and try to solve it
 systematically.
 
-### Formal Methods and Randomized Testing {#formal-methods-and-randomized-testing}
+### Formal Methods and Randomized Testing {#sec_distributed_formal}
 
 How do we know that an algorithm satisfies the required properties? Due to concurrency, partial
 failures, and network delays there are a huge number of potential states. We need to guarantee
@@ -1702,7 +1702,7 @@ problems in distributed systems.
 
 
 
-### References {#references}
+### References
 
 [^1]: Mark Cavage. [There’s Just No Getting Around It: You’re Building a Distributed System](https://queue.acm.org/detail.cfm?id=2482856). *ACM Queue*, volume 11, issue 4, pages 80-89, April 2013. [doi:10.1145/2466486.2482856](https://doi.org/10.1145/2466486.2482856) 
 [^2]: Jay Kreps. [Getting Real About Distributed System Reliability](https://blog.empathybox.com/post/19574936361/getting-real-about-distributed-system-reliability). *blog.empathybox.com*, March 2012. Archived at [perma.cc/9B5Q-AEBW](https://perma.cc/9B5Q-AEBW) 

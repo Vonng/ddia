@@ -98,7 +98,7 @@ documents are thought to be more flexible.
 The pros and cons of document and relational data have been debated extensively; let’s examine some
 of the key points of that debate.
 
-### The Object-Relational Mismatch {#the-object-relational-mismatch}
+### The Object-Relational Mismatch {#sec_datamodels_document}
 
 Much application development today is done in object-oriented programming languages, which leads to
 a common criticism of the SQL data model: if data is stored in relational tables, an awkward
@@ -693,7 +693,7 @@ sections where schema flexibility is beneficial. Relational-document hybrids are
 --------
 
 
-## Graph-Like Data Models {#graph-like-data-models}
+## Graph-Like Data Models {#sec_datamodels_graph}
 
 We saw earlier that the type of relationships is an important distinguishing feature between
 different data models. If your application has mostly one-to-many relationships (tree-structured
@@ -761,7 +761,7 @@ in graph databases, but difficult in other models.
 
 {{< figure src="/fig/ddia_0306.png" id="fig_datamodels_graph" caption="Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges)." class="w-full my-4" >}}
 
-### Property Graphs {#property-graphs}
+### Property Graphs {#id56}
 
 In the *property graph* (also known as *labeled property graph*) model, each vertex consists of:
 
@@ -850,7 +850,7 @@ substances. Then you could write a query to find out what is safe for each perso
 Graphs are good for evolvability: as you add features to your application, a graph can easily be
 extended to accommodate changes in your application’s data structures.
 
-### The Cypher Query Language {#the-cypher-query-language}
+### The Cypher Query Language {#id57}
 
 *Cypher* is a query language for property graphs, originally created for the Neo4j graph database,
 and later developed into an open standard as *openCypher* [^38]. Besides Neo4j, Cypher is supported by Memgraph, KùzuDB [^35],
@@ -919,7 +919,7 @@ Europe. Then you can proceed to find all locations (states, regions, cities, etc
 Europe respectively by following all incoming `WITHIN` edges. Finally, you can look for people who
 can be found through an incoming `BORN_IN` or `LIVES_IN` edge at one of the location vertices.
 
-### Graph Queries in SQL {#graph-queries-in-sql}
+### Graph Queries in SQL {#id58}
 
 [Example 3-3](/en/ch3#fig_graph_sql_schema) suggested that graph data can be represented in a relational database. But
 if we put graph data in a relational structure, can we also query it using SQL?
@@ -1018,7 +1018,7 @@ Oracle has a different SQL extension for recursive queries, which it calls *hier
 However, the situation may be improving: at the time of writing, there are plans to add a graph
 query language called GQL to the SQL standard [^42] [^43], which will provide a syntax inspired by Cypher, GSQL [^44], and PGQL [^45].
 
-### Triple-Stores and SPARQL {#triple-stores-and-sparql}
+### Triple-Stores and SPARQL {#id59}
 
 The triple-store model is mostly equivalent to the property graph model, using different words to
 describe the same ideas. It is nevertheless worth discussing, because there are various tools and
@@ -1203,7 +1203,7 @@ bound to any vertex that has a `name` property whose value is the string `"Unite
 SPARQL is supported by Amazon Neptune, AllegroGraph, Blazegraph, OpenLink Virtuoso, Apache Jena, and
 various other triple stores [^36].
 
-### Datalog: Recursive Relational Queries {#datalog-recursive-relational-queries}
+### Datalog: Recursive Relational Queries {#id62}
 
 Datalog is a much older language than SPARQL or Cypher: it arose from academic research in the 1980s [^57] [^58] [^59].
 It is less well known among software engineers and not widely supported in mainstream databases, but
@@ -1307,7 +1307,7 @@ referring to other rules, similarly to the way that you break down code into fun
 each other. Just like functions can be recursive, Datalog rules can also invoke themselves, like
 rule 2 in [Example 3-12](/en/ch3#fig_datalog_query), which enables graph traversals in Datalog queries.
 
-### GraphQL {#graphql}
+### GraphQL {#id63}
 
 GraphQL is a query language that, by design, is much more restrictive than the other query languages
 we have seen in this chapter. The purpose of GraphQL is to allow client software running on a user’s
@@ -1676,7 +1676,7 @@ come into play when *implementing* the data models described in this chapter.
 
 
 
-### References {#references}
+### References
 
 [^1]: Jamie Brandon. [Unexplanations: query optimization works because sql is declarative](https://www.scattered-thoughts.net/writing/unexplanations-sql-declarative/). *scattered-thoughts.net*, February 2024. Archived at [perma.cc/P6W2-WMFZ](https://perma.cc/P6W2-WMFZ) 
 [^2]: Joseph M. Hellerstein. [The Declarative Imperative: Experiences and Conjectures in Distributed Logic](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2010/EECS-2010-90.pdf). Tech report UCB/EECS-2010-90, Electrical Engineering and Computer Sciences, University of California at Berkeley, June 2010. Archived at [perma.cc/K56R-VVQM](https://perma.cc/K56R-VVQM) 

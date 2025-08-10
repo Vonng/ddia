@@ -68,7 +68,7 @@ formats are used for data storage and for communication: in databases, web servi
 remote procedure calls (RPC), workflow engines, and event-driven systems such as actors and
 message queues.
 
-## Formats for Encoding Data {#formats-for-encoding-data}
+## Formats for Encoding Data {#sec_encoding_formats}
 
 Programs usually work with data in (at least) two different representations:
 
@@ -104,7 +104,7 @@ However, most systems need to convert between in-memory objects and flat byte se
 such a common problem, there are a myriad different libraries and encoding formats to choose from.
 Let’s do a brief overview.
 
-### Language-Specific Formats {#language-specific-formats}
+### Language-Specific Formats {#id96}
 
 Many programming languages come with built-in support for encoding in-memory objects into byte
 sequences. For example, Java has `java.io.Serializable`, Python has `pickle`, Ruby has `Marshal`,
@@ -273,7 +273,7 @@ In the following sections we will see how we can do much better, and encode the 
 {{< figure link="#fig_encoding_json" src="/fig/ddia_0502.png" id="fig_encoding_messagepack" caption="Figure 5-2. Example record Example 5-2 encoded using MessagePack." class="w-full my-4" >}}
 
 
-### Protocol Buffers {#protocol-buffers}
+### Protocol Buffers {#sec_encoding_protobuf}
 
 Protocol Buffers (protobuf) is a binary encoding library developed at Google.
 It is similar to Apache Thrift, which was originally developed by Facebook [^13];
@@ -363,7 +363,7 @@ because the parser can fill in any missing bits with zeros. However, if old code
 by new code, the old code is still using a 32-bit variable to hold the value. If the decoded 64-bit
 value won’t fit in 32 bits, it will be truncated.
 
-### Avro {#avro}
+### Avro {#sec_encoding_avro}
 
 Apache Avro is another binary encoding format that is interestingly different from Protocol Buffers.
 It was started in 2009 as a subproject of Hadoop, as a result of Protocol Buffers not being a good
@@ -541,7 +541,7 @@ automate this, but the schema generator would have to be very careful to not ass
 field tags.) This kind of dynamically generated schema simply wasn’t a design goal of Protocol
 Buffers, whereas it was for Avro.
 
-### The Merits of Schemas {#the-merits-of-schemas}
+### The Merits of Schemas {#sec_encoding_schemas}
 
 As we saw, Protocol Buffers and Avro both use a schema to describe a binary encoding format. Their
 schema languages are much simpler than XML Schema or JSON Schema, which support much more detailed
@@ -580,7 +580,7 @@ In summary, schema evolution allows the same kind of flexibility as schemaless/s
 databases provide (see [“Schema flexibility in the document model”](/en/ch3#sec_datamodels_schema_flexibility)), while also providing better
 guarantees about your data and better tooling.
 
-## Modes of Dataflow {#modes-of-dataflow}
+## Modes of Dataflow {#sec_encoding_dataflow}
 
 At the beginning of this chapter we said that whenever you want to send some data to another process
 with which you don’t share memory—for example, whenever you want to send data over the network or
@@ -1160,7 +1160,7 @@ quite achievable. May your application’s evolution be rapid and your deploymen
 
 
 
-### References {#references}
+### References
 
 [^1]: [CWE-502: Deserialization of Untrusted Data](https://cwe.mitre.org/data/definitions/502.html). Common Weakness Enumeration, *cwe.mitre.org*, July 2006. Archived at [perma.cc/26EU-UK9Y](https://perma.cc/26EU-UK9Y) 
 [^2]: Steve Breen. [What Do WebLogic, WebSphere, JBoss, Jenkins, OpenNMS, and Your Application Have in Common? This Vulnerability](https://foxglovesecurity.com/2015/11/06/what-do-weblogic-websphere-jboss-jenkins-opennms-and-your-application-have-in-common-this-vulnerability/). *foxglovesecurity.com*, November 2015. Archived at [perma.cc/9U97-UVVD](https://perma.cc/9U97-UVVD) 

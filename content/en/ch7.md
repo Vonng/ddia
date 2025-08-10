@@ -64,7 +64,7 @@ the network between nodes. We will discuss such faults in [Chapter 9](/en/ch9#c
 
 --------
 
-## Pros and Cons of Sharding {#pros-and-cons-of-sharding}
+## Pros and Cons of Sharding {#sec_sharding_reasons}
 
 The primary reason for sharding a database is *scalability*: it’s a solution if the volume of data
 or the write throughput has become too great for a single node to handle, as it allows you to spread
@@ -108,7 +108,7 @@ access* (NUMA) architecture in which some banks of memory are closer to one CPU 
 For example, Redis, VoltDB, and FoundationDB use one process per core, and rely on sharding to
 spread load across CPU cores in the same machine [^6].
 
-### Sharding for Multitenancy {#sharding-for-multitenancy}
+### Sharding for Multitenancy {#sec_sharding_multitenancy}
 
 Software as a Service (SaaS) products and cloud services are often *multitenant*, where each tenant
 is a customer. Multiple users may have logins on the same tenant, but each tenant has a
@@ -171,7 +171,7 @@ The main challenges around using sharding for multitenancy are:
 
 
 
-## Sharding of Key-Value Data {#sharding-of-key-value-data}
+## Sharding of Key-Value Data {#sec_sharding_key_value}
 
 Say you have a large amount of data, and you want to shard it. How do you decide which records to
 store on which nodes?
@@ -195,7 +195,7 @@ necessarily its primary key). That algorithm needs to be amenable to rebalancing
 hot spots.
 
 
-### Sharding by Key Range {#sharding-by-key-range}
+### Sharding by Key Range {#sec_sharding_key_range}
 
 One way of sharding is to assign a contiguous range of partition keys (from some minimum to some
 maximum) to each shard, like the volumes of a paper encyclopedia, as illustrated in
@@ -267,7 +267,7 @@ all of its data to be rewritten into new files, similarly to a compaction in a l
 storage engine. A shard that needs splitting is often also one that is under high load, and the cost
 of splitting can exacerbate that load, risking it becoming overloaded.
 
-### Sharding by Hash of Key {#sharding-by-hash-of-key}
+### Sharding by Hash of Key {#sec_sharding_hash}
 
 Key-range sharding is useful if you want records with nearby (but different) partition keys to be
 grouped into the same shard; for example, this might be the case with timestamps. If you don’t care
@@ -592,7 +592,7 @@ search engines such as Solr and Elasticsearch. The problem with secondary indexe
 map neatly to shards. There are two main approaches to sharding a database with secondary indexes:
 local and global indexes.
 
-### Local Secondary Indexes {#local-secondary-indexes}
+### Local Secondary Indexes {#id166}
 
 For example, imagine you are operating a website for selling used cars (illustrated in
 [Figure 7-9](/en/ch7#fig_sharding_local_secondary)). Each listing has a unique ID, and you use that ID as partition
@@ -642,7 +642,7 @@ process every query anyway.
 Nevertheless, local secondary indexes are widely used [^31]: for example, MongoDB, Riak, Cassandra [^32], Elasticsearch [^33], 
 SolrCloud, and VoltDB [^34] all use local secondary indexes.
 
-### Global Secondary Indexes {#global-secondary-indexes}
+### Global Secondary Indexes {#id167}
 
 Rather than each shard having its own, local secondary index, we can construct a *global index* that
 covers data in all shards. However, we can’t just store that index on one node, since it would
@@ -744,7 +744,7 @@ that question in the following chapters.
 
 
 
-### References {#references}
+### References
 
 [^1]: Claire Giordano. [Understanding partitioning and sharding in Postgres and Citus](https://www.citusdata.com/blog/2023/08/04/understanding-partitioning-and-sharding-in-postgres-and-citus/). *citusdata.com*, August 2023. Archived at [perma.cc/8BTK-8959](https://perma.cc/8BTK-8959) 
 [^2]: Brandur Leach. [Partitioning in Postgres, 2022 edition](https://brandur.org/fragments/postgres-partitioning-2022). *brandur.org*, October 2022. Archived at [perma.cc/Z5LE-6AKX](https://perma.cc/Z5LE-6AKX) 
