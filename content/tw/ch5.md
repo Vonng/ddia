@@ -34,7 +34,7 @@ breadcrumbs: false
 
 向前相容性的另一個挑戰如 [圖 5-1](/tw/ch5#fig_encoding_preserve_field) 所示。假設你向記錄模式添加了一個欄位，新程式碼建立了包含該新欄位的記錄並將其儲存在資料庫中。隨後，舊版本的程式碼（尚不知道新欄位）讀取記錄，更新它，然後寫回。在這種情況下，理想的行為通常是舊程式碼保持新欄位不變，即使它無法解釋。但是，如果記錄被解碼為不顯式保留未知欄位的模型物件，資料可能會丟失，如 [圖 5-1](/tw/ch5#fig_encoding_preserve_field) 所示。
 
-{{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="當舊版本的應用程式更新之前由新版本應用程式寫入的資料時，如果不小心，資料可能會丟失。" class="w-full my-4" >}}
+{{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="圖 5-1. 當舊版本的應用程式更新之前由新版本應用程式寫入的資料時，如果不小心，資料可能會丟失。" class="w-full my-4" >}}
 
 在本章中，我們將研究幾種編碼資料的格式，包括 JSON、XML、Protocol Buffers 和 Avro。特別是，我們將研究它們如何處理模式變化，以及它們如何支援新舊資料和程式碼需要共存的系統。然後我們將討論這些格式如何用於資料儲存和通訊：在資料庫、Web 服務、REST API、遠端過程呼叫（RPC）、工作流引擎以及事件驅動系統（如 actor 和訊息佇列）中。
 
