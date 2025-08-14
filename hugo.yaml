@@ -33,14 +33,20 @@ languages:
     languageName: 繁体中文
     languageCode: tw
     contentDir: content/tw
-    weight: 3
+    weight: 2
     title: 設計資料密集型應用（第二版）
   v1:
-    languageName: 中文第一版
-    languageCode: v1
+    languageName: 简体中文第一版
+    languageCode: zh
     contentDir: content/v1
-    weight: 1
+    weight: 3
     title: 设计数据密集型应用（第一版）
+  v1_tw:
+    languageName: 繁体中文第一版
+    languageCode: tw
+    contentDir: content/v1_tw
+    weight: 4
+    title: 設計資料密集型應用（第一版）
   #en:
   #  languageName: English
   #  languageCode: en
@@ -90,10 +96,14 @@ menu:
     - identifier: traditional-chinese
       name: "繁體中文 ↗"
       url: "/tw"
-      weight: 4
+      weight: 3
     - identifier: chinese-1st-edition
-      name: "中文初版 ↗"
+      name: "简体中文初版 ↗"
       url: "/v1"
+      weight: 4
+    - identifier: traditional-1st-edition
+      name: "繁體中文初版 ↗"
+      url: "/v1_tw"
       weight: 5
     #- identifier: english
     #  name: "English ↗"

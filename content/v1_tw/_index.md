@@ -1,5 +1,5 @@
 ---
-title: 設計資料密集型應用（第二版）
+title: 設計資料密集型應用（第一版）
 linkTitle: DDIA
 cascade:
   type: docs
@@ -19,12 +19,8 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 **校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/contrib)
 
 > [!NOTE]
-> **DDIA 第二版** 正在翻譯中 ([`main`](https://github.com/Vonng/ddia/tree/main) 分支)，歡迎加入並提出您的寶貴意見！[點選此處閱覽第一版](/v1)。
+> DDIA [**第二版**](/zh) 正在翻譯中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main) 目錄)，歡迎加入並提出您的寶貴意見！[點選此處閱覽第二版](/zh)。
 
-
-> [!TIP] 預覽版讀者須知
-> 預覽版電子書允許你在作者寫作時就能獲得最原始、未經編輯的內容 —— 這樣你就能在這些技術正式釋出之前很久就用上它們。
-> 如果你想積極參與審閱和評論這份草稿，請在 GitHub 上聯絡。本書的 GitHub 倉庫是 [ept/ddia2-feedback](https://github.com/ept/ddia2-feedback)，中文翻譯版的倉庫是 [Vonng/ddia](https://github.com/Vonng/ddia)。
 
 
 ## 譯序
@@ -56,33 +52,36 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 
 ## 目錄
 
-### [序言](/tw/preface)
+### [序言](/v1_tw/preface)
 
-### [第一部分：資料系統基礎](/tw/part-i)
+### [第一部分：資料系統基礎](/v1_tw/part-i)
 
-- [1. 資料系統架構中的權衡](/tw/ch1)
-- [2. 定義非功能性需求](/tw/ch2)
-- [3. 資料模型與查詢語言](/tw/ch3)
-- [4. 儲存與檢索](/tw/ch4)
-- [5. 編碼與演化](/tw/ch5)
+* [第一章：可靠性、可伸縮性和可維護性](/v1_tw/ch1)
+* [第二章：資料模型與查詢語言](/v1_tw/ch2)
+* [第三章：儲存與檢索](/v1_tw/ch3)
+* [第四章：編碼與演化](/v1_tw/ch4)
 
-### [第二部分：分散式資料](/tw/part-ii)
+### [第二部分：分散式資料](/v1_tw/part-ii)
 
-- [6. 複製](/tw/ch6)
-- [7. 分片](/tw/ch7)
-- [8. 事務](/tw/ch8)
-- [9. 分散式系統的麻煩](/tw/ch9)
-- [10.一致性與共識](/tw/ch10)
+* [第五章：複製](/v1_tw/ch5)
+* [第六章：分割槽](/v1_tw/ch6)
+* [第七章：事務](/v1_tw/ch7)
+* [第八章：分散式系統的麻煩](/v1_tw/ch8)
+* [第九章：一致性與共識](/v1_tw/ch9)
 
-### [第三部分：派生資料](/tw/part-iii)
+### [第三部分：衍生資料](/v1_tw/part-iii)
 
-- [11. 批處理](/tw/ch11) （尚未釋出）
-- [12. 流處理](/tw/ch12) （尚未釋出）
-- [13. 做正確的事](/tw/ch13) （尚未釋出）
-- [術語表](/tw/glossary)
-- [後記](/tw/colophon)
+* [第十章：批處理](/v1_tw/ch10)
+* [第十一章：流處理](/v1_tw/ch11)
+* [第十二章：資料系統的未來](/v1_tw/ch12)
 
+### [術語表](/v1_tw/glossary)
 
+### [後記](/v1_tw/colophon)
+
+<br>
+
+---------
 
 ## 法律宣告
 
@@ -95,15 +94,17 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 本譯文只供學習研究參考之用，不得公開傳播發行或用於商業用途。有能力閱讀英文書籍者請購買正版支援。
 
 
+---------
+
 ## 貢獻
 
 0. 全文校訂 by [@yingang](https://github.com/Vonng/ddia/commits?author=yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
-4. [第一部分](/tw/part-i)前言，[ch2](/tw/ch2)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. [詞彙表](/tw/glossary)、[後記](/tw/colophon)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
-6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
+4. 第一部分]前言，ch2 校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
+5. 詞彙表、後記關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+6. 繁體中文版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
 8. [感謝所有作出貢獻，提出意見的朋友們](/contrib)：
 

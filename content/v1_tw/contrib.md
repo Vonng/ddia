@@ -1,114 +1,41 @@
 ---
-title: 設計資料密集型應用（第二版）
-linkTitle: DDIA
-cascade:
-  type: docs
+title: 貢獻者
+weight: 800
 breadcrumbs: false
 ---
 
+## 譯者
 
-**作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ： 英國劍橋大學分散式系統研究員，演講者，博主和開源貢獻者，軟體工程師和企業家，曾在 LinkedIn 和 Rapportive 負責資料基礎架構。
-
-**譯者**：[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
 獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[國區活躍 Top20](https://committers.top/china)。
 [DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，公眾號：《老馮雲數》，資料庫 KOL。
 
-**校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/contrib)
+## 校訂與維護
 
-> [!NOTE]
-> **DDIA 第二版** 正在翻譯中 ([`main`](https://github.com/Vonng/ddia/tree/main) 分支)，歡迎加入並提出您的寶貴意見！[點選此處閱覽第一版](/v1)。
+Yin Gang [@yingang](https://github.com/yingang) 對本書進行了全文校訂，並持續維護。
 
+## 繁體中文版本
 
-> [!TIP] 預覽版讀者須知
-> 預覽版電子書允許你在作者寫作時就能獲得最原始、未經編輯的內容 —— 這樣你就能在這些技術正式釋出之前很久就用上它們。
-> 如果你想積極參與審閱和評論這份草稿，請在 GitHub 上聯絡。本書的 GitHub 倉庫是 [ept/ddia2-feedback](https://github.com/ept/ddia2-feedback)，中文翻譯版的倉庫是 [Vonng/ddia](https://github.com/Vonng/ddia)。
+[繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW)
 
+## 貢獻列表
 
-## 譯序
-
-> 不懂資料庫的全棧工程師不是好架構師 —— 馮若航 / Vonng
-
-現今，尤其是在網際網路領域，大多數應用都屬於資料密集型應用。本書從底層資料結構到頂層架構設計，將資料系統設計中的精髓娓娓道來。其中的寶貴經驗無論是對架構師、DBA、還是後端工程師、甚至產品經理都會有幫助。
-
-這是一本理論結合實踐的書，書中很多問題，譯者在實際場景中都曾遇到過，讀來讓人擊節扼腕。如果能早點讀到這本書，該少走多少彎路啊！
-
-這也是一本深入淺出的書，講述概念的來龍去脈而不是賣弄定義，介紹事物發展演化歷程而不是事實堆砌，將複雜的概念講述的淺顯易懂，但又直擊本質不失深度。每章最後的引用質量非常好，是深入學習各個主題的絕佳索引。
-
-本書為資料系統的設計、實現、與評價提供了很好的概念框架。讀完並理解本書內容後，讀者可以輕鬆看破大多數的技術忽悠，與技術磚家撕起來虎虎生風。
-
-這是 2017 年譯者讀過最好的一本技術類書籍，這麼好的書沒有中文翻譯，實在是遺憾。某不才，願為先進技術文化的傳播貢獻一份力量。既可以深入學習有趣的技術主題，又可以鍛鍊中英文語言文字功底，何樂而不為？
-
-
-
-## 前言
-
-> 在我們的社會中，技術是一種強大的力量。資料、軟體、通訊可以用於壞的方面：不公平的階級固化，損害公民權利，保護既得利益集團。但也可以用於好的方面：讓底層人民發出自己的聲音，讓每個人都擁有機會，避免災難。本書獻給所有將技術用於善途的人們。
-
-
-> 計算是一種流行文化，流行文化鄙視歷史。流行文化關乎個體身份和參與感，但與合作無關。流行文化活在當下，也與過去和未來無關。我認為大部分（為了錢）編寫程式碼的人就是這樣的，他們不知道自己的文化來自哪裡。
->
->  —— 阿蘭・凱接受 Dobb 博士的雜誌採訪時（2012 年）
-
-
-
-## 目錄
-
-### [序言](/tw/preface)
-
-### [第一部分：資料系統基礎](/tw/part-i)
-
-- [1. 資料系統架構中的權衡](/tw/ch1)
-- [2. 定義非功能性需求](/tw/ch2)
-- [3. 資料模型與查詢語言](/tw/ch3)
-- [4. 儲存與檢索](/tw/ch4)
-- [5. 編碼與演化](/tw/ch5)
-
-### [第二部分：分散式資料](/tw/part-ii)
-
-- [6. 複製](/tw/ch6)
-- [7. 分片](/tw/ch7)
-- [8. 事務](/tw/ch8)
-- [9. 分散式系統的麻煩](/tw/ch9)
-- [10.一致性與共識](/tw/ch10)
-
-### [第三部分：派生資料](/tw/part-iii)
-
-- [11. 批處理](/tw/ch11) （尚未釋出）
-- [12. 流處理](/tw/ch12) （尚未釋出）
-- [13. 做正確的事](/tw/ch13) （尚未釋出）
-- [術語表](/tw/glossary)
-- [後記](/tw/colophon)
-
-
-
-## 法律宣告
-
-從原作者處得知，已經有簡體中文的翻譯計劃，將於 2018 年末完成。[購買地址](https://search.jd.com/Search?keyword=設計資料密集型應用)
-
-譯者純粹出於 **學習目的** 與 **個人興趣** 翻譯本書，不追求任何經濟利益。
-
-譯者保留對此版本譯文的署名權，其他權利以原作者和出版社的主張為準。
-
-本譯文只供學習研究參考之用，不得公開傳播發行或用於商業用途。有能力閱讀英文書籍者請購買正版支援。
-
-
-## 貢獻
+[GitHub 貢獻者列表](https://github.com/Vonng/ddia/graphs/contributors)
 
 0. 全文校訂 by [@yingang](https://github.com/Vonng/ddia/commits?author=yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
-4. [第一部分](/tw/part-i)前言，[ch2](/tw/ch2)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. [詞彙表](/tw/glossary)、[後記](/tw/colophon)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+4. [第一部分](/v1_tw/part-i)前言，[ch2](/v1_tw/ch2)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
+5. [詞彙表](/v1_tw/glossary)、[後記](/v1_tw/colophon)關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
-8. [感謝所有作出貢獻，提出意見的朋友們](/contrib)：
 
-<details>
-<summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
+
+感謝所有提出意見，作出貢獻的朋友們，您可以在這裡找到所有貢獻的 [Issue 列表](https://github.com/Vonng/ddia/issues) 與 [PR 列表](https://github.com/Vonng/ddia/pulls)：
 
 | ISSUE & Pull Requests                           | USER                                                       | Title                                                          |
 |-------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------|
@@ -302,15 +229,3 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [6  ](https://github.com/Vonng/ddia/pull/6)     | [@MuAlex](https://github.com/MuAlex)                       | Ch6 change version1                                            |
 | [5  ](https://github.com/Vonng/ddia/pull/5)     | [@nevertiree](https://github.com/nevertiree)               | Chapter 01語法微調                                                 |
 | [2  ](https://github.com/Vonng/ddia/pull/2)     | [@seagullbird](https://github.com/seagullbird)             | 序言初翻                                                           |
-
-</details><br />
-
-
----------
-
-## 許可證
-
-本專案採用 [CC-BY 4.0](https://github.com/Vonng/ddia/blob/master/LICENSE) 許可證，您可以在這裡找到完整說明：
-
-- [署名 4.0 協議國際版 CC BY 4.0 Deed](https://creativecommons.org/licenses/by/4.0/deed.zh-hans)
-- [Attribution 4.0 International CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.en)
