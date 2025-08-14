@@ -91,7 +91,7 @@ Replication can also help improve performance. We discuss replication in [Chapte
 
 These are separate mechanisms, but they often go hand in hand, as illustrated in [Figure II-1](#fig_replication_partitioning).
 
-{{< figure src="/v1/ddia_08.png" id="fig_replication_partitioning" caption="*Figure II-1. A database split into two partitions, with two replicas per partition." class="w-full my-4" >}}
+{{< figure src="/v1/ddia_part-ii_01.png" id="fig_replication_partitioning" caption="*Figure II-1. A database split into two partitions, with two replicas per partition." class="w-full my-4" >}}
 
 With an understanding of those concepts, we can discuss the difficult trade-offs that you need to make in a distributed system. 
 We’ll discuss *transactions* in [Chapter 8](/en/ch8), as that will help you understand all the many things that can go wrong in a data system, and what you can do about them. 

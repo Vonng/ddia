@@ -72,7 +72,7 @@ breadcrumbs: false
 
 复制和分区是不同的机制，但它们经常同时使用。如 [图 II-1](#fig_replication_partitioning) 所示。
 
-{{< figure src="/v1/ddia_08.png" id="fig_replication_partitioning" caption="图 II-1 一个数据库切分为两个分区，每个分区都有两个副本" class="w-full my-4" >}}
+{{< figure src="/v1/ddia_part-ii_01.png" id="fig_replication_partitioning" caption="图 II-1 一个数据库切分为两个分区，每个分区都有两个副本" class="w-full my-4" >}}
 
 
 理解了这些概念，就可以开始讨论在分布式系统中需要做出的困难抉择。[第八章](/ch8) 将讨论 **事务（Transaction）**，这对于了解数据系统中可能出现的各种问题，以及我们可以做些什么很有帮助。
