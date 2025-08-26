@@ -41,6 +41,7 @@ def convert_file(src_filepath, dst_filepath, src_folder, dst_folder, cfg='s2twp.
         dst.write("\n".join(
             process_urls(
                 converter.convert(line.rstrip())
+                    .replace('一箇', '一個')
                     .replace('髮送', '傳送')
                     .replace('髮布', '釋出')
                     .replace('髮生', '發生')
