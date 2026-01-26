@@ -1,0 +1,41 @@
+name: Generate GitBook eBooks
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-ebook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Pandoc
+        uses: siacodelabs/setup-pandoc@v1
+        with:
+          xelatex: true
+
+      - name: Generate EPUB file
+        run: make epub
+
+      - name: Create or update Release and upload EPUB
+        if: github.event_name == 'push'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: latest
+          name: DDIA EBook - Latest Release
+          artifacts: output/ddia.epub
+          allowUpdates: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload generated eBooks
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebooks
+          path: output/ddia.epub
