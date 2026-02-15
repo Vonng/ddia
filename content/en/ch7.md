@@ -611,7 +611,7 @@ automatically adds its ID to the list of IDs for the index entry `color:red`. As
 
 {{< figure src="/fig/ddia_0709.png" id="fig_sharding_local_secondary" caption="Figure 7-9. Local secondary indexes: each shard indexes only the records within its own shard." class="w-full my-4" >}}
 
-> [!WARN] WARNING
+> [!WARNING] WARNING
 
 If your database only supports a key-value model, you might be tempted to implement a secondary
 index yourself by creating a mapping from values to IDs in application code. If you go down this

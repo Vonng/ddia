@@ -62,10 +62,20 @@ markup:
       table: true            # 启用 Markdown 表格
       taskList: true         # 启用任务列表 [ ] / [x]
       typographer: true      # 智能排版（引号、破折号等）
+      passthrough:
+        enable: true         # 允许将数学定界符透传给 Hextra 的数学渲染器
+        delimiters:
+          block:
+            - ['\[', '\]']
+            - ['$$', '$$']
+          inline:
+            - ['\(', '\)']
     parser:
       attribute: true        # 允许在标题后写 {#id .class key=val}，用于显式锚点
       autoHeadingID: true    # 为标题自动生成 ID（手写 {#id} 会覆盖自动生成）
       autoHeadingIDType: github  # 自动 ID 规则：github / blackfriday / none
+    renderer:
+      unsafe: true           # 允许 Markdown 中的原生 HTML（如 <a>、<details>）按原样渲染
   tableOfContents:
     startLevel: 2            # ToC 从 h2 开始
     endLevel: 4              # ToC 到 h4 结束

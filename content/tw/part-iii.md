@@ -37,27 +37,35 @@ breadcrumbs: false
 ## 章節概述
 
 我們將從 [第十一章](/tw/ch11) 開始，研究例如 MapReduce 這樣 **面向批處理（batch-oriented）** 的資料流系統。對於建設大規模資料系統，我們將看到，它們提供了優秀的工具和思想。
-[第十二章](/tw/ch12) 將把這些思想應用到 **流式資料（data streams）** 中，使我們能用更低的延遲完成同樣的任務。[第十三章](/tw/ch13) 將對本書進行總結，探討如何使用這些工具來構建可靠，可伸縮和可維護的應用。
+[第十二章](/tw/ch12) 將把這些思想應用到 **流式資料（data streams）** 中，使我們能用更低的延遲完成同樣的任務。[第十三章](/tw/ch13) 將探討如何使用這些工具來構建可靠、可伸縮和可維護的應用。[第十四章](/ch14) 將以倫理、隱私與社會影響為主題，為全書收束。
 
 
-## [第十一章：批處理](/tw/ch11)
-- [使用Unix工具的批處理](/tw/ch11#使用unix工具的批處理)
-- [MapReduce和分散式檔案系統](/tw/ch11#mapreduce和分散式檔案系統)
-- [MapReduce之後](/tw/ch11#mapreduce之後)
-- [本章小結](/tw/ch11#本章小結)
-- [參考文獻](/tw/ch11#參考文獻)
+## 索引
 
-## [第十二章：流處理](/tw/ch12)
-- [傳遞事件流](/tw/ch12#傳遞事件流)
-- [資料庫與流](/tw/ch12#資料庫與流)
-- [流處理](/tw/ch12#流處理)
-- [本章小結](/tw/ch12#本章小結)
-- [參考文獻](/tw/ch12#參考文獻)
+## [11. 批處理](/tw/ch11)
+- [使用 Unix 工具的批處理](/tw/ch11#sec_batch_unix)
+- [分散式系統中的批處理](/tw/ch11#sec_batch_distributed)
+- [批處理模型](/tw/ch11#id431)
+- [批處理用例](/tw/ch11#sec_batch_output)
+- [本章小結](/tw/ch11#id292)
+- [參考文獻](/tw/ch11#references)
 
-## [第十三章：資料系統的未來](/tw/ch13)
-- [資料整合](/tw/ch13#資料整合)
-- [分拆資料庫](/tw/ch13#分拆資料庫)
-- [將事情做正確](/tw/ch13#將事情做正確)
-- [做正確的事情](/tw/ch13#做正確的事情)
-- [本章小結](/tw/ch13#本章小結)
-- [參考文獻](/tw/ch13#參考文獻)
+## [12. 流處理](/tw/ch12)
+- [傳遞事件流](/tw/ch12#sec_stream_transmit)
+- [資料庫與流](/tw/ch12#sec_stream_databases)
+- [流處理](/tw/ch12#sec_stream_processing)
+- [本章小結](/tw/ch12#id332)
+- [參考文獻](/tw/ch12#references)
+
+## [13. 流式系統的哲學](/tw/ch13)
+- [資料整合](/tw/ch13#sec_future_integration)
+- [分拆資料庫](/tw/ch13#sec_future_unbundling)
+- [追求正確性](/tw/ch13#sec_future_correctness)
+- [本章小結](/tw/ch13#id367)
+- [參考文獻](/tw/ch13#references)
+
+## [14. 將事情做正確](/ch14)
+- [預測分析](/ch14#id369)
+- [隱私與追蹤](/ch14#id373)
+- [總結](/ch14#id594)
+- [參考文獻](/ch14#references)
