@@ -4,6 +4,8 @@ weight: 206
 breadcrumbs: false
 ---
 
+<a id="ch_replication"></a>
+
 ![](/map/ch05.png)
 
 > *The major difference between a thing that might go wrong and a thing that cannot possibly go wrong
@@ -21,7 +23,7 @@ why you might want to replicate data:
 * To scale out the number of machines that can serve read queries (and thus increase read throughput)
 
 In this chapter we will assume that your dataset is small enough that each machine can hold a copy of
-the entire dataset. In [Chapter 7](/en/ch7#ch_sharding) we will relax that assumption and discuss *sharding*
+the entire dataset. In [Chapter 7](/en/ch7#ch_sharding) we will relax that assumption and discuss *sharding*
 (*partitioning*) of datasets that are too big for a single machine. In later chapters we will discuss
 various kinds of faults that can occur in a replicated data system, and how to deal with them.
 
@@ -72,7 +74,7 @@ question inevitably arises: how do we ensure that all the data ends up on all th
 
 Every write to the database needs to be processed by every replica; otherwise, the replicas would no
 longer contain the same data. The most common solution is called *leader-based replication*,
-*primary-backup*, or *active/passive*. It works as follows (see [Figure 6-1](/en/ch6#fig_replication_leader_follower)):
+*primary-backup*, or *active/passive*. It works as follows (see [Figure 6-1](/en/ch6#fig_replication_leader_follower)):
 
 1. One of the replicas is designated the *leader* (also known as *primary* or *source* [^2]).
    When clients want to write to the database, they must send their requests to the leader, which
@@ -88,7 +90,7 @@ longer contain the same data. The most common solution is called *leader-based r
 
 {{< figure src="/fig/ddia_0601.png" id="fig_replication_leader_follower" caption="Figure 6-1. Single-leader replication directs all writes to a designated leader, which sends a stream of changes to the follower replicas." class="w-full my-4" >}}
 
-If the database is sharded (see [Chapter 7](/en/ch7#ch_sharding)), each shard has one leader. Different shards may
+If the database is sharded (see [Chapter 7](/en/ch7#ch_sharding)), each shard has one leader. Different shards may
 have their leaders on different nodes, but each shard must nevertheless have one leader node. In
 [“Multi-Leader Replication”](/en/ch6#sec_replication_multi_leader) we will discuss an alternative model in which a system may have
 multiple leaders for the same shard at the same time.
@@ -99,7 +101,7 @@ It is also used in some document databases such as MongoDB and DynamoDB [^5],
 message brokers such as Kafka, replicated block devices such as DRBD, and some network filesystems.
 Many consensus algorithms such as Raft, which is used for replication in CockroachDB [^6], TiDB [^7],
 etcd, and RabbitMQ quorum queues (among others), are also based on a single leader, and automatically 
-elect a new leader if the old one fails (we will discuss consensus in more detail in [Chapter 10](/en/ch10#ch_consistency)).
+elect a new leader if the old one fails (we will discuss consensus in more detail in [Chapter 10](/en/ch10#ch_consistency)).
 
 --------
 
@@ -115,15 +117,15 @@ An important detail of a replicated system is whether the replication happens *s
 *asynchronously*. (In relational databases, this is often a configurable option; other systems are
 often hardcoded to be either one or the other.)
 
-Think about what happens in [Figure 6-1](/en/ch6#fig_replication_leader_follower), where the user of a website updates
+Think about what happens in [Figure 6-1](/en/ch6#fig_replication_leader_follower), where the user of a website updates
 their profile image. At some point in time, the client sends the update request to the leader;
 shortly afterward, it is received by the leader. At some point, the leader forwards the data change
 to the followers. Eventually, the leader notifies the client that the update was successful.
-[Figure 6-2](/en/ch6#fig_replication_sync_replication) shows one possible way how the timings could work out.
+[Figure 6-2](/en/ch6#fig_replication_sync_replication) shows one possible way how the timings could work out.
 
 {{< figure src="/fig/ddia_0602.png" id="fig_replication_sync_replication" caption="Figure 6-2. Leader-based replication with one synchronous and one asynchronous follower." class="w-full my-4" >}}
 
-In the example of [Figure 6-2](/en/ch6#fig_replication_sync_replication), the replication to follower 1 is
+In the example of [Figure 6-2](/en/ch6#fig_replication_sync_replication), the replication to follower 1 is
 *synchronous*: the leader waits until follower 1 has confirmed that it received the write before
 reporting success to the user, and before making the write visible to other clients. The replication
 to follower 2 is *asynchronous*: the leader sends the message, but doesn’t wait for a response from
@@ -155,7 +157,7 @@ In some systems, a *majority* (e.g., 3 out of 5 replicas, including the leader) 
 updated synchronously, and the remaining minority is asynchronous. This is an example of a *quorum*,
 which we will discuss further in [“Quorums for reading and writing”](/en/ch6#sec_replication_quorum_condition). Majority quorums are often
 used in systems that use a consensus protocol for automatic leader election, which we will return to
-in [Chapter 10](/en/ch10#ch_consistency).
+in [Chapter 10](/en/ch10#ch_consistency).
 
 Sometimes, leader-based replication is configured to be completely asynchronous. In this case, if the
 leader fails and is not recoverable, any writes that have not yet been replicated to followers are
@@ -205,6 +207,8 @@ from the object store. For example, WAL-G does this for PostgreSQL, MySQL, and S
 Litestream does the equivalent for SQLite.
 
 --------
+
+<a id="sec_replication_object_storage"></a>
 
 > [!TIP] DATABASES BACKED BY OBJECT STORAGE
 
@@ -303,7 +307,7 @@ consists of the following steps:
    established *controller node* [^13].
    The best candidate for leadership is usually the replica with the most up-to-date data changes
    from the old leader (to minimize any data loss). Getting all the nodes to agree on a new leader
-   is a consensus problem, discussed in detail in [Chapter 10](/en/ch10#ch_consistency).
+   is a consensus problem, discussed in detail in [Chapter 10](/en/ch10#ch_consistency).
 3. *Reconfiguring the system to use the new leader.* Clients now need to send
    their write requests to the new leader (we discuss this
    in [“Request Routing”](/en/ch7#sec_sharding_routing)). If the old leader comes back, it might still believe that it is
@@ -326,7 +330,7 @@ Failover is fraught with things that can go wrong:
   primary keys that were previously assigned by the old leader. These primary keys were also used in
   a Redis store, so the reuse of primary keys resulted in inconsistency between MySQL and Redis,
   which caused some private data to be disclosed to the wrong users.
-* In certain fault scenarios (see [Chapter 9](/en/ch9#ch_distributed)), it could happen that two nodes both believe
+* In certain fault scenarios (see [Chapter 9](/en/ch9#ch_distributed)), it could happen that two nodes both believe
   that they are the leader. This situation is called *split brain*, and it is dangerous: if both
   leaders accept writes, and there is no process for resolving conflicts (see
   [“Multi-Leader Replication”](/en/ch6#sec_replication_multi_leader)), data is likely to be lost or corrupted. As a safety catch, some
@@ -362,7 +366,7 @@ behind by several days could be catastrophic.
 
 These issues—node failures; unreliable networks; and trade-offs around replica consistency,
 durability, availability, and latency—are in fact fundamental problems in distributed systems.
-In [Chapter 9](/en/ch9#ch_distributed) and [Chapter 10](/en/ch10#ch_consistency) we will discuss them in greater depth.
+In [Chapter 9](/en/ch9#ch_distributed) and [Chapter 10](/en/ch10#ch_consistency) we will discuss them in greater depth.
 
 ### Implementation of Replication Logs {#sec_replication_implementation}
 
@@ -405,7 +409,7 @@ in practice, so many databases prefer other replication methods.
 
 #### Write-ahead log (WAL) shipping {#write-ahead-log-wal-shipping}
 
-In [Chapter 4](/en/ch4#ch_storage) we saw that a write-ahead log is needed to make B-tree storage engines robust:
+In [Chapter 4](/en/ch4#ch_storage) we saw that a write-ahead log is needed to make B-tree storage engines robust:
 every modification is first written to the WAL so that the tree can be restored to a consistent
 state after a crash. Since the WAL contains all the information necessary to restore the indexes and
 heap into a consistent state, we can use the exact same log to build a replica on another node:
@@ -425,6 +429,8 @@ perform a zero-downtime upgrade of the database software by first upgrading the 
 performing a failover to make one of the upgraded nodes the new leader. If the replication protocol
 does not allow this version mismatch, as is often the case with WAL shipping, such upgrades require
 downtime.
+
+<a id="sec_replication_logical"></a>
 
 #### Logical (row-based) log replication {#logical-row-based-log-replication}
 
@@ -456,7 +462,7 @@ software. This in turn enables upgrading to a new version with minimal downtime 
 A logical log format is also easier for external applications to parse. This aspect is useful if you want
 to send the contents of a database to an external system, such as a data warehouse for offline
 analysis, or for building custom indexes and caches [^21].
-This technique is called *change data capture*, and we will return to it in [Link to Come].
+This technique is called *change data capture*, and we will return to it in [“Change Data Capture”](/en/ch12#sec_stream_cdc).
 
 
 ## Problems with Replication Lag {#sec_replication_lag}
@@ -513,7 +519,7 @@ be read from a follower. This is especially appropriate if data is frequently vi
 occasionally written.
 
 With asynchronous replication, there is a problem, illustrated in
-[Figure 6-3](/en/ch6#fig_replication_read_your_writes): if the user views the data shortly after making a write, the
+[Figure 6-3](/en/ch6#fig_replication_read_your_writes): if the user views the data shortly after making a write, the
 new data may not yet have reached the replica. To the user, it looks as though the data they
 submitted was lost, so they will be understandably unhappy.
 
@@ -597,7 +603,7 @@ Our second example of an anomaly that can occur when reading from asynchronous f
 possible for a user to see things *moving backward in time*.
 
 This can happen if a user makes several reads from different replicas. For example,
-[Figure 6-4](/en/ch6#fig_replication_monotonic_reads) shows user 2345 making the same query twice, first to a follower
+[Figure 6-4](/en/ch6#fig_replication_monotonic_reads) shows user 2345 making the same query twice, first to a follower
 with little lag, then to a follower with greater lag. (This scenario is quite likely if the user
 refreshes a web page, and each request is routed to a random server.) The first query returns a
 comment that was recently added by user 1234, but the second query doesn’t return anything because
@@ -636,7 +642,7 @@ answered it.
 
 Now, imagine a third person is listening to this conversation through followers. The things said by
 Mrs. Cake go through a follower with little lag, but the things said by Mr. Poons have a longer
-replication lag (see [Figure 6-5](/en/ch6#fig_replication_consistent_prefix)). This observer would hear the following:
+replication lag (see [Figure 6-5](/en/ch6#fig_replication_consistent_prefix)). This observer would hear the following:
 
 Mrs. Cake
 :   About ten seconds usually, Mr. Poons.
@@ -654,7 +660,7 @@ This guarantee says that if a sequence of writes happens in a certain order,
 then anyone reading those writes will see them appear in the same order.
 
 This is a particular problem in sharded (partitioned) databases, which we will discuss in
-[Chapter 7](/en/ch7#ch_sharding). If the database always applies writes in the same order, reads always see a
+[Chapter 7](/en/ch7#ch_sharding). If the database always applies writes in the same order, reads always see a
 consistent prefix, so this anomaly cannot happen. However, in many distributed databases, different
 shards operate independently, so there is no global ordering of writes: when a user reads from the
 database, they may see some parts of the database in an older state and some in a newer state.
@@ -678,8 +684,8 @@ synchronously updated follower. However, dealing with these issues in applicatio
 and easy to get wrong.
 
 The simplest programming model for application developers is to choose a database that provides a
-strong consistency guarantee for replicas such as linearizability (see [Chapter 10](/en/ch10#ch_consistency)), and ACID
-transactions (see [Chapter 8](/en/ch8#ch_transactions)). This allows you to mostly ignore the challenges that arise
+strong consistency guarantee for replicas such as linearizability (see [Chapter 10](/en/ch10#ch_consistency)), and ACID
+transactions (see [Chapter 8](/en/ch8#ch_transactions)). This allows you to mostly ignore the challenges that arise
 from replication, and treat the database as if it had just a single node. In the early 2010s the
 *NoSQL* movement promoted the view that these features limited scalability, and that large-scale
 systems would have to embrace eventual consistency.
@@ -738,7 +744,7 @@ single-leader replication, the leader has to be in *one* of the regions, and all
 through that region.
 
 In a multi-leader configuration, you can have a leader in *each* region.
-[Figure 6-6](/en/ch6#fig_replication_multi_dc) shows what this architecture might look like. Within each region,
+[Figure 6-6](/en/ch6#fig_replication_multi_dc) shows what this architecture might look like. Within each region,
 regular leader–follower replication is used (with followers maybe in a different availability zone
 from the leader); between regions, each region’s leader replicates its changes to the leaders in
 other regions.
@@ -774,7 +780,7 @@ Tolerance of network problems
 
 Consistency
 :   A single-leader system can provide strong consistency guarantees, such as serializable
-    transactions, which we will discuss in [Chapter 8](/en/ch8#ch_transactions). The biggest downside of multi-leader
+    transactions, which we will discuss in [Chapter 8](/en/ch8#ch_transactions). The biggest downside of multi-leader
     systems is that the consistency they can achieve is much weaker. For example, you can’t guarantee
     that a bank account won’t go negative or that a username is unique: it’s always possible for
     different leaders to process writes that are individually fine (paying out some of the money in an
@@ -798,14 +804,14 @@ multi-leader replication is often considered dangerous territory that should be 
 #### Multi-leader replication topologies {#sec_replication_topologies}
 
 A *replication topology* describes the communication paths along which writes are propagated from
-one node to another. If you have two leaders, like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), there is
+one node to another. If you have two leaders, like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), there is
 only one plausible topology: leader 1 must send all of its writes to leader 2, and vice versa. With
 more than two leaders, various different topologies are possible. Some examples are illustrated in
-[Figure 6-7](/en/ch6#fig_replication_topologies).
+[Figure 6-7](/en/ch6#fig_replication_topologies).
 
 {{< figure src="/fig/ddia_0607.png" id="fig_replication_topologies" caption="Figure 6-7. Three example topologies in which multi-leader replication can be set up." class="w-full my-4" >}}
 
-The most general topology is *all-to-all*, shown in [Figure 6-7](/en/ch6#fig_replication_topologies)(c),
+The most general topology is *all-to-all*, shown in [Figure 6-7](/en/ch6#fig_replication_topologies)(c),
 in which every leader sends its writes to every other leader. However, more restricted topologies
 are also used: for example a *circular topology* in which each node receives writes from one node
 and forwards those writes (plus any writes of its own) to one other node. Another popular topology
@@ -839,11 +845,11 @@ along different paths, avoiding a single point of failure.
 
 On the other hand, all-to-all topologies can have issues too. In particular, some network links may
 be faster than others (e.g., due to network congestion), with the result that some replication
-messages may “overtake” others, as illustrated in [Figure 6-8](/en/ch6#fig_replication_causality).
+messages may “overtake” others, as illustrated in [Figure 6-8](/en/ch6#fig_replication_causality).
 
 {{< figure src="/fig/ddia_0608.png" id="fig_replication_causality" caption="Figure 6-8. With multi-leader replication, writes may arrive in the wrong order at some replicas." class="w-full my-4" >}}
 
-In [Figure 6-8](/en/ch6#fig_replication_causality), client A inserts a row into a table on leader 1, and client B
+In [Figure 6-8](/en/ch6#fig_replication_causality), client A inserts a row into a table on leader 1, and client B
 updates that row on leader 3. However, leader 2 may receive the writes in a different order: it may
 first receive the update (which, from its point of view, is an update to a row that does not exist
 in the database) and only later receive the corresponding insert (which should have preceded the
@@ -853,12 +859,12 @@ This is a problem of causality, similar to the one we saw in [“Consistent Pref
 the update depends on the prior insert, so we need to make sure that all nodes process the insert
 first, and then the update. Simply attaching a timestamp to every write is not sufficient, because
 clocks cannot be trusted to be sufficiently in sync to correctly order these events at leader 2 (see
-[Chapter 9](/en/ch9#ch_distributed)).
+[Chapter 9](/en/ch9#ch_distributed)).
 
 To order these events correctly, a technique called *version vectors* can be used, which we will
 discuss later in this chapter (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)). However, many multi-leader
 replication systems don’t use good techniques for ordering updates, leaving them vulnerable to
-issues like the one in [Figure 6-8](/en/ch6#fig_replication_causality). If you are using multi-leader replication, it
+issues like the one in [Figure 6-8](/en/ch6#fig_replication_causality). If you are using multi-leader replication, it
 is worth being aware of these issues, carefully reading the documentation, and thoroughly testing
 your database to ensure that it really does provide the guarantees you believe it to have.
 
@@ -926,8 +932,8 @@ approach has a number of advantages:
 
 * Having the data locally means the user interface can be much faster to respond than if it had to
   wait for a service call to fetch some data. Some apps aim to respond to user input in the *next
-  frame* of the graphics system, which means rendering within 16 ms on a display with a
-  60 Hz refresh rate.
+  frame* of the graphics system, which means rendering within 16 ms on a display with a
+  60 Hz refresh rate.
 * Allowing users to continue working while offline is valuable, especially on mobile devices with
   intermittent connectivity. With a sync engine, an app doesn’t need a separate offline mode: being
   offline is the same as having very large network delay.
@@ -967,7 +973,7 @@ a local-first sync engine on end user devices—is that concurrent writes on dif
 lead to conflicts that need to be resolved.
 
 For example, consider a wiki page that is simultaneously being edited by two users, as shown in
-[Figure 6-9](/en/ch6#fig_replication_write_conflict). User 1 changes the title of the page from A to B, and user 2
+[Figure 6-9](/en/ch6#fig_replication_write_conflict). User 1 changes the title of the page from A to B, and user 2
 independently changes the title from A to C. Each user’s change is successfully applied to their
 local leader. However, when the changes are asynchronously replicated, a conflict is detected.
 This problem does not occur in a single-leader database.
@@ -975,7 +981,7 @@ This problem does not occur in a single-leader database.
 {{< figure src="/fig/ddia_0609.png" id="fig_replication_write_conflict" caption="Figure 6-9. A write conflict caused by two leaders concurrently updating the same record." class="w-full my-4" >}}
 
 > [!NOTE]
-> We say that the two writes in [Figure 6-9](/en/ch6#fig_replication_write_conflict) are *concurrent* because neither
+> We say that the two writes in [Figure 6-9](/en/ch6#fig_replication_write_conflict) are *concurrent* because neither
 > was “aware” of the other at the time the write was originally made. It doesn’t matter whether the
 > writes literally happened at the same time; indeed, if the writes were made while offline, they
 > might have actually happened some time apart. What matters is whether one write occurred in a state
@@ -1017,7 +1023,7 @@ We will discuss other ID assignment schemes in [“ID Generators and Logical Clo
 
 If conflicts can’t be avoided, the simplest way of resolving them is to attach a timestamp to each
 write, and to always use the value with the greatest timestamp. For example, in
-[Figure 6-9](/en/ch6#fig_replication_write_conflict), let’s say that the timestamp of user 1’s write is greater than
+[Figure 6-9](/en/ch6#fig_replication_write_conflict), let’s say that the timestamp of user 1’s write is greater than
 the timestamp of user 2’s write. In that case, both leaders will determine that the new title of the
 page should be B, and they discard the write that sets it to C. If the writes coincidentally have
 the same timestamp, the winner can be chosen by comparing the values (e.g., in the case of strings,
@@ -1025,7 +1031,7 @@ taking the one that’s earlier in the alphabet).
 
 This approach is called *last write wins* (LWW) because the write with the greatest timestamp can be
 considered the “last” one. The term is misleading though, because when two writes are concurrent
-like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), which one is older and which is later is undefined, and
+like in [Figure 6-9](/en/ch6#fig_replication_write_conflict), which one is older and which is later is undefined, and
 so the timestamp order of concurrent writes is essentially random.
 
 Therefore the real meaning of LWW is: when the same record is concurrently written on different
@@ -1055,7 +1061,7 @@ merge is complete.
 
 In a database, it would be impractical for a conflict to stop the entire replication process until a
 human has resolved it. Instead, databases typically store all the concurrently written values for a
-given record—for example, both B and C in [Figure 6-9](/en/ch6#fig_replication_write_conflict). These values are
+given record—for example, both B and C in [Figure 6-9](/en/ch6#fig_replication_write_conflict). These values are
 sometimes called *siblings*. The next time you query that record, the database returns *all* those
 values, rather than just the latest one. You can then resolve those values in whatever way you want,
 either automatically in application code (for example, you could concatenate B and C into “B/C”), or
@@ -1077,7 +1083,7 @@ suffers from a number of problems:
   keeping all the shopping cart items that appeared in any of the siblings (i.e., taking the set
   union of the carts). This meant that if the customer had removed an item from their cart in one
   sibling, but another sibling still contained that old item, the removed item would unexpectedly
-  reappear in the customer’s cart [^45]. [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
+  reappear in the customer’s cart [^45]. [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly) shows an example where Device 1 removes Book from the shopping
   cart and concurrently Device 2 removes DVD, but after merging the conflict both items reappear.
 * If multiple nodes observe the conflict and concurrently resolve it, the conflict resolution
   process can itself introduce a new conflict. Those resolutions could even be inconsistent: for
@@ -1087,6 +1093,8 @@ suffers from a number of problems:
 
 {{< figure src="/fig/ddia_0610.png" id="fig_replication_amazon_anomaly" caption="Figure 6-10. Example of Amazon's shopping cart anomaly: if conflicts on a shopping cart are merged by taking the union, deleted items may reappear." class="w-full my-4" >}}
 
+
+<a id="sec_replication_automatic_resolution"></a>
 
 #### Automatic conflict resolution {#automatic-conflict-resolution}
 
@@ -1105,8 +1113,8 @@ updates as much as possible, and hence avoiding data loss:
   same position, it can be ordered deterministically so that all nodes get the same merged outcome.
 * If the data is a collection of items (ordered like a to-do list, or unordered like a shopping
   cart), we can merge it similarly to text by tracking insertions and deletions. To avoid the
-  shopping cart issue in [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly), the algorithms track the fact that Book
-  and DVD were deleted, so the merged result is Cart = {Soap}.
+  shopping cart issue in [Figure 6-10](/en/ch6#fig_replication_amazon_anomaly), the algorithms track the fact that Book
+  and DVD were deleted, so the merged result is Cart = {Soap}.
 * If the data is an integer representing a counter that can be incremented or decremented (e.g., the
   number of likes on a social media post), the merge algorithm can tell how many increments and
   decrements happened on each sibling, and add them together correctly so that the result does not
@@ -1129,7 +1137,7 @@ Two families of algorithms are commonly used to implement automatic conflict res
 They have different design philosophies and performance characteristics, but both are able to
 perform automatic merges for all the aforementioned types of data.
 
-[Figure 6-11](/en/ch6#fig_replication_ot_crdt) shows an example of how OT and a CRDT merge concurrent updates to a
+[Figure 6-11](/en/ch6#fig_replication_ot_crdt) shows an example of how OT and a CRDT merge concurrent updates to a
 text. Assume you have two replicas that both start off with the text “ice”. One replica prepends the
 letter “n” to make “nice”, while concurrently the other replica appends an exclamation mark to make “ice!”.
 
@@ -1147,7 +1155,7 @@ OT
 
 CRDT
 :   Most CRDTs give each character a unique, immutable ID and use those to determine the positions of
-    insertions/deletions, instead of indexes. For example, in [Figure 6-11](/en/ch6#fig_replication_ot_crdt) we assign
+    insertions/deletions, instead of indexes. For example, in [Figure 6-11](/en/ch6#fig_replication_ot_crdt) we assign
     the ID 1A to “i”, the ID 2A to “c”, etc. When inserting the exclamation mark, we generate an
     operation containing the ID of the new character (4B) and the ID of the existing character after
     which we want to insert (3A). To insert at the beginning of the string we give “nil” as the
@@ -1165,7 +1173,7 @@ Sync engines for JSON data can be implemented both with CRDTs (e.g., Automerge o
 
 #### What is a conflict? {#what-is-a-conflict}
 
-Some kinds of conflict are obvious. In the example in [Figure 6-9](/en/ch6#fig_replication_write_conflict), two writes
+Some kinds of conflict are obvious. In the example in [Figure 6-9](/en/ch6#fig_replication_write_conflict), two writes
 concurrently modified the same field in the same record, setting it to two different values. There
 is little doubt that this is a conflict.
 
@@ -1179,7 +1187,7 @@ are made on two different leaders.
 
 There isn’t a quick ready-made answer, but in the following chapters we will trace a path toward a
 good understanding of this problem. We will see some more examples of conflicts in
-[Chapter 8](/en/ch8#ch_transactions), and in [Link to Come] we will discuss scalable approaches for detecting and
+[Chapter 8](/en/ch8#ch_transactions), and in [“Ordering events to capture causality”](/en/ch13#sec_future_capture_causality) we will discuss scalable approaches for detecting and
 resolving conflicts in a replicated system.
 
 
@@ -1220,7 +1228,7 @@ configuration, if you want to continue processing writes, you may need to perfor
 [“Handling Node Outages”](/en/ch6#sec_replication_failover)).
 
 On the other hand, in a leaderless configuration, failover does not exist.
-[Figure 6-12](/en/ch6#fig_replication_quorum_node_outage) shows what happens: the client (user 1234) sends the write to
+[Figure 6-12](/en/ch6#fig_replication_quorum_node_outage) shows what happens: the client (user 1234) sends the write to
 all three replicas in parallel, and the two available replicas accept the write but the unavailable
 replica misses it. Let’s say that it’s sufficient for two out of three replicas to
 acknowledge the write: after user 1234 has received two *ok* responses, we consider the write to be
@@ -1252,7 +1260,7 @@ mechanisms are used in Dynamo-style datastores:
 
 Read repair
 :   When a client makes a read from several nodes in parallel, it can detect any stale responses.
-    For example, in [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), user 2345 gets a version 6 value from
+    For example, in [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), user 2345 gets a version 6 value from
     replica 3 and a version 7 value from replicas 1 and 2. The client sees that replica 3 has a stale
     value and writes the newer value back to that replica. This approach works well for values that are
     frequently read.
@@ -1272,7 +1280,7 @@ Anti-entropy
 
 #### Quorums for reading and writing {#sec_replication_quorum_condition}
 
-In the example of [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), we considered the write to be successful
+In the example of [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage), we considered the write to be successful
 even though it was only processed on two out of three replicas. What if only one out of three
 replicas accepted the write? How far can we push this?
 
@@ -1283,14 +1291,14 @@ respond, reads can nevertheless continue returning an up-to-date value.
 
 More generally, if there are *n* replicas, every write must be confirmed by *w* nodes to be
 considered successful, and we must query at least *r* nodes for each read. (In our example,
-*n* = 3, *w* = 2, *r* = 2.) As long as *w* + *r* > *n*, 
+*n* = 3, *w* = 2, *r* = 2.) As long as *w* + *r* > *n*, 
 we expect to get an up-to-date value when reading, because at least one of the *r* nodes we’re
 reading from must be up to date. Reads and writes that obey these *r* and *w* values are called *quorum* reads and writes [^50].
 You can think of *r* and *w* as the minimum number of votes required for the read or write to be valid.
 
 In Dynamo-style databases, the parameters *n*, *w*, and *r* are typically configurable. A common
 choice is to make *n* an odd number (typically 3 or 5) and to set *w* = *r* =
-(*n* + 1) / 2 (rounded up). However, you can vary the numbers as you see fit.
+(*n* + 1) / 2 (rounded up). However, you can vary the numbers as you see fit.
 For example, a workload with few writes and many reads may benefit from setting *w* = *n* and
 *r* = 1. This makes reads faster, but has the disadvantage that just one failed node causes all
 database writes to fail.
@@ -1300,19 +1308,19 @@ database writes to fail.
 > [!NOTE]
 > There may be more than *n* nodes in the cluster, but any given value is stored only on *n*
 > nodes. This allows the dataset to be sharded, supporting datasets that are larger than you can fit
-> on one node. We will return to sharding in [Chapter 7](/en/ch7#ch_sharding).
+> on one node. We will return to sharding in [Chapter 7](/en/ch7#ch_sharding).
 
 --------
 
-The quorum condition, *w* + *r* > *n*, allows the system to tolerate unavailable nodes
+The quorum condition, *w* + *r* > *n*, allows the system to tolerate unavailable nodes
 as follows:
 
-* If *w* < *n*, we can still process writes if a node is unavailable.
-* If *r* < *n*, we can still process reads if a node is unavailable.
-* With *n* = 3, *w* = 2, *r* = 2 we can tolerate one unavailable
-  node, like in [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage).
-* With *n* = 5, *w* = 3, *r* = 3 we can tolerate two unavailable nodes.
-  This case is illustrated in [Figure 6-13](/en/ch6#fig_replication_quorum_overlap).
+* If *w* < *n*, we can still process writes if a node is unavailable.
+* If *r* < *n*, we can still process reads if a node is unavailable.
+* With *n* = 3, *w* = 2, *r* = 2 we can tolerate one unavailable
+  node, like in [Figure 6-12](/en/ch6#fig_replication_quorum_node_outage).
+* With *n* = 5, *w* = 3, *r* = 3 we can tolerate two unavailable nodes.
+  This case is illustrated in [Figure 6-13](/en/ch6#fig_replication_quorum_overlap).
 
 Normally, reads and writes are always sent to all *n* replicas in parallel. The parameters *w* and *r* 
 determine how many nodes we wait for—i.e., how many of the *n* nodes need to report success
@@ -1329,19 +1337,19 @@ returned a successful response and don’t need to distinguish between different
 
 ### Limitations of Quorum Consistency {#sec_replication_quorum_limitations}
 
-If you have *n* replicas, and you choose *w* and *r* such that *w* + *r* > *n*, you can
+If you have *n* replicas, and you choose *w* and *r* such that *w* + *r* > *n*, you can
 generally expect every read to return the most recent value written for a key. This is the case because the
 set of nodes to which you’ve written and the set of nodes from which you’ve read must overlap. That
 is, among the nodes you read there must be at least one node with the latest value (illustrated in
-[Figure 6-13](/en/ch6#fig_replication_quorum_overlap)).
+[Figure 6-13](/en/ch6#fig_replication_quorum_overlap)).
 
 Often, *r* and *w* are chosen to be a majority (more than *n*/2) of nodes, because that ensures
-*w* + *r* > *n* while still tolerating up to *n*/2 (rounded down) node failures. But quorums are
+*w* + *r* > *n* while still tolerating up to *n*/2 (rounded down) node failures. But quorums are
 not necessarily majorities—it only matters that the sets of nodes used by the read and write
 operations overlap in at least one node. Other quorum assignments are possible, which allows some
 flexibility in the design of distributed algorithms [^51].
 
-You may also set *w* and *r* to smaller numbers, so that *w* + *r* ≤ *n* (i.e.,
+You may also set *w* and *r* to smaller numbers, so that *w* + *r* ≤ *n* (i.e.,
 the quorum condition is not satisfied). In this case, reads and writes will still be sent to *n*
 nodes, but a smaller number of successful responses is required for the operation to succeed.
 
@@ -1352,14 +1360,14 @@ unreachable, there’s a higher chance that you can continue processing reads an
 the number of reachable replicas falls below *w* or *r* does the database become unavailable for
 writing or reading, respectively.
 
-However, even with *w* + *r* > *n*, there are edge cases in which the consistency
+However, even with *w* + *r* > *n*, there are edge cases in which the consistency
 properties can be confusing. Some scenarios include:
 
 * If a node carrying a new value fails, and its data is restored from a replica carrying an old
   value, the number of replicas storing the new value may fall below *w*, breaking the quorum
   condition.
 * While a rebalancing is in progress, where some data is moved from one node to another (see
-  [Chapter 7](/en/ch7#ch_sharding)), nodes may have inconsistent views of which nodes should be holding the *n*
+  [Chapter 7](/en/ch7#ch_sharding)), nodes may have inconsistent views of which nodes should be holding the *n*
   replicas for a particular value. This can result in the read and write quorums no longer
   overlapping.
 * If a read is concurrent with a write operation, the read may or may not see the concurrently
@@ -1489,7 +1497,7 @@ resulting in conflicts that need to be resolved. Such conflicts may occur as the
 not always: they could also be detected later during read repair, hinted handoff, or anti-entropy.
 
 The problem is that events may arrive in a different order at different nodes, due to variable
-network delays and partial failures. For example, [Figure 6-14](/en/ch6#fig_replication_concurrency) shows two clients,
+network delays and partial failures. For example, [Figure 6-14](/en/ch6#fig_replication_concurrency) shows two clients,
 A and B, simultaneously writing to a key *X* in a three-node datastore:
 
 * Node 1 receives the write from A, but never receives the write from B due to a transient outage.
@@ -1501,7 +1509,7 @@ A and B, simultaneously writing to a key *X* in a three-node datastore:
 
 If each node simply overwrote the value for a key whenever it received a write request from a
 client, the nodes would become permanently inconsistent, as shown by the final *get* request in
-[Figure 6-14](/en/ch6#fig_replication_concurrency): node 2 thinks that the final value of *X* is B, whereas the other
+[Figure 6-14](/en/ch6#fig_replication_concurrency): node 2 thinks that the final value of *X* is B, whereas the other
 nodes think that the value is A.
 
 In order to become eventually consistent, the replicas should converge toward the same value. For
@@ -1520,11 +1528,11 @@ take more care to detect concurrent writes.
 How do we decide whether two operations are concurrent or not? To develop an intuition, let’s look
 at some examples:
 
-* In [Figure 6-8](/en/ch6#fig_replication_causality), the two writes are not concurrent: A’s insert *happens before*
+* In [Figure 6-8](/en/ch6#fig_replication_causality), the two writes are not concurrent: A’s insert *happens before*
   B’s increment, because the value incremented by B is the value inserted by A. In other words, B’s
   operation builds upon A’s operation, so B’s operation must have happened later.
   We also say that B is *causally dependent* on A.
-* On the other hand, the two writes in [Figure 6-14](/en/ch6#fig_replication_concurrency) are concurrent: when each
+* On the other hand, the two writes in [Figure 6-14](/en/ch6#fig_replication_concurrency) are concurrent: when each
   client starts the operation, it does not know that another client is also performing an operation
   on the same key. Thus, there is no causal dependency between the operations.
 
@@ -1546,7 +1554,7 @@ conflict that needs to be resolved.
 It may seem that two operations should be called concurrent if they occur “at the same time”—but
 in fact, it is not important whether they literally overlap in time. Because of problems with clocks
 in distributed systems, it is actually quite difficult to tell whether two things happened
-at exactly the same time—an issue we will discuss in more detail in [Chapter 9](/en/ch9#ch_distributed).
+at exactly the same time—an issue we will discuss in more detail in [Chapter 9](/en/ch9#ch_distributed).
 
 For defining concurrency, exact time doesn’t matter: we simply call two operations concurrent if
 they are both unaware of each other, regardless of the physical time at which they occurred. People
@@ -1570,7 +1578,7 @@ happened before another. To keep things simple, let’s start with a database th
 replica. Once we have worked out how to do this on a single replica, we can generalize the approach
 to a leaderless database with multiple replicas.
 
-[Figure 6-15](/en/ch6#fig_replication_causality_single) shows two clients concurrently adding items to the same
+[Figure 6-15](/en/ch6#fig_replication_causality_single) shows two clients concurrently adding items to the same
 shopping cart. (If that example strikes you as too inane, imagine instead two air traffic
 controllers concurrently adding aircraft to the sector they are tracking.) Initially, the cart is
 empty. Between them, the clients make five writes to the database:
@@ -1604,8 +1612,8 @@ empty. Between them, the clients make five writes to the database:
 {{< figure src="/fig/ddia_0615.png" id="fig_replication_causality_single" caption="Figure 6-15. Capturing causal dependencies between two clients concurrently editing a shopping cart." class="w-full my-4" >}}
 
 
-The dataflow between the operations in [Figure 6-15](/en/ch6#fig_replication_causality_single) is illustrated
-graphically in [Figure 6-16](/en/ch6#fig_replication_causal_dependencies). The arrows indicate which operation
+The dataflow between the operations in [Figure 6-15](/en/ch6#fig_replication_causality_single) is illustrated
+graphically in [Figure 6-16](/en/ch6#fig_replication_causal_dependencies). The arrows indicate which operation
 *happened before* which other operation, in the sense that the later operation *knew about* or
 *depended on* the earlier one. In this example, the clients are never fully up to date with the data
 on the server, since there is always another operation going on concurrently. But old versions of
@@ -1638,10 +1646,10 @@ on subsequent reads.
 
 #### Version vectors {#version-vectors}
 
-The example in [Figure 6-15](/en/ch6#fig_replication_causality_single) used only a single replica. How does the
+The example in [Figure 6-15](/en/ch6#fig_replication_causality_single) used only a single replica. How does the
 algorithm change when there are multiple replicas, but no leader?
 
-[Figure 6-15](/en/ch6#fig_replication_causality_single) uses a single version number to capture dependencies between
+[Figure 6-15](/en/ch6#fig_replication_causality_single) uses a single version number to capture dependencies between
 operations, but that is not sufficient when there are multiple replicas accepting writes
 concurrently. Instead, we need to use a version number *per replica* as well as per key. Each
 replica increments its own version number when processing a write, and also keeps track of the
@@ -1653,7 +1661,7 @@ A few variants of this idea are in use, but the most interesting is probably the
 which is used in Riak 2.0 [^61] [^62].
 We won’t go into the details, but the way it works is quite similar to what we saw in our cart example.
 
-Like the version numbers in [Figure 6-15](/en/ch6#fig_replication_causality_single), version vectors are sent from the
+Like the version numbers in [Figure 6-15](/en/ch6#fig_replication_causality_single), version vectors are sent from the
 database replicas to clients when values are read, and need to be sent back to the database when a
 value is subsequently written. (Riak encodes the version vector as a string that it calls *causal
 context*.) The version vector allows the database to distinguish between overwrites and concurrent

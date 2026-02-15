@@ -4,6 +4,8 @@ weight: 101
 breadcrumbs: false
 ---
 
+<a id="ch_tradeoffs"></a>
+
 > *There are no solutions, there are only trade-offs. […] But you try to get the best
 > trade-off you can get, and that’s all you can hope for.*
 >
@@ -156,7 +158,7 @@ the term *transaction* nevertheless stuck, referring to a group of reads and wri
 logical unit.
 
 > [!NOTE]
-> [Chapter 8](/en/ch8#ch_transactions) explores in detail what we mean with a transaction. This chapter uses the term
+> [Chapter 8](/en/ch8#ch_transactions) explores in detail what we mean with a transaction. This chapter uses the term
 > loosely to refer to low-latency reads and writes.
 
 Even though databases started being used for many different kinds of data—posts on social media,
@@ -179,7 +181,7 @@ answer analytic queries such as:
 The reports that result from these types of queries are important for business intelligence, helping
 the management decide what to do next. In order to differentiate this pattern of using databases
 from transaction processing, it has been called *online analytic processing* (OLAP) [^5].
-The difference between OLTP and analytics is not always clear-cut, but some typical characteristics are listed in [Table 1-1](/en/ch1#tab_oltp_vs_olap).
+The difference between OLTP and analytics is not always clear-cut, but some typical characteristics are listed in [Table 1-1](/en/ch1#tab_oltp_vs_olap).
 
 {{< figure id="tab_oltp_vs_olap" title="Table 1-1. Comparing characteristics of operational and analytic systems" class="w-full my-4" >}}
 
@@ -241,14 +243,14 @@ systems, for several reasons:
 
 A *data warehouse*, by contrast, is a separate database that analysts can query to their hearts’
 content, without affecting OLTP operations [^7].
-As we shall see in [Chapter 4](/en/ch4#ch_storage), data warehouses often store data in a way that is very different
+As we shall see in [Chapter 4](/en/ch4#ch_storage), data warehouses often store data in a way that is very different
 from OLTP databases, in order to optimize for the types of queries that are common in analytics.
 
 The data warehouse contains a read-only copy of the data in all the various OLTP systems in the
 company. Data is extracted from OLTP databases (using either a periodic data dump or a continuous
 stream of updates), transformed into an analysis-friendly schema, cleaned up, and then loaded into
 the data warehouse. This process of getting data into the data warehouse is known as
-*Extract–Transform–Load* (ETL) and is illustrated in [Figure 1-1](/en/ch1#fig_dwh_etl). Sometimes the order of the
+*Extract–Transform–Load* (ETL) and is illustrated in [Figure 1-1](/en/ch1#fig_dwh_etl). Sometimes the order of the
 *transform* and *load* steps is swapped (i.e., the transformation is done in the data warehouse,
 after loading), resulting in *ELT*.
 
@@ -287,7 +289,7 @@ scale, the more specialized systems tend to become [^11].
 #### From data warehouse to data lake {#from-data-warehouse-to-data-lake}
 
 A data warehouse often uses a *relational* data model that is queried through SQL (see
-[Chapter 3](/en/ch3#ch_datamodels)), perhaps using specialized business intelligence software. This model works well
+[Chapter 3](/en/ch3#ch_datamodels)), perhaps using specialized business intelligence software. This model works well
 for the types of queries that business analysts need to make, but it is less well suited to the
 needs of data scientists, who might need to perform tasks such as:
 
@@ -313,7 +315,7 @@ data scientists. The answer is a *data lake*: a centralized data repository that
 data that might be useful for analysis, obtained from operational systems via ETL processes. The
 difference from a data warehouse is that a data lake simply contains files, without imposing any
 particular file format or data model. Files in a data lake might be collections of database records,
-encoded using a file format such as Avro or Parquet (see [Chapter 5](/en/ch5#ch_encoding)), but they can equally well
+encoded using a file format such as Avro or Parquet (see [Chapter 5](/en/ch5#ch_encoding)), but they can equally well
 contain text, images, videos, sensor readings, sparse matrices, feature vectors, genome sequences,
 or any other kind of data [^15].
 Besides being more flexible, this is also often cheaper than relational data storage, since the data
@@ -340,10 +342,10 @@ As analytics practices have matured, organizations have been increasingly paying
 management and operations of analytics systems and data pipelines, as captured for example in the
 DataOps manifesto [^18].
 Part of this are issues of governance, privacy, and compliance with regulation such as GDPR and
-CCPA, which we discuss in [“Data Systems, Law, and Society”](/en/ch1#sec_introduction_compliance) and [Link to Come].
+CCPA, which we discuss in [“Data Systems, Law, and Society”](/en/ch1#sec_introduction_compliance) and [“Legislation and Self-Regulation”](/en/ch14#sec_future_legislation).
 
 Moreover, analytical data is increasingly made available not only as files and relational tables,
-but also as streams of events (see [Link to Come]). With file-based data analysis you can re-run the
+but also as streams of events (see [Chapter 12](/en/ch12#ch_stream)). With file-based data analysis you can re-run the
 analysis periodically (e.g., daily) in order to respond to changes in the data, but stream processing
 allows analytics systems to respond to events much faster, on the order of seconds. Depending on the
 application and how time-sensitive it is, a stream processing approach can be valuable, for example
@@ -398,7 +400,7 @@ When the data in one system is derived from the data in another, you need a proc
 derived data when the original in the system of record changes. Unfortunately, many databases are
 designed based on the assumption that your application only ever needs to use that one database, and
 they do not make it easy to integrate multiple systems in order to propagate such updates. In
-[Link to Come] we will discuss approaches to *data integration*, which allow us to compose multiple
+[“Data Integration”](/en/ch13#sec_future_integration) we will discuss approaches to *data integration*, which allow us to compose multiple
 data systems to achieve things that one system alone cannot do.
 
 That brings us to the end of our comparison of analytics and transaction processing. In the next
@@ -420,7 +422,7 @@ energy company, and leaving aside emergency backup power), since it is cheaper t
 
 With software, two important decisions to be made are who builds the software and who deploys it.
 There is a spectrum of possibilities that outsource each decision to various degrees, as illustrated
-in [Figure 1-2](/en/ch1#fig_cloud_spectrum). At one extreme is bespoke software that you write and run in-house; at
+in [Figure 1-2](/en/ch1#fig_cloud_spectrum). At one extreme is bespoke software that you write and run in-house; at
 the other extreme are widely-used cloud services or Software as a Service (SaaS) products that are
 implemented and operated by an external vendor, and which you only access through a web interface or API.
 
@@ -519,9 +521,9 @@ and indeed such managed services are now available for many popular data systems
 that have been designed from the ground up to be cloud-native have been shown to have several
 advantages: better performance on the same hardware, faster recovery from failures, being able to
 quickly scale computing resources to match the load, and supporting larger datasets [^25] [^26] [^27].
-[Table 1-2](/en/ch1#tab_cloud_native_dbs) lists some examples of both types of systems.
+[Table 1-2](/en/ch1#tab_cloud_native_dbs) lists some examples of both types of systems.
 
-{{< figure id="#tab_cloud_native_dbs" title="Table 1-2. Examples of self-hosted and cloud-native database systems" class="w-full my-4" >}}
+{{< figure id="tab_cloud_native_dbs" title="Table 1-2. Examples of self-hosted and cloud-native database systems" class="w-full my-4" >}}
 
 | Category         | Self-hosted systems         | Cloud-native systems                                                  |
 |------------------|-----------------------------|-----------------------------------------------------------------------|
@@ -580,7 +582,7 @@ As an alternative to local disks, cloud services also offer virtual disk storage
 detached from one instance and attached to a different one (Amazon EBS, Azure managed disks, and
 persistent disks in Google Cloud). Such a virtual disk is not actually a physical disk, but rather a
 cloud service provided by a separate set of machines, which emulates the behavior of a disk (a
-*block device*, where each block is typically 4 KiB in size). This technology makes it
+*block device*, where each block is typically 4 KiB in size). This technology makes it
 possible to run traditional disk-based software in the cloud, but the block device emulation
 introduces overheads that can be avoided in systems that are designed from the ground up for the cloud [^25]. It also makes the application
 very sensitive to network glitches, since every I/O on the virtual block device is actually a network call [^28].
@@ -591,7 +593,7 @@ services such as S3 are designed for long-term storage of fairly large files, ra
 of kilobytes to several gigabytes in size. The individual rows or values stored in a database are
 typically much smaller than this; cloud databases therefore typically manage smaller values in a
 separate service, and store larger data blocks (containing many individual values) in an object
-store [^26] [^29]. We will see ways of doing this in [Chapter 4](/en/ch4#ch_storage).
+store [^26] [^29]. We will see ways of doing this in [Chapter 4](/en/ch4#ch_storage).
 
 In a traditional systems architecture, the same computer is responsible for both storage (disk) and
 computation (CPU and RAM), but in cloud-native systems, these two responsibilities have become
@@ -691,7 +693,7 @@ Fault tolerance/high availability
 :   If your application needs to continue working even if one machine (or several machines, or
     the network, or an entire datacenter) goes down, you can use multiple machines to give you
     redundancy. When one fails, another one can take over. See [“Reliability and Fault Tolerance”](/en/ch2#sec_introduction_reliability) and
-    [Chapter 6](/en/ch6#ch_replication) on replication.
+    [Chapter 6](/en/ch6#ch_replication) on replication.
 
 Scalability
 :   If your data volume or computing requirements grow bigger than a single machine can handle,
@@ -739,7 +741,7 @@ Distributed systems also have downsides. Every request and API call that goes vi
 to deal with the possibility of failure: the network may be interrupted, or the service may be
 overloaded or crashed, and therefore any request may time out without receiving a response. In this
 case, we don’t know whether the service received the request, and simply retrying it might not be
-safe. We will discuss these problems in detail in [Chapter 9](/en/ch9#ch_distributed).
+safe. We will discuss these problems in detail in [Chapter 9](/en/ch9#ch_distributed).
 
 Although datacenter networks are fast, making a call to another service is still vastly slower than
 calling a function in the same process [^44].
@@ -760,9 +762,9 @@ as OpenTelemetry, Zipkin, and Jaeger allow you to track which client called whic
 operation, and how long each call took [^49].
 
 Databases provide various mechanisms for ensuring data consistency, as we shall see in
-[Chapter 6](/en/ch6#ch_replication) and [Chapter 8](/en/ch8#ch_transactions). However, when each service has its own database,
+[Chapter 6](/en/ch6#ch_replication) and [Chapter 8](/en/ch8#ch_transactions). However, when each service has its own database,
 maintaining consistency of data across those different services becomes the application’s problem.
-Distributed transactions, which we explore in [Chapter 8](/en/ch8#ch_transactions), are a possible technique for
+Distributed transactions, which we explore in [Chapter 8](/en/ch8#ch_transactions), are a possible technique for
 ensuring consistency, but they are rarely used in a microservices context because they run counter
 to the goal of making services independent from each other, and many databases don’t support them [^50].
 
@@ -770,7 +772,7 @@ For all these reasons, if you can do something on a single machine, this is ofte
 cheaper compared to setting up a distributed system [^23] [^46] [^51].
 CPUs, memory, and disks have grown larger, faster, and more reliable. When combined with single-node
 databases such as DuckDB, SQLite, and KùzuDB, many workloads can now run on a single node. We will
-explore more on this topic in [Chapter 4](/en/ch4#ch_storage).
+explore more on this topic in [Chapter 4](/en/ch4#ch_storage).
 
 ### Microservices and Serverless {#sec_introduction_microservices}
 
@@ -807,7 +809,7 @@ certain fields. Developers might wish to add or remove fields to an API as busin
 but doing so can cause clients to fail. Worse still, such failures are often not discovered until
 late in the development cycle when the updated service API is deployed to a staging or production
 environment. API description standards such as OpenAPI and gRPC help manage the relationship between
-client and server APIs; we discuss these further in [Chapter 5](/en/ch5#ch_encoding).
+client and server APIs; we discuss these further in [Chapter 5](/en/ch5#ch_encoding).
 
 Microservices are primarily a technical solution to a people problem: allowing different teams to
 make progress independently without having to coordinate with each other. This is valuable in a large
@@ -937,7 +939,7 @@ Service Organization Control (SOC) Type 2 standards. As with PCI compliance, ven
 party audits to verify adherence.
 
 Generally, it is important to balance the needs of your business against the needs of the people
-whose data you are collecting and processing. There is much more to this topic; in [Link to Come] we
+whose data you are collecting and processing. There is much more to this topic; in [Chapter 14](/en/ch14#ch_right_thing) we
 will go deeper into the topics of ethics and legal compliance, including the problems of bias and
 discrimination.
 
@@ -952,7 +954,7 @@ We started by making a distinction between operational (transaction-processing, 
 (OLAP) systems, and saw their different characteristics: not only managing different types of data
 with different access patterns, but also serving different audiences. We encountered the concept of
 a data warehouse and data lake, which receive data feeds from operational systems via ETL. In
-[Chapter 4](/en/ch4#ch_storage) we will see that operational and analytical systems often use very different internal
+[Chapter 4](/en/ch4#ch_storage) we will see that operational and analytical systems often use very different internal
 data layouts because of the different types of queries they need to serve.
 
 We then compared cloud services, a comparatively recent development, to the traditional paradigm of
@@ -964,7 +966,7 @@ example in the way they separate storage and compute.
 Cloud systems are intrinsically distributed, and we briefly examined some of the trade-offs of
 distributed systems compared to using a single machine. There are situations in which you can’t
 avoid going distributed, but it’s advisable not to rush into making a system distributed if it’s
-possible to keep it on a single machine. In [Chapter 9](/en/ch9#ch_distributed) we will cover the challenges with
+possible to keep it on a single machine. In [Chapter 9](/en/ch9#ch_distributed) we will cover the challenges with
 distributed systems in more detail.
 
 Finally, we saw that data systems architecture is determined not only by the needs of the business
@@ -1038,4 +1040,3 @@ this question in mind as we move through the rest of this book.
 [^61]: Supreeth Shastri, Vinay Banakar, Melissa Wasserman, Arun Kumar, and Vijay Chidambaram. [Understanding and Benchmarking the Impact of GDPR on Database Systems](https://www.vldb.org/pvldb/vol13/p1064-shastri.pdf). *Proceedings of the VLDB Endowment*, volume 13, issue 7, pages 1064–1077, March 2020. [doi:10.14778/3384345.3384354](https://doi.org/10.14778/3384345.3384354)
 [^62]: Martin Fowler. [Datensparsamkeit](https://www.martinfowler.com/bliki/Datensparsamkeit.html). *martinfowler.com*, December 2013. Archived at [perma.cc/R9QX-CME6](https://perma.cc/R9QX-CME6)
 [^63]: [Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 (General Data Protection Regulation)](https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=CELEX:32016R0679&from=EN). *Official Journal of the European Union* L 119/1, May 2016.
-

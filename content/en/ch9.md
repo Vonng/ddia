@@ -4,6 +4,8 @@ weight: 209
 breadcrumbs: false
 ---
 
+<a id="ch_distributed"></a>
+
 ![](/map/ch08.png)
 
 > *They’re funny things, Accidents. You never have them till you’re having them.*
@@ -33,7 +35,7 @@ explore the things that may go wrong in a distributed system. We will look into 
 networks ([“Unreliable Networks”](/en/ch9#sec_distributed_networks)) as well as clocks and timing issues
 ([“Unreliable Clocks”](/en/ch9#sec_distributed_clocks)). The consequences of all these issues are disorienting, so we’ll
 explore how to think about the state of a distributed system and how to reason about things that
-have happened ([“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth)). Later, in [Chapter 10](/en/ch10#ch_consistency), we will look at some
+have happened ([“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth)). Later, in [Chapter 10](/en/ch10#ch_consistency), we will look at some
 examples of how we can achieve fault tolerance in the face of those faults.
 
 ## Faults and Partial Failures {#sec_distributed_partial_failure}
@@ -104,7 +106,7 @@ The internet and most internal networks in datacenters (often Ethernet) are *asy
 networks*. In this kind of network, one node can send a message (a packet) to another node, but the
 network gives no guarantees as to when it will arrive, or whether it will arrive at all. If you send
 a request and expect a response, many things could go wrong (some of which are illustrated in
-[Figure 9-1](/en/ch9#fig_distributed_network)):
+[Figure 9-1](/en/ch9#fig_distributed_network)):
 
 1. Your request may have been lost (perhaps someone unplugged a network cable).
 2. Your request may be waiting in a queue and will be delivered later (perhaps the network or the
@@ -219,7 +221,7 @@ even in controlled environments like a datacenter operated by one company [^8]:
 When one part of the network is cut off from the rest due to a network fault, that is sometimes
 called a *network partition* or *netsplit*, but it is not fundamentally different from other kinds
 of network interruption. Network partitions are not related to sharding of a storage system, which
-is sometimes also called *partitioning* (see [Chapter 7](/en/ch7#ch_sharding)).
+is sometimes also called *partitioning* (see [Chapter 7](/en/ch7#ch_sharding)).
 
 --------
 
@@ -286,7 +288,7 @@ to a load spike on the node or the network).
 Prematurely declaring a node dead is problematic: if the node is actually alive and in the middle of
 performing some action (for example, sending an email), and another node takes over, the action may
 end up being performed twice. We will discuss this issue in more detail in
-[“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth), and in Chapters [^10] and [Link to Come].
+[“Knowledge, Truth, and Lies”](/en/ch9#sec_distributed_truth), [Chapter 10](/en/ch10#ch_consistency), and [“The End-to-End Argument for Databases”](/en/ch13#sec_future_end_to_end).
 
 When a node is declared dead, its responsibilities need to be transferred to other nodes, which
 places additional load on other nodes and the network. If the system is already struggling with high
@@ -299,9 +301,9 @@ Imagine a fictitious system with a network that guaranteed a maximum delay for p
 is either delivered within some time *d*, or it is lost, but delivery never takes longer than *d*.
 Furthermore, assume that you can guarantee that a non-failed node always handles a request within
 some time *r*. In this case, you could guarantee that every successful request receives a response
-within time 2*d* + *r*—and if you don’t receive a response within that time, you know
+within time 2*d* + *r*—and if you don’t receive a response within that time, you know
 that either the network or the remote node is not working. If this was true,
-2*d* + *r* would be a reasonable timeout to use.
+2*d* + *r* would be a reasonable timeout to use.
 
 Unfortunately, most systems we work with have neither of those guarantees: asynchronous networks
 have *unbounded delays* (that is, they try to deliver packets as quickly as possible, but there is
@@ -311,6 +313,8 @@ cannot guarantee that they can handle requests within some maximum time (see
 be fast most of the time: if your timeout is low, it only takes a transient spike in round-trip
 times to throw the system off-balance.
 
+<a id="sec_distributed_congestion"></a>
+
 #### Network congestion and queueing {#network-congestion-and-queueing}
 
 When driving a car, travel times on road networks often vary most due to traffic congestion.
@@ -318,7 +322,7 @@ Similarly, the variability of packet delays on computer networks is most often d
 
 * If several different nodes simultaneously try to send packets to the same destination, the network
  switch must queue them up and feed them into the destination network link one by one (as illustrated
- in [Figure 9-2](/en/ch9#fig_distributed_switch_queueing)). On a busy network link, a packet may have to wait a while
+ in [Figure 9-2](/en/ch9#fig_distributed_switch_queueing)). On a busy network link, a packet may have to wait a while
  until it can get a slot (this is called *network congestion*). If there is so much incoming data
  that the switch queue fills up, the packet is dropped, so it needs to be resent—even though
  the network is functioning fine.
@@ -339,6 +343,8 @@ does not see the packet loss directly, it does see the resulting delay (waiting 
 expire, and then waiting for the retransmitted packet to be acknowledged).
 
 --------
+
+<a id="sidebar_distributed_tcp_udp"></a>
 
 > [!TIP] TCP VERSUS UDP
 
@@ -445,6 +451,8 @@ applications to reprioritize packets for QoS purposes.
 
 --------
 
+<a id="sidebar_distributed_latency_utilization"></a>
+
 > [!TIP] LATENCY AND RESOURCE UTILIZATION
 
 More generally, you can think of variable delays as a consequence of dynamic resource partitioning.
@@ -548,7 +556,7 @@ unsuitable for measuring elapsed time [^40].
 Time-of-day clocks can experience jumps due to the start and end of Daylight Saving Time (DST);
 these can be avoided by always using UTC as time zone, which does not have DST.
 Time-of-day clocks have also historically had quite a coarse-grained resolution, e.g., moving forward
-in steps of 10 ms on older Windows systems [^41].
+in steps of 10 ms on older Windows systems [^41].
 On recent systems, this is less of a problem.
 
 #### Monotonic clocks {#monotonic-clocks}
@@ -591,8 +599,8 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
 
 * The quartz clock in a computer is not very accurate: it *drifts* (runs faster or slower than it
  should). Clock drift varies depending on the temperature of the machine. Google assumes a clock
- drift of up to 200 ppm (parts per million) for its servers  [^45],
- which is equivalent to 6 ms drift for a clock that is resynchronized with a server every 30
+ drift of up to 200 ppm (parts per million) for its servers  [^45],
+ which is equivalent to 6 ms drift for a clock that is resynchronized with a server every 30
  seconds, or 17 seconds drift for a clock that is resynchronized once a day. This drift limits the best
  possible accuracy you can achieve, even if everything is working correctly.
 * If a computer’s clock differs too much from an NTP server, it may refuse to synchronize, or the
@@ -602,7 +610,7 @@ hope—hardware clocks and NTP can be fickle beasts. To give just a few examples
  different nodes’ clocks. Anecdotal evidence suggests that this does happen in practice.
 * NTP synchronization can only be as good as the network delay, so there is a limit to its
  accuracy when you’re on a congested network with variable packet delays. One experiment showed
- that a minimum error of 35 ms is achievable when synchronizing over the internet [^46],
+ that a minimum error of 35 ms is achievable when synchronizing over the internet [^46],
  though occasional spikes in network delay lead to errors of around a second. Depending on the
  configuration, large network delays can cause the NTP client to give up entirely.
 * Some NTP servers are wrong or misconfigured, reporting time that is off by hours [^47] [^48].
@@ -673,29 +681,29 @@ ordering of events across multiple nodes [^64].
 For example, if two clients write to a distributed database, who got there first? Which write is the
 more recent one?
 
-[Figure 9-3](/en/ch9#fig_distributed_timestamps) illustrates a dangerous use of time-of-day clocks in a database with
-multi-leader replication (the example is similar to [Figure 6-8](/en/ch6#fig_replication_causality)). Client A writes
-*x* = 1 on node 1; the write is replicated to node 3; client B increments *x* on node
-3 (we now have *x* = 2); and finally, both writes are replicated to node 2.
+[Figure 9-3](/en/ch9#fig_distributed_timestamps) illustrates a dangerous use of time-of-day clocks in a database with
+multi-leader replication (the example is similar to [Figure 6-8](/en/ch6#fig_replication_causality)). Client A writes
+*x* = 1 on node 1; the write is replicated to node 3; client B increments *x* on node
+3 (we now have *x* = 2); and finally, both writes are replicated to node 2.
 
 {{< figure src="/fig/ddia_0903.png" id="fig_distributed_timestamps" caption="Figure 9-3. The write by client B is causally later than the write by client A, but B's write has an earlier timestamp." class="w-full my-4" >}}
 
 
-In [Figure 9-3](/en/ch9#fig_distributed_timestamps), when a write is replicated to other nodes, it is tagged with a
+In [Figure 9-3](/en/ch9#fig_distributed_timestamps), when a write is replicated to other nodes, it is tagged with a
 timestamp according to the time-of-day clock on the node where the write originated. The clock
 synchronization is very good in this example: the skew between node 1 and node 3 is less than
-3 ms, which is probably better than you can expect in practice.
+3 ms, which is probably better than you can expect in practice.
 
-Since the increment builds upon the earlier write of *x* = 1, we might expect that the
-write of *x* = 2 should have the greater timestamp of the two. Unfortunately, that is
-not what happens in [Figure 9-3](/en/ch9#fig_distributed_timestamps): the write *x* = 1 has a timestamp of
-42.004 seconds, but the write *x* = 2 has a timestamp of 42.003 seconds.
+Since the increment builds upon the earlier write of *x* = 1, we might expect that the
+write of *x* = 2 should have the greater timestamp of the two. Unfortunately, that is
+not what happens in [Figure 9-3](/en/ch9#fig_distributed_timestamps): the write *x* = 1 has a timestamp of
+42.004 seconds, but the write *x* = 2 has a timestamp of 42.003 seconds.
 
 As discussed in [“Last write wins (discarding concurrent writes)”](/en/ch6#sec_replication_lww), one way of resolving conflicts between concurrently written
 values on different nodes is *last write wins* (LWW), which means keeping the write with the
 greatest timestamp for a given key and discarding all writes with older timestamps. In the example
-of [Figure 9-3](/en/ch9#fig_distributed_timestamps), when node 2 receives these two events, it will incorrectly
-conclude that *x* = 1 is the more recent value and drop the write *x* = 2,
+of [Figure 9-3](/en/ch9#fig_distributed_timestamps), when node 2 receives these two events, it will incorrectly
+conclude that *x* = 1 is the more recent value and drop the write *x* = 2,
 so the increment is lost.
 
 This problem can be prevented by ensuring that when a value is overwritten, the new value always has
@@ -710,7 +718,7 @@ policy [^62]. This approach has some serious problems:
  This scenario can cause arbitrary amounts of data to be silently dropped without any error being
  reported to the application.
 * LWW cannot distinguish between writes that occurred sequentially in quick succession (in
- [Figure 9-3](/en/ch9#fig_distributed_timestamps), client B’s increment definitely occurs *after* client A’s write)
+ [Figure 9-3](/en/ch9#fig_distributed_timestamps), client B’s increment definitely occurs *after* client A’s write)
  and writes that were truly concurrent (neither writer was aware of the other). Additional
  causality tracking mechanisms, such as version vectors, are needed in order to prevent violations
  of causality (see [“Detecting Concurrent Writes”](/en/ch6#sec_replication_concurrent)).
@@ -722,8 +730,8 @@ policy [^62]. This approach has some serious problems:
 Thus, even though it is tempting to resolve conflicts by keeping the most “recent” value and
 discarding others, it’s important to be aware that the definition of “recent” depends on a local
 time-of-day clock, which may well be incorrect. Even with tightly NTP-synchronized clocks, you could
-send a packet at timestamp 100 ms (according to the sender’s clock) and have it arrive at
-timestamp 99 ms (according to the recipient’s clock)—so it appears as though the packet
+send a packet at timestamp 100 ms (according to the sender’s clock) and have it arrive at
+timestamp 99 ms (according to the recipient’s clock)—so it appears as though the packet
 arrived before it was sent, which is impossible.
 
 Could NTP synchronization be made accurate enough that such incorrect orderings cannot occur?
@@ -746,12 +754,12 @@ actually accurate to such precision. In fact, it most likely is not—as mention
 drift in an imprecise quartz clock can easily be several milliseconds, even if you synchronize with
 an NTP server on the local network every minute. With an NTP server on the public internet, the best
 possible accuracy is probably to the tens of milliseconds, and the error may easily spike to over
-100 ms when there is network congestion.
+100 ms when there is network congestion.
 
 Thus, it doesn’t make sense to think of a clock reading as a point in time—it is more like a
 range of times, within a confidence interval: for example, a system may be 95% confident that the
 time now is between 10.3 and 10.5 seconds past the minute, but it doesn’t know any more precisely than that [^67].
-If we only know the time +/– 100 ms, the microsecond digits in the timestamp are essentially meaningless.
+If we only know the time +/– 100 ms, the microsecond digits in the timestamp are essentially meaningless.
 
 The uncertainty bound can be calculated based on your time source. If you have a GPS receiver or
 atomic clock directly attached to your computer, the expected error range is determined by
@@ -808,7 +816,7 @@ length of the confidence interval before committing a read-write transaction. By
 ensures that any transaction that may read the data is at a sufficiently later time, so their
 confidence intervals do not overlap. In order to keep the wait time as short as possible, Spanner
 needs to keep the clock uncertainty as small as possible; for this purpose, Google deploys a GPS
-receiver or atomic clock in each datacenter, allowing clocks to be synchronized to within about 7 ms [^45].
+receiver or atomic clock in each datacenter, allowing clocks to be synchronized to within about 7 ms [^45].
 
 The atomic clocks and GPS receivers are not strictly necessary in Spanner: the important thing is to
 have a confidence interval, and the accurate clock sources only help keep that interval small. Other
@@ -943,7 +951,7 @@ failure of the entire system. These are so-called *hard real-time* systems.
 > In embedded systems, *real-time* means that a system is carefully designed and tested to meet
 > specified timing guarantees in all circumstances. This meaning is in contrast to the more vague use of the
 > term *real-time* on the web, where it describes servers pushing data to clients and stream
-> processing without hard response time constraints (see [Link to Come]).
+> processing without hard response time constraints (see [Chapter 12](/en/ch12#ch_stream)).
 
 --------
 
@@ -997,7 +1005,7 @@ A variant of this idea is to use the garbage collector only for short-lived obje
 to collect) and to restart processes periodically, before they accumulate enough long-lived objects
 to require a full GC of long-lived objects [^79] [^82].
 One node can be restarted at a time, and traffic can be shifted away from the node before the
-planned restart, like in a rolling upgrade (see [Chapter 5](/en/ch5#ch_encoding)).
+planned restart, like in a rolling upgrade (see [Chapter 5](/en/ch5#ch_encoding)).
 
 These measures cannot fully prevent garbage collection pauses, but they can usefully reduce their
 impact on the application.
@@ -1031,7 +1039,7 @@ even if the underlying system model provides very few guarantees.
 However, although it is possible to make software well behaved in an unreliable system model, it
 is not straightforward to do so. In the rest of this chapter we will further explore the notions of
 knowledge and truth in distributed systems, which will help us think about the kinds of assumptions
-we can make and the guarantees we may want to provide. In [Chapter 10](/en/ch10#ch_consistency) we will proceed to
+we can make and the guarantees we may want to provide. In [Chapter 10](/en/ch10#ch_consistency) we will proceed to
 look at some examples of distributed algorithms that provide particular guarantees under particular
 assumptions.
 
@@ -1075,7 +1083,7 @@ of quorums are possible). A majority quorum allows the system to continue workin
 are faulty (with three nodes, one faulty node can be tolerated; with five nodes, two faulty nodes can be
 tolerated). However, it is still safe, because there can only be only one majority in the
 system—there cannot be two majorities with conflicting decisions at the same time. We will discuss
-the use of quorums in more detail when we get to *consensus algorithms* in [Chapter 10](/en/ch10#ch_consistency).
+the use of quorums in more detail when we get to *consensus algorithms* in [Chapter 10](/en/ch10#ch_consistency).
 
 ### Distributed Locks and Leases {#sec_distributed_lock_fencing}
 
@@ -1099,13 +1107,13 @@ hold the lease, perhaps due to a process pause. In the third example, the conseq
 wasted computational resources, which is not a big deal. But in the first two cases, the consequence
 could be lost or corrupted data, which is much more serious.
 
-For example, [Figure 9-4](/en/ch9#fig_distributed_lease_pause) shows a data corruption bug due to an incorrect
+For example, [Figure 9-4](/en/ch9#fig_distributed_lease_pause) shows a data corruption bug due to an incorrect
 implementation of locking. (The bug is not theoretical: HBase used to have this problem [^85] [^86].)
 Say you want to ensure that a file in a storage service can only be
 accessed by one client at a time, because if multiple clients tried to write to it, the file would
 become corrupted. You try to implement this by requiring a client to obtain a lease from a lock
 service before accessing the file. Such a lock service is often implemented using a consensus
-algorithm; we will discuss this further in [Chapter 10](/en/ch10#ch_consistency).
+algorithm; we will discuss this further in [Chapter 10](/en/ch10#ch_consistency).
 
 {{< figure src="/fig/ddia_0904.png" id="fig_distributed_lease_pause" caption="Figure 9-4. Incorrect implementation of a distributed lock: client 1 believes that it still has a valid lease, even though it has expired, and thus corrupts a file in storage." class="w-full my-4" >}}
 
@@ -1116,13 +1124,13 @@ the same file, and start writing to the file. When the paused client comes back,
 (incorrectly) that it still has a valid lease and proceeds to also write to the file. We now have a
 split brain situation: the clients’ writes clash and corrupt the file.
 
-[Figure 9-5](/en/ch9#fig_distributed_lease_delay) shows a different problem that has similar consequences. In this
+[Figure 9-5](/en/ch9#fig_distributed_lease_delay) shows a different problem that has similar consequences. In this
 example there is no process pause, only a crash by client 1. Just before client 1 crashes it sends a
 write request to the storage service, but this request is delayed for a long time in the network.
 (Remember from [“Network Faults in Practice”](/en/ch9#sec_distributed_network_faults) that packets can sometimes be delayed by a minute
 or more.) By the time the write request arrives at the storage service, the lease has already timed
 out, allowing client 2 to acquire it and issue a write of its own. The result is corruption similar
-to [Figure 9-4](/en/ch9#fig_distributed_lease_pause).
+to [Figure 9-4](/en/ch9#fig_distributed_lease_pause).
 
 {{< figure src="/fig/ddia_0905.png" id="fig_distributed_lease_delay" caption="Figure 9-5. A message from a former leaseholder might be delayed for a long time, and arrive after another node has taken over the lease." class="w-full my-4" >}}
 
@@ -1139,11 +1147,11 @@ from the network [^9], shutting down the VM via
 the cloud provider’s management interface, or even physically powering down the machine [^87].
 This approach is known as *Shoot The Other Node In The Head* or STONITH. Unfortunately, it suffers
 from some problems: it does not protect against large network delays like in
-[Figure 9-5](/en/ch9#fig_distributed_lease_delay); it can happen that all of the nodes shut each other down [^19]; and by the time the zombie has been
+[Figure 9-5](/en/ch9#fig_distributed_lease_delay); it can happen that all of the nodes shut each other down [^19]; and by the time the zombie has been
 detected and shut down, it may already be too late and data may already have been corrupted.
 
 A more robust fencing solution, which protects against both zombies and delayed requests, is
-illustrated in [Figure 9-6](/en/ch9#fig_distributed_fencing).
+illustrated in [Figure 9-6](/en/ch9#fig_distributed_fencing).
 
 {{< figure src="/fig/ddia_0906.png" id="fig_distributed_fencing" caption="Figure 9-6. Making access to storage safe by allowing writes only in the order of increasing fencing tokens." class="w-full my-4" >}}
 
@@ -1158,12 +1166,12 @@ it must include its current fencing token.
 > [!NOTE]
 > There are several alternative names for fencing tokens. In Chubby, Google’s lock service, they are
 > called *sequencers* [^88], and in Kafka they are called *epoch numbers*.
-> In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
+> In consensus algorithms, which we will discuss in [Chapter 10](/en/ch10#ch_consistency), the *ballot number* (Paxos) or
 > *term number* (Raft) serves a similar purpose.
 
 --------
 
-In [Figure 9-6](/en/ch9#fig_distributed_fencing), client 1 acquires the lease with a token of 33, but then
+In [Figure 9-6](/en/ch9#fig_distributed_fencing), client 1 acquires the lease with a token of 33, but then
 it goes into a long pause and the lease expires. Client 2 acquires the lease with a token of 34 (the
 number always increases) and then sends its write request to the storage service, including the
 token of 34. Later, client 1 comes back to life and sends its write to the storage service,
@@ -1196,7 +1204,7 @@ last-write-wins conflict resolution (see [“Leaderless Replication”](/en/ch6#
 client sends writes directly to each replica, and each replica independently decides whether to
 accept a write based on a timestamp assigned by the client.
 
-As illustrated in [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), you can put the writer’s fencing token in
+As illustrated in [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), you can put the writer’s fencing token in
 the most significant bits or digits of the timestamp. You can then be sure that any timestamp
 generated by the new leaseholder will be greater than any timestamp from the old leaseholder, even
 if the old leaseholder’s writes happened later.
@@ -1204,7 +1212,7 @@ if the old leaseholder’s writes happened later.
 {{< figure src="/fig/ddia_0907.png" id="fig_distributed_fencing_leaderless" caption="Figure 9-7. Using fencing tokens to protect writes to a leaderless replicated database." class="w-full my-4" >}}
 
 
-In [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), Client 2 has a fencing token of 34, so all of its
+In [Figure 9-7](/en/ch9#fig_distributed_fencing_leaderless), Client 2 has a fencing token of 34, so all of its
 timestamps starting with 34…​ are greater than any timestamps starting with 33…​ that are
 generated by Client 1. Client 2 writes to a quorum of replicas but it can’t reach Replica 3. This
 means that when the zombie Client 1 later tries to write, its write may succeed at Replica 3 even
@@ -1239,7 +1247,7 @@ The Byzantine Generals Problem is a generalization of the so-called *Two General
 which imagines a situation in which two army generals need to agree on a battle plan. As they
 have set up camp on two different sites, they can only communicate by messenger, and the messengers
 sometimes get delayed or lost (like packets in a network). We will discuss this problem of
-*consensus* in [Chapter 10](/en/ch10#ch_consistency).
+*consensus* in [Chapter 10](/en/ch10#ch_consistency).
 
 In the Byzantine version of the problem, there are *n* generals who need to agree, and their
 endeavor is hampered by the fact that there are some traitors in their midst. Most of the generals
@@ -1301,6 +1309,8 @@ an attacker can compromise one node, they can probably compromise all of them, b
 probably running the same software. Thus, traditional mechanisms (authentication, access control,
 encryption, firewalls, and so on) continue to be the main protection against attackers.
 
+<a id="sec_distributed_weak_lying"></a>
+
 #### Weak forms of lying {#weak-forms-of-lying}
 
 Although we assume that nodes are generally honest, it can be worth adding mechanisms to software
@@ -1327,7 +1337,7 @@ pragmatic steps toward better reliability. For example:
 ### System Model and Reality {#sec_distributed_system_model}
 
 Many algorithms have been designed to solve distributed systems problems—for example, we will
-examine solutions for the consensus problem in [Chapter 10](/en/ch10#ch_consistency). In order to be useful, these
+examine solutions for the consensus problem in [Chapter 10](/en/ch10#ch_consistency). In order to be useful, these
 algorithms need to tolerate the various faults of distributed systems that we discussed in this
 chapter.
 
@@ -1409,7 +1419,7 @@ Uniqueness
 
 Monotonic sequence
 : If request *x* returned token *t**x*, and request *y* returned token *t**y*, and
- *x* completed before *y* began, then *t**x* < *t**y*.
+ *x* completed before *y* began, then *t**x* < *t**y*.
 
 Availability
 : A node that requests a fencing token and does not crash eventually receives a response.
@@ -1615,7 +1625,7 @@ TigerBeetle’s time abstraction allows simulations to simulate network latency 
 actually taking the full length of time to trigger the timeout. Such techniques allow the simulator
 to explore more code paths faster.
 
-# The Power of Determinism
+#### The Power of Determinism {#sidebar_distributed_determinism}
 
 Nondeterminism is at the core of all of the distributed systems challenges we discussed in this
 chapter: concurrency, network delay, process pauses, clock jumps, and crashes all happen in

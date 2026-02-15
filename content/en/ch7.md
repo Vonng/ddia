@@ -4,6 +4,8 @@ weight: 207
 breadcrumbs: false
 ---
 
+<a id="ch_sharding"></a>
+
 ![](/map/ch06.png)
 
 > *Clearly, we must break away from the sequential and not limit the computers. We must state
@@ -14,7 +16,7 @@ breadcrumbs: false
 
 A distributed database typically distributes data across nodes in two ways:
 
-1. Having a copy of the same data on multiple nodes: this is *replication*, which we discussed in [Chapter 6](/en/ch6#ch_replication).
+1. Having a copy of the same data on multiple nodes: this is *replication*, which we discussed in [Chapter 6](/en/ch6#ch_replication).
 2. If we don’t want every node to store all the data, we can split up a large amount of data into
  smaller *shards* or *partitions*, and store different shards on different nodes. We’ll discuss
  sharding in this chapter.
@@ -29,13 +31,13 @@ nodes. This means that, even though each record belongs to exactly one shard, it
 on several different nodes for fault tolerance.
 
 A node may store more than one shard. If a single-leader replication model is used, the combination
-of sharding and replication can look like [Figure 7-1](/en/ch7#fig_sharding_replicas), for example. Each shard’s
+of sharding and replication can look like [Figure 7-1](/en/ch7#fig_sharding_replicas), for example. Each shard’s
 leader is assigned to one node, and its followers are assigned to other nodes. Each node may be the
 leader for some shards and a follower for other shards, but each shard still only has one leader.
 
 {{< figure src="/fig/ddia_0701.png" id="fig_sharding_replicas" caption="Figure 7-1. Combining replication and sharding: each node acts as leader for some shards and follower for other shards." class="w-full my-4" >}}
 
-Everything we discussed in [Chapter 6](/en/ch6#ch_replication) about replication of databases applies equally to
+Everything we discussed in [Chapter 6](/en/ch6#ch_replication) about replication of databases applies equally to
 replication of shards. Since the choice of sharding scheme is mostly independent of the choice of
 replication scheme, we will ignore replication in this chapter for the sake of simplicity.
 
@@ -62,7 +64,7 @@ to databases. Another theory is that *shard* was originally an acronym of *Syste
 Available Replicated Data*—reportedly a 1980s database, details of which are lost to history.
 
 By the way, partitioning has nothing to do with *network partitions* (netsplits), a type of fault in
-the network between nodes. We will discuss such faults in [Chapter 9](/en/ch9#ch_distributed).
+the network between nodes. We will discuss such faults in [Chapter 9](/en/ch9#ch_distributed).
 
 --------
 
@@ -71,7 +73,7 @@ the network between nodes. We will discuss such faults in [Chapter 9](/en/ch9#c
 The primary reason for sharding a database is *scalability*: it’s a solution if the volume of data
 or the write throughput has become too great for a single node to handle, as it allows you to spread
 that data and those writes across multiple nodes. (If read throughput is the problem, you don’t
-necessarily need sharding—you can use *read scaling* as discussed in [Chapter 6](/en/ch6#ch_replication).)
+necessarily need sharding—you can use *read scaling* as discussed in [Chapter 6](/en/ch6#ch_replication).)
 
 In fact, sharding is one of the main tools we have for achieving *horizontal scaling* (a *scale-out*
 architecture), as discussed in [“Shared-Memory, Shared-Disk, and Shared-Nothing Architecture”](/en/ch2#sec_introduction_shared_nothing): that is, allowing a system to
@@ -98,9 +100,9 @@ may be distributed across different shards. We will discuss this further in
 [“Sharding and Secondary Indexes”](/en/ch7#sec_sharding_secondary_indexes).
 
 Another problem with sharding is that a write may need to update related records in several
-different shards. While transactions on a single node are quite common (see [Chapter 8](/en/ch8#ch_transactions)),
+different shards. While transactions on a single node are quite common (see [Chapter 8](/en/ch8#ch_transactions)),
 ensuring consistency across multiple shards requires a *distributed transaction*. As we shall see in
-[Chapter 8](/en/ch8#ch_transactions), distributed transactions are available in some databases, but they are usually
+[Chapter 8](/en/ch8#ch_transactions), distributed transactions are available in some databases, but they are usually
 much slower than single-node transactions, may become a bottleneck for the system as a whole, and
 some systems don’t support them at all.
 
@@ -201,7 +203,7 @@ hot spots.
 
 One way of sharding is to assign a contiguous range of partition keys (from some minimum to some
 maximum) to each shard, like the volumes of a paper encyclopedia, as illustrated in
-[Figure 7-2](/en/ch7#fig_sharding_encyclopedia). In this example, an entry’s partition key is its title. If you want
+[Figure 7-2](/en/ch7#fig_sharding_encyclopedia). In this example, an entry’s partition key is its title. If you want
 to look up the entry for a particular title, you can easily determine which shard contains that
 entry by finding the volume whose key range contains the title you’re looking for, and thus pick the
 correct book off the shelf.
@@ -209,7 +211,7 @@ correct book off the shelf.
 {{< figure src="/fig/ddia_0702.png" id="fig_sharding_encyclopedia" caption="Figure 7-2. A print encyclopedia is sharded by key range." class="w-full my-4" >}}
 
 The ranges of keys are not necessarily evenly spaced, because your data may not be evenly
-distributed. For example, in [Figure 7-2](/en/ch7#fig_sharding_encyclopedia), volume 1 contains words starting with A
+distributed. For example, in [Figure 7-2](/en/ch7#fig_sharding_encyclopedia), volume 1 contains words starting with A
 and B, but volume 12 contains words starting with T, U, V, W, X, Y, and Z. Simply having one volume
 per two letters of the alphabet would lead to some volumes being much bigger than others. In order
 to distribute the data evenly, the shard boundaries need to adapt to the data.
@@ -221,7 +223,7 @@ range-based sharding option in MongoDB, CockroachDB, RethinkDB, and FoundationDB
 tablet splitting.
 
 Within each shard, keys are stored in sorted order (e.g., in a B-tree or SSTables, as discussed in
-[Chapter 4](/en/ch4#ch_storage)). This has the advantage that range scans are easy, and you can treat the key as a
+[Chapter 4](/en/ch4#ch_storage)). This has the advantage that range scans are easy, and you can treat the key as a
 concatenated index in order to fetch several related records in one query (see
 [“Multidimensional and Full-Text Indexes”](/en/ch4#sec_storage_multidimensional)). For example, consider an application that stores data from a
 network of sensors, where the key is the timestamp of the measurement. Range scans are very useful
@@ -256,7 +258,7 @@ This process is similar to what happens at the top level of a B-tree (see [“B-
 
 With databases that manage shard boundaries automatically, a shard split is typically triggered by:
 
-* the shard reaching a configured size (for example, on HBase, the default is 10 GB), or
+* the shard reaching a configured size (for example, on HBase, the default is 10 GB), or
 * in some systems, the write throughput being persistently above some threshold. Thus, a hot shard
  may be split even if it is not storing a lot of data, so that its write load can be distributed more uniformly.
 
@@ -278,7 +280,7 @@ application), a common approach is to first hash the partition key before mappin
 
 A good hash function takes skewed data and makes it uniformly distributed. Say you have a 32-bit
 hash function that takes a string. Whenever you give it a new string, it returns a seemingly random
-number between 0 and 232 − 1. Even if the input strings are very similar, their hashes are evenly 
+number between 0 and 232 − 1. Even if the input strings are very similar, their hashes are evenly 
 distributed across that range of numbers (but the same input always produces the same output).
 
 For sharding purposes, the hash function need not be cryptographically strong: for example, MongoDB
@@ -291,12 +293,12 @@ different hash value in different processes, making them unsuitable for sharding
 
 Once you have hashed the key, how do you choose which shard to store it in? Maybe your first thought
 is to take the hash value *modulo* the number of nodes in the system (using the `%` operator in many
-programming languages). For example, *hash*(*key*) % 10 would return a number between
-0 and 9 (if we write the hash as a decimal number, the hash % 10 would be the last digit).
+programming languages). For example, *hash*(*key*) % 10 would return a number between
+0 and 9 (if we write the hash as a decimal number, the hash % 10 would be the last digit).
 If we have 10 nodes, numbered 0 to 9, that seems like an easy way of assigning each key to a node.
 
 The problem with the *mod N* approach is that if the number of nodes *N* changes, most of the keys
-have to be moved from one node to another. [Figure 7-3](/en/ch7#fig_sharding_hash_mod_n) shows what happens when you
+have to be moved from one node to another. [Figure 7-3](/en/ch7#fig_sharding_hash_mod_n) shows what happens when you
 have three nodes and add a fourth. Before the rebalancing, node 0 stored the keys whose hashes are
 0, 3, 6, 9, and so on. After adding the fourth node, the key with hash 3 has moved to node 3, the
 key with hash 6 has moved to node 2, the key with hash 9 has moved to node 1, and so on.
@@ -312,12 +314,12 @@ doesn’t move data around more than necessary.
 One simple but widely-used solution is to create many more shards than there are nodes, and to
 assign several shards to each node. For example, a database running on a cluster of 10 nodes may be
 split into 1,000 shards from the outset so that 100 shards are assigned to each node. A key is then
-stored in shard number *hash*(*key*) % 1,000, and the system separately keeps track of
+stored in shard number *hash*(*key*) % 1,000, and the system separately keeps track of
 which shard is stored on which node.
 
 Now, if a node is added to the cluster, the system can reassign some of the shards from existing
 nodes to the new node until they are fairly distributed once again. This process is illustrated in
-[Figure 7-4](/en/ch7#fig_sharding_rebalance_fixed). If a node is removed from the cluster, the same happens in reverse.
+[Figure 7-4](/en/ch7#fig_sharding_rebalance_fixed). If a node is removed from the cluster, the same happens in reverse.
 
 {{< figure src="/fig/ddia_0704.png" id="fig_sharding_rebalance_fixed" caption="Figure 7-4. Adding a new node to a database cluster with multiple shards per node." class="w-full my-4" >}}
 
@@ -360,8 +362,8 @@ has this property, but it has a risk of hot spots when there are a lot of writes
 solution is to combine key-range sharding with a hash function so that each shard contains a range
 of *hash values* rather than a range of *keys*.
 
-[Figure 7-5](/en/ch7#fig_sharding_hash_range) shows an example using a 16-bit hash function that returns a number
-between 0 and 65,535 = 216 − 1 (in reality, the hash is usually 32 bits or more).
+[Figure 7-5](/en/ch7#fig_sharding_hash_range) shows an example using a 16-bit hash function that returns a number
+between 0 and 65,535 = 216 − 1 (in reality, the hash is usually 32 bits or more).
 Even if the input keys are very similar (e.g., consecutive timestamps), their hashes are uniformly
 distributed across that range. We can then assign a range of hash values to each shard: for example,
 values between 0 and 16,383 to shard 0, values between 16,384 and 32,767 to shard 1, and so on.
@@ -394,8 +396,8 @@ improve compression and filtering performance as well.
 
 Hash-range sharding is used in YugabyteDB and DynamoDB [^17], and is an option in MongoDB.
 Cassandra and ScyllaDB use a variant of this approach that is illustrated in
-[Figure 7-6](/en/ch7#fig_sharding_cassandra): the space of hash values is split into a number of ranges proportional
-to the number of nodes (3 ranges per node in [Figure 7-6](/en/ch7#fig_sharding_cassandra), but actual numbers are 8
+[Figure 7-6](/en/ch7#fig_sharding_cassandra): the space of hash values is split into a number of ranges proportional
+to the number of nodes (3 ranges per node in [Figure 7-6](/en/ch7#fig_sharding_cassandra), but actual numbers are 8
 per node in Cassandra by default, and 256 per node in ScyllaDB), with random boundaries between
 those ranges. This means some ranges are bigger than others, but by having multiple ranges per node
 those imbalances tend to even out [^15] [^18].
@@ -404,7 +406,7 @@ those imbalances tend to even out [^15] [^18].
 
 When nodes are added or removed, range boundaries are added and removed, and shards are split or
 merged accordingly [^19].
-In the example of [Figure 7-6](/en/ch7#fig_sharding_cassandra), when node 3 is added, node 1
+In the example of [Figure 7-6](/en/ch7#fig_sharding_cassandra), when node 3 is added, node 1
 transfers parts of two of its ranges to node 3, and node 2 transfers part of one of its ranges to
 node 3. This has the effect of giving the new node an approximately fair share of the dataset,
 without transferring more data than necessary from one node to another.
@@ -417,8 +419,8 @@ in a way that satisfies two properties:
 1. the number of keys mapped to each shard is roughly equal, and
 2. when the number of shards changes, as few keys as possible are moved from one shard to another.
 
-Note that *consistent* here has nothing to do with replica consistency (see [Chapter 6](/en/ch6#ch_replication)) or
-ACID consistency (see [Chapter 8](/en/ch8#ch_transactions)), but rather describes the tendency of a key to stay in
+Note that *consistent* here has nothing to do with replica consistency (see [Chapter 6](/en/ch6#ch_replication)) or
+ACID consistency (see [Chapter 8](/en/ch8#ch_transactions)), but rather describes the tendency of a key to stay in
 the same shard as much as possible.
 
 The sharding algorithm used by Cassandra and ScyllaDB is similar to the original definition of consistent hashing [^20],
@@ -516,7 +518,7 @@ only be handled by a node that is a replica for the shard containing that key.
 
 This means that request routing has to be aware of the assignment from keys to shards, and from
 shards to nodes. On a high level, there are a few different approaches to this problem 
-(illustrated in [Figure 7-7](/en/ch7#fig_sharding_routing)):
+(illustrated in [Figure 7-7](/en/ch7#fig_sharding_routing)):
 
 1. Allow clients to contact any node (e.g., via a round-robin load balancer). If that node
  coincidentally owns the shard to which the request applies, it can handle the request directly;
@@ -544,8 +546,8 @@ In all cases, there are some key problems:
  those?
 
 Many distributed data systems rely on a separate coordination service such as ZooKeeper or etcd to
-keep track of shard assignments, as illustrated in [Figure 7-8](/en/ch7#fig_sharding_zookeeper). They use consensus
-algorithms (see [Chapter 10](/en/ch10#ch_consistency)) to provide fault tolerance and protection against split-brain.
+keep track of shard assignments, as illustrated in [Figure 7-8](/en/ch7#fig_sharding_zookeeper). They use consensus
+algorithms (see [Chapter 10](/en/ch10#ch_consistency)) to provide fault tolerance and protection against split-brain.
 Each node registers itself in ZooKeeper, and ZooKeeper maintains the authoritative mapping of shards
 to nodes. Other actors, such as the routing tier or the sharding-aware client, can subscribe to this
 information in ZooKeeper. Whenever a shard changes ownership, or a node is added or removed,
@@ -573,7 +575,7 @@ This discussion of request routing has focused on finding the shard for an indiv
 most relevant for sharded OLTP databases. Analytic databases often use sharding as well, but they
 typically have a very different kind of query execution: rather than executing in a single shard, a
 query typically needs to aggregate and join data from many different shards in parallel. We will
-discuss techniques for such parallel query execution in [Link to Come].
+discuss techniques for such parallel query execution in [“JOIN and GROUP BY”](/en/ch11#sec_batch_join).
 
 ## Sharding and Secondary Indexes {#sec_sharding_secondary_indexes}
 
@@ -597,7 +599,7 @@ local and global indexes.
 ### Local Secondary Indexes {#id166}
 
 For example, imagine you are operating a website for selling used cars (illustrated in
-[Figure 7-9](/en/ch7#fig_sharding_local_secondary)). Each listing has a unique ID, and you use that ID as partition
+[Figure 7-9](/en/ch7#fig_sharding_local_secondary)). Each listing has a unique ID, and you use that ID as partition
 key for sharding (for example, IDs 0 to 499 in shard 0, IDs 500 to 999 in shard 1, etc.).
 
 If you want to let users search for cars, allowing them to filter by color and by make, you need a
@@ -605,7 +607,7 @@ secondary index on `color` and `make` (in a document database these would be fie
 database they would be columns). If you have declared the index, the database can perform the
 indexing automatically. For example, whenever a red car is added to the database, the database shard
 automatically adds its ID to the list of IDs for the index entry `color:red`. As discussed in
-[Chapter 4](/en/ch4#ch_storage), that list of IDs is also called a *postings list*.
+[Chapter 4](/en/ch4#ch_storage), that list of IDs is also called a *postings list*.
 
 {{< figure src="/fig/ddia_0709.png" id="fig_sharding_local_secondary" caption="Figure 7-9. Local secondary indexes: each shard indexes only the records within its own shard." class="w-full my-4" >}}
 
@@ -632,7 +634,7 @@ want *some* results, and you don’t need all, you can send the request to any s
 
 However, if you want all the results and don’t know their partition key in advance, you need to send
 the query to all shards, and combine the results you get back, because the matching records might be
-scattered across all the shards. In [Figure 7-9](/en/ch7#fig_sharding_local_secondary), red cars appear in both shard
+scattered across all the shards. In [Figure 7-9](/en/ch7#fig_sharding_local_secondary), red cars appear in both shard
 0 and shard 1.
 
 This approach to querying a sharded database can make read queries on secondary indexes quite
@@ -651,7 +653,7 @@ covers data in all shards. However, we can’t just store that index on one node
 likely become a bottleneck and defeat the purpose of sharding. A global index must also be sharded,
 but it can be sharded differently from the primary key index.
 
-[Figure 7-10](/en/ch7#fig_sharding_global_secondary) illustrates what this could look like: the IDs of red cars from
+[Figure 7-10](/en/ch7#fig_sharding_global_secondary) illustrates what this could look like: the IDs of red cars from
 all shards appear under `color:red` in the index, but the index is sharded so that colors starting
 with the letters *a* to *r* appear in shard 0 and colors starting with *s* to *z* appear in shard 1.
 The index on the make of car is partitioned similarly (with the shard boundary being between *f* and *h*).
@@ -664,7 +666,7 @@ you can search for. Here we generalise it to mean any value that you can search 
 
 The global index uses the term as partition key, so that when you’re looking for a particular term
 or value, you can figure out which shard you need to query. As before, a shard can contain a
-contiguous range of terms (as in [Figure 7-10](/en/ch7#fig_sharding_global_secondary)), or you can assign terms to
+contiguous range of terms (as in [Figure 7-10](/en/ch7#fig_sharding_global_secondary)), or you can assign terms to
 shards based on a hash of the term.
 
 Global indexes have the advantage that a query with a single condition (such as *color = red*) only
@@ -682,7 +684,7 @@ Another challenge with global secondary indexes is that writes are more complica
 indexes, because writing a single record might affect multiple shards of the index (every term in
 the document might be on a different shard). This makes it harder to keep the secondary index in
 sync with the underlying data. One option is to use a distributed transaction to atomically update
-the shards storing the primary record and its secondary indexes (see [Chapter 8](/en/ch8#ch_transactions)).
+the shards storing the primary record and its secondary indexes (see [Chapter 8](/en/ch8#ch_transactions)).
 
 Global secondary indexes are used by CockroachDB, TiDB, and YugabyteDB; DynamoDB supports both local
 and global secondary indexes. In the case of DynamoDB, writes are asynchronously reflected in global

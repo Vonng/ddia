@@ -4,6 +4,8 @@ weight: 104
 breadcrumbs: false
 ---
 
+<a id="ch_storage"></a>
+
 ![](/map/ch03.png)
 
 > *One of the miseries of life is that everybody names things a little bit wrong. And so it makes
@@ -17,7 +19,7 @@ breadcrumbs: false
 On the most fundamental level, a database needs to do two things: when you give it some data, it
 should store the data, and when you ask it again later, it should give the data back to you.
 
-In [Chapter 3](/en/ch3#ch_datamodels) we discussed data models and query languages—i.e., the format in which you give
+In [Chapter 3](/en/ch3#ch_datamodels) we discussed data models and query languages—i.e., the format in which you give
 the database your data, and the interface through which you can ask for it again later. In this
 chapter we discuss the same from the database’s point of view: how the database can store the data
 that you give it, and how it can find the data again when you ask for it.
@@ -140,7 +142,7 @@ your application the greatest benefit, without introducing more overhead on writ
 To start, let’s assume that you want to continue storing data in the append-only file written by
 `db_set`, and you just want to speed up reads. One way you could do this is by keeping a hash map in
 memory, in which every key is mapped to the byte offset in the file at which the most recent value
-for that key can be found, as illustrated in [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
+for that key can be found, as illustrated in [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
 
 {{< figure src="/fig/ddia_0401.png" id="fig_storage_csv_hash_index" caption="Figure 4-1. Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map." class="w-full my-4" >}}
 
@@ -167,7 +169,7 @@ This approach is much faster, but it still suffers from several problems:
 In practice, hash tables are not used very often for database indexes, and instead it is much more
 common to keep data in a structure that is *sorted by key* [^3].
 One example of such a structure is a *Sorted String Table*, or *SSTable* for short, as shown in
-[Figure 4-2](/en/ch4#fig_storage_sstable_index). This file format also stores key-value pairs, but it ensures that
+[Figure 4-2](/en/ch4#fig_storage_sstable_index). This file format also stores key-value pairs, but it ensures that
 they are sorted by key, and each key only appears once in the file.
 
 {{< figure src="/fig/ddia_0402.png" id="fig_storage_sstable_index" caption="Figure 4-2. An SSTable with a sparse index, allowing queries to jump to the right block." class="w-full my-4" >}}
@@ -178,7 +180,7 @@ This kind of index, which stores only some of the keys, is called *sparse*. This
 a separate part of the SSTable, for example using an immutable B-tree, a trie, or another data
 structure that allows queries to quickly look up a particular key [^4].
 
-For example, in [Figure 4-2](/en/ch4#fig_storage_sstable_index), the first key of one block is `handbag`, and the
+For example, in [Figure 4-2](/en/ch4#fig_storage_sstable_index), the first key of one block is `handbag`, and the
 first key of the next block is `handsome`. Now say you’re looking for the key `handiwork`, which
 doesn’t appear in the sparse index. Because of the sorting you know that `handiwork` must appear
 between `handbag` and `handsome`. This means you can seek to the offset for `handbag` and scan the
@@ -186,7 +188,7 @@ file from there until you find `handiwork` (or not, if the key is not present in
 of a few kilobytes can be scanned very quickly.
 
 Moreover, each block of records can be compressed (indicated by the shaded area in
-[Figure 4-2](/en/ch4#fig_storage_sstable_index)). Besides saving disk space, compression also reduces the I/O
+[Figure 4-2](/en/ch4#fig_storage_sstable_index)). Besides saving disk space, compression also reduces the I/O
 bandwidth use, at the cost of using a bit more CPU time.
 
 #### Constructing and merging SSTables {#constructing-and-merging-sstables}
@@ -217,7 +219,7 @@ log and a sorted file:
  and to discard overwritten or deleted values.
 
 Merging segments works similarly to the *mergesort* algorithm [^5]. The process is illustrated in
-[Figure 4-3](/en/ch4#fig_storage_sstable_merging): start reading the input files side by side, look at the first key
+[Figure 4-3](/en/ch4#fig_storage_sstable_merging): start reading the input files side by side, look at the first key
 in each file, copy the lowest key (according to the sort order) to the output file, and repeat. If
 the same key appears in more than one input file, keep only the more recent value. This produces a
 new merged segment file, also sorted by key, with one value per key, and it uses minimal memory
@@ -258,7 +260,9 @@ the memtable or while merging segments, the database can just delete the unfinis
 start afresh. The log that persists writes to the memtable could contain incomplete records if there
 was a crash halfway through writing a record, or if the disk was full; these are typically detected
 by including checksums in the log, and discarding corrupted or incomplete log entries. We will talk
-more about durability and crash recovery in [Chapter 8](/en/ch8#ch_transactions).
+more about durability and crash recovery in [Chapter 8](/en/ch8#ch_transactions).
+
+<a id="sec_storage_bloom_filter"></a>
 
 #### Bloom filters {#bloom-filters}
 
@@ -268,7 +272,7 @@ reads, LSM storage engines often include a *Bloom filter* [^13]
 in each segment, which provides a fast but approximate way of checking whether a particular key
 appears in a particular SSTable.
 
-[Figure 4-4](/en/ch4#fig_storage_bloom) shows an example of a Bloom filter containing two keys and 16 bits (in
+[Figure 4-4](/en/ch4#fig_storage_bloom) shows an example of a Bloom filter containing two keys and 16 bits (in
 reality, it would contain more keys and more bits). For every key in the SSTable we compute a hash
 function, producing a set of numbers that are then interpreted as indexes into the array of bits [^14].
 We set the bits corresponding to those indexes to 1, and leave the rest as 0. For example, the key
@@ -279,7 +283,7 @@ extra space, but the Bloom filter is generally small compared to the rest of the
 {{< figure src="/fig/ddia_0404.png" id="fig_storage_bloom" caption="Figure 4-4. A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable." class="w-full my-4" >}}
 
 When we want to know whether a key appears in the SSTable, we compute the same hash of that key as
-before, and check the bits at those indexes. For example, in [Figure 4-4](/en/ch4#fig_storage_bloom), we’re querying
+before, and check the bits at those indexes. For example, in [Figure 4-4](/en/ch4#fig_storage_bloom), we’re querying
 the key `handheld`, which hashes to (6, 11, 2). One of those bits is 1 (namely, bit number 2),
 while the other two are 0. These checks can be made extremely fast using the bitwise operations that
 all CPUs support.
@@ -333,6 +337,8 @@ characteristics in more detail in [“Comparing B-Trees and LSM-Trees”](/en/ch
 
 --------
 
+<a id="sidebar_embedded"></a>
+
 > [!TIP] EMBEDDED STORAGE ENGINES
 
 Many databases run as a service that accepts queries over a network, but there are also *embedded*
@@ -349,7 +355,7 @@ queries that combine data from multiple tenants), you can potentially use a sepa
 database instance per tenant [^20].
 
 The storage and retrieval methods we discuss in this chapter are used in both embedded and in
-client-server databases. In [Chapter 6](/en/ch6#ch_replication) and [Chapter 7](/en/ch7#ch_sharding) we will discuss techniques
+client-server databases. In [Chapter 6](/en/ch6#ch_replication) and [Chapter 7](/en/ch7#ch_sharding) we will discuss techniques
 for scaling a database across multiple machines.
 
 --------
@@ -370,14 +376,14 @@ philosophy.
 The log-structured indexes we saw earlier break the database down into variable-size *segments*,
 typically several megabytes or more in size, that are written once and are then immutable. By
 contrast, B-trees break the database down into fixed-size *blocks* or *pages*, and may overwrite a
-page in-place. A page is traditionally 4 KiB in size, but PostgreSQL now uses 8 KiB and
-MySQL uses 16 KiB by default.
+page in-place. A page is traditionally 4 KiB in size, but PostgreSQL now uses 8 KiB and
+MySQL uses 16 KiB by default.
 
 Each page can be identified using a page number, which allows one page to refer to another—​similar
 to a pointer, but on disk instead of in memory. If all the pages are stored in the same file,
 multiplying the page number by the page size gives us the byte offset in the file where the page is
 located. We can use these page references to construct a tree of pages, as illustrated in
-[Figure 4-5](/en/ch4#fig_storage_b_tree).
+[Figure 4-5](/en/ch4#fig_storage_b_tree).
 
 {{< figure src="/fig/ddia_0405.png" id="fig_storage_b_tree" caption="Figure 4-5. Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270." class="w-full my-4" >}}
 
@@ -388,14 +394,14 @@ where the boundaries between those ranges lie.
 (This structure is sometimes called a B+ tree, but we don’t need to distinguish it
 from other B-tree variants.)
 
-In the example in [Figure 4-5](/en/ch4#fig_storage_b_tree), we are looking for the key 251, so we know that we need to
+In the example in [Figure 4-5](/en/ch4#fig_storage_b_tree), we are looking for the key 251, so we know that we need to
 follow the page reference between the boundaries 200 and 300. That takes us to a similar-looking
 page that further breaks down the 200–300 range into subranges. Eventually we get down to a
 page containing individual keys (a *leaf page*), which either contains the value for each key
 inline or contains references to the pages where the values can be found.
 
 The number of references to child pages in one page of the B-tree is called the *branching factor*.
-For example, in [Figure 4-5](/en/ch4#fig_storage_b_tree) the branching factor is six. In practice, the branching
+For example, in [Figure 4-5](/en/ch4#fig_storage_b_tree) the branching factor is six. In practice, the branching
 factor depends on the amount of space required to store the page references and the range
 boundaries, but typically it is several hundred.
 
@@ -408,7 +414,7 @@ of key ranges.
 
 {{< figure src="/fig/ddia_0406.png" id="fig_storage_b_tree_split" caption="Figure 4-6. Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children." class="w-full my-4" >}}
 
-In the example of [Figure 4-6](/en/ch4#fig_storage_b_tree_split), we want to insert the key 334, but the page for the
+In the example of [Figure 4-6](/en/ch4#fig_storage_b_tree_split), we want to insert the key 334, but the page for the
 range 333–345 is already full. We therefore split it into a page for the range 333–337 (including
 the new key), and a page for 337–344. We also have to update the parent page to have references to
 both children, with a boundary value of 337 between them. If the parent page doesn’t have enough
@@ -417,9 +423,9 @@ to the root of the tree. When the root is split, we make a new root above it. De
 may require nodes to be merged) is more complex [^5].
 
 This algorithm ensures that the tree remains *balanced*: a B-tree with *n* keys always has a depth
-of *O*(log *n*). Most databases can fit into a B-tree that is three or four levels deep, so
+of *O*(log *n*). Most databases can fit into a B-tree that is three or four levels deep, so
 you don’t need to follow many page references to find the page you are looking for. (A four-level
-tree of 4 KiB pages with a branching factor of 500 can store up to 250 TB.)
+tree of 4 KiB pages with a branching factor of 500 can store up to 250 TB.)
 
 #### Making B-trees reliable {#sec_storage_btree_wal}
 
@@ -530,14 +536,14 @@ flash memory attached to the PCI Express bus) have now overtaken HDDs for many u
 are not subject to such mechanical limitations.
 
 Nevertheless, SSDs also have higher throughput for sequential writes than for than random writes.
-The reason is that flash memory can be read or written one page (typically 4 KiB) at a time,
-but it can only be erased one block (typically 512 KiB) at a time. Some of the pages in a block
+The reason is that flash memory can be read or written one page (typically 4 KiB) at a time,
+but it can only be erased one block (typically 512 KiB) at a time. Some of the pages in a block
 may contain valid data, whereas others may contain data that is no longer needed. Before erasing a
 block, the controller must first move pages containing valid data into other blocks; this process is
 called *garbage collection* (GC) [^33].
 
 A sequential write workload writes larger chunks of data at a time, so it is likely that a whole
-512 KiB block belongs to a single file; when that file is later deleted again, the whole block
+512 KiB block belongs to a single file; when that file is later deleted again, the whole block
 can be erased without having to perform any GC. On the other hand, with a random write workload, it
 is more likely that a block contains a mixture of pages with valid and invalid data, so the GC has
 to perform more work before a block can be erased [^34] [^35] [^36].
@@ -624,7 +630,7 @@ to that row/document/vertex by its primary key (or ID), and the index is used to
 
 It is also very common to have *secondary indexes*. In relational databases, you can create several
 secondary indexes on the same table using the `CREATE INDEX` command, allowing you to search by
-columns other than the primary key. For example, in [Figure 3-1](/en/ch3#fig_obama_relational) in [Chapter 3](/en/ch3#ch_datamodels)
+columns other than the primary key. For example, in [Figure 3-1](/en/ch3#fig_obama_relational) in [Chapter 3](/en/ch3#ch_datamodels)
 you would most likely have a secondary index on the `user_id` columns so that you can find all the
 rows belonging to the same user in each of the tables.
 
@@ -791,7 +797,7 @@ rows), so in this section we will focus on storage of facts.
 
 Although fact tables are often over 100 columns wide, a typical data warehouse query only accesses 4
 or 5 of them at one time (`"SELECT *"` queries are rarely needed for analytics) [^52]. Take the query in
-[Example 4-1](/en/ch4#fig_storage_analytics_query): it accesses a large number of rows (every occurrence of someone
+[Example 4-1](/en/ch4#fig_storage_analytics_query): it accesses a large number of rows (every occurrence of someone
 buying fruit or candy during the 2024 calendar year), but it only needs to access three columns of
 the `fact_sales` table: `date_key`, `product_sk`,
 and `quantity`. The query ignores all other columns.
@@ -816,9 +822,9 @@ How can we execute this query efficiently?
 
 In most OLTP databases, storage is laid out in a *row-oriented* fashion: all the values from one row
 of a table are stored next to each other. Document databases are similar: an entire document is
-typically stored as one contiguous sequence of bytes. You can see this in the CSV example of [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
+typically stored as one contiguous sequence of bytes. You can see this in the CSV example of [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
 
-In order to process a query like [Example 4-1](/en/ch4#fig_storage_analytics_query), you may have indexes on
+In order to process a query like [Example 4-1](/en/ch4#fig_storage_analytics_query), you may have indexes on
 `fact_sales.date_key` and/or `fact_sales.product_sk` that tell the storage engine where to find
 all the sales for a particular date or for a particular product. But then, a row-oriented storage
 engine still needs to load all of those rows (each consisting of over 100 attributes) from disk into
@@ -828,8 +834,8 @@ long time.
 The idea behind *column-oriented* (or *columnar*) storage is simple: don’t store all the values from
 one row together, but store all the values from each *column* together instead [^56].
 If each column is stored separately, a query only needs to read and parse those columns that are
-used in that query, which can save a lot of work. [Figure 4-7](/en/ch4#fig_column_store) shows this principle using
-an expanded version of the fact table from [Figure 3-5](/en/ch3#fig_dwh_schema).
+used in that query, which can save a lot of work. [Figure 4-7](/en/ch4#fig_column_store) shows this principle using
+an expanded version of the fact table from [Figure 3-5](/en/ch3#fig_dwh_schema).
 
 --------
 
@@ -864,10 +870,10 @@ Besides only loading those columns from disk that are required for a query, we c
 the demands on disk throughput and network bandwidth by compressing data. Fortunately,
 column-oriented storage often lends itself very well to compression.
 
-Take a look at the sequences of values for each column in [Figure 4-7](/en/ch4#fig_column_store): they often look quite
+Take a look at the sequences of values for each column in [Figure 4-7](/en/ch4#fig_column_store): they often look quite
 repetitive, which is a good sign for compression. Depending on the data in the column, different
 compression techniques can be used. One technique that is particularly effective in data warehouses
-is *bitmap encoding*, illustrated in [Figure 4-8](/en/ch4#fig_bitmap_index).
+is *bitmap encoding*, illustrated in [Figure 4-8](/en/ch4#fig_bitmap_index).
 
 {{< figure src="/fig/ddia_0408.png" id="fig_bitmap_index" caption="Figure 4-8. Compressed, bitmap-indexed storage of a single column." class="w-full my-4" >}}
 
@@ -880,7 +886,7 @@ not.
 One option is to store those bitmaps using one bit per row. However, these bitmaps typically contain
 a lot of zeros (we say that they are *sparse*). In that case, the bitmaps can additionally be
 run-length encoded: counting the number of consecutive zeros or ones and storing that number, as
-shown at the bottom of [Figure 4-8](/en/ch4#fig_bitmap_index). Techniques such as *roaring bitmaps* switch between the
+shown at the bottom of [Figure 4-8](/en/ch4#fig_bitmap_index). Techniques such as *roaring bitmaps* switch between the
 two bitmap representations, using whichever is the most compact [^73].
 This can make the encoding of a column remarkably efficient.
 
@@ -928,7 +934,7 @@ last month, it might make sense to make `date_key` the first sort key. Then the 
 scan only the rows from the last month, which will be much faster than scanning all rows.
 
 A second column can determine the sort order of any rows that have the same value in the first
-column. For example, if `date_key` is the first sort key in [Figure 4-7](/en/ch4#fig_column_store), it might make
+column. For example, if `date_key` is the first sort key in [Figure 4-7](/en/ch4#fig_column_store), it might make
 sense for `product_sk` to be the second sort key so that all sales for the same product on the same
 day are grouped together in storage. That will help queries that need to group or filter sales by
 product within a certain date range.
@@ -936,7 +942,7 @@ product within a certain date range.
 Another advantage of sorted order is that it can help with compression of columns. If the primary
 sort column does not have many distinct values, then after sorting, it will have long sequences
 where the same value is repeated many times in a row. A simple run-length encoding, like we used for
-the bitmaps in [Figure 4-8](/en/ch4#fig_bitmap_index), could compress that column down to a few kilobytes—even if
+the bitmaps in [Figure 4-8](/en/ch4#fig_bitmap_index), could compress that column down to a few kilobytes—even if
 the table has billions of rows.
 
 That compression effect is strongest on the first sort key. The second and third sort keys will be
@@ -1004,7 +1010,7 @@ Vectorized processing
  and get back a bitmap (one bit per value in the input column, which is 1 if it’s a banana); we could
  then pass the `store_sk` column and the ID of the store of interest to the same equality operator,
  and get back another bitmap; and then we could pass the two bitmaps to a “bitwise AND” operator, as
- shown in [Figure 4-9](/en/ch4#fig_bitmap_and). The result would be a bitmap containing a 1 for all sales of bananas in
+ shown in [Figure 4-9](/en/ch4#fig_bitmap_and). The result would be a bitmap containing a 1 for all sales of bananas in
  a particular store.
 
 {{< figure src="/fig/ddia_0409.png" id="fig_bitmap_and" caption="Figure 4-9. A bitwise AND between two bitmaps lends itself to vectorization." class="w-full my-4" >}}
@@ -1039,18 +1045,18 @@ discussed earlier, data warehouse queries often involve an aggregate function, s
 `AVG`, `MIN`, or `MAX` in SQL. If the same aggregates are used by many different queries, it can be
 wasteful to crunch through the raw data every time. Why not cache some of the counts or sums that
 queries use most often? A *data cube* or *OLAP cube* does this by creating a grid of aggregates grouped by different dimensions [^82].
-[Figure 4-10](/en/ch4#fig_data_cube) shows an example.
+[Figure 4-10](/en/ch4#fig_data_cube) shows an example.
 
 {{< figure src="/fig/ddia_0410.png" id="fig_data_cube" caption="Figure 4-10. Two dimensions of a data cube, aggregating data by summing." class="w-full my-4" >}}
 
-Imagine for now that each fact has foreign keys to only two dimension tables—in [Figure 4-10](/en/ch4#fig_data_cube),
+Imagine for now that each fact has foreign keys to only two dimension tables—in [Figure 4-10](/en/ch4#fig_data_cube),
 these are `date_key` and `product_sk`. You can now draw a two-dimensional table, with
 dates along one axis and products along the other. Each cell contains the aggregate (e.g., `SUM`) of
 an attribute (e.g., `net_price`) of all facts with that date-product combination. Then you can apply
 the same aggregate along each row or column and get a summary that has been reduced by one
 dimension (the sales by product regardless of date, or the sales by date regardless of product).
 
-In general, facts often have more than two dimensions. In [Figure 3-5](/en/ch3#fig_dwh_schema) there are five
+In general, facts often have more than two dimensions. In [Figure 3-5](/en/ch3#fig_dwh_schema) there are five
 dimensions: date, product, store, promotion, and customer. It’s a lot harder to imagine what a
 five-dimensional hypercube would look like, but the principle remains the same: each cell contains
 the sales for a particular date-product-store-promotion-customer combination. These values can then
@@ -1132,11 +1138,11 @@ value of 0. Searching for documents mentioning “red apples” means a query th
 The data structure that many search engines use to answer such queries is called an *inverted
 index*. This is a key-value structure where the key is a term, and the value is the list of IDs of
 all the documents that contain the term (the *postings list*). If the document IDs are sequential
-numbers, the postings list can also be represented as a sparse bitmap, like in [Figure 4-8](/en/ch4#fig_bitmap_index):
+numbers, the postings list can also be represented as a sparse bitmap, like in [Figure 4-8](/en/ch4#fig_bitmap_index):
 the *n*th bit in the bitmap for term *x* is a 1 if the document with ID *n* contains the term *x* [^89].
 
 Finding all the documents that contain both terms *x* and *y* is now similar to a vectorized data
-warehouse query that searches for rows matching two conditions ([Figure 4-9](/en/ch4#fig_bitmap_and)): load the two
+warehouse query that searches for rows matching two conditions ([Figure 4-9](/en/ch4#fig_bitmap_and)): load the two
 bitmaps for terms *x* and *y* and compute their bitwise AND. Even if the bitmaps are run-length
 encoded, this can be done very efficiently.
 
@@ -1147,7 +1153,7 @@ PostgreSQL’s GIN index type also uses postings lists to support full-text sear
 JSON documents [^92] [^93].
 
 Instead of breaking text into words, an alternative is to find all the substrings of length *n*,
-which are called *n*-grams. For example, the trigrams (*n* = 3) of the string
+which are called *n*-grams. For example, the trigrams (*n* = 3) of the string
 `"hello"` are `"hel"`, `"ell"`, and `"llo"`. If we build an inverted index of all trigrams, we can
 search the documents for arbitrary substrings that are at least three characters long. Trigram
 indexes even allows regular expressions in search queries; the downside is that they are quite large [^94].
@@ -1226,7 +1232,7 @@ Inverted file (IVF) indexes
  more vectors must be compared.
 
 Hierarchical Navigable Small World (HNSW)
-: HNSW indexes maintain multiple layers of the vector space, as illustrated in [Figure 4-11](/en/ch4#fig_vector_hnsw).
+: HNSW indexes maintain multiple layers of the vector space, as illustrated in [Figure 4-11](/en/ch4#fig_vector_hnsw).
  Each layer is represented as a graph, where nodes represent vectors, and edges represent proximity
  to nearby vectors. A query starts by locating the nearest vector in the topmost layer, which has a
  small number of nodes. The query then moves to the same node in the layer below and follows the

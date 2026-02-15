@@ -127,22 +127,26 @@ menu:
       name: "PostgreSQL 14 内参 ↗"
       url: "https://postgres-internals.cn/"
       weight: 9
-    - identifier: pigsty
-      name: "Pigsty Free PG RDS ↗"
-      url: "https://pgsty.com/"
+    - identifier: pigsty-cc
+      name: "Pigsty：开源 PG RDS ↗"
+      url: "https://pigsty.cc/"
       weight: 10
+    - identifier: pigsty-io
+      name: "Pigsty: Free PG RDS ↗"
+      url: "https://pigsty.io/"
+      weight: 11
     - identifier: pgext
       name: "PG 扩展目录 ↗"
       url: "https://ext.pgsty.com/zh"
-      weight: 11
+      weight: 12
     - identifier: ddia1
       name: "DDIA O'reilly ↗"
       url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/"
-      weight: 12
+      weight: 13
     - identifier: ddia2
       name: "DDIA 2nd O'reilly ↗"
       url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/"
-      weight: 13
+      weight: 14
 
 
 params:

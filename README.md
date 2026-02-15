@@ -67,9 +67,10 @@
   - [9. 分布式系统的麻烦](https://ddia.vonng.com/ch9)
   - [10.一致性与共识](https://ddia.vonng.com/ch10)
 * [第三部分：派生数据](https://ddia.vonng.com/part-iii)
-  - [11. 批处理](https://ddia.vonng.com/ch11) （尚未发布）
-  - [12. 流处理](https://ddia.vonng.com/ch12) （尚未发布）
-  - [13. 做正确的事](https://ddia.vonng.com/ch13)（尚未发布）
+  - [11. 批处理](https://ddia.vonng.com/ch11)
+  - [12. 流处理](https://ddia.vonng.com/ch12)
+  - [13. 流处理系统哲学](https://ddia.vonng.com/ch13)
+  - [14. 做正确的事](https://ddia.vonng.com/ch14)
 * [术语表](https://ddia.vonng.com/glossary)
 * [后记](https://ddia.vonng.com/colophon)
 

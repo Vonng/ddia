@@ -368,22 +368,26 @@ breadcrumbs: false
 
 ## [11. Batch Processing](/en/ch11)
 - [……](/en/ch11#)
-- [Summary](/en/ch11#summary)
+- [Summary](/en/ch11#id292)
     - [References](/en/ch11#references)
 
 ## [12. Stream Processing](/en/ch12)
 - [……](/en/ch12#)
-- [Summary](/en/ch12#summary)
+- [Summary](/en/ch12#id332)
     - [References](/en/ch12#references)
 
-## [13. Do the Right Thing](/en/ch13)
+## [13. A Philosophy of Streaming Systems](/en/ch13)
 - [……](/en/ch13#)
-- [Summary](/en/ch13#summary)
+- [Summary](/en/ch13#id367)
     - [References](/en/ch13#references)
+
+## [14. Doing the Right Thing](/en/ch14)
+- [……](/en/ch14#)
+- [Summary](/en/ch14#id594)
+    - [References](/en/ch14#references)
 
 ## [Glossary](/en/glossary)
 
 ## [Colophon](/en/colophon)
 - [About the Author](/en/colophon#about-the-author)
 - [Colophon](/en/colophon#colophon)
-

@@ -4,6 +4,8 @@ weight: 102
 breadcrumbs: false
 ---
 
+<a id="ch_nonfunctional"></a>
+
 ![](/map/ch01.png)
 
 > *The Internet was done so well that most people think of it as a natural resource like the Pacific
@@ -55,7 +57,7 @@ Barack Obama have over 100 million followers).
 
 ### Representing Users, Posts, and Follows {#id20}
 
-Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
+Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
 have one table for users, one table for posts, and one table for follow relationships.
 
 {{< figure src="/fig/ddia_0201.png" id="fig_twitter_relational" caption="Figure 2-1. Simple relational schema for a social network in which users can follow each other." class="w-full my-4" >}}
@@ -107,7 +109,7 @@ needs to subscribe to the stream of posts being added to their home timeline.
 
 The downside of this approach is that we now need to do more work every time a user makes a post,
 because the home timelines are derived data that needs to be updated. The process is illustrated in
-[Figure 2-2](/en/ch2#fig_twitter_timelines). When one initial request results in several downstream requests being
+[Figure 2-2](/en/ch2#fig_twitter_timelines). When one initial request results in several downstream requests being
 carried out, we use the term *fan-out* to describe the factor by which the number of requests
 increases.
 
@@ -126,7 +128,7 @@ load, since we simply serve them from a cache.
 
 This process of precomputing and updating the results of a query is called *materialization*, and
 the timeline cache is an example of a *materialized view* (a concept we will discuss further in
-[Link to Come]). The materialized view speeds up reads, but in return we have to do more work on
+[“Maintaining materialized views”](/en/ch12#sec_stream_mat_view)). The materialized view speeds up reads, but in return we have to do more work on
 write. The cost of writes for most users is modest, but a social network also has to consider some
 extreme cases:
 
@@ -163,7 +165,7 @@ metrics, whereas the “time it takes to load the home timeline” or the “tim
 delivered to followers” are response time metrics.
 
 There is often a connection between throughput and response time; an example of such a relationship
-for an online service is sketched in [Figure 2-3](/en/ch2#fig_throughput). The service has a low response time when
+for an online service is sketched in [Figure 2-3](/en/ch2#fig_throughput). The service has a low response time when
 request throughput is low, but response time increases as load increases. This is because of
 *queueing*: when a request arrives on a highly loaded system, it’s likely that the CPU is already in
 the process of handling an earlier request, and therefore the incoming request needs to wait until
@@ -174,6 +176,8 @@ handle, queueing delays increase sharply.
 
 
 --------
+
+<a id="sidebar_metastable"></a>
 
 > [!TIP] WHEN AN OVERLOADED SYSTEM WON'T RECOVER
 
@@ -206,7 +210,7 @@ scalability in [“Scalability”](/en/ch2#sec_introduction_scalability).
 ### Latency and Response Time {#id23}
 
 “Latency” and “response time” are sometimes used interchangeably, but in this book we will use the
-terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)):
+terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)):
 
 * The *response time* is what the client sees; it includes all delays incurred anywhere in the
  system.
@@ -221,7 +225,7 @@ terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time)
 
 {{< figure src="/fig/ddia_0204.png" id="fig_response_time" caption="Figure 2-4. Response time, service time, network latency, and queueing delay." class="w-full my-4" >}}
 
-In [Figure 2-4](/en/ch2#fig_response_time), time flows from left to right, each communicating node is shown as a
+In [Figure 2-4](/en/ch2#fig_response_time), time flows from left to right, each communicating node is shown as a
 horizontal line, and a request or response message is shown as a thick diagonal arrow from one node
 to another. You will encounter this style of diagram frequently over the course of this book.
 
@@ -242,7 +246,7 @@ it is important to measure response times on the client side.
 ### Average, Median, and Percentiles {#id24}
 
 Because the response time varies from one request to the next, we need to think of it not as a
-single number, but as a *distribution* of values that you can measure. In [Figure 2-5](/en/ch2#fig_lognormal), each
+single number, but as a *distribution* of values that you can measure. In [Figure 2-5](/en/ch2#fig_lognormal), each
 gray bar represents a request to a service, and its height shows how long that request took. Most
 requests are reasonably fast, but there are occasional *outliers* that take much longer.
 Variation in network delay is also known as *jitter*.
@@ -257,7 +261,7 @@ because it doesn’t tell you how many users actually experienced that delay.
 
 Usually it is better to use *percentiles*. If you take your list of response times and sort it from
 fastest to slowest, then the *median* is the halfway point: for example, if your median response
-time is 200 ms, that means half your requests return in less than 200 ms, and half your
+time is 200 ms, that means half your requests return in less than 200 ms, and half your
 requests take longer than that. This makes the median a good metric if you want to know how long
 users typically have to wait. The median is also known as the *50th percentile*, and sometimes
 abbreviated as *p50*.
@@ -267,7 +271,7 @@ In order to figure out how bad your outliers are, you can look at higher percent
 response time thresholds at which 95%, 99%, or 99.9% of requests are faster than that particular
 threshold. For example, if the 95th percentile response time is 1.5 seconds, that means 95 out of
 100 requests take less than 1.5 seconds, and 5 out of 100 requests take 1.5 seconds or more. This is
-illustrated in [Figure 2-5](/en/ch2#fig_lognormal).
+illustrated in [Figure 2-5](/en/ch2#fig_lognormal).
 
 High percentiles of response times, also known as *tail latencies*, are important because they
 directly affect users’ experience of the service. For example, Amazon describes response time
@@ -291,14 +295,14 @@ However, it is surprisingly difficult to get hold of reliable data to quantify t
 latency has on user behavior.
 
 Some often-cited statistics are unreliable. In 2006 Google reported that a slowdown in search
-results from 400 ms to 900 ms was associated with a 20% drop in traffic and revenue [^21].
-However, another Google study from 2009 reported that a 400 ms increase in latency resulted in
+results from 400 ms to 900 ms was associated with a 20% drop in traffic and revenue [^21].
+However, another Google study from 2009 reported that a 400 ms increase in latency resulted in
 only 0.6% fewer searches per day [^22],
 and in the same year Bing found that a two-second increase in load time reduced ad revenue by 4.3% [^23].
 Newer data from these companies appears not to be publicly available.
 
 A more recent Akamai study [^24]
-claims that a 100 ms increase in response time reduced the conversion rate of e-commerce sites
+claims that a 100 ms increase in response time reduced the conversion rate of e-commerce sites
 by up to 7%; however, on closer inspection, the same study reveals that very *fast* page load times
 are also correlated with lower conversion rates! This seemingly paradoxical result is explained by
 the fact that the pages that load fastest are often those that have no useful content (e.g., 404
@@ -316,7 +320,7 @@ fast and slow responses is 1.25 seconds or more.
 High percentiles are especially important in backend services that are called multiple times as
 part of serving a single end-user request. Even if you make the calls in parallel, the end-user
 request still needs to wait for the slowest of the parallel calls to complete. It takes just one
-slow call to make the entire end-user request slow, as illustrated in [Figure 2-6](/en/ch2#fig_tail_amplification).
+slow call to make the entire end-user request slow, as illustrated in [Figure 2-6](/en/ch2#fig_tail_amplification).
 Even if only a small percentage of backend calls are slow, the chance of getting a slow call
 increases if an end-user request requires multiple backend calls, and so a higher proportion of
 end-user requests end up being slow (an effect known as *tail latency amplification* [^26]).
@@ -326,12 +330,14 @@ end-user requests end up being slow (an effect known as *tail latency amplificat
 Percentiles are often used in *service level objectives* (SLOs) and *service level agreements*
 (SLAs) as ways of defining the expected performance and availability of a service [^27].
 For example, an SLO may set a target for a service to have a median response time of less than
-200 ms and a 99th percentile under 1 s, and a target that at least 99.9% of valid requests
+200 ms and a 99th percentile under 1 s, and a target that at least 99.9% of valid requests
 result in non-error responses. An SLA is a contract that specifies what happens if the SLO is not
 met (for example, customers may be entitled to a refund). That is the basic idea, at least; in
 practice, defining good availability metrics for SLOs and SLAs is not straightforward [^28] [^29].
 
 --------
+
+<a id="sidebar_percentiles"></a>
 
 > [!TIP] COMPUTING PERCENTILES
 
@@ -395,7 +401,7 @@ For example, in the social network case study, a fault that might happen is that
 process, a machine involved in updating the materialized timelines crashes or become unavailable.
 To make this process fault-tolerant, we would need to ensure that another machine can take over this
 task without missing any posts that should have been delivered, and without duplicating any posts.
-(This idea is known as *exactly-once semantics*, and we will examine it in detail in [Link to Come].)
+(This idea is known as *exactly-once semantics*, and we will examine it in detail in [“The End-to-End Argument for Databases”](/en/ch13#sec_future_end_to_end).)
 
 Fault tolerance is always limited to a certain number of certain types of faults. For example, a
 system might be able to tolerate a maximum of two hard drives failing at the same time, or a maximum
@@ -473,14 +479,14 @@ resources.
 The fault-tolerance techniques we discuss in this book are designed to tolerate the loss of entire
 machines, racks, or availability zones. They generally work by allowing a machine in one datacenter
 to take over when a machine in another datacenter fails or becomes unreachable. We will discuss such
-techniques for fault tolerance in [Chapter 6](/en/ch6#ch_replication), [Chapter 10](/en/ch10#ch_consistency), and at various other
+techniques for fault tolerance in [Chapter 6](/en/ch6#ch_replication), [Chapter 10](/en/ch10#ch_consistency), and at various other
 points in this book.
 
 Systems that can tolerate the loss of entire machines also have operational advantages: a
 single-server system requires planned downtime if you need to reboot the machine (to apply operating
 system security patches, for example), whereas a multi-node fault-tolerant system can be patched by
 restarting one node at a time, without affecting the service for users. This is called a *rolling
-upgrade*, and we will discuss it further in [Chapter 5](/en/ch5#ch_encoding).
+upgrade*, and we will discuss it further in [Chapter 5](/en/ch5#ch_encoding).
 
 #### Software faults {#software-faults}
 
@@ -558,6 +564,8 @@ to learn the details of how the sociotechnical system works from the point of vi
 work with it every day, and take steps to improve it based on this feedback [^71].
 
 --------
+
+<a id="sidebar_reliability_importance"></a>
 
 > [!TIP] HOW IMPORTANT IS RELIABILITY?
 
@@ -691,8 +699,8 @@ The advantages of shared-nothing are that it has the potential to scale linearly
 whatever hardware offers the best price/performance ratio (especially in the cloud), it can more
 easily adjust its hardware resources as load increases or decreases, and it can achieve greater
 fault tolerance by distributing the system across multiple data centers and regions. The downsides
-are that it requires explicit sharding (see [Chapter 7](/en/ch7#ch_sharding)), and it incurs all the complexity of
-distributed systems ([Chapter 9](/en/ch9#ch_distributed)).
+are that it requires explicit sharding (see [Chapter 7](/en/ch7#ch_sharding)), and it incurs all the complexity of
+distributed systems ([Chapter 9](/en/ch9#ch_distributed)).
 
 Some cloud-native database systems use separate services for storage and transaction execution (see
 [“Separation of storage and compute”](/en/ch1#sec_introduction_storage_compute)), with multiple compute nodes sharing access to the same
@@ -706,9 +714,9 @@ the database [^83].
 The architecture of systems that operate at large scale is usually highly specific to the
 application—there is no such thing as a generic, one-size-fits-all scalable architecture
 (informally known as *magic scaling sauce*). For example, a system that is designed to handle
-100,000 requests per second, each 1 kB in size, looks very different from a system that is
-designed for 3 requests per minute, each 2 GB in size—even though the two systems have the same
-data throughput (100 MB/sec).
+100,000 requests per second, each 1 kB in size, looks very different from a system that is
+designed for 3 requests per minute, each 2 GB in size—even though the two systems have the same
+data throughput (100 MB/sec).
 
 Moreover, an architecture that is appropriate for one level of load is unlikely to cope with 10
 times that load. If you are working on a fast-growing service, it is therefore likely that you will
@@ -718,11 +726,11 @@ one order of magnitude in advance.
 
 A good general principle for scalability is to break a system down into smaller components that can
 operate largely independently from each other. This is the underlying principle behind microservices
-(see [“Microservices and Serverless”](/en/ch1#sec_introduction_microservices)), sharding ([Chapter 7](/en/ch7#ch_sharding)), stream processing
-([Link to Come]), and shared-nothing architectures. However, the challenge is in knowing where to
+(see [“Microservices and Serverless”](/en/ch1#sec_introduction_microservices)), sharding ([Chapter 7](/en/ch7#ch_sharding)), stream processing
+([Chapter 12](/en/ch12#ch_stream)), and shared-nothing architectures. However, the challenge is in knowing where to
 draw the line between things that should be together, and things that should be apart. Design
 guidelines for microservices can be found in other books [^84],
-and we discuss sharding of shared-nothing systems in [Chapter 7](/en/ch7#ch_sharding).
+and we discuss sharding of shared-nothing systems in [Chapter 7](/en/ch7#ch_sharding).
 
 Another good principle is not to make things more complicated than necessary. If a single-machine
 database will do the job, it’s probably preferable to a complicated distributed setup. Auto-scaling
@@ -997,4 +1005,3 @@ this book will cover a selection of building blocks that have proved to be valua
 [^96]: Eric Evans. [*Domain-Driven Design: Tackling Complexity in the Heart of Software*](https://learning.oreilly.com/library/view/domain-driven-design-tackling/0321125215/). Addison-Wesley Professional, August 2003. ISBN: 9780321125217 
 [^97]: Hongyu Pei Breivold, Ivica Crnkovic, and Peter J. Eriksson. [Analyzing Software Evolvability](https://www.es.mdh.se/pdf_publications/1251.pdf). at *32nd Annual IEEE International Computer Software and Applications Conference* (COMPSAC), July 2008. [doi:10.1109/COMPSAC.2008.50](https://doi.org/10.1109/COMPSAC.2008.50) 
 [^98]: Enrico Zaninotto. [From X programming to the X organisation](https://martinfowler.com/articles/zaninotto.pdf). At *XP Conference*, May 2002. Archived at [perma.cc/R9AR-QCKZ](https://perma.cc/R9AR-QCKZ)
-

@@ -49,9 +49,10 @@ breadcrumbs: false
   - [10. Consistency and Consensus](/en/ch10)
 
 ### [Part III: Derived Data](/en/part-iii)
-  - [11. Batch Processing](/en/ch11) (WIP)
-  - [12. Stream Processing](/en/ch12) (WIP)
-  - [13. Doing the Right Thing](/en/ch13) (WIP)
+  - [11. Batch Processing](/en/ch11)
+  - [12. Stream Processing](/en/ch12)
+  - [13. A Philosophy of Streaming Systems](/en/ch13)
+  - [14. Doing the Right Thing](/en/ch14)
 
 ### [Glossary](/en/glossary)
 

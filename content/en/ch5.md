@@ -4,6 +4,8 @@ weight: 105
 breadcrumbs: false
 ---
 
+<a id="ch_encoding"></a>
+
 ![](/map/ch04.png)
 
 > *Everything changes and nothing stands still.*
@@ -12,14 +14,14 @@ breadcrumbs: false
 
 Applications inevitably change over time. Features are added or modified as new products are
 launched, user requirements become better understood, or business circumstances change. In
-[Chapter 2](/en/ch2#ch_nonfunctional) we introduced the idea of *evolvability*: we should aim to build systems that
+[Chapter 2](/en/ch2#ch_nonfunctional) we introduced the idea of *evolvability*: we should aim to build systems that
 make it easy to adapt to change (see [“Evolvability: Making Change Easy”](/en/ch2#sec_introduction_evolvability)).
 
 In most cases, a change to an application’s features also requires a change to data that it stores:
 perhaps a new field or record type needs to be captured, or perhaps existing data needs to be
 presented in a new way.
 
-The data models we discussed in [Chapter 3](/en/ch3#ch_datamodels) have different ways of coping with such change.
+The data models we discussed in [Chapter 3](/en/ch3#ch_datamodels) have different ways of coping with such change.
 Relational databases generally assume that all data in the database conforms to one schema: although
 that schema can be changed (through schema migrations; i.e., `ALTER` statements), there is exactly
 one schema in force at any one point in time. By contrast, schema-on-read (“schemaless”) databases
@@ -52,13 +54,13 @@ format of data written by older code, and so you can explicitly handle it (if ne
 keeping the old code to read the old data). Forward compatibility can be trickier, because it
 requires older code to ignore additions made by a newer version of the code.
 
-Another challenge with forward compatibility is illustrated in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
+Another challenge with forward compatibility is illustrated in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
 Say you add a field to a record schema, and the newer code creates a record containing that new
 field and stores it in a database. Subsequently, an older version of the code (which doesn’t yet
 know about the new field) reads the record, updates it, and writes it back. In this situation, the
 desirable behavior is usually for the old code to keep the new field intact, even though it couldn’t
 be interpreted. But if the record is decoded into a model object that does not explicitly
-preserve unknown fields, data can be lost, like in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
+preserve unknown fields, data can be lost, like in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
 
 {{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="When an older version of the application updates data previously written by a newer version of the application, data may be lost if you’re not careful." class="w-full my-4" >}}
 
@@ -90,7 +92,7 @@ in-memory representation to a byte sequence is called *encoding* (also known as 
 
 > [!TIP] TERMINOLOGY CLASH
 
-*Serialization* is unfortunately also used in the context of transactions (see [Chapter 8](/en/ch8#ch_transactions)),
+*Serialization* is unfortunately also used in the context of transactions (see [Chapter 8](/en/ch8#ch_transactions)),
 with a completely different meaning. To avoid overloading the word we’ll stick with *encoding* in
 this book, even though *serialization* is perhaps a more common term.
 
@@ -202,7 +204,7 @@ Open content models are powerful, but can be complex. For example, say you want 
 integers (such as IDs) to strings. JSON does not have a map or dictionary type, only an “object”
 type that can contain string keys, and values of any type. You can then constrain this type with
 JSON Schema so that keys may only contain digits, and values can only be strings, using
-`patternProperties` and `additionalProperties` as shown in [Example 5-1](/en/ch5#fig_encoding_json_schema).
+`patternProperties` and `additionalProperties` as shown in [Example 5-1](/en/ch5#fig_encoding_json_schema).
 
 
 {{< figure id="fig_encoding_json_schema" title="Example 5-1. Example JSON Schema with integer keys and string values. Integer keys are represented as strings containing only integers since JSON Schema requires all keys to be strings." class="w-full my-4" >}}
@@ -237,7 +239,7 @@ sometimes faster to parse, but none of them are as widely adopted as the textual
 Some of these formats extend the set of datatypes (e.g., distinguishing integers and floating-point numbers,
 or adding support for binary strings), but otherwise they keep the JSON/XML data model unchanged. In
 particular, since they don’t prescribe a schema, they need to include all the object field names within
-the encoded data. That is, in a binary encoding of the JSON document in [Example 5-2](/en/ch5#fig_encoding_json), they
+the encoded data. That is, in a binary encoding of the JSON document in [Example 5-2](/en/ch5#fig_encoding_json), they
 will need to include the strings `userName`, `favoriteNumber`, and `interests` somewhere.
 
 {{< figure id="fig_encoding_json" title="Example 5-2. Example record which we will encode in several binary formats in this chapter" class="w-full my-4" >}}
@@ -250,8 +252,8 @@ will need to include the strings `userName`, `favoriteNumber`, and `interests` s
 }
 ```
 
-Let’s look at an example of MessagePack, a binary encoding for JSON. [Figure 5-2](/en/ch5#fig_encoding_messagepack)
-shows the byte sequence that you get if you encode the JSON document in [Example 5-2](/en/ch5#fig_encoding_json) with
+Let’s look at an example of MessagePack, a binary encoding for JSON. [Figure 5-2](/en/ch5#fig_encoding_messagepack)
+shows the byte sequence that you get if you encode the JSON document in [Example 5-2](/en/ch5#fig_encoding_json) with
 MessagePack. The first few bytes are as follows:
 
 1. The first byte, `0x83`, indicates that what follows is an object (top four bits = `0x80`) with three
@@ -281,7 +283,7 @@ It is similar to Apache Thrift, which was originally developed by Facebook [^13]
 most of what this section says about Protocol Buffers applies also to Thrift.
 
 Protocol Buffers requires a schema for any data that is encoded. To encode the data
-in [Example 5-2](/en/ch5#fig_encoding_json) in Protocol Buffers, you would describe the schema in the Protocol Buffers
+in [Example 5-2](/en/ch5#fig_encoding_json) in Protocol Buffers, you would describe the schema in the Protocol Buffers
 interface definition language (IDL) like this:
 
 ```protobuf
@@ -300,17 +302,17 @@ application code can call this generated code to encode or decode records of the
 language is very simple compared to JSON Schema: it only defines the fields of records and their
 types, but it does not support other restrictions on the possible values of fields.
 
-Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in [Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
+Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in [Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
 
 {{< figure src="/fig/ddia_0503.png" id="fig_encoding_protobuf" caption="Figure 5-3. Example record encoded using Protocol Buffers." class="w-full my-4" >}}
 
 
-Similarly to [Figure 5-2](/en/ch5#fig_encoding_messagepack), each field has a type annotation (to indicate whether it
+Similarly to [Figure 5-2](/en/ch5#fig_encoding_messagepack), each field has a type annotation (to indicate whether it
 is a string, integer, etc.) and, where required, a length indication (such as the length of a
 string). The strings that appear in the data (“Martin”, “daydreaming”, “hacking”) are also encoded
 as ASCII (to be precise, UTF-8), similar to before.
 
-The big difference compared to [Figure 5-2](/en/ch5#fig_encoding_messagepack) is that there are no field names
+The big difference compared to [Figure 5-2](/en/ch5#fig_encoding_messagepack) is that there are no field names
 (`userName`, `favoriteNumber`, `interests`). Instead, the encoded data contains *field tags*, which
 are numbers (`1`, `2`, and `3`). Those are the numbers that appear in the schema definition. Field tags
 are like aliases for fields—they are a compact way of saying what field we’re talking about,
@@ -344,7 +346,7 @@ You can add new fields to the schema, provided that you give each field a new ta
 code (which doesn’t know about the new tag numbers you added) tries to read data written by new
 code, including a new field with a tag number it doesn’t recognize, it can simply ignore that field.
 The datatype annotation allows the parser to determine how many bytes it needs to skip, and preserve
-the unknown fields to avoid the problem in [Figure 5-1](/en/ch5#fig_encoding_preserve_field). This maintains forward
+the unknown fields to avoid the problem in [Figure 5-1](/en/ch5#fig_encoding_preserve_field). This maintains forward
 compatibility: old code can read records that were written by new code.
 
 What about backward compatibility? As long as each field has a unique tag number, new code can
@@ -400,9 +402,9 @@ The equivalent JSON representation of that schema is as follows:
 ```
 
 First of all, notice that there are no tag numbers in the schema. If we encode our example record
-([Example 5-2](/en/ch5#fig_encoding_json)) using this schema, the Avro binary encoding is just 32 bytes long—the
+([Example 5-2](/en/ch5#fig_encoding_json)) using this schema, the Avro binary encoding is just 32 bytes long—the
 most compact of all the encodings we have seen. The breakdown of the encoded byte sequence is shown
-in [Figure 5-4](/en/ch5#fig_encoding_avro).
+in [Figure 5-4](/en/ch5#fig_encoding_avro).
 
 If you examine the byte sequence, you can see that there is nothing to identify fields or their
 datatypes. The encoding simply consists of values concatenated together. A string is just a length
@@ -430,7 +432,7 @@ example, that schema may be compiled into the application. This is known as the 
 When an application wants to decode some data (read it from a file or database, receive it from the
 network, etc.), it uses two schemas: the writer’s schema that is identical to the one used for
 encoding, and the *reader’s schema*, which may be different. This is illustrated in
-[Figure 5-5](/en/ch5#fig_encoding_avro_schemas). The reader’s schema defines the fields of each record that the
+[Figure 5-5](/en/ch5#fig_encoding_avro_schemas). The reader’s schema defines the fields of each record that the
 application code is expecting, and their types.
 
 {{< figure src="/fig/ddia_0505.png" id="fig_encoding_avro_schemas" caption="Figure 5-5. In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer's schema must be identical to the one used for encoding, but the reader's schema can be an older or newer version." class="w-full my-4" >}}
@@ -438,7 +440,7 @@ application code is expecting, and their types.
 If the reader’s and writer’s schema are the same, decoding is easy. If they are different, Avro
 resolves the differences by looking at the writer’s schema and the reader’s schema side by side and
 translating the data from the writer’s schema into the reader’s schema. The Avro specification [^16] [^17]
-defines exactly how this resolution works, and it is illustrated in [Figure 5-6](/en/ch5#fig_encoding_avro_resolution).
+defines exactly how this resolution works, and it is illustrated in [Figure 5-6](/en/ch5#fig_encoding_avro_resolution).
 
 For example, it’s no problem if the writer’s schema and the reader’s schema have their fields in a
 different order, because the schema resolution matches up the fields by field name. If the code
@@ -490,7 +492,7 @@ The answer depends on the context in which Avro is being used. To give a few exa
 
 Large file with lots of records
 : A common use for Avro is for storing a large file containing millions of records, all encoded with
- the same schema. (We will discuss this kind of situation in [Link to Come].) In this case, the
+ the same schema. (We will discuss this kind of situation in [Chapter 11](/en/ch11#ch_batch).) In this case, the
  writer of that file can just include the writer’s schema once at the beginning of the file. Avro
  specifies a file format (object container files) to do this.
 
@@ -661,7 +663,7 @@ As the data dump is written in one go and is thereafter immutable, formats like 
 container files are a good fit. This is also a good opportunity to encode the data in an
 analytics-friendly column-oriented format such as Parquet (see [“Column Compression”](/en/ch4#sec_storage_column_compression)).
 
-In [Link to Come] we will talk more about using data in archival storage.
+In [Chapter 11](/en/ch11#ch_batch) we will talk more about using data in archival storage.
 
 ### Dataflow Through Services: REST and RPC {#sec_encoding_dataflow_rpc}
 
@@ -686,7 +688,7 @@ application-specific, and the client and server need to agree on the details of 
 
 In some ways, services are similar to databases: they typically allow clients to submit and query
 data. However, while databases allow arbitrary queries using the query languages we discussed in
-[Chapter 3](/en/ch3#ch_datamodels), services expose an application-specific API that only allows inputs and outputs
+[Chapter 3](/en/ch3#ch_datamodels), services expose an application-specific API that only allows inputs and outputs
 that are predetermined by the business logic (application code) of the service [^29]. This restriction provides a degree of encapsulation: services can impose
 fine-grained restrictions on what clients can and cannot do.
 
@@ -728,7 +730,7 @@ service. The two most popular service IDLs are OpenAPI (also known as Swagger [^
 and gRPC. OpenAPI is used for web services that send and receive JSON data, while gRPC services send
 and receive Protocol Buffers.
 
-Developers typically write OpenAPI service definitions in JSON or YAML; see [Example 5-3](/en/ch5#fig_open_api_def).
+Developers typically write OpenAPI service definitions in JSON or YAML; see [Example 5-3](/en/ch5#fig_open_api_def).
 The service definition allows developers to define service endpoints, documentation, versions, data
 models, and much more. gRPC definitions look similar, but are defined using Protocol Buffers service definitions.
 
@@ -762,8 +764,8 @@ Even if a design philosophy and IDL are adopted, developers must still write the
 implements their service’s API calls. A service framework is often adopted to simplify this
 effort. Service frameworks such as Spring Boot, FastAPI, and gRPC allow developers to write the
 business logic for each API endpoint while the framework code handles routing, metrics, caching,
-authentication, and so on. [Example 5-4](/en/ch5#fig_fastapi_def) shows an example Python implementation of the service
-defined in [Example 5-3](/en/ch5#fig_open_api_def).
+authentication, and so on. [Example 5-4](/en/ch5#fig_fastapi_def) shows an example Python implementation of the service
+defined in [Example 5-3](/en/ch5#fig_open_api_def).
 
 {{< figure id="fig_fastapi_def" title="Example 5-4. Example FastAPI service implementing the definition from [Example 5-3](/en/ch5#fig_open_api_def)" class="w-full my-4" >}}
 
@@ -815,11 +817,11 @@ A network request is very different from a local function call:
  it goes into an infinite loop or the process crashes). A network request has another possible
  outcome: it may return without a result, due to a *timeout*. In that case, you simply don’t know
  what happened: if you don’t get a response from the remote service, you have no way of knowing
- whether the request got through or not. (We discuss this issue in more detail in [Chapter 9](/en/ch9#ch_distributed).)
+ whether the request got through or not. (We discuss this issue in more detail in [Chapter 9](/en/ch9#ch_distributed).)
 * If you retry a failed network request, it could happen that the previous request actually got
  through, and only the response was lost. In that case, retrying will cause the action to
  be performed multiple times, unless you build a mechanism for deduplication (*idempotence*) into the protocol [^40].
- Local function calls don’t have this problem. (We discuss idempotence in more detail in [Link to Come].)
+ Local function calls don’t have this problem. (We discuss idempotence in more detail in [“Idempotence”](/en/ch12#sec_stream_idempotence).)
 * Every time you call a local function, it normally takes about the same time to execute. A network
  request is much slower than a function call, and its latency is also wildly variable: at good
  times it may complete in less than a millisecond, but when the network is congested or the remote
@@ -870,7 +872,7 @@ There are many load balancing and service discovery solutions available:
 * *Service discovery systems* use a centralized registry rather than DNS to track which service
  endpoints are available. When a new service instance starts up, it registers itself with the
  service discovery system by declaring the host and port it’s listening on, along with relevant
- metadata such as shard ownership information (see [Chapter 7](/en/ch7#ch_sharding)), data center location,
+ metadata such as shard ownership information (see [Chapter 7](/en/ch7#ch_sharding)), data center location,
  and more. The service then periodically sends a heartbeat signal to the discovery system to signal
  that the service is still available.
 
@@ -936,7 +938,7 @@ services responsible for fraud detection, credit card integration, bank integrat
 Processing a single payment in our example requires many service calls. A payment processor service
 might invoke the fraud detection service to check for fraud, call the credit card service to debit
 the credit card, and call the banking service to deposit debited funds, as shown in
-[Figure 5-7](/en/ch5#fig_encoding_workflow). We call this sequence of steps a *workflow*, and each step a *task*.
+[Figure 5-7](/en/ch5#fig_encoding_workflow). We call this sequence of steps a *workflow*, and each step a *task*.
 Workflows are typically defined as a graph of tasks. Workflow definitions may be written in a
 general-purpose programming language, a domain specific language (DSL), or a markup language such as
 Business Process Execution Language (BPEL) [^44].
@@ -967,7 +969,7 @@ tasks.
 There are many kinds of workflow engines that address a diverse set of use cases. Some, such as
 Airflow, Dagster, and Prefect, integrate with data systems and orchestrate ETL tasks. Others, such
 as Camunda and Orkes, provide a graphical notation for workflows (such as BPMN, used in
-[Figure 5-7](/en/ch5#fig_encoding_workflow)) so that non-engineers can more easily define and execute workflows. Still
+[Figure 5-7](/en/ch5#fig_encoding_workflow)) so that non-engineers can more easily define and execute workflows. Still
 others, such as Temporal and Restate provide *durable execution*.
 
 #### Durable execution {#durable-execution}
@@ -984,7 +986,7 @@ task fails, the framework will re-execute the task, but will skip any RPC calls 
 that the task made successfully before failing. Instead, the framework will pretend to make the
 call, but will instead return the results from the previous call. This is possible because durable
 execution frameworks log all RPCs and state changes to durable storage like a write-ahead log [^45] [^46].
-[Example 5-5](/en/ch5#fig_temporal_workflow) shows an example of a workflow definition that supports durable execution
+[Example 5-5](/en/ch5#fig_temporal_workflow) shows an example of a workflow definition that supports durable execution
 using Temporal.
 
 {{< figure id="fig_temporal_workflow" title="Example 5-5. A Temporal workflow definition fragment for the payment workflow in [Figure 5-7](/en/ch5#fig_encoding_workflow)." class="w-full my-4" >}}
@@ -1060,7 +1062,7 @@ In the past, the landscape of message brokers was dominated by commercial enterp
 companies such as TIBCO, IBM WebSphere, and webMethods, before open source implementations such as
 RabbitMQ, ActiveMQ, HornetQ, NATS, and Apache Kafka become popular. More recently, cloud services
 such as Amazon Kinesis, Azure Service Bus, and Google Cloud Pub/Sub have gained adoption. We will
-compare them in more detail in [Link to Come].
+compare them in more detail in [“Messaging Systems”](/en/ch12#sec_stream_messaging).
 
 The detailed delivery semantics vary by implementation and configuration, but in general, two
 message distribution patterns are most often used:
@@ -1084,7 +1086,7 @@ to use event sourcing (see [“Event Sourcing and CQRS”](/en/ch3#sec_datamodel
 
 If a consumer republishes messages to another topic, you may need to be careful to preserve unknown
 fields, to prevent the issue described previously in the context of databases
-([Figure 5-1](/en/ch5#fig_encoding_preserve_field)).
+([Figure 5-1](/en/ch5#fig_encoding_preserve_field)).
 
 #### Distributed actor frameworks {#distributed-actor-frameworks}
 

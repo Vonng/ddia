@@ -61,12 +61,13 @@ This point will be a running theme throughout this part of the book.
 
 We will start in [Chapter 11](/en/ch11) by examining batch-oriented dataflow systems such as MapReduce, and see how they give us good tools and principles for building large- scale data systems. 
 In [Chapter 12](/en/ch12) we will take those ideas and apply them to data streams, which allow us to do the same kinds of things with lower delays. 
-[Chapter 13](/en/ch13) concludes the book by exploring ideas about how we might use these tools to build reliable, scalable, and maintainable applications in the future.
+In [Chapter 13](/en/ch13) we explore ideas about how we might use these tools to build reliable, scalable, and maintainable applications in the future.
+[Chapter 14](/en/ch14) concludes the book with ethics, privacy, and the social impact of data systems.
 
 
 ## Index
 
 - [11. Batch Processing](/en/ch11) (WIP)
 - [12. Stream Processing](/en/ch12) (WIP)
-- [13. Doing the Right Thing](/en/ch13) (WIP)
-
+- [13. A Philosophy of Streaming Systems](/en/ch13) (WIP)
+- [14. Doing the Right Thing](/en/ch14) (WIP)
