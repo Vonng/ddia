@@ -13,7 +13,7 @@ breadcrumbs: false
 PostgreSQL 专家，数据库老司机，云计算泥石流。
 [**Pigsty**](https://pgsty.com) 作者与创始人。
 架构师，DBA，全栈工程师 @ TanTan，Alibaba，Apple。
-独立开源贡献者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
+独立开源贡献者，[GitStar Ranking 600](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
 [DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版译者，公众号：《老冯云数》，数据库 KOL。
 
 **校订**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本维护** by  [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](/contrib)
@@ -76,10 +76,12 @@ PostgreSQL 专家，数据库老司机，云计算泥石流。
 
 ### [第三部分：派生数据](/part-iii)
 
-- [11. 批处理](/ch11) （尚未发布）
-- [12. 流处理](/ch12) （尚未发布）
-- [13. 做正确的事](/ch13) （尚未发布）
+- [11. 批处理](/ch11)
+- [12. 流处理](/ch12)
+- [13. 流式系统的哲学](/ch13)
+- [14. 将事情做正确](/ch14)
 - [术语表](/glossary)
+- [索引](/index)
 - [后记](/colophon)
 
 
@@ -112,6 +114,22 @@ PostgreSQL 专家，数据库老司机，云计算泥石流。
 
 | ISSUE & Pull Requests                           | USER                                                       | Title                                                          |
 |-------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------|
+| [386](https://github.com/Vonng/ddia/pull/386)   | [@uncle-lv](https://github.com/uncle-lv)                   | ch2: 优化一处翻译                                                    |
+| [384](https://github.com/Vonng/ddia/pull/384)   | [@PanggNOTlovebean](https://github.com/PanggNOTlovebean)   | docs: 优化中文文档的措辞和表达                                              |
+| [383](https://github.com/Vonng/ddia/pull/383)   | [@PanggNOTlovebean](https://github.com/PanggNOTlovebean)   | docs: 修正 ch4 中的术语和表达错误                                          |
+| [382](https://github.com/Vonng/ddia/pull/382)   | [@uncle-lv](https://github.com/uncle-lv)                   | ch1: 优化一处翻译                                                    |
+| [381](https://github.com/Vonng/ddia/pull/381)   | [@Max-Tortoise](https://github.com/Max-Tortoise)           | ch4: 修正一处术语不完整问题                                               |
+| [377](https://github.com/Vonng/ddia/pull/377)   | [@huang06](https://github.com/huang06)                     | 优化翻译术语                                                        |
+| [375](https://github.com/Vonng/ddia/issues/375) | [@z-soulx](https://github.com/z-soulx)                     | 对于是否100%全中文翻译的必要性讨论？个人-没必要100%，特别是“名词”，有原单词更加适合it人员                 |
+| [371](https://github.com/Vonng/ddia/pull/371)   | [@lewiszlw](https://github.com/lewiszlw)                   | CPU core -> CPU 核心                                          |
+| [369](https://github.com/Vonng/ddia/pull/369)   | [@bbwang-gl](https://github.com/bbwang-gl)                 | ch7: 可串行化快照隔离检测一个事务何时修改另一个事务的读取                                 |
+| [368](https://github.com/Vonng/ddia/pull/368)   | [@yhao3](https://github.com/yhao3)                         | 更新 zh-tw.py 与 zh-tw 内容                                       |
+| [367](https://github.com/Vonng/ddia/pull/367)   | [@yhao3](https://github.com/yhao3)                         | 修正拼写、格式和标点问题                                                  |
+| [366](https://github.com/Vonng/ddia/pull/366)   | [@yangshangde](https://github.com/yangshangde)             | ch8: 将“电源失败”改为“电源失效”                                           |
+| [365](https://github.com/Vonng/ddia/pull/365)   | [@xyohn](https://github.com/xyohn)                         | ch1: 优化“存储与计算分离”相关翻译                                           |
+| [364](https://github.com/Vonng/ddia/issues/364) | [@xyohn](https://github.com/xyohn)                         | ch1: 优化“存储与计算分离”相关翻译                                           |
+| [363](https://github.com/Vonng/ddia/pull/363)   | [@xyohn](https://github.com/xyohn)                         | #362: 优化一处翻译                                                 |
+| [362](https://github.com/Vonng/ddia/issues/362) | [@xyohn](https://github.com/xyohn)                         | ch1: 优化一处翻译                                                   |
 | [359](https://github.com/Vonng/ddia/pull/359)   | [@c25423](https://github.com/c25423)                       | ch10: 修正一处拼写错误                                                 |
 | [358](https://github.com/Vonng/ddia/pull/358)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch4: 修正一处拼写错误                                                  |
 | [356](https://github.com/Vonng/ddia/pull/356)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch2: 修正一处标点错误                                                  |
