@@ -10,12 +10,11 @@ breadcrumbs: false
 
 ## 关于作者
 
-**Martin Kleppmann** 是英国剑桥大学分布式系统的研究员。此前他曾在互联网公司担任过软件工程师和企业家，其中包括 LinkedIn 和 Rapportive，负责大规模数据基础架构。在这个过程中，他以艰难的方式学习了一些东西，他希望这本书能够让你避免重蹈覆辙。
+**Martin Kleppmann** 是英国剑桥大学副教授，教授分布式系统与密码学协议。2017 年出版的《设计数据密集型应用》第一版确立了他在数据系统领域的权威地位；他在分布式系统方面的研究也推动了 local-first 软件运动。此前他曾在 LinkedIn、Rapportive 等互联网公司担任软件工程师和创业者，负责大规模数据基础设施。
 
-Martin 是一位常规会议演讲者，博主和开源贡献者。他认为，每个人都应该有深刻的技术理念，深层次的理解能帮助我们开发出更好的软件。
+**Chris Riccomini** 是软件工程师、创业投资人和作者，拥有 15 年以上在 PayPal、LinkedIn、WePay 的工作经验。他运营 Materialized View Capital，专注于基础设施初创企业投资；同时也是 Apache Samza 与 SlateDB 的共同创造者，并合著了 *The Missing README: A Guide for the New Software Engineer*。
 
 ![](http://martin.kleppmann.com/2017/03/ddia-poster.jpg)
-
 
 ## 关于译者
 

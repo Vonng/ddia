@@ -72,7 +72,7 @@ breadcrumbs: false
 
 2. 在 [第二部分](/part-ii) 中，我们从讨论存储在一台机器上的数据转向讨论分布在多台机器上的数据。这对于可伸缩性通常是必需的，但带来了各种独特的挑战。我们首先讨论复制（[第五章](/ch5)）、分区 / 分片（[第六章](/ch6)）和事务（[第七章](/ch7)）。然后我们将探索关于分布式系统问题的更多细节（[第八章](/ch8)），以及在分布式系统中实现一致性与共识意味着什么（[第九章](/ch9)）。
 
-3. 在 [第三部分](/part-iii) 中，我们讨论那些从其他数据集派生出一些数据集的系统。派生数据经常出现在异构系统中：当没有单个数据库可以把所有事情都做的很好时，应用需要集成几种不同的数据库、缓存、索引等。在 [第十一章](/ch11) 中我们将从一种派生数据的批处理方法开始，然后在此基础上建立在 [第十二章](/ch12) 中讨论的流处理。最后，在 [第十三章](/ch13) 中，我们将所有内容汇总，讨论在将来构建可靠、可伸缩和可维护的应用程序的方法。
+3. 在 [第三部分](/part-iii) 中，我们讨论那些从其他数据集派生出一些数据集的系统。派生数据经常出现在异构系统中：当没有单个数据库可以把所有事情都做的很好时，应用需要集成几种不同的数据库、缓存、索引等。在 [第十章](/ch10) 中我们将从一种派生数据的批处理方法开始，然后在此基础上建立在 [第十一章](/ch11) 中讨论的流处理。最后，在 [第十二章](/ch12) 中，我们将所有内容汇总，讨论在将来构建可靠、可伸缩和可维护的应用程序的方法。
 
 
 ## 参考文献与延伸阅读
@@ -87,6 +87,28 @@ breadcrumbs: false
 Members have access to thousands of books, training videos, Learning Paths, interac‐ tive tutorials, and curated playlists from over 250 publishers, including O’Reilly Media, Harvard Business Review, Prentice Hall Professional, Addison-Wesley Pro‐ fessional, Microsoft Press, Sams, Que, Peachpit Press, Adobe, Focal Press, Cisco Press, John Wiley & Sons, Syngress, Morgan Kaufmann, IBM Redbooks, Packt, Adobe Press, FT Press, Apress, Manning, New Riders, McGraw-Hill, Jones & Bartlett, and Course Technology, among others.
 
 For more information, please visit http://oreilly.com/safari.
+
+
+## 联系我们
+
+有关本书的评论和问题，请联系出版社：
+
+O’Reilly Media, Inc.  
+1005 Gravenstein Highway North  
+Sebastopol, CA 95472  
+800-998-9938（美国或加拿大）  
+707-829-0515（国际或本地）  
+707-829-0104（传真）
+
+我们为本书提供了网页，会在上面列出勘误、示例以及任何补充信息。你可以访问：*http://bit.ly/designing-data-intensive-apps*。
+
+如需发表评论或提出技术问题，请发送邮件至：*bookquestions@oreilly.com*。
+
+有关 O’Reilly 图书、课程、会议和新闻的更多信息，请访问：*http://www.oreilly.com*。
+
+* Facebook: [http://facebook.com/oreilly](http://facebook.com/oreilly)
+* Twitter: [http://twitter.com/oreillymedia](http://twitter.com/oreillymedia)
+* YouTube: [http://www.youtube.com/oreillymedia](http://www.youtube.com/oreillymedia)
 
 
 ## 致谢

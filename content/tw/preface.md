@@ -72,7 +72,7 @@ breadcrumbs: false
 
 2. 在 [第二部分](/tw/part-ii) 中，我們從討論儲存在一臺機器上的資料轉向討論分佈在多臺機器上的資料。這對於可伸縮性通常是必需的，但帶來了各種獨特的挑戰。我們首先討論複製（[第五章](/tw/ch5)）、分割槽 / 分片（[第六章](/tw/ch6)）和事務（[第七章](/tw/ch7)）。然後我們將探索關於分散式系統問題的更多細節（[第八章](/tw/ch8)），以及在分散式系統中實現一致性與共識意味著什麼（[第九章](/tw/ch9)）。
 
-3. 在 [第三部分](/tw/part-iii) 中，我們討論那些從其他資料集派生出一些資料集的系統。派生資料經常出現在異構系統中：當沒有單個數據庫可以把所有事情都做的很好時，應用需要整合幾種不同的資料庫、快取、索引等。在 [第十一章](/tw/ch11) 中我們將從一種派生資料的批處理方法開始，然後在此基礎上建立在 [第十二章](/tw/ch12) 中討論的流處理。最後，在 [第十三章](/tw/ch13) 中，我們將所有內容彙總，討論在將來構建可靠、可伸縮和可維護的應用程式的方法。
+3. 在 [第三部分](/tw/part-iii) 中，我們討論那些從其他資料集派生出一些資料集的系統。派生資料經常出現在異構系統中：當沒有單個數據庫可以把所有事情都做的很好時，應用需要整合幾種不同的資料庫、快取、索引等。在 [第十章](/tw/ch10) 中我們將從一種派生資料的批處理方法開始，然後在此基礎上建立在 [第十一章](/tw/ch11) 中討論的流處理。最後，在 [第十二章](/tw/ch12) 中，我們將所有內容彙總，討論在將來構建可靠、可伸縮和可維護的應用程式的方法。
 
 
 ## 參考文獻與延伸閱讀
@@ -87,6 +87,28 @@ breadcrumbs: false
 Members have access to thousands of books, training videos, Learning Paths, interac‐ tive tutorials, and curated playlists from over 250 publishers, including O’Reilly Media, Harvard Business Review, Prentice Hall Professional, Addison-Wesley Pro‐ fessional, Microsoft Press, Sams, Que, Peachpit Press, Adobe, Focal Press, Cisco Press, John Wiley & Sons, Syngress, Morgan Kaufmann, IBM Redbooks, Packt, Adobe Press, FT Press, Apress, Manning, New Riders, McGraw-Hill, Jones & Bartlett, and Course Technology, among others.
 
 For more information, please visit http://oreilly.com/safari.
+
+
+## 聯絡我們
+
+有關本書的評論和問題，請聯絡出版社：
+
+O’Reilly Media, Inc.
+1005 Gravenstein Highway North
+Sebastopol, CA 95472
+800-998-9938（美國或加拿大）
+707-829-0515（國際或本地）
+707-829-0104（傳真）
+
+我們為本書提供了網頁，會在上面列出勘誤、示例以及任何補充資訊。你可以訪問：*http://bit.ly/designing-data-intensive-apps*。
+
+如需發表評論或提出技術問題，請傳送郵件至：*bookquestions@oreilly.com*。
+
+有關 O’Reilly 圖書、課程、會議和新聞的更多資訊，請訪問：*http://www.oreilly.com*。
+
+* Facebook: [http://facebook.com/oreilly](http://facebook.com/oreilly)
+* Twitter: [http://twitter.com/oreillymedia](http://twitter.com/oreillymedia)
+* YouTube: [http://www.youtube.com/oreillymedia](http://www.youtube.com/oreillymedia)
 
 
 ## 致謝
