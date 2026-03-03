@@ -103,7 +103,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. 第一部分]前言，ch2 校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. 詞彙表、後記關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+5. 詞彙表、後記關於野豬的部分 by [@cg-zhou](https://github.com/Vonng/ddia/commits?author=cg-zhou)
 6. 繁體中文版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
 8. [感謝所有作出貢獻，提出意見的朋友們](/contrib)：

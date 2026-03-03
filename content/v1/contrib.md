@@ -30,7 +30,7 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 2. [第一章语法标点校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. [第一部分](/v1/part-i)前言，[ch2](/v1/ch2)校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. [词汇表](/v1/glossary)、[后记](/v1/colophon)关于野猪的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+5. [词汇表](/v1/glossary)、[后记](/v1/colophon)关于野猪的部分 by [@cg-zhou](https://github.com/Vonng/ddia/commits?author=cg-zhou)
 6. [繁體中文](https://github.com/Vonng/ddia/pulls)版本与转换脚本 by [@afunTW](https://github.com/afunTW)
 7. 多处翻译修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
 
