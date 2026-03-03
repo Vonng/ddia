@@ -103,7 +103,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 2. [第一章語法標點校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
 3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 與[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. 第一部分]前言，ch2 校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
-5. 詞彙表、後記關於野豬的部分 by [@Chowss](https://github.com/Vonng/ddia/commits?author=Chowss)
+5. 詞彙表、後記關於野豬的部分 by [@cg-zhou](https://github.com/Vonng/ddia/commits?author=cg-zhou)
 6. 繁體中文版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
 8. [感謝所有作出貢獻，提出意見的朋友們](/contrib)：
@@ -132,7 +132,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [359](https://github.com/Vonng/ddia/pull/359)   | [@c25423](https://github.com/c25423)                       | ch10: 修正一處拼寫錯誤                                                 |
 | [358](https://github.com/Vonng/ddia/pull/358)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch4: 修正一處拼寫錯誤                                                  |
 | [356](https://github.com/Vonng/ddia/pull/356)   | [@lewiszlw](https://github.com/lewiszlw)                   | ch2: 修正一處標點錯誤                                                  |
-| [355](https://github.com/Vonng/ddia/pull/355)   | [@DuroyGeorge](https://github.com/DuroyGeorge)             | ch12: 修正一處格式錯誤                                                 |
+| [355](https://github.com/Vonng/ddia/pull/355)   | [@duroey](https://github.com/duroey)             | ch12: 修正一處格式錯誤                                                 |
 | [354](https://github.com/Vonng/ddia/pull/354)   | [@justlorain](https://github.com/justlorain)               | ch7: 修正一處參考連結                                                  |
 | [353](https://github.com/Vonng/ddia/pull/353)   | [@fantasyczl](https://github.com/fantasyczl)               | ch3&9: 修正兩處引用錯誤                                                |
 | [352](https://github.com/Vonng/ddia/pull/352)   | [@fantasyczl](https://github.com/fantasyczl)               | 支援輸出為 EPUB 格式                                                  |
@@ -164,13 +164,13 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [278](https://github.com/Vonng/ddia/pull/278)   | [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)         | 發現了繁體中文版本中的錯誤翻譯                                                |
 | [275](https://github.com/Vonng/ddia/pull/275)   | [@117503445](https://github.com/117503445)                 | 更正 LICENSE 連結                                                  |
 | [274](https://github.com/Vonng/ddia/pull/274)   | [@uncle-lv](https://github.com/uncle-lv)                   | ch7: 修正錯別字                                                     |
-| [273](https://github.com/Vonng/ddia/pull/273)   | [@Sdot-Python](https://github.com/Sdot-Python)             | ch7: 統一了 write skew 的翻譯                                        |
+| [273](https://github.com/Vonng/ddia/pull/273)   | [@quwang123](https://github.com/quwang123)             | ch7: 統一了 write skew 的翻譯                                        |
 | [271](https://github.com/Vonng/ddia/pull/271)   | [@Makonike](https://github.com/Makonike)                   | ch6: 統一了 rebalancing 的翻譯                                       |
 | [270](https://github.com/Vonng/ddia/pull/270)   | [@Ynjxsjmh](https://github.com/Ynjxsjmh)                   | ch7: 修正不一致的翻譯                                                  |
 | [263](https://github.com/Vonng/ddia/pull/263)   | [@zydmayday](https://github.com/zydmayday)                 | ch5: 修正譯文中的重複單詞                                                |
 | [260](https://github.com/Vonng/ddia/pull/260)   | [@haifeiWu](https://github.com/haifeiWu)                   | ch4: 修正部分不準確的翻譯                                                |
 | [258](https://github.com/Vonng/ddia/pull/258)   | [@bestgrc](https://github.com/bestgrc)                     | ch3: 修正一處翻譯錯誤                                                  |
-| [257](https://github.com/Vonng/ddia/pull/257)   | [@UnderSam](https://github.com/UnderSam)                   | ch8: 修正一處拼寫錯誤                                                  |
+| [257](https://github.com/Vonng/ddia/pull/257)   | [@samwu4166](https://github.com/samwu4166)                   | ch8: 修正一處拼寫錯誤                                                  |
 | [256](https://github.com/Vonng/ddia/pull/256)   | [@AlphaWang](https://github.com/AlphaWang)                 | ch7: 修正“可序列化”相關內容的多處翻譯不當                                       |
 | [255](https://github.com/Vonng/ddia/pull/255)   | [@AlphaWang](https://github.com/AlphaWang)                 | ch7: 修正“可重複讀”相關內容的多處翻譯不當                                       |
 | [253](https://github.com/Vonng/ddia/pull/253)   | [@AlphaWang](https://github.com/AlphaWang)                 | ch7: 修正“讀已提交”相關內容的多處翻譯不當                                       |
@@ -179,7 +179,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [244](https://github.com/Vonng/ddia/pull/244)   | [@Axlgrep](https://github.com/Axlgrep)                     | ch9: 修正不通順的翻譯                                                  |
 | [242](https://github.com/Vonng/ddia/pull/242)   | [@lynkeib](https://github.com/lynkeib)                     | ch9: 修正不通順的翻譯                                                  |
 | [241](https://github.com/Vonng/ddia/pull/241)   | [@lynkeib](https://github.com/lynkeib)                     | ch8: 修正不正確的公式格式                                                |
-| [240](https://github.com/Vonng/ddia/pull/240)   | [@8da2k](https://github.com/8da2k)                         | ch9: 修正不通順的翻譯                                                  |
+| [240](https://github.com/Vonng/ddia/pull/240)   | [@leo-987](https://github.com/leo-987)                         | ch9: 修正不通順的翻譯                                                  |
 | [239](https://github.com/Vonng/ddia/pull/239)   | [@BeBraveBeCurious](https://github.com/BeBraveBeCurious)   | ch7: 修正不一致的翻譯                                                  |
 | [237](https://github.com/Vonng/ddia/pull/237)   | [@zhangnew](https://github.com/zhangnew)                   | ch3: 修正錯誤的圖片連結                                                 |
 | [229](https://github.com/Vonng/ddia/pull/229)   | [@lis186](https://github.com/lis186)                       | 指出繁體中文的轉譯錯誤：複雜                                                 |
@@ -191,7 +191,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [190](https://github.com/Vonng/ddia/pull/190)   | [@Pcrab](https://github.com/Pcrab)                         | ch1: 修正不準確的翻譯                                                  |
 | [187](https://github.com/Vonng/ddia/pull/187)   | [@narojay](https://github.com/narojay)                     | ch9: 修正生硬的翻譯                                                   |
 | [186](https://github.com/Vonng/ddia/pull/186)   | [@narojay](https://github.com/narojay)                     | ch8: 修正錯別字                                                     |
-| [185](https://github.com/Vonng/ddia/issues/185) | [@8da2k](https://github.com/8da2k)                         | 指出小標題跳轉的問題                                                     |
+| [185](https://github.com/Vonng/ddia/issues/185) | [@leo-987](https://github.com/leo-987)                         | 指出小標題跳轉的問題                                                     |
 | [184](https://github.com/Vonng/ddia/pull/184)   | [@DavidZhiXing](https://github.com/DavidZhiXing)           | ch10: 修正失效的網址                                                  |
 | [183](https://github.com/Vonng/ddia/pull/183)   | [@OneSizeFitsQuorum](https://github.com/OneSizeFitsQuorum) | ch8: 修正錯別字                                                     |
 | [182](https://github.com/Vonng/ddia/issues/182) | [@lroolle](https://github.com/lroolle)                     | 建議docsify的主題風格                                                 |
@@ -205,7 +205,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [171](https://github.com/Vonng/ddia/pull/171)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch12: 修正重複的譯文                                                  |
 | [169](https://github.com/Vonng/ddia/pull/169)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch12: 更正不太通順的翻譯                                                |
 | [166](https://github.com/Vonng/ddia/pull/166)   | [@bp4m4h94](https://github.com/bp4m4h94)                   | ch1: 發現錯誤的文獻索引                                                 |
-| [164](https://github.com/Vonng/ddia/pull/164)   | [@DragonDriver](https://github.com/DragonDriver)           | preface: 更正錯誤的標點符號                                             |
+| [164](https://github.com/Vonng/ddia/pull/164)   | [@longjiquan](https://github.com/longjiquan)           | preface: 更正錯誤的標點符號                                             |
 | [163](https://github.com/Vonng/ddia/pull/163)   | [@llmmddCoder](https://github.com/llmmddCoder)             | ch1: 更正錯誤字                                                     |
 | [160](https://github.com/Vonng/ddia/pull/160)   | [@Zhayhp](https://github.com/Zhayhp)                       | ch2: 建議將 network model 翻譯為網狀模型                                 |
 | [159](https://github.com/Vonng/ddia/pull/159)   | [@1ess](https://github.com/1ess)                           | ch4: 更正錯誤字                                                     |
@@ -215,7 +215,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [152](https://github.com/Vonng/ddia/pull/152)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch7: 除重->去重                                                    |
 | [151](https://github.com/Vonng/ddia/pull/151)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch5: 修訂sibling相關的翻譯                                            |
 | [147](https://github.com/Vonng/ddia/pull/147)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch5: 更正一處不準確的翻譯                                                |
-| [145](https://github.com/Vonng/ddia/pull/145)   | [@Hookey](https://github.com/Hookey)                       | 識別了當前簡繁轉譯過程中處理不當的地方，暫透過轉換指令碼規避                                  |
+| [145](https://github.com/Vonng/ddia/pull/145)   | [@ui-HookeyChiang](https://github.com/ui-HookeyChiang)                       | 識別了當前簡繁轉譯過程中處理不當的地方，暫透過轉換指令碼規避                                  |
 | [144](https://github.com/Vonng/ddia/issues/144) | [@secret4233](https://github.com/secret4233)               | ch7: 不翻譯`next-key locking`                                     |
 | [143](https://github.com/Vonng/ddia/issues/143) | [@imcheney](https://github.com/imcheney)                   | ch3: 更新殘留的機翻段落                                                 |
 | [142](https://github.com/Vonng/ddia/issues/142) | [@XIJINIAN](https://github.com/XIJINIAN)                   | 建議去除段首的製表符                                                     |
@@ -226,7 +226,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [134](https://github.com/Vonng/ddia/pull/134)   | [@fuxuemingzhu](https://github.com/fuxuemingzhu)           | ch4: 最佳化多處不通順的或錯誤的翻譯                                            |
 | [133](https://github.com/Vonng/ddia/pull/133)   | [@fuxuemingzhu](https://github.com/fuxuemingzhu)           | ch3: 最佳化多處錯誤的或不通順的翻譯                                            |
 | [132](https://github.com/Vonng/ddia/pull/132)   | [@fuxuemingzhu](https://github.com/fuxuemingzhu)           | ch3: 最佳化一處容易產生歧義的翻譯                                             |
-| [131](https://github.com/Vonng/ddia/pull/131)   | [@rwwg4](https://github.com/rwwg4)                         | ch6: 修正兩處錯誤的翻譯                                                 |
+| [131](https://github.com/Vonng/ddia/pull/131)   | [@KAKXA](https://github.com/KAKXA)                         | ch6: 修正兩處錯誤的翻譯                                                 |
 | [129](https://github.com/Vonng/ddia/pull/129)   | [@anaer](https://github.com/anaer)                         | ch4: 修正兩處強調文字和四處程式碼變數名稱                                         |
 | [128](https://github.com/Vonng/ddia/pull/128)   | [@meilin96](https://github.com/meilin96)                   | ch5: 修正一處錯誤的引用                                                 |
 | [126](https://github.com/Vonng/ddia/pull/126)   | [@cwr31](https://github.com/cwr31)                         | ch10: 修正一處錯誤的翻譯（功能 -> 函式）                                      |
