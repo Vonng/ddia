@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Check for required dependencies
+check_dependencies() {
+	local missing_deps=()
+	
+	if ! command -v pandoc &> /dev/null; then
+		missing_deps+=("pandoc")
+	fi
+	
+	if ! command -v xelatex &> /dev/null; then
+		# Try lualatex as fallback
+		if ! command -v lualatex &> /dev/null; then
+			missing_deps+=("xelatex or lualatex (LaTeX engine)")
+		fi
+	fi
+	
+	if [ ${#missing_deps[@]} -ne 0 ]; then
+		echo "Error: Missing required dependencies:"
+		for dep in "${missing_deps[@]}"; do
+			echo "  - $dep"
+		done
+		echo ""
+		echo "Installation:"
+		echo "  macOS: brew install pandoc"
+		echo "  macOS: brew install --cask mactex"
+		echo ""
+		echo "  Linux: apt install pandoc texlive-xetex"
+		exit 1
+	fi
+}
+
+check_dependencies
+
+# Detect available PDF engine
+if command -v xelatex &> /dev/null; then
+	PDF_ENGINE="xelatex"
+elif command -v lualatex &> /dev/null; then
+	PDF_ENGINE="lualatex"
+else
+	echo "Error: No suitable PDF engine found"
+	exit 1
+fi
+
+SCRIPT_DIR=$(dirname "$0")
+INPUT_DIR=$(cd "$(dirname "$SCRIPT_DIR")" && pwd)
+OUTPUT_DIR="$INPUT_DIR/output"
+TEMP_DIR="$OUTPUT_DIR/temp"
+
+# Create output directory if it doesn't exist
+mkdir -p "$OUTPUT_DIR"
+mkdir -p "$TEMP_DIR"
+
+# Preprocess Markdown files to convert Hugo shortcodes
+echo "Preprocessing Markdown files..."
+python3 "${SCRIPT_DIR}/preprocess-epub.py" "${INPUT_DIR}/content/zh" "$TEMP_DIR"
+
+convert_to_pdf() {
+	# Convert all Markdown files into a single PDF book
+	OUTPUT_BOOK="$OUTPUT_DIR/ddia.pdf"
+	rm -f "$OUTPUT_BOOK"
+	echo "Converting all Markdown files into $OUTPUT_BOOK..."
+
+	local meta_file=${INPUT_DIR}/metadata.yaml
+	local header_file=${SCRIPT_DIR}/header.tex
+
+	# Use xelatex for Chinese support with custom header
+	pandoc -o "$OUTPUT_BOOK" \
+		--metadata-file="$meta_file" \
+		-H "$header_file" \
+		--toc \
+		--toc-depth=2 \
+		--top-level-division=chapter \
+		--file-scope=true \
+		--pdf-engine="$PDF_ENGINE" \
+		-V geometry:margin=1in \
+		-V linestretch=1.5 \
+		"${TEMP_DIR}"/_index.md \
+		"${TEMP_DIR}"/preface.md \
+		"${TEMP_DIR}"/part-i.md \
+		"${TEMP_DIR}"/ch1.md \
+		"${TEMP_DIR}"/ch2.md \
+		"${TEMP_DIR}"/ch3.md \
+		"${TEMP_DIR}"/ch4.md \
+		"${TEMP_DIR}"/part-ii.md \
+		"${TEMP_DIR}"/ch5.md \
+		"${TEMP_DIR}"/ch6.md \
+		"${TEMP_DIR}"/ch7.md \
+		"${TEMP_DIR}"/ch8.md \
+		"${TEMP_DIR}"/ch9.md \
+		"${TEMP_DIR}"/part-iii.md \
+		"${TEMP_DIR}"/ch10.md \
+		"${TEMP_DIR}"/ch11.md \
+		"${TEMP_DIR}"/ch12.md \
+		"${TEMP_DIR}"/ch13.md \
+		"${TEMP_DIR}"/ch14.md \
+		"${TEMP_DIR}"/colophon.md \
+		"${TEMP_DIR}"/glossary.md
+
+	echo "PDF book created at $OUTPUT_BOOK."
+}
+
+convert_to_pdf
+
+# Clean up temporary files
+rm -rf "$TEMP_DIR"

@@ -17,4 +17,7 @@ translate:
 epub:
 	bin/epub
 
-.PHONY: default doc translate
+pdf:
+	bin/pdf
+
+.PHONY: default doc translate epub pdf

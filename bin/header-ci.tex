@@ -1,0 +1,31 @@
+% Chinese support with xeCJK
+\usepackage{xeCJK}
+\setCJKmainfont{Noto Serif CJK SC}
+\setCJKsansfont{Noto Sans CJK SC}
+
+% Enable Chinese line breaking
+\XeTeXlinebreaklocale "zh"
+
+% Paragraph settings
+\usepackage{parskip}
+\setlength{\parindent}{2em}
+\usepackage{ragged2e}
+
+% Chinese punctuation style
+\punctstyle{quanjiao}
+
+% Cover page
+\AtBeginDocument{%
+  \thispagestyle{empty}
+  \begin{center}
+    \vspace*{0.4\textheight}
+    {\Huge\bfseries 设计数据密集型应用}
+    \vspace{1cm}
+    {\LARGE 第二版}
+    \vspace{2cm}
+    {\Large Martin Kleppmann}
+    \vspace{0.5cm}
+    {\large 冯若航 译}
+  \end{center}
+  \clearpage
+}
