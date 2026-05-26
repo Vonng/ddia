@@ -28,7 +28,7 @@ convert_to_epub() {
 	pandoc -o "$OUTPUT_BOOK" --metadata-file="$meta_file" \
 		--toc-depth=2 \
 		--top-level-division=chapter \
-		--file-scope=true \
+		--split-level=1 \
 		--css="$css_file" \
 		--webtex \
 		--wrap=preserve \
@@ -39,14 +39,14 @@ convert_to_epub() {
 		"${TEMP_DIR}"/ch2.md \
 		"${TEMP_DIR}"/ch3.md \
 		"${TEMP_DIR}"/ch4.md \
-		"${TEMP_DIR}"/part-ii.md \
 		"${TEMP_DIR}"/ch5.md \
+		"${TEMP_DIR}"/part-ii.md \
 		"${TEMP_DIR}"/ch6.md \
 		"${TEMP_DIR}"/ch7.md \
 		"${TEMP_DIR}"/ch8.md \
 		"${TEMP_DIR}"/ch9.md \
-		"${TEMP_DIR}"/part-iii.md \
 		"${TEMP_DIR}"/ch10.md \
+		"${TEMP_DIR}"/part-iii.md \
 		"${TEMP_DIR}"/ch11.md \
 		"${TEMP_DIR}"/ch12.md \
 		"${TEMP_DIR}"/ch13.md \

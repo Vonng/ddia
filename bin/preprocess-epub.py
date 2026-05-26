@@ -15,6 +15,15 @@ from pathlib import Path
 FIGURE_SHORTCODE_RE = re.compile(r"\{\{<\s*figure\b(.*?)>\}\}", re.DOTALL)
 ATTR_RE = re.compile(r'([\w-]+)="([^"]*)"')
 ABS_IMAGE_RE = re.compile(r'!\[([^\]]*)\]\(/(?!static/)([^)]+)\)')
+FRONT_MATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?", re.DOTALL)
+TITLE_RE = re.compile(r'^title:\s*(?:"([^"]*)"|\'([^\']*)\'|(.+?))\s*$', re.MULTILINE)
+LINK_HEADING_RE = re.compile(r"^(#{2,6})\s+(\[[^\]]+\]\([^)]+\))\s*$", re.MULTILINE)
+HEADER_ID_RE = re.compile(r"\{#([A-Za-z0-9_:-]+)\}")
+RAW_ID_RE = re.compile(r'(<a\s+[^>]*\bid=")([^"]+)(")', re.IGNORECASE)
+RAW_HREF_RE = re.compile(r'(<a\s+[^>]*\bhref=")(/[^"#?)]*)(#[^"]*)?(")', re.IGNORECASE)
+MD_HREF_RE = re.compile(r"(?<!!)(\[[^\]]+\]\()(/[^)#?]+)(#[^)]+)?(\))")
+LOCAL_MD_HREF_RE = re.compile(r"(?<!!)(\[[^\]]+\]\()(#[A-Za-z0-9_:-]+)(\))")
+FOOTNOTE_RE = re.compile(r"\[\^([^\]\s]+)\]")
 
 
 def _escape_alt_text(text):
@@ -22,16 +31,93 @@ def _escape_alt_text(text):
     return text.replace("]", r"\]")
 
 
-def convert_markdown(text):
+def _slug_for_path(path):
+    stem = Path(path).stem
+    return "index" if stem == "_index" else stem
+
+
+def _extract_front_matter(text):
+    match = FRONT_MATTER_RE.match(text)
+    if not match:
+        return {}, text
+
+    raw_meta = match.group(1)
+    title_match = TITLE_RE.search(raw_meta)
+    title = None
+    if title_match:
+        title = next(group for group in title_match.groups() if group is not None).strip()
+
+    return {"title": title}, text[match.end():]
+
+
+def _page_anchor(slug, anchor):
+    return anchor if anchor == slug or anchor.startswith(f"{slug}__") else f"{slug}__{anchor}"
+
+
+def _rewrite_internal_href(slug, path, fragment, known_pages):
+    target = path.strip("/")
+    if target == "":
+        target_slug = "index"
+    else:
+        target_slug = target.split("/", 1)[0]
+
+    if target_slug not in known_pages:
+        return None
+
+    if fragment:
+        return f"#{_page_anchor(target_slug, fragment[1:])}"
+    return f"#{target_slug}"
+
+
+def _rewrite_links(text, slug, known_pages):
+    def replace_md_href(match):
+        replacement = _rewrite_internal_href(slug, match.group(2), match.group(3), known_pages)
+        if replacement is None:
+            return match.group(0)
+        return f"{match.group(1)}{replacement}{match.group(4)}"
+
+    def replace_raw_href(match):
+        replacement = _rewrite_internal_href(slug, match.group(2), match.group(3), known_pages)
+        if replacement is None:
+            return match.group(0)
+        return f"{match.group(1)}{replacement}{match.group(4)}"
+
+    def replace_local_href(match):
+        anchor = match.group(2)[1:]
+        if anchor == slug or anchor.startswith(f"{slug}__"):
+            return match.group(0)
+        return f"{match.group(1)}#{_page_anchor(slug, anchor)}{match.group(3)}"
+
+    text = MD_HREF_RE.sub(replace_md_href, text)
+    text = RAW_HREF_RE.sub(replace_raw_href, text)
+    text = LOCAL_MD_HREF_RE.sub(replace_local_href, text)
+    return text
+
+
+def _rewrite_footnotes(text, slug):
+    def replace(match):
+        label = match.group(1)
+        if label.startswith(f"{slug}__"):
+            return match.group(0)
+        return f"[^{slug}__{label}]"
+
+    return FOOTNOTE_RE.sub(replace, text)
+
+
+def convert_markdown(text, slug, known_pages=None):
     """
-    转换 Hugo figure shortcode 和绝对路径图片引用。
+    转换 Hugo front matter、figure shortcode 和站内绝对路径引用。
 
     Args:
         text: Markdown 文本内容
+        slug: 当前页面 slug，用于生成 EPUB 内稳定锚点
 
     Returns:
         转换后的文本
     """
+    known_pages = known_pages or {slug}
+    meta, text = _extract_front_matter(text)
+
     def replace_figure_shortcode(match):
         attrs_text = match.group(1)
         attrs = dict(ATTR_RE.findall(attrs_text))
@@ -54,9 +140,21 @@ def convert_markdown(text):
     # 把 Markdown 里的绝对路径图片 ![](/map/ch01.png) 转为 static/map/ch01.png
     text = ABS_IMAGE_RE.sub(r'![\1](static/\2)', text)
 
+    # 网站目录页里用二级标题承载跳转链接；EPUB 目录应指向真实章节页。
+    text = LINK_HEADING_RE.sub(r"**\2**", text)
+
+    text = HEADER_ID_RE.sub(lambda m: "{#" + _page_anchor(slug, m.group(1)) + "}", text)
+    text = RAW_ID_RE.sub(lambda m: f"{m.group(1)}{_page_anchor(slug, m.group(2))}{m.group(3)}", text)
+    text = _rewrite_links(text, slug, known_pages)
+    text = _rewrite_footnotes(text, slug)
+
+    title = meta.get("title")
+    if title:
+        text = f"# {title} {{#{slug}}}\n\n{text.lstrip()}"
+
     return text
 
-def process_file(input_path, output_path):
+def process_file(input_path, output_path, known_pages=None):
     """
     处理单个 Markdown 文件
 
@@ -68,7 +166,7 @@ def process_file(input_path, output_path):
         content = f.read()
 
     # 转换内容
-    converted_content = convert_markdown(content)
+    converted_content = convert_markdown(content, _slug_for_path(input_path), known_pages)
 
     # 写入输出文件
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -97,10 +195,11 @@ def main():
 
         # 获取所有 .md 文件
         md_files = sorted(input_dir.glob('*.md'))
+        known_pages = {_slug_for_path(path) for path in md_files}
 
         for md_file in md_files:
             output_file = os.path.join(output_dir, md_file.name)
-            process_file(str(md_file), output_file)
+            process_file(str(md_file), output_file, known_pages)
 
         print(f"\nTotal processed: {len(md_files)} files")
     else:
