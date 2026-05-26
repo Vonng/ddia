@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 FIGURE_SHORTCODE_RE = re.compile(r"\{\{<\s*figure\b(.*?)>\}\}", re.DOTALL)
+CALLOUT_SHORTCODE_RE = re.compile(r"\{\{<\s*callout\b(.*?)>\}\}(.*?)\{\{<\s*/callout\s*>\}\}", re.DOTALL)
 ATTR_RE = re.compile(r'([\w-]+)="([^"]*)"')
 ABS_IMAGE_RE = re.compile(r'!\[([^\]]*)\]\(/(?!static/)([^)]+)\)')
 FRONT_MATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*\n?", re.DOTALL)
@@ -135,6 +136,14 @@ def convert_markdown(text, slug, known_pages=None):
         alt = _escape_alt_text(attrs.get("caption") or attrs.get("title") or "")
         return f'![{alt}]({src})'
 
+    def replace_callout_shortcode(match):
+        body = match.group(2).strip()
+        if not body:
+            return ""
+        quoted = "\n".join(f"> {line}" if line else ">" for line in body.splitlines())
+        return f"> **注意**\n>\n{quoted}"
+
+    text = CALLOUT_SHORTCODE_RE.sub(replace_callout_shortcode, text)
     text = FIGURE_SHORTCODE_RE.sub(replace_figure_shortcode, text)
 
     # 把 Markdown 里的绝对路径图片 ![](/map/ch01.png) 转为 static/map/ch01.png
