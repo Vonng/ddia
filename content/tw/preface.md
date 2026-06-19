@@ -100,11 +100,11 @@ Sebastopol, CA 95472
 707-829-0515（國際或本地）
 707-829-0104（傳真）
 
-我們為本書提供了網頁，會在上面列出勘誤、示例以及任何補充資訊。你可以訪問：*http://bit.ly/designing-data-intensive-apps*。
+我們為本書提供了網頁，會在上面列出勘誤、示例以及任何補充資訊。你可以訪問：**http://bit.ly/designing-data-intensive-apps**。
 
-如需發表評論或提出技術問題，請傳送郵件至：*bookquestions@oreilly.com*。
+如需發表評論或提出技術問題，請傳送郵件至：**bookquestions@oreilly.com**。
 
-有關 O’Reilly 圖書、課程、會議和新聞的更多資訊，請訪問：*http://www.oreilly.com*。
+有關 O’Reilly 圖書、課程、會議和新聞的更多資訊，請訪問：**http://www.oreilly.com**。
 
 * Facebook: [http://facebook.com/oreilly](http://facebook.com/oreilly)
 * Twitter: [http://twitter.com/oreillymedia](http://twitter.com/oreillymedia)

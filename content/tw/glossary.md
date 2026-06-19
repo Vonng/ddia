@@ -12,12 +12,12 @@ breadcrumbs: false
 
 ### 原子（atomic）
 
-1. 在併發語境下：指一個操作看起來在某個單一時刻生效，其他併發程序不會看到它處於“半完成”狀態。另見 *isolation*。
+1. 在併發語境下：指一個操作看起來在某個單一時刻生效，其他併發程序不會看到它處於“半完成”狀態。另見 **isolation**。
 2. 在事務語境下：指一組寫入要麼全部提交、要麼全部回滾，即使發生故障也不例外。參見“[原子性](/tw/ch8#sec_transactions_acid_atomicity)”和“[兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)”。
 
 ### 背壓（backpressure）
 
-當接收方跟不上時，強制傳送方降速。也稱為 *flow control*。參見“[系統過載後無法恢復時會發生什麼](/tw/ch2#sidebar_metastable)”。
+當接收方跟不上時，強制傳送方降速。也稱為 **flow control**。參見“[系統過載後無法恢復時會發生什麼](/tw/ch2#sidebar_metastable)”。
 
 ### 批處理（batch process）
 
@@ -69,7 +69,7 @@ breadcrumbs: false
 
 ### 分散式（distributed）
 
-系統在多個透過網路連線的節點上執行。其典型特徵是 *部分失效*：一部分壞了，另一部分仍在工作，而軟體往往難以精確知道哪裡壞了。參見“[故障與部分失效](/tw/ch9#sec_distributed_partial_failure)”。
+系統在多個透過網路連線的節點上執行。其典型特徵是 **部分失效**：一部分壞了，另一部分仍在工作，而軟體往往難以精確知道哪裡壞了。參見“[故障與部分失效](/tw/ch9#sec_distributed_partial_failure)”。
 
 ### 永續性（durable）
 
@@ -89,23 +89,23 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 流量控制（flow control）
 
-見 *backpressure*。
+見 **backpressure**。
 
 ### 追隨者（follower）
 
-不直接接收客戶端寫入、僅應用來自主節點變更的副本。也稱 *secondary*、*read replica* 或 *hot standby*。參見“[單主複製](/tw/ch6#sec_replication_leader)”。
+不直接接收客戶端寫入、僅應用來自主節點變更的副本。也稱 **secondary**、**read replica** 或 **hot standby**。參見“[單主複製](/tw/ch6#sec_replication_leader)”。
 
 ### 全文檢索（full-text search）
 
-按任意關鍵詞搜尋文字，通常支援近似拼寫、同義詞等能力。全文索引是支援此類查詢的一種 *secondary index*。參見“[全文檢索](/tw/ch4#sec_storage_full_text)”。
+按任意關鍵詞搜尋文字，通常支援近似拼寫、同義詞等能力。全文索引是支援此類查詢的一種 **secondary index**。參見“[全文檢索](/tw/ch4#sec_storage_full_text)”。
 
 ### 圖（graph）
 
-由 *vertices*（可引用物件，也稱 *nodes* 或 *entities*）和 *edges*（頂點間連線，也稱 *relationships* 或 *arcs*）組成的資料結構。參見“[圖狀資料模型](/tw/ch3#sec_datamodels_graph)”。
+由 **vertices**（可引用物件，也稱 **nodes** 或 **entities**）和 **edges**（頂點間連線，也稱 **relationships** 或 **arcs**）組成的資料結構。參見“[圖狀資料模型](/tw/ch3#sec_datamodels_graph)”。
 
 ### 雜湊（hash）
 
-把輸入對映成看似隨機數字的函式。相同輸入總得相同輸出；不同輸入通常輸出不同，但也可能碰撞（*collision*）。參見“[按鍵的雜湊分片](/tw/ch7#sec_sharding_hash)”。
+把輸入對映成看似隨機數字的函式。相同輸入總得相同輸出；不同輸入通常輸出不同，但也可能碰撞（**collision**）。參見“[按鍵的雜湊分片](/tw/ch7#sec_sharding_hash)”。
 
 ### 冪等（idempotent）
 
@@ -117,7 +117,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 隔離性（isolation）
 
-在事務語境下，併發事務相互干擾的程度。*Serializable* 最強，也常用更弱隔離級別。參見“[隔離性](/tw/ch8#sec_transactions_acid_isolation)”。
+在事務語境下，併發事務相互干擾的程度。**Serializable** 最強，也常用更弱隔離級別。參見“[隔離性](/tw/ch8#sec_transactions_acid_isolation)”。
 
 ### 連線（join）
 
@@ -125,7 +125,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 領導者（leader）
 
-當資料或服務跨多個節點複製時，被指定為可接受寫入的副本。可透過協議選舉或管理員指定。也稱 *primary* 或 *source*。參見“[單主複製](/tw/ch6#sec_replication_leader)”。
+當資料或服務跨多個節點複製時，被指定為可接受寫入的副本。可透過協議選舉或管理員指定。也稱 **primary** 或 **source**。參見“[單主複製](/tw/ch6#sec_replication_leader)”。
 
 ### 線性一致（linearizable）
 
@@ -141,7 +141,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 日誌（log）
 
-只追加寫入的資料檔案。*WAL* 用於崩潰恢復（參見“[讓 B 樹可靠](/tw/ch4#sec_storage_btree_wal)”）；*log-structured* 儲存把日誌作為主儲存格式（參見“[日誌結構儲存](/tw/ch4#sec_storage_log_structured)”）；*replication log* 用於主從複製（參見“[單主複製](/tw/ch6#sec_replication_leader)”）；*event log* 可表示資料流（參見“[基於日誌的訊息代理](/tw/ch12#sec_stream_log) ”）。
+只追加寫入的資料檔案。**WAL** 用於崩潰恢復（參見“[讓 B 樹可靠](/tw/ch4#sec_storage_btree_wal)”）；**log-structured** 儲存把日誌作為主儲存格式（參見“[日誌結構儲存](/tw/ch4#sec_storage_log_structured)”）；**replication log** 用於主從複製（參見“[單主複製](/tw/ch6#sec_replication_leader)”）；**event log** 可表示資料流（參見“[基於日誌的訊息代理](/tw/ch12#sec_stream_log) ”）。
 
 ### 物化（materialize）
 
@@ -165,15 +165,15 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 分片（sharding）
 
-把單機裝不下的大資料集或計算拆成更小部分並分散到多臺機器上。也稱 *partitioning*。參見[第 7 章](/tw/ch7#ch_sharding)。
+把單機裝不下的大資料集或計算拆成更小部分並分散到多臺機器上。也稱 **partitioning**。參見[第 7 章](/tw/ch7#ch_sharding)。
 
 ### 百分位（percentile）
 
-透過統計多少值高於/低於某閾值來描述分佈。例如某時段 95 分位響應時間為 *t*，表示 95% 請求耗時小於 *t*，5% 更長。參見“[描述效能](/tw/ch2#sec_introduction_percentiles)”。
+透過統計多少值高於/低於某閾值來描述分佈。例如某時段 95 分位響應時間為 **t**，表示 95% 請求耗時小於 **t**，5% 更長。參見“[描述效能](/tw/ch2#sec_introduction_percentiles)”。
 
 ### 主鍵（primary key）
 
-唯一標識一條記錄的值（通常為數字或字串）。在很多應用中由系統在建立時生成（順序或隨機），而非使用者手工指定。另見 *secondary index*。
+唯一標識一條記錄的值（通常為數字或字串）。在很多應用中由系統在建立時生成（順序或隨機），而非使用者手工指定。另見 **secondary index**。
 
 ### 法定票數（quorum）
 
@@ -185,7 +185,7 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 複製（replication）
 
-在多個節點（*replicas*）上儲存同一份資料，以便部分節點不可達時仍可訪問。參見[第 6 章](/tw/ch6#ch_replication)。
+在多個節點（**replicas**）上儲存同一份資料，以便部分節點不可達時仍可訪問。參見[第 6 章](/tw/ch6#ch_replication)。
 
 ### 模式（schema）
 
@@ -197,7 +197,7 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 可序列化（serializable）
 
-一種 *isolation* 保證：多個事務併發執行時，行為等價於某個序列順序逐個執行。參見“[可序列化](/tw/ch8#sec_transactions_serializability)”。
+一種 **isolation** 保證：多個事務併發執行時，行為等價於某個序列順序逐個執行。參見“[可序列化](/tw/ch8#sec_transactions_serializability)”。
 
 ### 無共享（shared-nothing）
 
@@ -205,7 +205,7 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 偏斜（skew）
 
-1. 分片負載不均：某些分片請求/資料很多，另一些很少。也稱 *hot spots*。參見“[負載偏斜與熱點消除](/tw/ch7#sec_sharding_skew)”。
+1. 分片負載不均：某些分片請求/資料很多，另一些很少。也稱 **hot spots**。參見“[負載偏斜與熱點消除](/tw/ch7#sec_sharding_skew)”。
 2. 一種時序異常，導致事件呈現為非預期的非順序。參見“[快照隔離與可重複讀](/tw/ch8#sec_transactions_snapshot_isolation)”中的讀偏斜、“[寫偏斜與幻讀](/tw/ch8#sec_transactions_write_skew)”中的寫偏斜、以及“[用於事件排序的時間戳](/tw/ch9#sec_distributed_lww)”中的時鐘偏斜。
 
 ### 腦裂（split brain）
@@ -222,11 +222,11 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 同步（synchronous）
 
-*asynchronous* 的反義詞。
+**asynchronous** 的反義詞。
 
 ### 記錄系統（system of record）
 
-持有某類資料主權威版本的系統，也稱 *source of truth*。資料變更首先寫入這裡，其他資料集可由其派生。參見“[記錄系統與派生資料](/tw/ch1#sec_introduction_derived)”。
+持有某類資料主權威版本的系統，也稱 **source of truth**。資料變更首先寫入這裡，其他資料集可由其派生。參見“[記錄系統與派生資料](/tw/ch1#sec_introduction_derived)”。
 
 ### 超時（timeout）
 
@@ -234,7 +234,7 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 全序（total order）
 
-一種可比較關係（如時間戳），任意兩者都能判定大小。若存在不可比較元素，則稱 *partial order*（偏序）。
+一種可比較關係（如時間戳），任意兩者都能判定大小。若存在不可比較元素，則稱 **partial order**（偏序）。
 
 ### 事務（transaction）
 
@@ -242,12 +242,12 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 兩階段提交（two-phase commit, 2PC）
 
-保證多個數據庫節點對同一事務要麼都 *atomically* 提交、要麼都中止的演算法。參見“[兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)”。
+保證多個數據庫節點對同一事務要麼都 **atomically** 提交、要麼都中止的演算法。參見“[兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)”。
 
 ### 兩階段鎖（two-phase locking, 2PL）
 
-實現 *serializable isolation* 的演算法：事務對讀寫資料加鎖並持有到事務結束。參見“[兩階段鎖（2PL）](/tw/ch8#sec_transactions_2pl)”。
+實現 **serializable isolation** 的演算法：事務對讀寫資料加鎖並持有到事務結束。參見“[兩階段鎖（2PL）](/tw/ch8#sec_transactions_2pl)”。
 
 ### 無界（unbounded）
 
-沒有已知上限或大小。與 *bounded* 相反。
+沒有已知上限或大小。與 **bounded** 相反。
