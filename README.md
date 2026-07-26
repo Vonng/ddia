@@ -13,7 +13,7 @@
 **阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [hugo](https://gohugo.io/documentation/) / [hextra](https://imfing.github.io/hextra/zh-cn/) 主题自行构建。
 
 > [!NOTE] 
-> [**DDIA 第二版**](https://ddia.vonng.com) 正在翻译中（翻译至至第十章），欢迎阅览并提出您的宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
+> [**DDIA 第二版**](https://ddia.vonng.com) 正在翻译中（翻译至第十章），欢迎阅览并提出您的宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
 
 
 ---------
