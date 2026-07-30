@@ -42,6 +42,7 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: '1.26'
+          cache: false
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v6
