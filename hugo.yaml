@@ -1,5 +1,5 @@
 baseURL: 'https://ddia.vonng.com/'
-languageCode: 'zh-CN'
+locale: 'zh-CN'
 title: '设计数据密集型应用（第二版）'
 
 enableRobotsTXT: true
@@ -24,32 +24,32 @@ module:
 defaultContentLanguage: zh
 languages:
   zh:
-    languageName: 简体中文
-    languageCode: zh
+    label: 简体中文
+    locale: zh-CN
     contentDir: content/zh
     weight: 1
     title: 设计数据密集型应用（第二版）
   tw:
-    languageName: 繁体中文
-    languageCode: tw
+    label: 繁体中文
+    locale: zh-TW
     contentDir: content/tw
     weight: 2
     title: 設計資料密集型應用（第二版）
   v1:
-    languageName: 简体中文第一版
-    languageCode: zh
+    label: 简体中文第一版
+    locale: zh-CN
     contentDir: content/v1
     weight: 3
     title: 设计数据密集型应用（第一版）
   v1_tw:
-    languageName: 繁体中文第一版
-    languageCode: tw
+    label: 繁体中文第一版
+    locale: zh-TW
     contentDir: content/v1_tw
     weight: 4
     title: 設計資料密集型應用（第一版）
   #en:
-  #  languageName: English
-  #  languageCode: en
+  #  label: English
+  #  locale: en
   #  contentDir: content/en
   #  weight: 4
   #  title: Designing Data-Intensive Applications 2nd Edition
