@@ -2,9 +2,13 @@
 """
 预处理 Markdown 文件，将 Hugo shortcode 转换为 Pandoc 可识别的格式
 
-处理两种 shortcode：
-1. {{< figure src="/fig/xxx.png" caption="xxx" >}} → ![xxx](static/fig/xxx.png)
-2. {{< figure ... >}} (无 src) → 移除（通常用于代码示例）
+处理内容：
+1. YAML frontmatter → 提取 title 作为正文 `# 一级标题`，并移除 frontmatter
+   （每个文件有唯一的 `#` 标题，Pandoc 才能按章切分并生成目录；同时避免
+    多文件 frontmatter 的 title 相互覆盖导致书名/目录错乱）
+2. {{< figure src="/fig/xxx.png" caption="xxx" >}} → ![xxx](static/fig/xxx.png)
+3. {{< figure ... >}} (无 src) → 移除（通常用于代码示例）
+4. {{< callout ... >}}...{{< /callout >}} → 转为 blockquote，去掉 shortcode 包裹
 """
 
 import os
@@ -12,9 +16,42 @@ import re
 import sys
 from pathlib import Path
 
+FRONTMATTER_RE = re.compile(r"\A---\r?\n(.*?)\r?\n---\r?\n?", re.DOTALL)
+TITLE_RE = re.compile(r'^title:\s*(.*)$', re.MULTILINE)
 FIGURE_SHORTCODE_RE = re.compile(r"\{\{<\s*figure\b(.*?)>\}\}", re.DOTALL)
+CALLOUT_OPEN_RE = re.compile(r"\{\{<\s*callout\b[^>]*>\}\}")
+CALLOUT_CLOSE_RE = re.compile(r"\{\{<\s*/\s*callout\s*>\}\}")
 ATTR_RE = re.compile(r'([\w-]+)="([^"]*)"')
 ABS_IMAGE_RE = re.compile(r'!\[([^\]]*)\]\(/(?!static/)([^)]+)\)')
+
+
+def _strip_title_quotes(value):
+    """去掉 YAML title 值两侧的引号。"""
+    value = value.strip()
+    if len(value) >= 2 and value[0] in "\"'" and value[-1] == value[0]:
+        value = value[1:-1]
+    return value
+
+
+def extract_title_and_strip_frontmatter(text):
+    """移除开头的 YAML frontmatter，返回 (title, 剩余正文)。"""
+    match = FRONTMATTER_RE.match(text)
+    if not match:
+        return None, text
+
+    frontmatter = match.group(1)
+    body = text[match.end():]
+
+    title_match = TITLE_RE.search(frontmatter)
+    title = _strip_title_quotes(title_match.group(1)) if title_match else None
+    return title, body
+
+
+def convert_callouts(text):
+    """把 Hugo callout shortcode 转为普通 blockquote。"""
+    text = CALLOUT_OPEN_RE.sub("", text)
+    text = CALLOUT_CLOSE_RE.sub("", text)
+    return text
 
 
 def _escape_alt_text(text):
@@ -24,7 +61,8 @@ def _escape_alt_text(text):
 
 def convert_markdown(text):
     """
-    转换 Hugo figure shortcode 和绝对路径图片引用。
+    移除 frontmatter 并把 title 提升为 `#` 一级标题，转换 Hugo shortcode
+    与绝对路径图片引用。
 
     Args:
         text: Markdown 文本内容
@@ -32,6 +70,10 @@ def convert_markdown(text):
     Returns:
         转换后的文本
     """
+    title, text = extract_title_and_strip_frontmatter(text)
+
+    text = convert_callouts(text)
+
     def replace_figure_shortcode(match):
         attrs_text = match.group(1)
         attrs = dict(ATTR_RE.findall(attrs_text))
@@ -53,6 +95,10 @@ def convert_markdown(text):
 
     # 把 Markdown 里的绝对路径图片 ![](/map/ch01.png) 转为 static/map/ch01.png
     text = ABS_IMAGE_RE.sub(r'![\1](static/\2)', text)
+
+    # 用 frontmatter 的 title 作为章节一级标题，供 Pandoc 切分章节与生成目录
+    if title:
+        text = f'# {title}\n\n{text.lstrip()}'
 
     return text
 

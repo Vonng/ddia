@@ -28,7 +28,6 @@ convert_to_epub() {
 	pandoc -o "$OUTPUT_BOOK" --metadata-file="$meta_file" \
 		--toc-depth=2 \
 		--top-level-division=chapter \
-		--file-scope=true \
 		--css="$css_file" \
 		--webtex \
 		--wrap=preserve \
