@@ -4,10 +4,6 @@ weight: 600
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-當前頁面來自本書第一版，第二版尚不可用
-{{< /callout >}}
-
 ## 關於作者
 
 **Martin Kleppmann** 是英國劍橋大學副教授，教授分散式系統與密碼學協議。2017 年出版的《設計資料密集型應用》第一版確立了他在資料系統領域的權威地位；他在分散式系統方面的研究也推動了 local-first 軟體運動。此前他曾在 LinkedIn、Rapportive 等網際網路公司擔任軟體工程師和創業者，負責大規模資料基礎設施。
@@ -18,11 +14,11 @@ breadcrumbs: false
 
 ## 關於譯者
 
-[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+[**馮若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 PostgreSQL 發行版 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
-獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[國區活躍 Top20](https://committers.top/china)。
+獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
 [DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，資料庫/雲計算 KOL。
 
 

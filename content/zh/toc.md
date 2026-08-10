@@ -30,7 +30,7 @@ breadcrumbs: false
 - [描述性能](/ch2#sec_introduction_percentiles)
 - [可靠性与容错](/ch2#sec_introduction_reliability)
 - [可伸缩性](/ch2#sec_introduction_scalability)
-- [可运维性](/ch2#sec_introduction_maintainability)
+- [可维护性](/ch2#sec_introduction_maintainability)
 - [总结](/ch2#summary)
 
 ## [3. 数据模型与查询语言](/ch3)
@@ -71,7 +71,7 @@ breadcrumbs: false
 - [可串行化](/ch8#sec_transactions_serializability)
 - [分布式事务](/ch8#sec_transactions_distributed)
 - [总结](/ch8#summary)
-- [参考](/ch8#参考)
+- [参考文献](/ch8#参考文献)
 
 ## [9. 分布式系统的麻烦](/ch9)
 - [故障与部分失效](/ch9#sec_distributed_partial_failure)
@@ -108,7 +108,7 @@ breadcrumbs: false
 - [本章小结](/ch13#id367)
 - [参考文献](/ch13#references)
 
-## [14. 将事情做正确](/ch14)
+## [14. 做正确的事情](/ch14)
 - [预测分析](/ch14#id369)
 - [隐私与追踪](/ch14#id373)
 - [总结](/ch14#id594)

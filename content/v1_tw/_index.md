@@ -9,14 +9,14 @@ breadcrumbs: false
 
 **作者**： [Martin Kleppmann](https://martin.kleppmann.com)，[《Designing Data-Intensive Applications 2nd Edition》](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html) ： 英國劍橋大學分散式系統研究員，演講者，博主和開源貢獻者，軟體工程師和企業家，曾在 LinkedIn 和 Rapportive 負責資料基礎架構。
 
-**譯者**：[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+**譯者**：[**馮若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
-獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[國區活躍 Top20](https://committers.top/china)。
+獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
 [DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，公眾號：《老馮雲數》，資料庫 KOL。
 
-**校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/contrib)
+**校訂**： [@yingang](https://github.com/yingang)  ｜  [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW) ｜ [完整貢獻者列表](/v1_tw/contrib)
 
 > [!NOTE]
 > DDIA [**第二版**](/zh) 正在翻譯中 ([`content/v2`](https://github.com/Vonng/ddia/tree/main) 目錄)，歡迎加入並提出您的寶貴意見！[點選此處閱覽第二版](/zh)。
@@ -85,7 +85,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 
 ## 法律宣告
 
-從原作者處得知，已經有簡體中文的翻譯計劃，將於 2018 年末完成。[購買地址](https://search.jd.com/Search?keyword=設計資料密集型應用)
+從原作者處得知，已經有簡體中文的翻譯計劃，將於 2018 年末完成。[購買地址](https://search.jd.com/Search?keyword=设计数据密集型应用)
 
 譯者純粹出於 **學習目的** 與 **個人興趣** 翻譯本書，不追求任何經濟利益。
 
@@ -106,7 +106,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 5. 詞彙表、後記關於野豬的部分 by [@cg-zhou](https://github.com/Vonng/ddia/commits?author=cg-zhou)
 6. 繁體中文版本與轉換指令碼 by [@afunTW](https://github.com/afunTW)
 7. 多處翻譯修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
-8. [感謝所有作出貢獻，提出意見的朋友們](/contrib)：
+8. [感謝所有作出貢獻，提出意見的朋友們](/v1_tw/contrib)：
 
 <details>
 <summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
@@ -137,7 +137,7 @@ PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 | [353](https://github.com/Vonng/ddia/pull/353)   | [@fantasyczl](https://github.com/fantasyczl)               | ch3&9: 修正兩處引用錯誤                                                |
 | [352](https://github.com/Vonng/ddia/pull/352)   | [@fantasyczl](https://github.com/fantasyczl)               | 支援輸出為 EPUB 格式                                                  |
 | [349](https://github.com/Vonng/ddia/pull/349)   | [@xiyihan0](https://github.com/xiyihan0)                   | ch1: 修正一處格式錯誤                                                  |
-| [348](https://github.com/Vonng/ddia/pull/348)   | [@omegaatt36](https://github.com/omegaatt36)               | ch3: 修正一處影像連結                                                  |
+| [348](https://github.com/Vonng/ddia/pull/348)   | [@omegaatt36](https://github.com/omegaatt36)               | ch3: 修正一處影象連結                                                  |
 | [346](https://github.com/Vonng/ddia/issues/346) | [@Vermouth1995](https://github.com/Vermouth1995)           | ch1: 最佳化一處翻譯                                                    |
 | [343](https://github.com/Vonng/ddia/pull/343)   | [@kehao-chen](https://github.com/kehao-chen)               | ch10: 最佳化一處翻譯                                                   |
 | [341](https://github.com/Vonng/ddia/pull/341)   | [@YKIsTheBest](https://github.com/YKIsTheBest)             | ch3: 最佳化兩處翻譯                                                    |

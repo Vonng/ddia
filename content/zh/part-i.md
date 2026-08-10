@@ -4,10 +4,6 @@ weight: 100
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-当前页面来自本书第一版，第二版尚不可用
-{{< /callout >}}
-
 本书前五章介绍了数据系统底层的基础概念，无论是在单台机器上运行的单点数据系统，还是分布在多台机器上的分布式数据系统都适用。
 
 1. [第一章](/ch1) 将介绍 **数据系统架构中的利弊权衡**。我们将讨论不同类型的数据系统（例如，分析型与事务型），以及它们在云环境中的运行方式。
@@ -31,7 +27,7 @@ breadcrumbs: false
 - [描述性能](/ch2#sec_introduction_percentiles)
 - [可靠性与容错](/ch2#sec_introduction_reliability)
 - [可伸缩性](/ch2#sec_introduction_scalability)
-- [可运维性](/ch2#sec_introduction_maintainability)
+- [可维护性](/ch2#sec_introduction_maintainability)
 - [总结](/ch2#summary)
 
 ## [3. 数据模型与查询语言](/ch3)

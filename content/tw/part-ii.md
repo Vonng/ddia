@@ -4,10 +4,6 @@ weight: 200
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-當前頁面來自本書第一版，第二版尚不可用
-{{< /callout >}}
-
 > 一個成功的技術，現實的優先順序必須高於公關，你可以糊弄別人，但糊弄不了自然規律。
 >
 > —— 羅傑斯委員會報告（1986）
@@ -101,7 +97,7 @@ breadcrumbs: false
 - [可序列化](/tw/ch8#sec_transactions_serializability)
 - [分散式事務](/tw/ch8#sec_transactions_distributed)
 - [總結](/tw/ch8#summary)
-- [參考](/tw/ch8#參考)
+- [參考文獻](/tw/ch8#參考文獻)
 
 ## [9. 分散式系統的麻煩](/tw/ch9)
 - [故障與部分失效](/tw/ch9#sec_distributed_partial_failure)

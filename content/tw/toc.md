@@ -30,7 +30,7 @@ breadcrumbs: false
 - [描述效能](/tw/ch2#sec_introduction_percentiles)
 - [可靠性與容錯](/tw/ch2#sec_introduction_reliability)
 - [可伸縮性](/tw/ch2#sec_introduction_scalability)
-- [可運維性](/tw/ch2#sec_introduction_maintainability)
+- [可維護性](/tw/ch2#sec_introduction_maintainability)
 - [總結](/tw/ch2#summary)
 
 ## [3. 資料模型與查詢語言](/tw/ch3)
@@ -71,7 +71,7 @@ breadcrumbs: false
 - [可序列化](/tw/ch8#sec_transactions_serializability)
 - [分散式事務](/tw/ch8#sec_transactions_distributed)
 - [總結](/tw/ch8#summary)
-- [參考](/tw/ch8#參考)
+- [參考文獻](/tw/ch8#參考文獻)
 
 ## [9. 分散式系統的麻煩](/tw/ch9)
 - [故障與部分失效](/tw/ch9#sec_distributed_partial_failure)
@@ -108,11 +108,11 @@ breadcrumbs: false
 - [本章小結](/tw/ch13#id367)
 - [參考文獻](/tw/ch13#references)
 
-## [14. 將事情做正確](/ch14)
-- [預測分析](/ch14#id369)
-- [隱私與追蹤](/ch14#id373)
-- [總結](/ch14#id594)
-- [參考文獻](/ch14#references)
+## [14. 做正確的事情](/tw/ch14)
+- [預測分析](/tw/ch14#id369)
+- [隱私與追蹤](/tw/ch14#id373)
+- [總結](/tw/ch14#id594)
+- [參考文獻](/tw/ch14#references)
 
 ## [術語表](/tw/glossary)
 

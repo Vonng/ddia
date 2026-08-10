@@ -4,10 +4,6 @@ weight: 200
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-当前页面来自本书第一版，第二版尚不可用
-{{< /callout >}}
-
 > 一个成功的技术，现实的优先级必须高于公关，你可以糊弄别人，但糊弄不了自然规律。
 >
 > —— 罗杰斯委员会报告（1986）
@@ -101,7 +97,7 @@ breadcrumbs: false
 - [可串行化](/ch8#sec_transactions_serializability)
 - [分布式事务](/ch8#sec_transactions_distributed)
 - [总结](/ch8#summary)
-- [参考](/ch8#参考)
+- [参考文献](/ch8#参考文献)
 
 ## [9. 分布式系统的麻烦](/ch9)
 - [故障与部分失效](/ch9#sec_distributed_partial_failure)

@@ -4,10 +4,6 @@ weight: 100
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-當前頁面來自本書第一版，第二版尚不可用
-{{< /callout >}}
-
 本書前五章介紹了資料系統底層的基礎概念，無論是在單臺機器上執行的單點資料系統，還是分佈在多臺機器上的分散式資料系統都適用。
 
 1. [第一章](/tw/ch1) 將介紹 **資料系統架構中的利弊權衡**。我們將討論不同型別的資料系統（例如，分析型與事務型），以及它們在雲環境中的執行方式。
@@ -31,7 +27,7 @@ breadcrumbs: false
 - [描述效能](/tw/ch2#sec_introduction_percentiles)
 - [可靠性與容錯](/tw/ch2#sec_introduction_reliability)
 - [可伸縮性](/tw/ch2#sec_introduction_scalability)
-- [可運維性](/tw/ch2#sec_introduction_maintainability)
+- [可維護性](/tw/ch2#sec_introduction_maintainability)
 - [總結](/tw/ch2#summary)
 
 ## [3. 資料模型與查詢語言](/tw/ch3)

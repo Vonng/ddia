@@ -15,11 +15,11 @@ Martin 是一位常規會議演講者，博主和開源貢獻者。他認為，�
 
 ## 關於譯者
 
-[**馮若航**](https://vonng.com)，網名 [@Vonng](https://github.com/Vonng)。
+[**馮若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
 PostgreSQL 專家，資料庫老司機，雲計算泥石流。
 PostgreSQL 發行版 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
-獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[國區活躍 Top20](https://committers.top/china)。
+獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
 [DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，資料庫/雲計算 KOL。
 
 

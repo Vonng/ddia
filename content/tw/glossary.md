@@ -121,7 +121,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 連線（join）
 
-把具有關聯關係的記錄拼在一起。常見於一個記錄引用另一個記錄（外部索引鍵、文件引用、圖邊）時，查詢需要取到被引用物件。參見“[正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)”和“[JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)”。
+把具有關聯關係的記錄拼在一起。常見於一個記錄引用另一個記錄（外來鍵、文件引用、圖邊）時，查詢需要取到被引用物件。參見“[正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)”和“[JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)”。
 
 ### 領導者（leader）
 

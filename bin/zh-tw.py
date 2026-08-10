@@ -2,14 +2,31 @@
 import os, sys, opencc
 import re
 
+EXTERNAL_URL_RE = re.compile(r'https?://[^\s<>]+')
+
+
+def convert_preserving_external_urls(converter, text):
+    """执行简繁转换，但保持外部 URL 的字节内容不变。"""
+    urls = []
+
+    def stash(match):
+        urls.append(match.group(0))
+        return f'__DDIA_EXTERNAL_URL_{len(urls) - 1}__'
+
+    converted = converter.convert(EXTERNAL_URL_RE.sub(stash, text))
+    for index, url in enumerate(urls):
+        converted = converted.replace(f'__DDIA_EXTERNAL_URL_{index}__', url)
+    return converted
+
+
 def process_urls(text, src_folder, dst_folder):
     """处理 Markdown 中的相对 URL"""
     # 定义需要处理的页面路径（不带.md后缀）
     page_paths = [
         '/ch1', '/ch2', '/ch3', '/ch4', '/ch5', '/ch6',
-        '/ch7', '/ch8', '/ch9', '/ch10', '/ch11', '/ch12', '/ch13',
+        '/ch7', '/ch8', '/ch9', '/ch10', '/ch11', '/ch12', '/ch13', '/ch14',
         '/part-i', '/part-ii', '/part-iii', 
-        '/preface', '/glossary', '/colophon'
+        '/preface', '/glossary', '/colophon', '/contrib', '/indexes', '/toc'
     ]
     
     # 对每个页面路径进行替换
@@ -23,7 +40,7 @@ def process_urls(text, src_folder, dst_folder):
             page_part = match.group(3)
             anchor_part = match.group(4) or ''
             if not folder_part:
-                return f'[{text_part}](/tw{page_part}{anchor_part})'            # 默认中文版本，没有 /zh 前缀，直接在前面添加 /tw 前缀
+                return f'[{text_part}](/{dst_folder}{page_part}{anchor_part})'  # 默认版本没有语言前缀，添加目标版本前缀
             elif folder_part[1:] == src_folder:
                 return f'[{text_part}](/{dst_folder}{page_part}{anchor_part})'  # 其它中文版本，有类似 /v1 的前缀，根据输入参数进行替换
             else:
@@ -31,6 +48,14 @@ def process_urls(text, src_folder, dst_folder):
                 print(f'unknown folder part in: {text}, keep it unchanged')
                 return text
         text = re.sub(pattern, replace_func, text)
+
+    # 第二版繁体页面中的第一版链接应指向第一版繁体页面。
+    if src_folder == 'zh' and dst_folder == 'tw':
+        text = re.sub(
+            r'(\[[^\]]*\]\()/v1(?=[/#)])',
+            r'\1/v1_tw',
+            text,
+        )
     
     return text
 
@@ -40,7 +65,7 @@ def convert_file(src_filepath, dst_filepath, src_folder, dst_folder, cfg='s2twp.
     with open(src_filepath, "r", encoding='utf-8') as src, open(dst_filepath, "w+", encoding='utf-8') as dst:
         dst.write("\n".join(
             process_urls(
-                converter.convert(line.rstrip())
+                convert_preserving_external_urls(converter, line.rstrip())
                     .replace('一箇', '一個')
                     .replace('髮送', '傳送')
                     .replace('髮布', '釋出')

@@ -4,10 +4,6 @@ weight: 600
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-当前页面来自本书第一版，第二版尚不可用
-{{< /callout >}}
-
 ## 关于作者
 
 **Martin Kleppmann** 是英国剑桥大学副教授，教授分布式系统与密码学协议。2017 年出版的《设计数据密集型应用》第一版确立了他在数据系统领域的权威地位；他在分布式系统方面的研究也推动了 local-first 软件运动。此前他曾在 LinkedIn、Rapportive 等互联网公司担任软件工程师和创业者，负责大规模数据基础设施。
