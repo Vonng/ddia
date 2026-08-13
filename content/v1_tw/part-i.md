@@ -1,5 +1,6 @@
 ---
 title: 第一部分：資料系統基礎
+search_exclude: true
 weight: 100
 breadcrumbs: false
 ---

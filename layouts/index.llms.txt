@@ -1,0 +1,28 @@
+{{- $traditional := eq (.Site.Language.Locale | default "") "zh-TW" -}}
+{{- $indexTitle := cond $traditional "內容索引" "内容索引" -}}
+{{- $homeLabel := cond $traditional "首頁" "首页" -}}
+{{- $homeURL := .Site.Home.Permalink -}}
+{{- with .Site.Home.OutputFormats.Get "markdown" }}{{ $homeURL = .Permalink }}{{ end -}}
+# {{ .Site.Title }}
+
+{{ with .Site.Params.description | strings.TrimSpace -}}
+> {{ replace . "\n" "\n> " }}
+
+{{ end -}}
+## {{ $indexTitle }}
+
+- [{{ $homeLabel }}]({{ $homeURL }})
+{{ range .Site.RegularPages.ByWeight -}}
+  {{- $url := .Permalink -}}
+  {{- with .OutputFormats.Get "markdown" }}{{ $url = .Permalink }}{{ end }}
+- [{{ .Title | strings.TrimSpace }}]({{ $url }})
+{{ end -}}
+
+## {{ cond $traditional "語言與版本" "语言与版本" }}
+
+{{ range hugo.Sites -}}
+  {{- $home := .Home -}}
+  {{- $url := $home.Permalink -}}
+  {{- with $home.OutputFormats.Get "markdown" }}{{ $url = .Permalink }}{{ end }}
+- [{{ $home.Language.Label }}]({{ $url }})
+{{ end -}}

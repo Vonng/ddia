@@ -1,5 +1,6 @@
 ---
 title: 贡献者
+search_exclude: true
 weight: 800
 breadcrumbs: false
 ---
@@ -229,4 +230,3 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 | [6  ](https://github.com/Vonng/ddia/pull/6)     | [@MuAlex](https://github.com/MuAlex)                       | Ch6 change version1                                            |
 | [5  ](https://github.com/Vonng/ddia/pull/5)     | [@nevertiree](https://github.com/nevertiree)               | Chapter 01语法微调                                                 |
 | [2  ](https://github.com/Vonng/ddia/pull/2)     | [@seagullbird](https://github.com/seagullbird)             | 序言初翻                                                           |
-

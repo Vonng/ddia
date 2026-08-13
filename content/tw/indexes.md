@@ -1,5 +1,6 @@
 ---
 title: 索引
+search_exclude: true
 weight: 550
 breadcrumbs: false
 ---

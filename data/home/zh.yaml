@@ -1,0 +1,145 @@
+# OINK 0.3.0 composes this landing page in the declared order.
+sections:
+  - hero
+  - metrics
+  - gallery
+  - principles
+  - faq
+  - cta
+
+hero:
+  eyebrow: DDIA · 第二版中文翻译
+  title: 设计**数据密集型**应用
+  lead: 从数据模型、存储引擎到分布式系统与派生数据，建立设计现代数据系统所需的完整思维框架。
+  note: 第二版翻译持续维护中，欢迎校订与反馈。
+  image:
+    light: title.jpg
+    dark: title.jpg
+    alt: 《设计数据密集型应用》第二版英文原书封面
+  actions:
+    - label: 查看完整目录
+      url: toc/
+      icon: fa-solid fa-list
+      style: primary
+    - label: 从序言开始
+      url: preface/
+      icon: fa-solid fa-book-open
+      style: ghost
+  detail:
+    label: 在 GitHub 上参与翻译与校订
+    url: https://github.com/Vonng/ddia
+    icon: fa-brands fa-github
+    external: true
+
+metrics:
+  eyebrow: 第二版
+  title: 一部书，贯穿数据系统的完整生命周期
+  desc: 按照原书结构组织，可从目录顺序阅读，也可直接进入感兴趣的主题。
+  columns: 4
+  link_label: 查看
+  items:
+    - { value: '14', label: 章, desc: 从架构权衡到技术伦理, icon: fa-solid fa-book, url: toc/ }
+    - { value: '3', label: 部分, desc: 基础、分布式与派生数据, icon: fa-solid fa-layer-group, url: part-i/ }
+    - { value: '4', label: 阅读版本, desc: 两版 × 简繁中文, icon: fa-solid fa-language }
+    - { value: '1', label: 开放项目, desc: 通过 GitHub 持续校订, icon: fa-brands fa-github, url: https://github.com/Vonng/ddia, external: true }
+
+gallery:
+  eyebrow: 阅读路线
+  title: 沿着三条主线理解数据系统
+  desc: 每个部分都从基本问题出发，逐步连接实现机制、系统权衡与实际架构。
+  columns: 3
+  link_label: 进入本部分
+  items:
+    - title: 第一部分 · 数据系统基础
+      badge: 第 1–5 章
+      icon: fa-solid fa-database
+      desc: 从系统架构权衡、非功能需求、数据模型一路深入到存储与编码演化。
+      url: part-i/
+    - title: 第二部分 · 分布式数据
+      badge: 第 6–10 章
+      icon: fa-solid fa-network-wired
+      desc: 理解复制、分片、事务、部分失效，以及一致性与共识的真实代价。
+      url: part-ii/
+    - title: 第三部分 · 派生数据
+      badge: 第 11–14 章
+      icon: fa-solid fa-arrows-spin
+      desc: 把批处理、流处理、流式系统哲学与负责任的技术实践连接起来。
+      url: part-iii/
+
+principles:
+  eyebrow: 这个阅读站
+  title: 内容优先，也充分利用现代文档能力
+  columns: 3
+  items:
+    - icon: fa-solid fa-magnifying-glass
+      title: 搜索与命令面板
+      desc: 按 `⌘ K` 搜索全文与常用操作，或按 `/` 直接运行阅读、版本、语言和页面命令。
+    - icon: fa-solid fa-file-lines
+      title: 可复制、可打印
+      desc: 每页提供文本复制、源码查看与打印，并生成适合工具读取的 `llms.txt`。
+    - icon: fa-solid fa-code-pull-request
+      title: 开放校订
+      desc: 页面可直接跳转 GitHub 编辑或提交问题；每一处修正都能回到明确的源码。
+
+faq:
+  eyebrow: 阅读之前
+  title: 关于版本、授权与参与方式
+  items:
+    - question: 第一版和第二版应该读哪一个？
+      answer: 第二版重写并扩展了全书结构，是当前建议的阅读入口；第一版仍完整保留，适合对照旧版章节与既有引用。可使用页面顶部的版本菜单切换。
+      open: true
+    - question: 如何切换简体、繁体与不同版本？
+      answer: 语言菜单会在已有对应页面时保持当前章节；版本菜单负责在第一版和第二版之间切换，并进入相应版本的首页。
+    - question: 这份译文可以公开发行或用于商业用途吗？
+      answer: 不可以。本译文仅供学习研究参考，不追求经济利益，不得公开传播发行或用于商业用途；有能力阅读英文的读者请购买正版支持作者与出版社。
+      url: https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/
+      link_label: 查看 O'Reilly 原版
+      external: true
+    - question: 发现翻译或排版问题怎么办？
+      answer: 可使用页面右侧的“编辑此页面”或“提交文档问题”，也可以直接前往 GitHub 提交 Issue 或 Pull Request。
+      url: https://github.com/Vonng/ddia/issues
+      link_label: 提交问题
+      external: true
+
+cta:
+  title: 准备好开始了吗？
+  desc: 从第一章进入数据系统架构中的核心权衡，或先浏览全书目录。
+  actions:
+    - label: 阅读第一章
+      url: ch1/
+      icon: fa-solid fa-arrow-right
+      style: primary
+    - label: 浏览术语表
+      url: glossary/
+      icon: fa-solid fa-spell-check
+      style: ghost
+
+footer:
+  brand:
+    name: DDIA 中文版
+    tagline: '**D**esigning **D**ata-**I**ntensive **A**pplications'
+    slogan: 设计、实现与评价现代数据系统的思维框架
+  columns:
+    - title: 阅读
+      links:
+        - { label: 完整目录, url: toc/ }
+        - { label: 序言, url: preface/ }
+        - { label: 术语表, url: glossary/ }
+        - { label: 索引, url: indexes/ }
+    - title: 主题
+      links:
+        - { label: 第一部分 · 数据系统基础, url: part-i/ }
+        - { label: 第二部分 · 分布式数据, url: part-ii/ }
+        - { label: 第三部分 · 派生数据, url: part-iii/ }
+        - { label: 版本与语言, url: '#faq' }
+    - title: 项目
+      links:
+        - { label: 贡献者, url: contrib/ }
+        - { label: GitHub, url: 'https://github.com/Vonng/ddia', external: true }
+        - { label: 问题反馈, url: 'https://github.com/Vonng/ddia/issues', external: true }
+        - { label: 译者博客, url: 'https://vonng.com', external: true }
+    - title: 原作
+      links:
+        - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
+        - { label: DDIA 第二版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/', external: true }
+        - { label: DDIA 第一版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/', external: true }

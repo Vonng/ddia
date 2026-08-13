@@ -1,5 +1,6 @@
 ---
 title: 第三部分：派生資料
+search_exclude: true
 weight: 300
 breadcrumbs: false
 ---

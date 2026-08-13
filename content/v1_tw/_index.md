@@ -1,6 +1,9 @@
 ---
 title: 設計資料密集型應用（第一版）
 linkTitle: DDIA
+description: DDIA 第一版繁體中文翻譯，涵蓋可靠性、資料模型、儲存、複製、分割槽、事務與衍生資料。
+type: home
+search_exclude: true
 cascade:
   type: docs
 breadcrumbs: false

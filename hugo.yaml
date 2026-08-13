@@ -3,67 +3,291 @@ locale: 'zh-CN'
 title: '设计数据密集型应用（第二版）'
 
 enableRobotsTXT: true
-# Parse Git commit
 enableGitInfo: true
-# enableEmoji: false
 hasCJKLanguage: true
 
 services:
   googleAnalytics:
-    ID: G-SGY2FPH1EG
+    id: G-SGY2FPH1EG
 
+# OINK leaves generated surfaces to the consumer site. Markdown powers the
+# page actions, LLMS emits llms.txt, and print enables section print views.
 outputs:
-  home: [HTML]
-  page: [HTML]
-  section: [HTML, RSS]
+  home: [HTML, markdown, LLMS]
+  page: [HTML, markdown]
+  section: [HTML, RSS, print, markdown]
 
 module:
   imports:
-    - path: github.com/imfing/hextra
+    - path: github.com/pgsty/oink
 
 defaultContentLanguage: zh
 languages:
   zh:
-    label: 简体中文
+    label: 简体 · 二版
     locale: zh-CN
     contentDir: content/zh
     weight: 1
     title: 设计数据密集型应用（第二版）
+    params:
+      description: DDIA 第二版中文翻译，系统讲解数据模型、存储、事务、分布式系统、批处理与流处理。
+      version: v2
+      version_menu: 第二版
+      versions:
+        - { name: 第二版, version: v2, url: 'https://ddia.vonng.com/' }
+        - { name: 第一版, version: v1, url: '/v1/' }
+      comments:
+        giscus:
+          ariaLabel: 评论
+          errorMessage: 评论加载失败，请稍后重试。
+      time_format_default: '2006-01-02'
+      ui:
+        command_palette:
+          commands:
+            - id: start_reading
+              title: 从第一章开始阅读
+              description: 进入第二版第一章“数据系统架构中的权衡”
+              url: /ch1/
+              icon: fa-solid fa-book-open
+              keywords: [开始, 阅读, 第一章]
+            - id: browse_glossary
+              title: 浏览术语表
+              description: 查找本书中的数据系统术语
+              url: /glossary/
+              icon: fa-solid fa-spell-check
+              keywords: [术语, 定义, glossary]
+    menus:
+      main:
+        - identifier: read
+          name: 阅读
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-book-open }
+        - identifier: toc
+          parent: read
+          name: 完整目录
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-list, description: 浏览第二版十四章与三个部分 }
+        - identifier: glossary
+          parent: read
+          name: 术语表
+          pageRef: /glossary
+          weight: 20
+          params: { icon: fa-solid fa-spell-check, description: 快速查找数据系统核心术语 }
+        - identifier: indexes
+          parent: read
+          name: 索引
+          pageRef: /indexes
+          weight: 30
+          params: { icon: fa-solid fa-arrow-down-a-z, description: 按主题定位第二版内容 }
+        - identifier: contribute
+          name: 贡献
+          pageRef: /contrib
+          weight: 20
+          params: { icon: fa-solid fa-code-pull-request }
   tw:
-    label: 繁体中文
+    label: 繁體 · 二版
     locale: zh-TW
     contentDir: content/tw
     weight: 2
     title: 設計資料密集型應用（第二版）
+    params:
+      description: DDIA 第二版繁體中文翻譯，系統講解資料模型、儲存、事務、分散式系統、批次處理與串流處理。
+      version: v2
+      version_menu: 第二版
+      versions:
+        - { name: 第二版, version: v2, url: '/tw/' }
+        - { name: 第一版, version: v1, url: '/v1_tw/' }
+      comments:
+        giscus:
+          ariaLabel: 評論
+          errorMessage: 評論載入失敗，請稍後再試。
+      time_format_default: '2006-01-02'
+      ui:
+        command_palette:
+          commands:
+            - id: start_reading
+              title: 從第一章開始閱讀
+              description: 進入第二版第一章「資料系統架構中的權衡」
+              url: /ch1/
+              icon: fa-solid fa-book-open
+              keywords: [開始, 閱讀, 第一章]
+            - id: browse_glossary
+              title: 瀏覽術語表
+              description: 查找本書中的資料系統術語
+              url: /glossary/
+              icon: fa-solid fa-spell-check
+              keywords: [術語, 定義, glossary]
+    menus:
+      main:
+        - identifier: read
+          name: 閱讀
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-book-open }
+        - identifier: toc
+          parent: read
+          name: 完整目錄
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-list, description: 瀏覽第二版十四章與三個部分 }
+        - identifier: glossary
+          parent: read
+          name: 術語表
+          pageRef: /glossary
+          weight: 20
+          params: { icon: fa-solid fa-spell-check, description: 快速查找資料系統核心術語 }
+        - identifier: indexes
+          parent: read
+          name: 索引
+          pageRef: /indexes
+          weight: 30
+          params: { icon: fa-solid fa-arrow-down-a-z, description: 按主題定位第二版內容 }
+        - identifier: contribute
+          name: 貢獻
+          pageRef: /contrib
+          weight: 20
+          params: { icon: fa-solid fa-code-pull-request }
   v1:
-    label: 简体中文第一版
+    label: 简体 · 一版
     locale: zh-CN
     contentDir: content/v1
     weight: 3
     title: 设计数据密集型应用（第一版）
+    params:
+      description: DDIA 第一版中文翻译，涵盖可靠性、数据模型、存储、复制、分区、事务与派生数据。
+      version: v1
+      version_menu: 第一版
+      # The fragment keeps OINK from treating the site's base URL as active
+      # while this language site is serving the first edition.
+      versions:
+        - { name: 第二版, version: v2, url: 'https://ddia.vonng.com/#' }
+        - { name: 第一版, version: v1, url: '/v1/' }
+      comments:
+        giscus:
+          ariaLabel: 评论
+          errorMessage: 评论加载失败，请稍后重试。
+      time_format_default: '2006-01-02'
+      ui:
+        command_palette:
+          commands:
+            - id: start_reading
+              title: 从第一章开始阅读
+              description: 进入第一版第一章“可靠性、可伸缩性和可维护性”
+              url: /ch1/
+              icon: fa-solid fa-book-open
+              keywords: [开始, 阅读, 第一章]
+            - id: browse_glossary
+              title: 浏览术语表
+              description: 查找第一版中的数据系统术语
+              url: /glossary/
+              icon: fa-solid fa-spell-check
+              keywords: [术语, 定义, glossary]
+    menus:
+      main:
+        - identifier: read
+          name: 阅读
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-book-open }
+        - identifier: toc
+          parent: read
+          name: 完整目录
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-list, description: 浏览第一版十二章与三个部分 }
+        - identifier: glossary
+          parent: read
+          name: 术语表
+          pageRef: /glossary
+          weight: 20
+          params: { icon: fa-solid fa-spell-check, description: 快速查找数据系统核心术语 }
+        - identifier: colophon
+          parent: read
+          name: 后记
+          pageRef: /colophon
+          weight: 30
+          params: { icon: fa-solid fa-feather-pointed, description: 阅读第一版译者与作者后记 }
+        - identifier: contribute
+          name: 贡献
+          pageRef: /contrib
+          weight: 20
+          params: { icon: fa-solid fa-code-pull-request }
   v1_tw:
-    label: 繁体中文第一版
+    label: 繁體 · 一版
     locale: zh-TW
     contentDir: content/v1_tw
     weight: 4
     title: 設計資料密集型應用（第一版）
-  #en:
-  #  label: English
-  #  locale: en
-  #  contentDir: content/en
-  #  weight: 4
-  #  title: Designing Data-Intensive Applications 2nd Edition
+    params:
+      description: DDIA 第一版繁體中文翻譯，涵蓋可靠性、資料模型、儲存、複製、分割槽、事務與衍生資料。
+      version: v1
+      version_menu: 第一版
+      versions:
+        - { name: 第二版, version: v2, url: '/tw/' }
+        - { name: 第一版, version: v1, url: '/v1_tw/' }
+      comments:
+        giscus:
+          ariaLabel: 評論
+          errorMessage: 評論載入失敗，請稍後再試。
+      time_format_default: '2006-01-02'
+      ui:
+        command_palette:
+          commands:
+            - id: start_reading
+              title: 從第一章開始閱讀
+              description: 進入第一版第一章「可靠性、可伸縮性和可維護性」
+              url: /ch1/
+              icon: fa-solid fa-book-open
+              keywords: [開始, 閱讀, 第一章]
+            - id: browse_glossary
+              title: 瀏覽術語表
+              description: 查找第一版中的資料系統術語
+              url: /glossary/
+              icon: fa-solid fa-spell-check
+              keywords: [術語, 定義, glossary]
+    menus:
+      main:
+        - identifier: read
+          name: 閱讀
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-book-open }
+        - identifier: toc
+          parent: read
+          name: 完整目錄
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-list, description: 瀏覽第一版十二章與三個部分 }
+        - identifier: glossary
+          parent: read
+          name: 術語表
+          pageRef: /glossary
+          weight: 20
+          params: { icon: fa-solid fa-spell-check, description: 快速查找資料系統核心術語 }
+        - identifier: colophon
+          parent: read
+          name: 後記
+          pageRef: /colophon
+          weight: 30
+          params: { icon: fa-solid fa-feather-pointed, description: 閱讀第一版譯者與作者後記 }
+        - identifier: contribute
+          name: 貢獻
+          pageRef: /contrib
+          weight: 20
+          params: { icon: fa-solid fa-code-pull-request }
 
 markup:
   goldmark:
     extensions:
-      footnote: true         # 开启脚注语法：[^id] / [^id]: text
-      linkify: true          # 自动将 URL 文本转为链接
-      table: true            # 启用 Markdown 表格
-      taskList: true         # 启用任务列表 [ ] / [x]
-      typographer: true      # 智能排版（引号、破折号等）
+      footnote: true
+      linkify: true
+      table: true
+      taskList: true
+      typographer: true
       passthrough:
-        enable: true         # 允许将数学定界符透传给 Hextra 的数学渲染器
+        enable: true
         delimiters:
           block:
             - ['\[', '\]']
@@ -71,162 +295,83 @@ markup:
           inline:
             - ['\(', '\)']
     parser:
-      attribute: true        # 允许在标题后写 {#id .class key=val}，用于显式锚点
-      autoHeadingID: true    # 为标题自动生成 ID（手写 {#id} 会覆盖自动生成）
-      autoHeadingIDType: github  # 自动 ID 规则：github / blackfriday / none
+      attribute: true
+      autoHeadingID: true
+      autoHeadingIDType: github
     renderer:
-      unsafe: true           # 允许 Markdown 中的原生 HTML（如 <a>、<details>）按原样渲染
+      unsafe: true
+  highlight:
+    noClasses: false
   tableOfContents:
-    startLevel: 2            # ToC 从 h2 开始
-    endLevel: 4              # ToC 到 h4 结束
-
-menu:
-  main:
-    - name: Search
-      weight: 1
-      params:
-        type: search
-    - name: GitHub
-      weight: 2
-      url: "https://github.com/Vonng/ddia"
-      params:
-        icon: github
-
-  sidebar:
-
-    - identifier: ver
-      name: 语言版本
-      weight: 1
-      params:
-        type: separator
-    - identifier: simplified-chinese
-      name: "简体中文 ↗"
-      url: "/"
-      weight: 2
-    - identifier: traditional-chinese
-      name: "繁體中文 ↗"
-      url: "/tw"
-      weight: 3
-    - identifier: chinese-1st-edition
-      name: "简体中文初版 ↗"
-      url: "/v1"
-      weight: 4
-    - identifier: traditional-1st-edition
-      name: "繁體中文初版 ↗"
-      url: "/v1_tw"
-      weight: 5
-    #- identifier: english
-    #  name: "English ↗"
-    #  url: "/en"
-    #  weight: 5
-
-    - identifier: more
-      name: 参考链接
-      params:
-        type: separator
-      weight: 6
-    - identifier: vonng
-      name: "博客：老冯云数 ↗"
-      url: "https://vonng.com"
-      weight: 7
-    - identifier: pgint
-      name: "PostgreSQL 内幕探索 ↗"
-      url: "https://pgint.vonng.com/"
-      weight: 8
-    - identifier: pgint14
-      name: "PostgreSQL 14 内参 ↗"
-      url: "https://postgres-internals.cn/"
-      weight: 9
-    - identifier: pigsty-cc
-      name: "Pigsty：开源 PG RDS ↗"
-      url: "https://pigsty.cc/"
-      weight: 10
-    - identifier: pigsty-io
-      name: "Pigsty: Free PG RDS ↗"
-      url: "https://pigsty.io/"
-      weight: 11
-    - identifier: pgext
-      name: "PG 扩展目录 ↗"
-      url: "https://ext.pgsty.com/zh"
-      weight: 12
-    - identifier: ddia1
-      name: "DDIA O'reilly ↗"
-      url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/"
-      weight: 13
-    - identifier: ddia2
-      name: "DDIA 2nd O'reilly ↗"
-      url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/"
-      weight: 14
-
+    startLevel: 2
+    endLevel: 4
 
 params:
-  description: DDIA2，设计数据密集型应用（第二版）中文版翻译，设计数据密集型应用是一本关于数据系统设计的书籍，它深入探讨了数据密集型应用的架构和设计原则，涵盖了模型，存储，分区，事务，分布式系统、数据存储、流处理，批处理等各种主题。
+  description: DDIA 中文翻译，关于数据密集型应用架构与设计的开放阅读版本。
+  logo: logo.png
+  github_repo: https://github.com/Vonng/ddia
+  github_project_repo: https://github.com/Vonng/ddia
+  github_branch: main
+  copyright:
+    authors: '[冯若航 / Vonng](https://vonng.com) 与 DDIA 中文翻译贡献者'
+    from_year: 2017
+    to_year: present
 
-  navbar:
-    displayTitle: true
-    displayLogo: true
-    logo:
-      path: /logo.png
-      dark: /logo.png
-    width: wide
+  # Local, language-aware full-text search.
+  offlineSearch: true
+  offlineSearchIndex: content
+  offlineSearchSummaryLength: 120
+  offlineSearchMaxResults: 12
 
-  page:
-    # full (100%), wide (90rem), normal (80rem)
-    width: full
-
-  theme:
-    # light | dark | system
-    default: system
-    displayToggle: true
-
-  footer:
-    enable: false
-    displayCopyright: true
-    displayPoweredBy: false
-    width: normal
-
-  # Display the last modification date
-  displayUpdatedDate: true
-  dateFormat: "2006-01-02"
-
-  # Search
-  # flexsearch is enabled by default
-  search:
-    enable: true
-    type: flexsearch
-
-    flexsearch:
-      # index page by: content | summary | heading | title
-      index: content
-      # full | forward | reverse | strict
-      # https://github.com/nextapps-de/flexsearch/#tokenizer-prefix-search
-      tokenize: forward
-
-  editURL:
-    enable: true
-    base: "https://github.com/Vonng/ddia/edit/main/content"
-
-  toc:
-    displayTags: true
-
-  highlight:
-    copy:
-      enable: true
-      # hover | always
-      display: hover
+  page_width: wide
+  version_menu_pagelinks: false
 
   comments:
     enable: true
     type: giscus
     giscus:
-      repo: "Vonng/ddia"
-      repoId: "MDEwOlJlcG9zaXRvcnkxMjA3MTA2NDQ"
-      category: "Announcements"
-      categoryId: "DIC_kwDOBzHl9M4CtlWB"
+      repo: Vonng/ddia
+      repoId: MDEwOlJlcG9zaXRvcnkxMjA3MTA2NDQ
+      category: Announcements
+      categoryId: DIC_kwDOBzHl9M4CtlWB
       mapping: pathname
       strict: 0
       reactionsEnabled: 1
       emitMetadata: 0
       inputPosition: bottom
-      lang: zh-CN
-      theme: preferred_color_scheme
+      theme: auto
+      lightTheme: light
+      darkTheme: dark
+      loading: lazy
+
+  ui:
+    quick_links: [read, contribute]
+    showLightDarkModeMenu: true
+    sidebar_icon_policy: groups
+    sidebar_menu_compact: true
+    sidebar_menu_foldable: true
+    sidebar_root_enabled: true
+    sidebar_root_menu: false
+    sidebar_width_min: 300
+    sidebar_width_max: 448
+    sidebar_item_overflow: ellipsis
+    sidebar_menu_truncate: 2000
+    ul_show: 2
+    page_context_menu:
+      enable: true
+      # Assistant handoffs stay disabled: activating them discloses the full
+      # browser URL (including query and fragment) to a third party.
+      assistant_links: false
+      links: []
+    # Image Zoom is available in 0.3.0, but the book's legacy figures lack alt
+    # text and are therefore intentionally not promoted to interactive controls.
+    image_zoom:
+      enable: false
+    typography:
+      preset: system
+    feedback:
+      enable: false
+    readingtime:
+      enable: false
+    scrollSpy:
+      disable: true

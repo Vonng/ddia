@@ -1,5 +1,6 @@
 ---
 title: 第二部分：分布式数据
+search_exclude: true
 weight: 200
 breadcrumbs: false
 ---

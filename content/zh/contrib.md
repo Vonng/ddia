@@ -1,5 +1,6 @@
 ---
 title: 贡献者
+search_exclude: true
 weight: 800
 breadcrumbs: false
 ---

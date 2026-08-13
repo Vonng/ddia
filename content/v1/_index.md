@@ -1,6 +1,9 @@
 ---
 title: 设计数据密集型应用（第一版）
 linkTitle: DDIA
+description: DDIA 第一版中文翻译，涵盖可靠性、数据模型、存储、复制、分区、事务与派生数据。
+type: home
+search_exclude: true
 cascade:
   type: docs
 breadcrumbs: false

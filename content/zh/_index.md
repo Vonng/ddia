@@ -1,6 +1,9 @@
 ---
 title: 设计数据密集型应用（第二版）
 linkTitle: DDIA
+description: DDIA 第二版中文翻译，系统讲解数据模型、存储、事务、分布式系统、批处理与流处理。
+type: home
+search_exclude: true
 cascade:
   type: docs
 breadcrumbs: false

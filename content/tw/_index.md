@@ -1,6 +1,9 @@
 ---
 title: 設計資料密集型應用（第二版）
 linkTitle: DDIA
+description: DDIA 第二版繁體中文翻譯，系統講解資料模型、儲存、事務、分散式系統、批次處理與串流處理。
+type: home
+search_exclude: true
 cascade:
   type: docs
 breadcrumbs: false

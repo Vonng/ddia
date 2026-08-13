@@ -1,5 +1,6 @@
 ---
 title: 第一部分：数据系统基础
+search_exclude: true
 weight: 100
 breadcrumbs: false
 ---

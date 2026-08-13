@@ -1,5 +1,6 @@
 ---
 title: 第三部分：衍生数据
+search_exclude: true
 weight: 300
 breadcrumbs: false
 ---

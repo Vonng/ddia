@@ -1,0 +1,139 @@
+sections:
+  - hero
+  - metrics
+  - gallery
+  - principles
+  - faq
+  - cta
+
+hero:
+  eyebrow: DDIA · 第一版中文翻译
+  title: 设计**数据密集型**应用
+  lead: 完整保留第一版中文译文，沿着可靠性、分布式数据与派生数据三条主线理解现代数据系统。
+  note: 这是第一版阅读入口；可随时通过版本菜单切换到第二版。
+  image:
+    light: title-v1.jpg
+    dark: title-v1.jpg
+    alt: 《设计数据密集型应用》第一版英文原书封面
+  actions:
+    - label: 查看完整目录
+      url: toc/
+      icon: fa-solid fa-list
+      style: primary
+    - label: 从序言开始
+      url: preface/
+      icon: fa-solid fa-book-open
+      style: ghost
+
+metrics:
+  eyebrow: 第一版
+  title: 经典结构，完整保留
+  desc: 第一版的章节与引用仍被广泛使用，适合顺序阅读，也适合与第二版对照。
+  columns: 4
+  link_label: 查看
+  items:
+    - { value: '12', label: 章, desc: 从可靠性到数据系统的未来, icon: fa-solid fa-book, url: toc/ }
+    - { value: '3', label: 部分, desc: 基础、分布式与派生数据, icon: fa-solid fa-layer-group, url: part-i/ }
+    - { value: '4', label: 阅读版本, desc: 两版 × 简繁中文, icon: fa-solid fa-language }
+    - { value: '1', label: 开放项目, desc: 通过 GitHub 持续校订, icon: fa-brands fa-github, url: https://github.com/Vonng/ddia, external: true }
+
+gallery:
+  eyebrow: 阅读路线
+  title: 第一版的三部分结构
+  desc: 从单个数据系统的基本属性出发，进入分布式机制，最后连接批处理、流处理与数据集成。
+  columns: 3
+  link_label: 进入本部分
+  items:
+    - title: 第一部分 · 数据系统基础
+      badge: 第 1–4 章
+      icon: fa-solid fa-database
+      desc: 可靠性、可伸缩性、可维护性，以及数据模型、存储和编码演化。
+      url: part-i/
+    - title: 第二部分 · 分布式数据
+      badge: 第 5–9 章
+      icon: fa-solid fa-network-wired
+      desc: 复制、分区、事务、分布式系统故障，以及一致性与共识。
+      url: part-ii/
+    - title: 第三部分 · 派生数据
+      badge: 第 10–12 章
+      icon: fa-solid fa-arrows-spin
+      desc: 批处理、流处理、数据集成，以及数据系统未来的责任与选择。
+      url: part-iii/
+
+principles:
+  eyebrow: 这个阅读站
+  title: 旧版内容，现代阅读体验
+  columns: 3
+  items:
+    - icon: fa-solid fa-magnifying-glass
+      title: 搜索与命令面板
+      desc: 按 `⌘ K` 搜索全文与常用操作，或按 `/` 直接运行阅读、版本、语言和页面命令。
+    - icon: fa-solid fa-file-lines
+      title: 可复制、可打印
+      desc: 每页提供文本复制、源码查看与打印，并生成适合工具读取的 `llms.txt`。
+    - icon: fa-solid fa-code-pull-request
+      title: 开放校订
+      desc: 页面可直接跳转 GitHub 编辑或提交问题，第一版内容同样接受勘误与改进。
+
+faq:
+  eyebrow: 阅读之前
+  title: 关于第一版与第二版
+  items:
+    - question: 为什么仍然保留第一版？
+      answer: 第一版拥有不同的章节组织，许多文章、课程与讨论仍引用其中的章节编号。完整保留第一版，便于继续阅读旧链接并与第二版进行对照。
+      open: true
+    - question: 如何切换到第二版？
+      answer: 使用页面顶部的版本菜单即可回到同一中文字体版本的第二版；语言菜单则在简体与繁体之间切换。
+    - question: 这份译文可以公开发行或用于商业用途吗？
+      answer: 不可以。本译文仅供学习研究参考，不得公开传播发行或用于商业用途；请购买正版支持作者与出版社。
+      url: https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/
+      link_label: 查看 O'Reilly 原版
+      external: true
+    - question: 如何提交勘误？
+      answer: 可使用页面右侧的编辑与问题入口，或直接前往 GitHub 提交 Issue 或 Pull Request。
+      url: https://github.com/Vonng/ddia/issues
+      link_label: 提交问题
+      external: true
+
+cta:
+  title: 从经典的第一章开始。
+  desc: 理解可靠性、可伸缩性与可维护性，建立评价数据系统的第一套坐标系。
+  actions:
+    - label: 阅读第一章
+      url: ch1/
+      icon: fa-solid fa-arrow-right
+      style: primary
+    - label: 浏览术语表
+      url: glossary/
+      icon: fa-solid fa-spell-check
+      style: ghost
+
+footer:
+  brand:
+    name: DDIA 中文版
+    tagline: '**D**esigning **D**ata-**I**ntensive **A**pplications'
+    slogan: 第一版中文译文完整阅读与开放校订
+  columns:
+    - title: 阅读
+      links:
+        - { label: 完整目录, url: toc/ }
+        - { label: 序言, url: preface/ }
+        - { label: 术语表, url: glossary/ }
+        - { label: 后记, url: colophon/ }
+    - title: 主题
+      links:
+        - { label: 第一部分 · 数据系统基础, url: part-i/ }
+        - { label: 第二部分 · 分布式数据, url: part-ii/ }
+        - { label: 第三部分 · 派生数据, url: part-iii/ }
+        - { label: 版本与语言, url: '#faq' }
+    - title: 项目
+      links:
+        - { label: 贡献者, url: contrib/ }
+        - { label: GitHub, url: 'https://github.com/Vonng/ddia', external: true }
+        - { label: 问题反馈, url: 'https://github.com/Vonng/ddia/issues', external: true }
+        - { label: 译者博客, url: 'https://vonng.com', external: true }
+    - title: 原作
+      links:
+        - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
+        - { label: DDIA 第一版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/', external: true }
+        - { label: DDIA 第二版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/', external: true }

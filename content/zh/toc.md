@@ -1,8 +1,11 @@
 ---
 title: "目录"
 linkTitle: "目录"
+description: DDIA 第二版完整目录：十四章，涵盖数据系统基础、分布式数据与派生数据。
 weight: 10
 breadcrumbs: false
+search_keywords: [章节, 章, 目录, table of contents, toc]
+search_boost: 2
 ---
 
 

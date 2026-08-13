@@ -1,8 +1,11 @@
 ---
 title: "目錄"
 linkTitle: "目錄"
+description: DDIA 第二版完整目錄：十四章，涵蓋資料系統基礎、分散式資料與衍生資料。
 weight: 10
 breadcrumbs: false
+search_keywords: [章節, 章, 目錄, table of contents, toc]
+search_boost: 2
 ---
 
 
