@@ -11,9 +11,9 @@ services:
     id: G-SGY2FPH1EG
 
 # OINK leaves generated surfaces to the consumer site. Markdown powers the
-# page actions, LLMS emits llms.txt, and print enables section print views.
+# page actions, LLMS emits llms.txt, and print enables whole-book views.
 outputs:
-  home: [HTML, markdown, LLMS]
+  home: [HTML, print, markdown, LLMS]
   page: [HTML, markdown]
   section: [HTML, RSS, print, markdown]
 
@@ -56,6 +56,12 @@ languages:
               url: /glossary/
               icon: fa-solid fa-spell-check
               keywords: [术语, 定义, glossary]
+            - id: print_book
+              title: 打印整本书
+              description: 打开第二版整书打印视图，可另存为 PDF
+              url: /_print/
+              icon: fa-solid fa-print
+              keywords: [整书, 打印, PDF, print]
     menus:
       main:
         - identifier: read
@@ -119,6 +125,12 @@ languages:
               url: /glossary/
               icon: fa-solid fa-spell-check
               keywords: [術語, 定義, glossary]
+            - id: print_book
+              title: 列印整本書
+              description: 開啟第二版整書列印檢視，可另存為 PDF
+              url: /_print/
+              icon: fa-solid fa-print
+              keywords: [整書, 列印, PDF, print]
     menus:
       main:
         - identifier: read
@@ -184,6 +196,12 @@ languages:
               url: /glossary/
               icon: fa-solid fa-spell-check
               keywords: [术语, 定义, glossary]
+            - id: print_book
+              title: 打印整本书
+              description: 打开第一版整书打印视图，可另存为 PDF
+              url: /_print/
+              icon: fa-solid fa-print
+              keywords: [整书, 打印, PDF, print]
     menus:
       main:
         - identifier: read
@@ -247,6 +265,12 @@ languages:
               url: /glossary/
               icon: fa-solid fa-spell-check
               keywords: [術語, 定義, glossary]
+            - id: print_book
+              title: 列印整本書
+              description: 開啟第一版整書列印檢視，可另存為 PDF
+              url: /_print/
+              icon: fa-solid fa-print
+              keywords: [整書, 列印, PDF, print]
     menus:
       main:
         - identifier: read
@@ -313,7 +337,7 @@ params:
   github_project_repo: https://github.com/Vonng/ddia
   github_branch: main
   copyright:
-    authors: '[冯若航 / Vonng](https://vonng.com) 与 DDIA 中文翻译贡献者'
+    authors: '[中文翻译贡献者](/contrib/) 与 DDIA 翻译贡献者'
     from_year: 2017
     to_year: present
 
@@ -324,6 +348,9 @@ params:
   offlineSearchMaxResults: 12
 
   page_width: wide
+  # Book content follows the normal publication measure; individual pages may
+  # opt into slim or wide in front matter.
+  content_width: norm
   version_menu_pagelinks: false
 
   comments:
@@ -356,22 +383,30 @@ params:
     sidebar_width_max: 448
     sidebar_item_overflow: ellipsis
     sidebar_menu_truncate: 2000
+    # The right rail already owns the page outline; keep the chapter tree flat.
+    sidebar_headings: false
     ul_show: 2
+    book_draft_banner: true
+    pager:
+      types: [book]
+    keyboard_nav:
+      enable: true
     page_context_menu:
       enable: true
       # Assistant handoffs stay disabled: activating them discloses the full
       # browser URL (including query and fragment) to a third party.
       assistant_links: false
       links: []
-    # Image Zoom is available in 0.3.0, but the book's legacy figures lack alt
-    # text and are therefore intentionally not promoted to interactive controls.
+    # Numbered Book figures now carry caption-backed alternatives and stable
+    # intrinsic dimensions, so zoom remains accessible without layout shift.
     image_zoom:
-      enable: false
+      enable: true
     typography:
       preset: system
+    lastmod_commit: hash
     feedback:
       enable: false
     readingtime:
       enable: false
     scrollSpy:
-      disable: true
+      disable: false

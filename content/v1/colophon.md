@@ -1,5 +1,6 @@
 ---
 title: 后记
+book_kind: colophon
 weight: 600
 breadcrumbs: false
 ---

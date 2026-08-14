@@ -1,0 +1,22 @@
+{{- $page := .page -}}
+{{- $data := .data -}}
+{{- $id := .id -}}
+<section id="{{ $id }}" class="oink-section oink-cards-section{{ with $data.class }} {{ . }}{{ end }}"{{ with $data.title }} aria-labelledby="{{ $id }}-title"{{ end }}>
+  <div class="landing-container">
+    {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
+    <div class="oink-card-grid" style="--oink-columns: {{ $data.columns | default 2 }}">
+      {{- range $data.items }}
+      <article class="oink-card{{ with .class }} {{ . }}{{ end }}">
+        <div class="ddia-person__portrait">
+          <span class="ddia-person__role">{{ .role_label }}</span>
+          <div class="oink-card__media">{{ partial "landing/media.html" (dict "item" .) }}</div>
+        </div>
+        {{- with .meta }}<p class="oink-card__meta">{{ partial "landing/markdown.html" (dict "page" $page "value" .) }}</p>{{ end }}
+        {{- with (.title | default .name) }}<h3>{{ partial "landing/markdown.html" (dict "page" $page "value" .) }}</h3>{{ end }}
+        {{- with (.desc | default .text) }}<div class="oink-card__description">{{ partial "landing/markdown-block.html" (dict "page" $page "value" .) }}</div>{{ end }}
+        {{- partial "landing/action.html" (dict "page" $page "item" . "label" $data.link_label) }}
+      </article>
+      {{- end }}
+    </div>
+  </div>
+</section>

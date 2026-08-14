@@ -1,5 +1,6 @@
 ---
 title: 術語表
+book_kind: glossary
 weight: 500
 breadcrumbs: false
 ---
@@ -29,7 +30,7 @@ breadcrumbs: false
 
 ### 拜占庭故障（Byzantine fault）
 
-節點以任意錯誤方式行為，例如向不同節點發送相互矛盾或惡意訊息。參見“[拜占庭故障](/tw/ch9#sec_distributed_byzantine)”。
+節點以任意錯誤方式行為，例如向不同節點傳送相互矛盾或惡意訊息。參見“[拜占庭故障](/tw/ch9#sec_distributed_byzantine)”。
 
 ### 快取（cache）
 
@@ -47,9 +48,9 @@ breadcrumbs: false
 
 分散式計算中的基本問題：讓多個節點就某件事達成一致（例如誰是主節點）。這比直覺上要困難得多。參見“[共識](/tw/ch10#sec_consistency_consensus)”。
 
-### 資料倉庫（data warehouse）
+### 資料倉儲（data warehouse）
 
-將多個 OLTP 系統的資料彙總並整理後，用於分析場景的資料庫。參見“[資料倉庫](/tw/ch1#sec_introduction_dwh)”。
+將多個 OLTP 系統的資料彙總並整理後，用於分析場景的資料庫。參見“[資料倉儲](/tw/ch1#sec_introduction_dwh)”。
 
 ### 宣告式（declarative）
 
@@ -77,7 +78,7 @@ breadcrumbs: false
 
 ### ETL
 
-Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料，轉成更適合分析查詢的形式，再載入到資料倉庫或批處理系統。參見“[資料倉庫](/tw/ch1#sec_introduction_dwh)”。
+Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料，轉成更適合分析查詢的形式，再載入到資料倉儲或批處理系統。參見“[資料倉儲](/tw/ch1#sec_introduction_dwh)”。
 
 ### 故障切換（failover）
 
@@ -242,7 +243,7 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 兩階段提交（two-phase commit, 2PC）
 
-保證多個數據庫節點對同一事務要麼都 *atomically* 提交、要麼都中止的演算法。參見“[兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)”。
+保證多個資料庫節點對同一事務要麼都 *atomically* 提交、要麼都中止的演算法。參見“[兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)”。
 
 ### 兩階段鎖（two-phase locking, 2PL）
 

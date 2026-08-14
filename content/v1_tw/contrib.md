@@ -1,5 +1,6 @@
 ---
 title: 貢獻者
+book_kind: backmatter
 search_exclude: true
 weight: 800
 breadcrumbs: false
@@ -8,7 +9,7 @@ breadcrumbs: false
 ## 譯者
 
 [**馮若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
-PostgreSQL 專家，資料庫老司機，雲計算泥石流。
+PostgreSQL 專家，資料庫老司機，雲端計算泥石流。
 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
 獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
@@ -23,6 +24,10 @@ Yin Gang [@yingang](https://github.com/yingang) 對本書進行了全文校訂�
 [繁體中文](/tw) **版本維護** by  [@afunTW](https://github.com/afunTW)
 
 ## 貢獻列表
+
+下面的頭像牆彙集了本專案在 GitHub 上留下貢獻記錄的朋友；點選頭像可檢視其主頁。
+
+{{< contributors data="contributors" >}}
 
 [GitHub 貢獻者列表](https://github.com/Vonng/ddia/graphs/contributors)
 

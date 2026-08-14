@@ -1,5 +1,6 @@
 ---
 title: 後記
+book_kind: colophon
 weight: 600
 breadcrumbs: false
 ---
@@ -15,11 +16,11 @@ breadcrumbs: false
 ## 關於譯者
 
 [**馮若航**](https://vonng.com)，网名 [@Vonng](https://github.com/Vonng)。
-PostgreSQL 專家，資料庫老司機，雲計算泥石流。
+PostgreSQL 專家，資料庫老司機，雲端計算泥石流。
 PostgreSQL 發行版 [**Pigsty**](https://pgsty.com) 作者與創始人。
 架構師，DBA，全棧工程師 @ TanTan，Alibaba，Apple。
 獨立開源貢獻者，[GitStar Ranking 585](https://gitstar-ranking.com/Vonng)，[国区活跃 Top20](https://committers.top/china)。
-[DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，資料庫/雲計算 KOL。
+[DDIA](https://ddia.pigsty.io) / [PG Internal](https://pgint.vonng.com) 中文版譯者，資料庫/雲端計算 KOL。
 
 
 

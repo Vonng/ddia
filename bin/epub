@@ -1,63 +1,45 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 # Set the directory containing Markdown files
 SCRIPT_DIR=$(dirname "$0")
 INPUT_DIR=$(cd "$(dirname "$SCRIPT_DIR")" && pwd)
 OUTPUT_DIR="$INPUT_DIR/output"
-TEMP_DIR="$OUTPUT_DIR/temp"
 
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
-mkdir -p "$TEMP_DIR"
+TEMP_DIR=$(mktemp -d "$OUTPUT_DIR/temp.XXXXXX")
+trap 'rm -rf -- "$TEMP_DIR"' EXIT
 
 # Preprocess Markdown files to convert Hugo shortcodes
 echo "Preprocessing Markdown files..."
 python3 "${SCRIPT_DIR}/preprocess-epub.py" "${INPUT_DIR}/content/zh" "$TEMP_DIR"
+book_inputs=()
+while IFS= read -r filename; do
+	book_inputs+=("${TEMP_DIR}/${filename}")
+done < <(python3 "${SCRIPT_DIR}/preprocess-epub.py" --print-order)
 
 convert_to_epub() {
 	# convert all EPUB files into a single EPUB book
-	OUTPUT_BOOK="$OUTPUT_DIR/ddia.epub"
-	rm -f "$OUTPUT_BOOK"
-	echo "Converting all EPUB files into $OUTPUT_BOOK..."
+	local output_book="$OUTPUT_DIR/ddia.epub"
+	rm -f "$output_book"
+	echo "Converting all EPUB files into $output_book..."
 
 	local meta_file=${INPUT_DIR}/metadata.yaml
 	local css_file=${INPUT_DIR}/js/epub.css
 
-	pandoc -o "$OUTPUT_BOOK" --metadata-file="$meta_file" \
-		--toc-depth=2 \
+	pandoc -o "$output_book" --metadata-file="$meta_file" \
+		--toc-depth=3 \
 		--top-level-division=chapter \
-		--file-scope=true \
+		--split-level=1 \
 		--css="$css_file" \
-		--webtex \
+		--mathml \
+		--resource-path="$INPUT_DIR" \
 		--wrap=preserve \
-		"${TEMP_DIR}"/_index.md \
-		"${TEMP_DIR}"/preface.md \
-		"${TEMP_DIR}"/part-i.md \
-		"${TEMP_DIR}"/ch1.md \
-		"${TEMP_DIR}"/ch2.md \
-		"${TEMP_DIR}"/ch3.md \
-		"${TEMP_DIR}"/ch4.md \
-		"${TEMP_DIR}"/part-ii.md \
-		"${TEMP_DIR}"/ch5.md \
-		"${TEMP_DIR}"/ch6.md \
-		"${TEMP_DIR}"/ch7.md \
-		"${TEMP_DIR}"/ch8.md \
-		"${TEMP_DIR}"/ch9.md \
-		"${TEMP_DIR}"/part-iii.md \
-		"${TEMP_DIR}"/ch10.md \
-		"${TEMP_DIR}"/ch11.md \
-		"${TEMP_DIR}"/ch12.md \
-		"${TEMP_DIR}"/ch13.md \
-		"${TEMP_DIR}"/ch14.md \
-		"${TEMP_DIR}"/colophon.md \
-		"${TEMP_DIR}"/glossary.md
+		"${book_inputs[@]}"
 
-	echo "Converted EPUB book created at $OUTPUT_BOOK."
+	echo "Converted EPUB book created at $output_book."
 }
 
 convert_to_epub
-
-# Clean up temporary files
-rm -rf "$TEMP_DIR"

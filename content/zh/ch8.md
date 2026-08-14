@@ -1,5 +1,8 @@
 ---
-title: "8. 事务"
+title: 事务
+book_kind: chapter
+book_number: "8"
+book_part: II
 weight: 208
 math: true
 breadcrumbs: false
@@ -90,9 +93,9 @@ ACID 一致性的基本思想是：关于数据的某些陈述（即*不变式*�
 
 大多数数据库都会同时接受多个客户端的访问。如果各客户端读写数据库的不同部分，自然没有问题；但如果它们访问相同的数据库记录，就可能遇到并发问题（竞态条件）。
 
-[图 8-1](/ch8#fig_transactions_increment)给出了这类问题的一个简单例子。假设两个客户端同时递增数据库中的一个计数器。每个客户端都要读取当前值，将其加 1，再把新值写回去（假设数据库没有内置的递增操作）。在[图 8-1](/ch8#fig_transactions_increment)中，计数器经过两次递增，本应从 42 变成 44，却因竞态条件最终只变成了 43。
+{{< xref fig="8-1" page="/ch8" anchor="fig_transactions_increment" >}}图 8-1{{< /xref >}}给出了这类问题的一个简单例子。假设两个客户端同时递增数据库中的一个计数器。每个客户端都要读取当前值，将其加 1，再把新值写回去（假设数据库没有内置的递增操作）。在{{< xref fig="8-1" page="/ch8" anchor="fig_transactions_increment" >}}图 8-1{{< /xref >}}中，计数器经过两次递增，本应从 42 变成 44，却因竞态条件最终只变成了 43。
 
-{{< figure src="/fig/ddia_0801.png" id="fig_transactions_increment" caption="图 8-1. 两个客户端并发递增计数器之间的竞态条件。" class="w-full my-4" >}}
+{{< fig num="8-1" id="fig_transactions_increment" src="/fig/ddia_0801.png" caption="两个客户端并发递增计数器之间的竞态条件。" class="ddia-figure ddia-figure--panorama" width="2880" height="832" />}}
 
 
 ACID 意义上的*隔离性*是指并发执行的事务彼此隔离，不能相互干扰。经典数据库教科书将隔离性形式化为*可串行化*：每个事务都可以假装自己是整个数据库中唯一正在运行的事务。数据库保证，所有事务提交后的结果与它们*串行*运行（逐个运行）的结果相同，尽管实际上这些事务可能是并发执行的[^13]。
@@ -140,22 +143,22 @@ ACID 意义上的*隔离性*是指并发执行的事务彼此隔离，不能相�
 隔离性
 : 并发运行的事务不应相互干扰。例如，一个事务进行了多次写入，另一个事务就应当要么看到全部写入，要么一项也看不到，而不能只看到其中一部分。
 
-这些定义假设你想同时修改多个对象（行、文档或记录）。当多项数据需要保持同步时，通常就要用到这种*多对象事务*。[图 8-2](/ch8#fig_transactions_read_uncommitted)展示了一个电子邮件应用的例子。要显示用户的未读邮件数，可以执行如下查询：
+这些定义假设你想同时修改多个对象（行、文档或记录）。当多项数据需要保持同步时，通常就要用到这种*多对象事务*。{{< xref fig="8-2" page="/ch8" anchor="fig_transactions_read_uncommitted" >}}图 8-2{{< /xref >}}展示了一个电子邮件应用的例子。要显示用户的未读邮件数，可以执行如下查询：
 
 ```
 SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 ```
 
-{{< figure src="/fig/ddia_0802.png" id="fig_transactions_read_uncommitted" caption="图 8-2. 违反隔离性：一个事务读取另一个事务的未提交写入（“脏读”）。" class="w-full my-4" >}}
+{{< fig num="8-2" id="fig_transactions_read_uncommitted" src="/fig/ddia_0802.png" caption="违反隔离性：一个事务读取另一个事务的未提交写入（“脏读”）。" class="ddia-figure ddia-figure--wide" width="2880" height="1149" />}}
 
 
 不过，邮件数量很多时，这条查询可能太慢，于是你决定把未读邮件数另存到一个单独的字段中（这是一种反规范化，参见[“规范化、反规范化与连接”](/ch3#sec_datamodels_normalization)）。这样，每当新邮件到达时，就必须递增未读计数器；每当邮件被标为已读时，也必须递减该计数器。
 
-在[图 8-2](/ch8#fig_transactions_read_uncommitted)中，用户 2 遇到了异常：邮箱列表中已经出现一封未读邮件，未读计数却仍为零，因为计数器尚未递增。（如果电子邮件应用中的错误计数无关紧要，不妨把未读计数换成客户账户余额，把邮件换成支付事务。）隔离性可以防止这个问题：它保证用户 2 要么同时看到新插入的邮件和更新后的计数，要么两者都看不到，而不会看到不一致的中间状态。
+在{{< xref fig="8-2" page="/ch8" anchor="fig_transactions_read_uncommitted" >}}图 8-2{{< /xref >}}中，用户 2 遇到了异常：邮箱列表中已经出现一封未读邮件，未读计数却仍为零，因为计数器尚未递增。（如果电子邮件应用中的错误计数无关紧要，不妨把未读计数换成客户账户余额，把邮件换成支付事务。）隔离性可以防止这个问题：它保证用户 2 要么同时看到新插入的邮件和更新后的计数，要么两者都看不到，而不会看到不一致的中间状态。
 
-[图 8-3](/ch8#fig_transactions_atomicity)说明了为何需要原子性：如果事务进行到一半时发生错误，邮箱内容和未读计数可能失去同步。在原子事务中，如果计数器更新失败，事务就会中止，已经插入的邮件也会回滚。
+{{< xref fig="8-3" page="/ch8" anchor="fig_transactions_atomicity" >}}图 8-3{{< /xref >}}说明了为何需要原子性：如果事务进行到一半时发生错误，邮箱内容和未读计数可能失去同步。在原子事务中，如果计数器更新失败，事务就会中止，已经插入的邮件也会回滚。
 
-{{< figure src="/fig/ddia_0803.png" id="fig_transactions_atomicity" caption="图 8-3. 原子性确保如果发生错误，该事务的任何先前写入都会被撤消，以避免不一致的状态。" class="w-full my-4" >}}
+{{< fig num="8-3" id="fig_transactions_atomicity" src="/fig/ddia_0803.png" caption="原子性确保如果发生错误，该事务的任何先前写入都会被撤消，以避免不一致的状态。" class="ddia-figure ddia-figure--panorama" width="2880" height="763" />}}
 
 
 多对象事务需要某种方式来确定哪些读写操作属于同一个事务。在关系型数据库中，这通常以客户端到数据库服务器的 TCP 连接为依据：同一条连接上，`BEGIN TRANSACTION` 与 `COMMIT` 语句之间的所有操作都属于同一个事务。如果 TCP 连接中断，事务就必须中止。
@@ -172,7 +175,7 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 
 这些问题会让人无所适从。因此，几乎所有存储引擎都力求在单个节点的单个对象（例如键值对）层面提供原子性和隔离性。原子性可以通过日志和崩溃恢复来实现（参见[“使 B 树可靠”](/ch4#sec_storage_btree_wal)），隔离性则可以通过为每个对象加锁来实现（同一时刻只允许一个线程访问对象）。
 
-有些数据库还提供更复杂的原子操作，例如递增操作，从而不必执行[图 8-1](/ch8#fig_transactions_increment)中的读取—修改—写入循环。同样常见的还有*条件写入*：只有当该值未被其他人并发修改时，写入才会发生（参见[“条件写入（比较并设置）”](/ch8#sec_transactions_compare_and_set)）。它类似于共享内存并发中的比较并设置或比较并交换（CAS）操作。
+有些数据库还提供更复杂的原子操作，例如递增操作，从而不必执行{{< xref fig="8-1" page="/ch8" anchor="fig_transactions_increment" >}}图 8-1{{< /xref >}}中的读取—修改—写入循环。同样常见的还有*条件写入*：只有当该值未被其他人并发修改时，写入才会发生（参见[“条件写入（比较并设置）”](/ch8#sec_transactions_compare_and_set)）。它类似于共享内存并发中的比较并设置或比较并交换（CAS）操作。
 
 --------
 
@@ -190,7 +193,7 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 有些用例只需插入、更新或删除单个对象就足够了。但在许多其他场景中，必须协调对多个不同对象的写入：
 
 * 在关系数据模型中，一个表中的行经常通过外键引用另一个表中的行。与之类似，在图数据模型中，一个顶点会通过边指向其他顶点。多对象事务可以确保这些引用始终有效：插入若干相互引用的记录时，外键必须正确且保持最新，否则数据便失去意义。
-* 在文档数据模型中，需要一同更新的字段通常位于同一份文档内，而文档被视为单个对象，因此更新一份文档无须多对象事务。不过，缺乏连接功能的文档数据库也鼓励反规范化（参见[“何时使用哪种模型”](/ch3#sec_datamodels_document_summary)）。当反规范化的信息需要更新时——例如[图 8-2](/ch8#fig_transactions_read_uncommitted)中的情形——就必须一次更新多份文档。事务在这里很有用，可以防止反规范化数据彼此失去同步。
+* 在文档数据模型中，需要一同更新的字段通常位于同一份文档内，而文档被视为单个对象，因此更新一份文档无须多对象事务。不过，缺乏连接功能的文档数据库也鼓励反规范化（参见[“何时使用哪种模型”](/ch3#sec_datamodels_document_summary)）。当反规范化的信息需要更新时——例如{{< xref fig="8-2" page="/ch8" anchor="fig_transactions_read_uncommitted" >}}图 8-2{{< /xref >}}中的情形——就必须一次更新多份文档。事务在这里很有用，可以防止反规范化数据彼此失去同步。
 * 在具有二级索引的数据库中（纯键值存储以外的数据库几乎都属于此列），每次修改值时也要更新索引。从事务的角度看，这些索引是不同的数据库对象。例如，没有事务隔离时，一条记录可能出现在某个索引中，却没有出现在另一个索引中，因为第二个索引尚未更新（参见[“分片与二级索引”](/ch7#sec_sharding_secondary_indexes)）。
 
 这类应用即使没有事务也能实现。不过，没有原子性，错误处理就会复杂得多；缺少隔离性，又可能引发并发问题。我们将在[“弱隔离级别”](/ch8#sec_transactions_isolation_levels)中讨论这些问题，并在[“衍生数据与分布式事务”](/ch13#sec_future_derived_vs_transactions)中探讨替代方案。
@@ -249,14 +252,14 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 
 设想一个事务已经向数据库写入数据，却尚未提交或中止。另一个事务能否看到这些未提交的数据？如果能，这就是*脏读*[^3]。
 
-运行在读已提交隔离级别下的事务必须防止脏读。这意味着，一个事务的所有写入都要等到该事务提交时，才会同时对其他事务可见。[图 8-4](/ch8#fig_transactions_read_committed)中，用户 1 已将 *x* 设为 3，但由于其事务尚未提交，用户 2 的 *get x* 仍返回旧值 2。
+运行在读已提交隔离级别下的事务必须防止脏读。这意味着，一个事务的所有写入都要等到该事务提交时，才会同时对其他事务可见。{{< xref fig="8-4" page="/ch8" anchor="fig_transactions_read_committed" >}}图 8-4{{< /xref >}}中，用户 1 已将 *x* 设为 3，但由于其事务尚未提交，用户 2 的 *get x* 仍返回旧值 2。
 
-{{< figure src="/fig/ddia_0804.png" id="fig_transactions_read_committed" caption="图 8-4. 没有脏读：用户 2 只有在用户 1 的事务提交后才能看到 x 的新值。" class="w-full my-4" >}}
+{{< fig num="8-4" id="fig_transactions_read_committed" src="/fig/ddia_0804.png" caption="没有脏读：用户 2 只有在用户 1 的事务提交后才能看到 x 的新值。" class="ddia-figure ddia-figure--panorama" width="2880" height="832" />}}
 
 防止脏读有以下几个好处：
 
-* 如果事务要更新多行，脏读会让另一个事务只看到其中一部分更新。例如在[图 8-2](/ch8#fig_transactions_read_uncommitted)中，用户看到了新到的未读邮件，却没有看到更新后的计数器。这就是对邮件的脏读。数据库呈现出部分更新的状态，不仅令人困惑，还可能诱使其他事务作出错误决定。
-* 如果事务中止，其所有写入都需要回滚（如[图 8-3](/ch8#fig_transactions_atomicity)）。允许脏读，就意味着事务可能读到后来被回滚、从未真正提交进数据库的数据。凡是读取过未提交数据的事务也必须一并中止，从而造成所谓的*级联中止*。
+* 如果事务要更新多行，脏读会让另一个事务只看到其中一部分更新。例如在{{< xref fig="8-2" page="/ch8" anchor="fig_transactions_read_uncommitted" >}}图 8-2{{< /xref >}}中，用户看到了新到的未读邮件，却没有看到更新后的计数器。这就是对邮件的脏读。数据库呈现出部分更新的状态，不仅令人困惑，还可能诱使其他事务作出错误决定。
+* 如果事务中止，其所有写入都需要回滚（如{{< xref fig="8-3" page="/ch8" anchor="fig_transactions_atomicity" >}}图 8-3{{< /xref >}}）。允许脏读，就意味着事务可能读到后来被回滚、从未真正提交进数据库的数据。凡是读取过未提交数据的事务也必须一并中止，从而造成所谓的*级联中止*。
 
 #### 没有脏写 {#sec_transactions_dirty_write}
 
@@ -266,10 +269,10 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 
 防止脏写可以避免某些并发问题：
 
-* 如果事务更新多行，脏写可能产生非常糟糕的结果。[图 8-5](/ch8#fig_transactions_dirty_writes)展示了一家二手车交易网站：Aaliyah 和 Bryce 同时购买同一辆车。买车涉及两次数据库写入：网站上的商品信息要更新为买家的姓名，销售发票也要开给买家。在[图 8-5](/ch8#fig_transactions_dirty_writes)所示的情况下，车辆最终卖给了 Bryce（他对 `listings` 表的更新胜出），发票却开给了 Aaliyah（她对 `invoices` 表的更新胜出）。读已提交可以防止这种事故。
-* 不过，读已提交*不能*防止[图 8-1](/ch8#fig_transactions_increment)中两个计数器递增操作之间的竞态条件。这里的第二次写入发生在第一个事务提交之后，所以并非脏写。结果仍然有误，只是原因不同；[“防止丢失更新”](/ch8#sec_transactions_lost_update)将介绍如何安全地执行这类计数器递增操作。
+* 如果事务更新多行，脏写可能产生非常糟糕的结果。{{< xref fig="8-5" page="/ch8" anchor="fig_transactions_dirty_writes" >}}图 8-5{{< /xref >}}展示了一家二手车交易网站：Aaliyah 和 Bryce 同时购买同一辆车。买车涉及两次数据库写入：网站上的商品信息要更新为买家的姓名，销售发票也要开给买家。在{{< xref fig="8-5" page="/ch8" anchor="fig_transactions_dirty_writes" >}}图 8-5{{< /xref >}}所示的情况下，车辆最终卖给了 Bryce（他对 `listings` 表的更新胜出），发票却开给了 Aaliyah（她对 `invoices` 表的更新胜出）。读已提交可以防止这种事故。
+* 不过，读已提交*不能*防止{{< xref fig="8-1" page="/ch8" anchor="fig_transactions_increment" >}}图 8-1{{< /xref >}}中两个计数器递增操作之间的竞态条件。这里的第二次写入发生在第一个事务提交之后，所以并非脏写。结果仍然有误，只是原因不同；[“防止丢失更新”](/ch8#sec_transactions_lost_update)将介绍如何安全地执行这类计数器递增操作。
 
-{{< figure src="/fig/ddia_0805.png" id="fig_transactions_dirty_writes" caption="图 8-5. 发生脏写时，不同事务的冲突写入可能混杂在一起。" class="w-full my-4" >}}
+{{< fig num="8-5" id="fig_transactions_dirty_writes" src="/fig/ddia_0805.png" caption="发生脏写时，不同事务的冲突写入可能混杂在一起。" class="ddia-figure ddia-figure--wide" width="2658" height="1200" />}}
 
 
 #### 实现读已提交 {#sec_transactions_read_committed_impl}
@@ -284,15 +287,15 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 
 尽管如此，仍有一些数据库使用锁来防止脏读，例如 IBM Db2，以及将 `read_committed_snapshot=off` 的 Microsoft SQL Server[^29]。
 
-更常见的防脏读办法如[图 8-4](/ch8#fig_transactions_read_committed)所示：对于每一行写入，数据库同时保留旧的已提交值，以及当前持有写锁的事务写入的新值。该事务进行期间，其他事务读取这一行时只会得到旧值；等新值提交后，才改为读取新值（详见[“多版本并发控制（MVCC）”](/ch8#sec_transactions_snapshot_impl)）。
+更常见的防脏读办法如{{< xref fig="8-4" page="/ch8" anchor="fig_transactions_read_committed" >}}图 8-4{{< /xref >}}所示：对于每一行写入，数据库同时保留旧的已提交值，以及当前持有写锁的事务写入的新值。该事务进行期间，其他事务读取这一行时只会得到旧值；等新值提交后，才改为读取新值（详见[“多版本并发控制（MVCC）”](/ch8#sec_transactions_snapshot_impl)）。
 
 ### 快照隔离与可重复读 {#sec_transactions_snapshot_isolation}
 
 乍看之下，人们很容易以为读已提交已经具备了事务所需的一切：它允许中止（原子性所必需），避免读取事务未完成的结果，也防止并发写入相互混杂。的确，这些功能很有用，提供的保证也比完全没有事务的系统强得多。
 
-然而，在这个隔离级别下，并发缺陷仍可能以许多方式出现。[图 8-6](/ch8#fig_transactions_item_many_preceders)就展示了读已提交可能遇到的一个问题。
+然而，在这个隔离级别下，并发缺陷仍可能以许多方式出现。{{< xref fig="8-6" page="/ch8" anchor="fig_transactions_item_many_preceders" >}}图 8-6{{< /xref >}}就展示了读已提交可能遇到的一个问题。
 
-{{< figure src="/fig/ddia_0806.png" id="fig_transactions_item_many_preceders" caption="图 8-6. 读偏差：Aaliyah 观察到了数据库的不一致状态。" class="w-full my-4" >}}
+{{< fig num="8-6" id="fig_transactions_item_many_preceders" src="/fig/ddia_0806.png" caption="读偏差：Aaliyah 观察到了数据库的不一致状态。" class="ddia-figure ddia-figure--wide" width="2658" height="1200" />}}
 
 
 假设 Aaliyah 在银行有 1,000 美元存款，分别存在两个账户中，每个账户 500 美元。现在有一笔事务从其中一个账户向另一个账户转账 100 美元。如果她偏偏在转账事务处理的同时查看账户余额，可能会先看到一个账户尚未收到转入款项时的余额（500 美元），再看到另一个账户已经转出款项后的余额（400 美元）。在 Aaliyah 看来，两个账户总共只剩 900 美元——仿佛有 100 美元凭空消失了。
@@ -324,16 +327,16 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 
 和读已提交一样，快照隔离通常用写锁来防止脏写（参见[“实现读已提交”](/ch8#sec_transactions_read_committed_impl)）。因此，一个写事务可以阻塞另一个写入同一行的事务。不过，读取无须取得任何锁。从性能角度看，快照隔离的一项关键原则是：*读不阻塞写，写也不阻塞读*。这样，数据库可以一边在一致快照上执行长期读查询，一边正常处理写入，二者不会争用锁。
 
-为实现快照隔离，数据库把[图 8-4](/ch8#fig_transactions_read_committed)中的防脏读机制推广开来。数据库不再只为每行保留两个版本（已提交版本，以及覆盖它但尚未提交的新版本），而是可能需要保留多个不同的已提交版本，因为正在运行的不同事务可能要观察数据库在不同时刻的状态。由于同一行的多个版本并存，这项技术称为*多版本并发控制*（MVCC）。
+为实现快照隔离，数据库把{{< xref fig="8-4" page="/ch8" anchor="fig_transactions_read_committed" >}}图 8-4{{< /xref >}}中的防脏读机制推广开来。数据库不再只为每行保留两个版本（已提交版本，以及覆盖它但尚未提交的新版本），而是可能需要保留多个不同的已提交版本，因为正在运行的不同事务可能要观察数据库在不同时刻的状态。由于同一行的多个版本并存，这项技术称为*多版本并发控制*（MVCC）。
 
-[图 8-7](/ch8#fig_transactions_mvcc)展示了 PostgreSQL 如何基于 MVCC 实现快照隔离[^40] [^42] [^43]（其他实现与之类似）。事务启动时会获得一个唯一且单调递增的事务 ID（`txid`）。事务写入数据库的任何数据，都会以写入者的事务 ID 标记。（严格来说，PostgreSQL 的事务 ID 是 32 位整数，大约经过 40 亿个事务就会溢出；`vacuum` 进程负责清理，确保溢出不会影响数据。）
+{{< xref fig="8-7" page="/ch8" anchor="fig_transactions_mvcc" >}}图 8-7{{< /xref >}}展示了 PostgreSQL 如何基于 MVCC 实现快照隔离[^40] [^42] [^43]（其他实现与之类似）。事务启动时会获得一个唯一且单调递增的事务 ID（`txid`）。事务写入数据库的任何数据，都会以写入者的事务 ID 标记。（严格来说，PostgreSQL 的事务 ID 是 32 位整数，大约经过 40 亿个事务就会溢出；`vacuum` 进程负责清理，确保溢出不会影响数据。）
 
-{{< figure src="/fig/ddia_0807.png" id="fig_transactions_mvcc" caption="图 8-7. 使用多版本并发控制实现快照隔离。" class="w-full my-4" >}}
+{{< fig num="8-7" id="fig_transactions_mvcc" src="/fig/ddia_0807.png" caption="使用多版本并发控制实现快照隔离。" class="ddia-figure ddia-figure--standard" width="2658" height="2013" />}}
 
 
 表中每一行都有一个 `inserted_by` 字段，保存将该行插入表中的事务 ID；还有一个初始为空的 `deleted_by` 字段。事务删除某行时，并不会立即将其从数据库中移除，而只是把 `deleted_by` 设为请求删除的事务 ID，以此标记删除。等到确定再也没有事务能访问这些已删除数据时，数据库的垃圾收集进程才会移除带删除标记的行并释放空间。
 
-更新在内部会转换成一次删除和一次插入[^44]。例如，在[图 8-7](/ch8#fig_transactions_mvcc)中，事务 13 从账户 2 扣除 100 美元，把余额从 500 美元改为 400 美元。此时 `accounts` 表实际上包含账户 2 的两行：余额 500 美元的行由事务 13 标记为删除，余额 400 美元的行则由事务 13 插入。
+更新在内部会转换成一次删除和一次插入[^44]。例如，在{{< xref fig="8-7" page="/ch8" anchor="fig_transactions_mvcc" >}}图 8-7{{< /xref >}}中，事务 13 从账户 2 扣除 100 美元，把余额从 500 美元改为 400 美元。此时 `accounts` 表实际上包含账户 2 的两行：余额 500 美元的行由事务 13 标记为删除，余额 400 美元的行则由事务 13 插入。
 
 一行的所有版本都存放在同一个数据库堆中（参见[“在索引中存储值”](/ch4#sec_storage_index_heap)），不论写入它们的事务是否已经提交。同一行的各个版本组成链表，可以从最新版本连到最旧版本，也可以反向连接，使查询能在内部遍历该行的所有版本[^45] [^46]。
 
@@ -346,7 +349,7 @@ SELECT COUNT(*) FROM emails WHERE recipient_id = 2 AND unread_flag = true
 3. 已中止事务的写入一律忽略，无论中止发生在何时。这样一来，事务中止后无须立刻从存储中删除它写入的行，因为可见性规则会将它们过滤掉，垃圾收集进程可以稍后再清理。
 4. 其余写入均对应用程序的查询可见。
 
-这些规则既适用于插入行，也适用于删除行。在[图 8-7](/ch8#fig_transactions_mvcc)中，事务 12 读取账户 2 时看到的余额是 500 美元：删除 500 美元余额的是事务 13，而根据规则 2，事务 12 看不到事务 13 执行的删除；同理，插入的 400 美元余额也尚不可见。
+这些规则既适用于插入行，也适用于删除行。在{{< xref fig="8-7" page="/ch8" anchor="fig_transactions_mvcc" >}}图 8-7{{< /xref >}}中，事务 12 读取账户 2 时看到的余额是 500 美元：删除 500 美元余额的是事务 13，而根据规则 2，事务 12 看不到事务 13 执行的删除；同理，插入的 400 美元余额也尚不可见。
 
 换句话说，只有同时满足以下两个条件，一行才可见：
 
@@ -381,7 +384,7 @@ MVCC 是数据库常用的实现技术，也经常用来实现快照隔离。不
 
 到目前为止，读已提交和快照隔离主要保证的是：存在并发写入时，只读事务能够看到什么。我们基本没有讨论两个事务并发写入的问题，只讲过一种特定的写—写冲突——脏写（参见[“没有脏写”](/ch8#sec_transactions_dirty_write)）。
 
-并发写事务之间还可能出现其他几类值得关注的冲突，其中最著名的便是*丢失更新*。[图 8-1](/ch8#fig_transactions_increment)以两个并发递增计数器的事务为例，展示了这个问题。
+并发写事务之间还可能出现其他几类值得关注的冲突，其中最著名的便是*丢失更新*。{{< xref fig="8-1" page="/ch8" anchor="fig_transactions_increment" >}}图 8-1{{< /xref >}}以两个并发递增计数器的事务为例，展示了这个问题。
 
 应用程序从数据库读取一个值，修改后再写回去，这个过程称为*读取—修改—写入循环*，可能发生丢失更新。如果两个事务并发执行这样的循环，其中一项修改可能丢失，因为后一次写入没有包含前一个事务的修改。（有时也说后一次写入*抹掉*了前一次写入。）这种模式会出现在许多场景中：
 
@@ -409,9 +412,9 @@ UPDATE counters SET value = value + 1 WHERE key = 'foo';
 
 如果数据库内置的原子操作无法满足需求，还可以由应用程序显式锁定即将更新的对象，再执行读取—修改—写入循环。其他事务若试图并发更新或锁定同一对象，就必须等前一个循环完成。
 
-以多人游戏为例，几个玩家都可以移动同一个棋子。这时原子操作可能还不够，因为应用还要确保走法符合游戏规则，而其中一些逻辑很难合理地写成数据库查询。此时可以加锁，防止两个玩家同时移动同一个棋子，如[示例 8-1](/ch8#fig_transactions_select_for_update)所示。
+以多人游戏为例，几个玩家都可以移动同一个棋子。这时原子操作可能还不够，因为应用还要确保走法符合游戏规则，而其中一些逻辑很难合理地写成数据库查询。此时可以加锁，防止两个玩家同时移动同一个棋子，如{{< xref page="/ch8" anchor="fig_transactions_select_for_update" >}}示例 8-1{{< /xref >}}所示。
 
-{{< figure id="fig_transactions_select_for_update" title="示例 8-1. 显式锁定行以防止丢失更新" class="w-full my-4" >}}
+{{< example num="8-1" id="fig_transactions_select_for_update" caption="显式锁定行以防止丢失更新" />}}
 
 ```sql
 BEGIN TRANSACTION;
@@ -477,9 +480,9 @@ UPDATE wiki_pages SET content = 'new content'
 
 先来看一个例子：你正在编写一款供医生管理医院值班安排的应用。医院通常希望任何时候都有几位医生值班，但底线是至少必须有一位。医生可以放弃自己的班次（例如本人也生病了），前提是同一班次至少还有一位同事继续值班[^53] [^54]。
 
-假设某个班次只有 Aaliyah 和 Bryce 两位值班医生。两人都身体不适，决定请假，偏偏又几乎同时点击了退出值班的按钮。接下来发生的事情如[图 8-8](/ch8#fig_transactions_write_skew)所示。
+假设某个班次只有 Aaliyah 和 Bryce 两位值班医生。两人都身体不适，决定请假，偏偏又几乎同时点击了退出值班的按钮。接下来发生的事情如{{< xref fig="8-8" page="/ch8" anchor="fig_transactions_write_skew" >}}图 8-8{{< /xref >}}所示。
 
-{{< figure src="/fig/ddia_0808.png" id="fig_transactions_write_skew" caption="图 8-8. 写偏差导致应用程序错误的示例。" class="w-full my-4" >}}
+{{< fig num="8-8" id="fig_transactions_write_skew" src="/fig/ddia_0808.png" caption="写偏差导致应用程序错误的示例。" class="ddia-figure ddia-figure--standard" width="2658" height="1863" />}}
 
 
 每个事务都先检查当前是否至少有两位医生值班；如果是，应用就认为其中一位可以安全退出。由于数据库采用快照隔离，两次检查都返回 `2`，两个事务于是都进入下一阶段。Aaliyah 更新自己的记录，退出值班；Bryce 也作出同样的更新。两个事务都成功提交，结果却没有任何医生值班，违反了“至少一位医生值班”的要求。
@@ -519,9 +522,9 @@ UPDATE wiki_pages SET content = 'new content'
 写偏差乍看似乎很深奥，一旦意识到它的存在，就会发现它可能出现在许多场景中。再看几个例子：
 
 会议室预订系统
-: 假设你要保证同一间会议室在同一时段不能被重复预订[^55]。有人发起预订时，先检查是否存在冲突（即同一房间是否有时间范围重叠的预订）；若没有，再创建会议（参见[示例 8-2](/ch8#fig_transactions_meeting_rooms)）。
+: 假设你要保证同一间会议室在同一时段不能被重复预订[^55]。有人发起预订时，先检查是否存在冲突（即同一房间是否有时间范围重叠的预订）；若没有，再创建会议（参见{{< xref page="/ch8" anchor="fig_transactions_meeting_rooms" >}}示例 8-2{{< /xref >}}）。
     
-    {{< figure id="fig_transactions_meeting_rooms" title="示例 8-2. 会议室预订系统试图避免重复预订（在快照隔离下并不安全）" class="w-full my-4" >}}
+    {{< example num="8-2" id="fig_transactions_meeting_rooms" caption="会议室预订系统试图避免重复预订（在快照隔离下并不安全）" />}}
     
     ```sql
     BEGIN TRANSACTION;
@@ -541,7 +544,7 @@ UPDATE wiki_pages SET content = 'new content'
     遗憾的是，快照隔离无法阻止另一个用户并发插入冲突的会议。要保证安排不会冲突，还是得采用可串行化隔离。
 
 多人游戏
-: 在[示例 8-1](/ch8#fig_transactions_select_for_update)中，我们用锁防止丢失更新，也就是确保两名玩家不能同时移动同一个棋子。但这把锁无法阻止玩家把两个不同棋子移动到棋盘上的同一位置，也无法阻止其他违反规则的走法。视具体规则而定，有时可以使用唯一性约束；否则就很容易发生写偏差。
+: 在{{< xref page="/ch8" anchor="fig_transactions_select_for_update" >}}示例 8-1{{< /xref >}}中，我们用锁防止丢失更新，也就是确保两名玩家不能同时移动同一个棋子。但这把锁无法阻止玩家把两个不同棋子移动到棋盘上的同一位置，也无法阻止其他违反规则的走法。视具体规则而定，有时可以使用唯一性约束；否则就很容易发生写偏差。
 
 声明用户名
 : 在要求用户名唯一的网站上，两个用户可能同时尝试用同一个名字创建账户。可以用事务先检查用户名是否已被占用，如果没有，再用它创建账户。但和前面的例子一样，这在快照隔离下并不安全。好在唯一性约束就能轻松解决这个问题：第二个尝试注册该用户名的事务会因违反约束而中止。
@@ -620,9 +623,9 @@ VoltDB/H-Store、Redis 和 Datomic 等系统采用了串行执行事务的方式
 
 因此，单线程串行处理事务的系统不允许交互式多语句事务。应用要么只使用单语句事务，要么提前把整个事务的代码作为*存储过程*提交给数据库[^61]。
 
-交互式事务与存储过程的差别如[图 8-9](/ch8#fig_transactions_stored_proc)所示。只要事务所需的全部数据都在内存中，存储过程就能快速执行，无须等待任何网络或磁盘 I/O。
+交互式事务与存储过程的差别如{{< xref fig="8-9" page="/ch8" anchor="fig_transactions_stored_proc" >}}图 8-9{{< /xref >}}所示。只要事务所需的全部数据都在内存中，存储过程就能快速执行，无须等待任何网络或磁盘 I/O。
 
-{{< figure src="/fig/ddia_0809.png" id="fig_transactions_stored_proc" caption="图 8-9. 交互式事务与存储过程的差异（采用[图 8-8](/ch8#fig_transactions_write_skew)中的示例事务）。" class="w-full my-4" >}}
+{{< fig num="8-9" id="fig_transactions_stored_proc" src="/fig/ddia_0809.png" caption="交互式事务与存储过程的差异（采用图 8-8中的示例事务）。" class="ddia-figure ddia-figure--wide" width="2658" height="1535" />}}
 
 #### 存储过程的利弊 {#sec_transactions_stored_proc_tradeoffs}
 
@@ -680,7 +683,7 @@ VoltDB 还利用存储过程进行复制：它不把事务写入从一个节点�
 两阶段锁定与此类似，但加锁要求严格得多。只要没有写入，多个事务可以并发读取同一个对象；但只要有事务想写入（修改或删除）对象，就必须取得独占访问权：
 
 * 如果事务 A 已读取某个对象，而事务 B 想写入该对象，B 必须等 A 提交或中止后才能继续。（这样可以确保 B 不会在 A 不知情的情况下改变对象。）
-* 如果事务 A 已写入某个对象，而事务 B 想读取该对象，B 必须等 A 提交或中止后才能继续。（2PL 不允许像[图 8-4](/ch8#fig_transactions_read_committed)那样读取对象的旧版本。）
+* 如果事务 A 已写入某个对象，而事务 B 想读取该对象，B 必须等 A 提交或中止后才能继续。（2PL 不允许像{{< xref fig="8-4" page="/ch8" anchor="fig_transactions_read_committed" >}}图 8-4{{< /xref >}}那样读取对象的旧版本。）
 
 在 2PL 中，写会阻塞其他写，也会阻塞读；反过来，读同样会阻塞写。快照隔离则奉行“*读不阻塞写，写也不阻塞读*”（参见[“多版本并发控制（MVCC）”](/ch8#sec_transactions_snapshot_impl)），这正是快照隔离与两阶段锁定的关键区别。另一方面，2PL 提供可串行化，能够防止前面讨论的所有竞态条件，包括丢失更新和写偏差。
 
@@ -713,7 +716,7 @@ MySQL（InnoDB）和 SQL Server 的可串行化隔离级别，以及 Db2 的可�
 
 前面对锁的描述略过了一个微妙却重要的细节。[“导致写偏差的幻读”](/ch8#sec_transactions_phantom)介绍过*幻读*：一个事务改变了另一个事务的搜索查询结果。提供可串行化隔离的数据库必须防止幻读。
 
-在会议室预订的例子中，如果一个事务已经搜索某个房间在特定时段内的现有预订（参见[示例 8-2](/ch8#fig_transactions_meeting_rooms)），另一个事务就不能并发插入或更新同一房间、同一时段的预订。（并发预订其他房间，或者预订同一房间但互不影响的其他时段，则没有问题。）
+在会议室预订的例子中，如果一个事务已经搜索某个房间在特定时段内的现有预订（参见{{< xref page="/ch8" anchor="fig_transactions_meeting_rooms" >}}示例 8-2{{< /xref >}}），另一个事务就不能并发插入或更新同一房间、同一时段的预订。（并发预订其他房间，或者预订同一房间但互不影响的其他时段，则没有问题。）
 
 怎样实现这一点？从概念上讲，需要使用*谓词锁*[^4]。它的工作方式类似前面介绍的共享锁和独占锁，却不属于某个特定对象（例如表中的一行），而是属于所有符合某项搜索条件的对象，例如：
 
@@ -787,9 +790,9 @@ SELECT * FROM bookings
 
 回想一下，快照隔离通常通过多版本并发控制实现（MVCC；参见[“多版本并发控制（MVCC）”](/ch8#sec_transactions_snapshot_impl)）。事务从 MVCC 数据库的一致快照读取时，会忽略其他事务在快照生成时尚未提交的所有写入。
 
-在[图 8-10](/ch8#fig_transactions_detect_mvcc)中，事务 43 看到 Aaliyah 的 `on_call = true`，因为修改其值班状态的事务 42 尚未提交。但等事务 43 准备提交时，事务 42 已经提交。这意味着，读取一致快照时被忽略的写入现在已经生效，事务 43 的前提不再成立。如果写入者插入的是此前不存在的数据，情况还会更复杂（参见[“导致写偏差的幻读”](/ch8#sec_transactions_phantom)）。[“检测影响先前读取的写入”](/ch8#sec_detecting_writes_affect_reads)将介绍 SSI 如何检测幻写。
+在{{< xref fig="8-10" page="/ch8" anchor="fig_transactions_detect_mvcc" >}}图 8-10{{< /xref >}}中，事务 43 看到 Aaliyah 的 `on_call = true`，因为修改其值班状态的事务 42 尚未提交。但等事务 43 准备提交时，事务 42 已经提交。这意味着，读取一致快照时被忽略的写入现在已经生效，事务 43 的前提不再成立。如果写入者插入的是此前不存在的数据，情况还会更复杂（参见[“导致写偏差的幻读”](/ch8#sec_transactions_phantom)）。[“检测影响先前读取的写入”](/ch8#sec_detecting_writes_affect_reads)将介绍 SSI 如何检测幻写。
 
-{{< figure src="/fig/ddia_0810.png" id="fig_transactions_detect_mvcc" caption="图 8-10. 检测事务何时从 MVCC 快照读取过时值。" class="w-full my-4" >}}
+{{< fig num="8-10" id="fig_transactions_detect_mvcc" src="/fig/ddia_0810.png" caption="检测事务何时从 MVCC 快照读取过时值。" class="ddia-figure ddia-figure--standard" width="2658" height="1613" />}}
 
 
 为防止这种异常，数据库必须跟踪事务何时因 MVCC 可见性规则而忽略了其他事务的写入。等事务准备提交时，再检查这些被忽略的写入是否已经提交；若是，就必须中止该事务。
@@ -798,18 +801,18 @@ SELECT * FROM bookings
 
 #### 检测影响先前读取的写入 {#sec_detecting_writes_affect_reads}
 
-第二种情况，是数据被读取后又遭另一个事务修改，如[图 8-11](/ch8#fig_transactions_detect_index_range)所示。
+第二种情况，是数据被读取后又遭另一个事务修改，如{{< xref fig="8-11" page="/ch8" anchor="fig_transactions_detect_index_range" >}}图 8-11{{< /xref >}}所示。
 
-{{< figure src="/fig/ddia_0811.png" id="fig_transactions_detect_index_range" caption="图 8-11. 在可串行化快照隔离中，检测一个事务何时修改了另一个事务读过的数据。" class="w-full my-4" >}}
+{{< fig num="8-11" id="fig_transactions_detect_index_range" src="/fig/ddia_0811.png" caption="在可串行化快照隔离中，检测一个事务何时修改了另一个事务读过的数据。" class="ddia-figure ddia-figure--standard" width="2658" height="1654" />}}
 
 
 讨论两阶段锁定时，我们介绍过索引范围锁（参见[“索引范围锁”](/ch8#sec_transactions_2pl_range)），数据库可以借此锁定所有符合某项查询条件的行，例如 `WHERE shift_id = 1234`。SSI 可以使用类似技术，区别在于 SSI 的锁不会阻塞其他事务。
 
-在[图 8-11](/ch8#fig_transactions_detect_index_range)中，事务 42 和 43 都查询了班次 `1234` 的值班医生。如果 `shift_id` 上有索引，数据库就能利用索引项 1234 记录事务 42 和 43 读过这项数据。（没有索引时，也可以在表级别跟踪。）这些信息只需保留一段时间：等事务结束（提交或中止），并且所有与之并发的事务也结束后，数据库就可以忘掉它读过哪些数据。
+在{{< xref fig="8-11" page="/ch8" anchor="fig_transactions_detect_index_range" >}}图 8-11{{< /xref >}}中，事务 42 和 43 都查询了班次 `1234` 的值班医生。如果 `shift_id` 上有索引，数据库就能利用索引项 1234 记录事务 42 和 43 读过这项数据。（没有索引时，也可以在表级别跟踪。）这些信息只需保留一段时间：等事务结束（提交或中止），并且所有与之并发的事务也结束后，数据库就可以忘掉它读过哪些数据。
 
 事务写入数据库时，必须在索引中查找近期读过受影响数据的其他事务。这个过程类似为受影响的键范围取得写锁，但它不会一直阻塞到读事务提交，而是像警戒线一样：只负责通知相关事务，它们读过的数据可能已经过时。
 
-在[图 8-11](/ch8#fig_transactions_detect_index_range)中，事务 43 通知事务 42：它先前读过的数据已经过时；事务 42 也反过来通知事务 43。事务 42 率先提交并获得成功：虽然事务 43 的写入影响了事务 42，但事务 43 尚未提交，所以写入还未生效。等事务 43 准备提交时，事务 42 的冲突写入已经提交，因此事务 43 必须中止。
+在{{< xref fig="8-11" page="/ch8" anchor="fig_transactions_detect_index_range" >}}图 8-11{{< /xref >}}中，事务 43 通知事务 42：它先前读过的数据已经过时；事务 42 也反过来通知事务 43。事务 42 率先提交并获得成功：虽然事务 43 的写入影响了事务 42，但事务 43 尚未提交，所以写入还未生效。等事务 43 准备提交时，事务 42 的冲突写入已经提交，因此事务 43 必须中止。
 
 #### 可串行化快照隔离的性能 {#performance-of-serializable-snapshot-isolation}
 
@@ -837,16 +840,16 @@ SELECT * FROM bookings
 
 可是，如果事务涉及多个节点呢？例如，分片数据库中可能有多对象事务，也可能有全局二级索引，其中索引项和主数据位于不同节点（参见[“分片与二级索引”](/ch7#sec_sharding_secondary_indexes)）。大多数“NoSQL”分布式数据存储不支持这类分布式事务，但不少分布式关系型数据库支持。
 
-此时，仅仅向所有节点发送提交请求，让每个节点独立提交事务并不够。如[图 8-12](/ch8#fig_transactions_non_atomic)所示，提交很容易在一部分节点上成功，却在另一部分节点上失败：
+此时，仅仅向所有节点发送提交请求，让每个节点独立提交事务并不够。如{{< xref fig="8-12" page="/ch8" anchor="fig_transactions_non_atomic" >}}图 8-12{{< /xref >}}所示，提交很容易在一部分节点上成功，却在另一部分节点上失败：
 
 * 某些节点可能检测到约束违规或冲突，因而必须中止，其他节点却能成功提交；
 * 某些提交请求可能在网络中丢失，最终因超时而中止，其他请求却顺利抵达；
 * 某些节点可能在提交记录完全写入前崩溃，恢复时回滚事务，其他节点却成功提交。
 
-{{< figure src="/fig/ddia_0812.png" id="fig_transactions_non_atomic" caption="图 8-12. 当事务涉及多个数据库节点时，它可能在某些节点上提交，在其他节点上失败。" class="w-full my-4" >}}
+{{< fig num="8-12" id="fig_transactions_non_atomic" src="/fig/ddia_0812.png" caption="当事务涉及多个数据库节点时，它可能在某些节点上提交，在其他节点上失败。" class="ddia-figure ddia-figure--wide" width="2658" height="998" />}}
 
 
-如果有些节点提交、有些节点中止，节点之间便会出现不一致。而事务一旦在某个节点上提交，即便后来发现它在另一个节点上中止，也不能再撤回。因为数据提交后，在*读已提交*或更强隔离下就会对其他事务可见。例如，在[图 8-12](/ch8#fig_transactions_non_atomic)中，当用户 1 发现数据库 1 提交失败时，用户 2 已经在数据库 2 读到了同一事务写入的数据。如果事后再中止用户 1 的事务，就连用户 2 的事务也必须撤销，因为它所依据的数据被追溯宣布为从未存在。
+如果有些节点提交、有些节点中止，节点之间便会出现不一致。而事务一旦在某个节点上提交，即便后来发现它在另一个节点上中止，也不能再撤回。因为数据提交后，在*读已提交*或更强隔离下就会对其他事务可见。例如，在{{< xref fig="8-12" page="/ch8" anchor="fig_transactions_non_atomic" >}}图 8-12{{< /xref >}}中，当用户 1 发现数据库 1 提交失败时，用户 2 已经在数据库 2 读到了同一事务写入的数据。如果事后再中止用户 1 的事务，就连用户 2 的事务也必须撤销，因为它所依据的数据被追溯宣布为从未存在。
 
 更好的办法是确保参与事务的节点要么全部提交，要么全部中止，绝不允许两种结果混杂。这就是所谓的*原子提交*问题。
 
@@ -854,9 +857,9 @@ SELECT * FROM bookings
 
 两阶段提交是一种跨多个节点实现原子事务提交的算法，也是分布式数据库中的经典算法[^13] [^71] [^72]。有些数据库在内部使用 2PC；它也以 *XA 事务*[^73]的形式开放给应用程序（例如 Java 事务 API 就支持 XA），或者通过 WS-AtomicTransaction 用于 SOAP Web 服务[^74] [^75]。
 
-2PC 的基本流程如[图 8-13](/ch8#fig_transactions_two_phase_commit)所示。单节点事务只需一次提交请求，2PC 则把提交或中止过程分成两个阶段，名称也由此而来。
+2PC 的基本流程如{{< xref fig="8-13" page="/ch8" anchor="fig_transactions_two_phase_commit" >}}图 8-13{{< /xref >}}所示。单节点事务只需一次提交请求，2PC 则把提交或中止过程分成两个阶段，名称也由此而来。
 
-{{< figure src="/fig/ddia_0813.png" id="fig_transactions_two_phase_commit" title="图 8-13. 两阶段提交（2PC）的成功执行。" class="w-full my-4" >}}
+{{< fig num="8-13" id="fig_transactions_two_phase_commit" src="/fig/ddia_0813.png" caption="两阶段提交（2PC）的成功执行。" class="ddia-figure ddia-figure--wide" width="2880" height="969" />}}
 
 
 2PC 引入了一个单节点事务中通常没有的组件：*协调者*（也称为*事务管理器*）。协调者通常实现为一个库，与发起事务的应用运行在同一进程中（例如嵌入 Java EE 容器）；也可以作为独立进程或服务运行。Narayana、JOTM、BTM 和 MSDTC 都属于此类协调者。
@@ -891,9 +894,9 @@ SELECT * FROM bookings
 
 如果协调者在发送准备请求前失效，参与者可以安全中止事务。但参与者一旦收到准备请求并投出“是”，便不能再单方面中止，必须等待协调者告知事务究竟提交还是中止。如果协调者此时崩溃或网络发生故障，参与者只能等待。这种状态下的事务称为*存疑*或*不确定*事务。
 
-[图 8-14](/ch8#fig_transactions_2pc_crash)展示了这种情况。在图中的例子里，协调者实际决定提交，数据库 2 也收到了提交请求；但协调者还没来得及把提交请求发给数据库 1 就崩溃了，所以数据库 1 不知道该提交还是中止。超时对此也无济于事：数据库 1 若在超时后自行中止，就会与已经提交的数据库 2 不一致；自行提交同样不安全，因为另一个参与者可能已经中止。
+{{< xref fig="8-14" page="/ch8" anchor="fig_transactions_2pc_crash" >}}图 8-14{{< /xref >}}展示了这种情况。在图中的例子里，协调者实际决定提交，数据库 2 也收到了提交请求；但协调者还没来得及把提交请求发给数据库 1 就崩溃了，所以数据库 1 不知道该提交还是中止。超时对此也无济于事：数据库 1 若在超时后自行中止，就会与已经提交的数据库 2 不一致；自行提交同样不安全，因为另一个参与者可能已经中止。
 
-{{< figure src="/fig/ddia_0814.png" id="fig_transactions_2pc_crash" title="图 8-14. 参与者投票“是”之后，协调者崩溃。数据库 1 不知道该提交还是中止。" class="w-full my-4" >}}
+{{< fig num="8-14" id="fig_transactions_2pc_crash" src="/fig/ddia_0814.png" caption="参与者投票“是”之后，协调者崩溃。数据库 1 不知道该提交还是中止。" class="ddia-figure ddia-figure--wide" width="2880" height="1006" />}}
 
 
 收不到协调者的消息，参与者就无从知道应提交还是中止。原则上，参与者可以相互通信，了解各自如何投票并达成某种协议，但这并不属于 2PC 协议。
@@ -952,7 +955,7 @@ XA 假定应用通过网络驱动或客户端库，与参与者数据库或消�
 
 问题出在*锁*上。正如[“读已提交”](/ch8#sec_transactions_read_committed)所述，数据库事务通常会对修改的每一行取得行级独占锁，以防止脏写。如果还要求可串行化隔离，那么采用两阶段锁定的数据库也必须为事务*读取*的每一行取得共享锁。
 
-事务提交或中止之前，数据库不能释放这些锁（如[图 8-13](/ch8#fig_transactions_two_phase_commit)中的阴影部分所示）。所以使用两阶段提交时，事务必须在整个存疑期间持锁。协调者若崩溃后要花 20 分钟重启，锁就会持有 20 分钟；协调者日志若因故彻底丢失，锁甚至会永远保留——至少要一直等到管理员手动解决问题。
+事务提交或中止之前，数据库不能释放这些锁（如{{< xref fig="8-13" page="/ch8" anchor="fig_transactions_two_phase_commit" >}}图 8-13{{< /xref >}}中的阴影部分所示）。所以使用两阶段提交时，事务必须在整个存疑期间持锁。协调者若崩溃后要花 20 分钟重启，锁就会持有 20 分钟；协调者日志若因故彻底丢失，锁甚至会永远保留——至少要一直等到管理员手动解决问题。
 
 持锁期间，其他事务无法修改这些行；视隔离级别而定，甚至连读取也可能被阻塞。因此，其他事务无法若无其事地继续运行——只要访问同一份数据，就会卡住。应用程序的大部分功能都可能因此不可用，直至存疑事务得到解决。
 
@@ -1022,9 +1025,9 @@ XA 最严重的几个问题可以这样解决：
 
 没有事务，进程崩溃、网络中断、断电、磁盘空间耗尽、意外并发等各种错误场景，都可能以不同方式造成数据不一致。例如，反规范化数据很容易与源数据失去同步。缺少事务时，复杂而相互影响的访问究竟会给数据库带来什么后果，很难推理。
 
-本章尤其深入地探讨了并发控制。我们介绍了几种广泛使用的隔离级别，特别是*读已提交*、*快照隔离*（有时称为*可重复读*）和*可串行化*，并通过各种竞态条件来刻画它们。[表 8-1](/ch8#ch_transactions_isolation_levels)汇总了这些内容：
+本章尤其深入地探讨了并发控制。我们介绍了几种广泛使用的隔离级别，特别是*读已提交*、*快照隔离*（有时称为*可重复读*）和*可串行化*，并通过各种竞态条件来刻画它们。{{< xref tbl="8-1" page="/ch8" anchor="ch_transactions_isolation_levels" >}}表 8-1{{< /xref >}}汇总了这些内容：
 
-{{< figure id="ch_transactions_isolation_levels" title="表 8-1. 各种隔离级别下可能发生的异常汇总。" class="w-full my-4" >}}
+{{< tbl num="8-1" id="ch_transactions_isolation_levels" caption="各种隔离级别下可能发生的异常汇总。" >}}
 
 | 隔离级别 | 脏读   | 读偏差  | 幻读   | 丢失更新  | 写偏差  |
 |------|------|------|------|-------|------|
@@ -1032,6 +1035,7 @@ XA 最严重的几个问题可以这样解决：
 | 读已提交 | ✓ 防止 | ✗ 可能 | ✗ 可能 | ✗ 可能  | ✗ 可能 |
 | 快照隔离 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ? 视情况 | ✗ 可能 |
 | 可串行化 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ✓ 防止  | ✓ 防止 |
+{{< /tbl >}}
 
 脏读
 : 一个客户端在另一个客户端的写入提交前就读到了这些数据。读已提交及更强的隔离级别可以防止脏读。
@@ -1068,7 +1072,7 @@ XA 最严重的几个问题可以这样解决：
 
 
 
-### 参考文献
+### 参考文献 {#references}
 
 [^1]: Steven J. Murdoch. [What went wrong with Horizon: learning from the Post Office Trial](https://www.benthamsgaze.org/2021/07/15/what-went-wrong-with-horizon-learning-from-the-post-office-trial/). *benthamsgaze.org*, July 2021. Archived at [perma.cc/CNM4-553F](https://perma.cc/CNM4-553F)
 [^2]: Donald D. Chamberlin, Morton M. Astrahan, Michael W. Blasgen, James N. Gray, W. Frank King, Bruce G. Lindsay, Raymond Lorie, James W. Mehl, Thomas G. Price, Franco Putzolu, Patricia Griffiths Selinger, Mario Schkolnick, Donald R. Slutz, Irving L. Traiger, Bradford W. Wade, and Robert A. Yost. [A History and Evaluation of System R](https://dsf.berkeley.edu/cs262/2005/SystemR.pdf). *Communications of the ACM*, volume 24, issue 10, pages 632–646, October 1981. [doi:10.1145/358769.358784](https://doi.org/10.1145/358769.358784)

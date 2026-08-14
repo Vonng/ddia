@@ -1,0 +1,46 @@
+{{- $page := .page -}}
+{{- $data := .data -}}
+{{- $id := .id -}}
+{{- $source := index hugo.Data ($data.data | default "contributors") | default dict -}}
+{{- $items := $source.items | default slice -}}
+<section id="{{ $id }}" class="oink-section ddia-contributors{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
+  <div class="landing-container">
+    {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
+
+    <div class="ddia-contributors__featured" aria-label="显著贡献者">
+      {{- range $data.featured }}
+      {{- $item := . -}}
+      {{- $githubs := $item.githubs | default (slice $item.github) -}}
+      {{- $handles := slice -}}
+      {{- range $githubs }}{{ $handles = $handles | append (printf "@%s" .) }}{{ end -}}
+      <article class="ddia-contributor-card">
+        <div class="ddia-contributor-card__avatars{{ if gt (len $githubs) 1 }} ddia-contributor-card__avatars--stack{{ end }}" aria-hidden="true">
+          {{- range $githubs }}
+          <img src="https://github.com/{{ . }}.png?size=144" alt="" width="64" height="64" loading="lazy">
+          {{- end }}
+        </div>
+        <div class="ddia-contributor-card__copy">
+          <h3>{{ $item.name }}</h3>
+          <p>{{ $item.role }}</p>
+          <small>{{ delimit $handles " · " }}</small>
+        </div>
+        <a class="ddia-contributor-card__link" href="{{ $item.url }}" target="_blank" rel="noopener noreferrer">
+          <span class="visually-hidden">查看 {{ $item.name }} 的贡献</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      </article>
+      {{- end }}
+    </div>
+
+    <ul class="ddia-contributor-wall" aria-label="完整贡献者列表">
+      {{- range $items }}
+      <li>
+        <a href="https://github.com/{{ .github }}" target="_blank" rel="noopener noreferrer" title="{{ .name | default .github }}{{ with .role }} · {{ . }}{{ end }}">
+          <img src="https://github.com/{{ .github }}.png?size=96" alt="" width="48" height="48" loading="lazy">
+          <span>@{{ .github }}</span>
+        </a>
+      </li>
+      {{- end }}
+    </ul>
+  </div>
+</section>

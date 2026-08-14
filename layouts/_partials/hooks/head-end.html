@@ -1,0 +1,31 @@
+{{/*
+  OINK v0.4 keeps the active chapter/tree row visible with scrollIntoView().
+  Browsers may scroll every ancestor, including the document viewport, when
+  those rows live in the mobile drawer. Constrain those calls to their actual
+  sidebar scroller so figure deep links and normal reading position stay put.
+*/}}
+<script>
+(() => {
+  const nativeScrollIntoView = Element.prototype.scrollIntoView;
+
+  Element.prototype.scrollIntoView = function scrollWithinOinkRail(options) {
+    const scroller = this.closest(
+      '[data-td-shell-sidebar-scroll], #td-shell-toc-body',
+    );
+    if (!scroller) return nativeScrollIntoView.apply(this, arguments);
+
+    const item = this.getBoundingClientRect();
+    const viewport = scroller.getBoundingClientRect();
+    const block = options && typeof options === 'object' ? options.block : 'start';
+
+    if (block === 'center') {
+      scroller.scrollTop +=
+        item.top + item.height / 2 - (viewport.top + viewport.height / 2);
+    } else if (item.top < viewport.top) {
+      scroller.scrollTop += item.top - viewport.top;
+    } else if (item.bottom > viewport.bottom) {
+      scroller.scrollTop += item.bottom - viewport.bottom;
+    }
+  };
+})();
+</script>

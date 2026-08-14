@@ -59,9 +59,19 @@ def process_urls(text, src_folder, dst_folder):
     
     return text
 
+
+def make_converter(cfg):
+    """Support both native OpenCC and opencc-python-reimplemented configs."""
+    try:
+        return opencc.OpenCC(cfg)
+    except FileNotFoundError:
+        if cfg.endswith('.json'):
+            return opencc.OpenCC(cfg[:-5])
+        raise
+
 def convert_file(src_filepath, dst_filepath, src_folder, dst_folder, cfg='s2twp.json'):
     print("convert %s to %s" % (src_filepath, dst_filepath))
-    converter = opencc.OpenCC(cfg)
+    converter = make_converter(cfg)
     with open(src_filepath, "r", encoding='utf-8') as src, open(dst_filepath, "w+", encoding='utf-8') as dst:
         dst.write("\n".join(
             process_urls(

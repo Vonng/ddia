@@ -1,5 +1,6 @@
 ---
 title: 序言
+book_kind: preface
 weight: 50
 breadcrumbs: false
 ---

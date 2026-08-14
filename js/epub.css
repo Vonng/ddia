@@ -31,6 +31,37 @@ a, a:visited {
 }
 img {
   max-width: 100%;
+  height: auto;
+}
+figure {
+  margin: 1.75em auto;
+  page-break-inside: avoid;
+  text-align: center;
+}
+figure img {
+  display: block;
+  margin: 0 auto;
+}
+figcaption {
+  margin-top: 0.65em;
+  color: #555;
+  font-size: 0.9em;
+  line-height: 1.45;
+  text-align: center;
+}
+.book-table {
+  margin: 1.75em 0;
+  page-break-inside: avoid;
+}
+.book-table > p:first-child {
+  margin-bottom: 0.6em;
+  font-size: 0.92em;
+}
+.book-example-caption {
+  break-after: avoid;
+  color: #334155;
+  font-family: sans-serif;
+  margin: 1.25em 0 0.5em;
 }
 sup {
   vertical-align: super;

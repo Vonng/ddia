@@ -1,5 +1,6 @@
 ---
 title: 索引
+book_kind: index
 search_exclude: true
 weight: 550
 breadcrumbs: false

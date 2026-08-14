@@ -1,0 +1,19 @@
+{{- /* OINK namespaces repeated heading IDs in whole-book print. DDIA also has
+       hundreds of page-local Goldmark footnotes whose fn:/fnref: IDs repeat
+       between chapters, so extend the same page namespace to footnotes and
+       their backlinks while preserving public fig/tbl/eq IDs byte-for-byte. */ -}}
+{{- $page := .page -}}
+{{- $content := printf "%s" .content -}}
+{{- range $anchor := $page.Fragments.Identifiers -}}
+  {{- $target := partial "book/aggregate-heading-anchor.html" (dict "page" $page "anchor" $anchor) -}}
+  {{- $content = replace $content (printf `id="%s"` $anchor) (printf `id="%s"` $target) -}}
+  {{- $content = replace $content (printf `href="#%s"` $anchor) (printf `href="#%s"` $target) -}}
+  {{- $content = replace $content (printf `href="%s#%s"` $page.RelPermalink $anchor) (printf `href="#%s"` $target) -}}
+{{- end -}}
+{{- range $match := findRESubmatch `id="(fn(ref[0-9]*)?:[^"]+)"` $content -}}
+  {{- $anchor := index $match 1 -}}
+  {{- $target := partial "book/aggregate-heading-anchor.html" (dict "page" $page "anchor" $anchor) -}}
+  {{- $content = replace $content (printf `id="%s"` $anchor) (printf `id="%s"` $target) -}}
+  {{- $content = replace $content (printf `href="#%s"` $anchor) (printf `href="#%s"` $target) -}}
+{{- end -}}
+{{- return ($content | safeHTML) -}}

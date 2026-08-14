@@ -1,5 +1,7 @@
 ---
-title: 第一部分：数据系统基础
+title: 数据系统基础
+book_kind: part
+book_number: I
 search_exclude: true
 weight: 100
 breadcrumbs: false

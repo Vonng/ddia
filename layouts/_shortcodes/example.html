@@ -1,0 +1,8 @@
+{{- $num := .Get "num" | default (.Get "number") -}}
+{{- $caption := .Get "caption" | default (.Get "title") -}}
+{{- $label := cond (eq (.Page.Site.Language.Locale | default "") "zh-TW") "範例" "示例" -}}
+<div class="td-book-example"{{ with .Get "id" }} id="{{ . }}"{{ end }}>
+  <strong class="td-book-example__label">{{ $label }}{{ with $num }} {{ . }}{{ end }}</strong>
+  {{- with $caption }}<span class="td-book-example__caption">{{ . | markdownify }}</span>{{ end }}
+  {{- with .Inner }}<div class="td-book-example__body">{{ . | markdownify }}</div>{{ end }}
+</div>

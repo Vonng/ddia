@@ -9,6 +9,7 @@ sections:
 hero:
   eyebrow: DDIA · 第二版繁體中文翻譯
   title: 設計**資料密集型**應用
+  title_size: 4.45rem
   lead: 從資料模型、儲存引擎到分散式系統與衍生資料，建立設計現代資料系統所需的完整思維框架。
   note: 第二版翻譯持續維護中，歡迎校訂與回饋。
   image:
@@ -23,6 +24,10 @@ hero:
     - label: 從序言開始
       url: preface/
       icon: fa-solid fa-book-open
+      style: ghost
+    - label: 整書列印
+      url: _print/
+      icon: fa-solid fa-print
       style: ghost
   detail:
     label: 在 GitHub 上參與翻譯與校訂
@@ -40,7 +45,7 @@ metrics:
     - { value: '14', label: 章, desc: 從架構權衡到技術倫理, icon: fa-solid fa-book, url: toc/ }
     - { value: '3', label: 部分, desc: 基礎、分散式與衍生資料, icon: fa-solid fa-layer-group, url: part-i/ }
     - { value: '4', label: 閱讀版本, desc: 兩版 × 簡繁中文, icon: fa-solid fa-language }
-    - { value: '1', label: 開放專案, desc: 透過 GitHub 持續校訂, icon: fa-brands fa-github, url: https://github.com/Vonng/ddia, external: true }
+    - { value: '106', label: 編號插圖, desc: 穩定圖號、交叉引用與縮放, icon: fa-solid fa-diagram-project, url: toc/#list-of-figures }
 
 gallery:
   eyebrow: 閱讀路線
@@ -73,9 +78,9 @@ principles:
     - icon: fa-solid fa-magnifying-glass
       title: 搜尋與命令面板
       desc: 按 `⌘ K` 搜尋全文與常用操作，或按 `/` 直接執行閱讀、版本、語言和頁面命令。
-    - icon: fa-solid fa-file-lines
-      title: 可複製、可列印
-      desc: 每頁提供文字複製、原始碼檢視與列印，並產生適合工具讀取的 `llms.txt`。
+    - icon: fa-solid fa-book-open-reader
+      title: 圖表與整書出版
+      desc: 圖、表與引用語義化互聯，支援高畫質縮放、整書列印、Markdown 與 EPUB 出版鏈路。
     - icon: fa-solid fa-code-pull-request
       title: 開放校訂
       desc: 頁面可直接跳轉 GitHub 編輯或提交問題；每一處修正都能回到明確的原始碼。

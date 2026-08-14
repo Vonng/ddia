@@ -1,5 +1,6 @@
 ---
 title: 术语表
+book_kind: glossary
 weight: 500
 breadcrumbs: false
 ---

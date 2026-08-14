@@ -1,8 +1,11 @@
+OINK_MODULE := github.com/pgsty/oink
+OINK_LOCAL := $(HOME)/pgsty/oink
+
 default: dev
 
 d:dev
 dev:
-	hugo serve
+	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" hugo serve
 
 b:build
 build:
@@ -12,9 +15,18 @@ build:
 
 # generate zh-tw version
 translate:
-	bin/zh-tw.py
+	uv run --with opencc-python-reimplemented==0.1.7 -- python bin/zh-tw.py
+
+figures:
+	bin/figure-layout.py --write
+
+figures-check:
+	bin/figure-layout.py --check
 
 epub:
 	bin/epub
 
-.PHONY: default doc translate
+epub-check: epub
+	bin/check-epub.py
+
+.PHONY: translate figures figures-check epub epub-check

@@ -1,5 +1,7 @@
 ---
-title: 第三部分：派生数据
+title: 派生数据
+book_kind: part
+book_number: III
 search_exclude: true
 weight: 300
 breadcrumbs: false

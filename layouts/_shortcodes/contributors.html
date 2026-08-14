@@ -1,0 +1,11 @@
+{{- $key := .Get "data" | default "contributors" -}}
+{{- $source := index hugo.Data $key | default dict -}}
+{{- $items := $source.items | default slice -}}
+<div class="td-contributor-wall" role="list">
+  {{- range $items }}
+  <a class="td-contributor" role="listitem" href="https://github.com/{{ .github }}" target="_blank" rel="noopener noreferrer" title="{{ .name | default .github }}{{ with .role }} · {{ . }}{{ end }}">
+    <img src="https://github.com/{{ .github }}.png?size=96" alt="" width="48" height="48" loading="lazy">
+    <span><strong>{{ .name | default (printf "@%s" .github) }}</strong>{{ with .role }}<small>{{ . }}</small>{{ end }}</span>
+  </a>
+  {{- end }}
+</div>

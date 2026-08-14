@@ -1,5 +1,8 @@
 ---
-title: "7. 分片"
+title: 分片
+book_kind: chapter
+book_number: "7"
+book_part: II
 weight: 207
 breadcrumbs: false
 ---
@@ -21,9 +24,9 @@ breadcrumbs: false
 
 分片通常与复制结合使用，使得每个分片的副本存储在多个节点上。这意味着，即使每条记录只属于一个分片，它仍然可以存储在多个不同的节点上以获得容错能力。
 
-一个节点可能存储多个分片。如果使用单主复制模型，则分片和复制的组合可能如 [图 7-1](/ch7#fig_sharding_replicas) 所示。每个分片的领导者被分配给一个节点，追随者被分配给其他节点。每个节点可能是某些分片的领导者，同时是其他分片的追随者，但每个分片仍然只有一个领导者。
+一个节点可能存储多个分片。如果使用单主复制模型，则分片和复制的组合可能如 {{< xref fig="7-1" page="/ch7" anchor="fig_sharding_replicas" >}}图 7-1{{< /xref >}} 所示。每个分片的领导者被分配给一个节点，追随者被分配给其他节点。每个节点可能是某些分片的领导者，同时是其他分片的追随者，但每个分片仍然只有一个领导者。
 
-{{< figure src="/fig/ddia_0701.png" id="fig_sharding_replicas" caption="图 7-1. 复制与分片结合使用：每个节点对某些分片充当领导者，对另一些分片充当追随者。" class="w-full my-4" >}}
+{{< fig num="7-1" id="fig_sharding_replicas" src="/fig/ddia_0701.png" caption="复制与分片结合使用：每个节点对某些分片充当领导者，对另一些分片充当追随者。" class="ddia-figure ddia-figure--wide" width="2658" height="1380" />}}
 
 我们在 [第 6 章](/ch6#ch_replication) 中讨论的关于数据库复制的所有内容，同样适用于分片的复制。大多数情况下，分片方案与复制方案可以独立选择；为简单起见，本章将忽略复制。
 
@@ -105,11 +108,11 @@ breadcrumbs: false
 
 ### 按键的范围分片 {#sec_sharding_key_range}
 
-一种分片方法，是为每个分片指定一段连续的分区键范围（从某个最小值到某个最大值），就像纸质百科全书的各卷，如 [图 7-2](/ch7#fig_sharding_encyclopedia) 所示。在这个例子中，词条标题就是分区键。如果知道各范围之间的边界，就能找到键范围涵盖该标题的卷，轻松确定词条所在的分片，并从书架上取下正确的书。
+一种分片方法，是为每个分片指定一段连续的分区键范围（从某个最小值到某个最大值），就像纸质百科全书的各卷，如 {{< xref fig="7-2" page="/ch7" anchor="fig_sharding_encyclopedia" >}}图 7-2{{< /xref >}} 所示。在这个例子中，词条标题就是分区键。如果知道各范围之间的边界，就能找到键范围涵盖该标题的卷，轻松确定词条所在的分片，并从书架上取下正确的书。
 
-{{< figure src="/fig/ddia_0702.png" id="fig_sharding_encyclopedia" caption="图 7-2. 印刷版百科全书按键范围分片。" class="w-full my-4" >}}
+{{< fig num="7-2" id="fig_sharding_encyclopedia" src="/fig/ddia_0702.png" caption="印刷版百科全书按键范围分片。" class="ddia-figure ddia-figure--wide" width="2880" height="1023" />}}
 
-各段键范围不一定等宽，因为数据本身很可能分布不均。例如在 [图 7-2](/ch7#fig_sharding_encyclopedia) 中，第 1 卷收录以 A 和 B 开头的单词，第 12 卷却收录以 T、U、V、W、X、Y 和 Z 开头的单词。如果简单地规定每两个字母一卷，有些卷就会比其他卷厚得多。为了均匀分布数据，分片边界必须根据数据进行调整。
+各段键范围不一定等宽，因为数据本身很可能分布不均。例如在 {{< xref fig="7-2" page="/ch7" anchor="fig_sharding_encyclopedia" >}}图 7-2{{< /xref >}} 中，第 1 卷收录以 A 和 B 开头的单词，第 12 卷却收录以 T、U、V、W、X、Y 和 Z 开头的单词。如果简单地规定每两个字母一卷，有些卷就会比其他卷厚得多。为了均匀分布数据，分片边界必须根据数据进行调整。
 
 分片边界既可以由管理员手工选择，也可以由数据库自动确定。例如，Vitess（MySQL 的分片层）采用手动的键范围分片；Bigtable、其开源版本 HBase、MongoDB 的范围分片选项、CockroachDB、RethinkDB 和 FoundationDB 则采用自动方式 [^6]。YugabyteDB 同时支持手动和自动拆分表分片。
 
@@ -146,9 +149,9 @@ breadcrumbs: false
 
 算出键的哈希值之后，该如何选择存储它的分片？你首先想到的也许是让哈希值对系统中的节点数 *取模*（许多编程语言使用 `%` 运算符）。例如，*hash*(*key*) % 10 会返回 0 到 9 之间的数；如果把哈希值写成十进制，hash % 10 就是它的末位数字。假设有 10 个节点，编号为 0 到 9，这似乎是把键分配到节点的简单办法。
 
-*模 N* 方法的问题在于，只要节点数 *N* 发生变化，大多数键就必须从一个节点移到另一个节点。[图 7-3](/ch7#fig_sharding_hash_mod_n) 展示了三个节点增加到四个时的情况。再平衡之前，节点 0 存储哈希值为 0、3、6、9 等的键；加入第四个节点之后，哈希值为 3 的键移到节点 3，哈希值为 6 的键移到节点 2，哈希值为 9 的键移到节点 1，依此类推。
+*模 N* 方法的问题在于，只要节点数 *N* 发生变化，大多数键就必须从一个节点移到另一个节点。{{< xref fig="7-3" page="/ch7" anchor="fig_sharding_hash_mod_n" >}}图 7-3{{< /xref >}} 展示了三个节点增加到四个时的情况。再平衡之前，节点 0 存储哈希值为 0、3、6、9 等的键；加入第四个节点之后，哈希值为 3 的键移到节点 3，哈希值为 6 的键移到节点 2，哈希值为 9 的键移到节点 1，依此类推。
 
-{{< figure src="/fig/ddia_0703.png" id="fig_sharding_hash_mod_n" caption="图 7-3. 通过对键进行哈希并取模节点数来将键分配给节点。更改节点数会导致许多键从一个节点移动到另一个节点。" class="w-full my-4" >}}
+{{< fig num="7-3" id="fig_sharding_hash_mod_n" src="/fig/ddia_0703.png" caption="通过对键进行哈希并取模节点数来将键分配给节点。更改节点数会导致许多键从一个节点移动到另一个节点。" class="ddia-figure ddia-figure--wide" width="2658" height="1314" />}}
 
 *模 N* 很容易计算，却会导致极其低效的再平衡，因为大量记录在节点之间进行了不必要的迁移。我们需要一种只移动必要数据的办法。
 
@@ -156,9 +159,9 @@ breadcrumbs: false
 
 一种简单而常用的解决方案，是创建远多于节点数的分片，再给每个节点分配多个分片。例如，一个运行在 10 节点集群上的数据库可以从一开始就划分成 1,000 个分片，每个节点分得 100 个。键会存入编号为 *hash*(*key*) % 1,000 的分片，而系统另行记录每个分片存放在哪个节点上。
 
-如果向集群加入一个节点，系统可以把现有节点上的一部分分片重新分配给新节点，直到分片再次均匀分布。[图 7-4](/ch7#fig_sharding_rebalance_fixed) 展示了这一过程。移除节点时，则反向执行同样的操作。
+如果向集群加入一个节点，系统可以把现有节点上的一部分分片重新分配给新节点，直到分片再次均匀分布。{{< xref fig="7-4" page="/ch7" anchor="fig_sharding_rebalance_fixed" >}}图 7-4{{< /xref >}} 展示了这一过程。移除节点时，则反向执行同样的操作。
 
-{{< figure src="/fig/ddia_0704.png" id="fig_sharding_rebalance_fixed" caption="图 7-4. 向每个节点有多个分片的数据库集群添加新节点。" class="w-full my-4" >}}
+{{< fig num="7-4" id="fig_sharding_rebalance_fixed" src="/fig/ddia_0704.png" caption="向每个节点有多个分片的数据库集群添加新节点。" class="ddia-figure ddia-figure--wide" width="2658" height="1436" />}}
 
 在这种模型中，只有完整的分片在节点之间移动，成本低于拆分分片。分片的数量不会改变，键所指定的分片也不会改变；唯一改变的是分片所在的节点。这种变更并非即时——在网络上传输大量数据需要时间——所以传输期间发生的读写，仍按原有的分片到节点映射处理。
 
@@ -174,9 +177,9 @@ Citus（PostgreSQL 的分片层）、Riak、Elasticsearch 和 Couchbase 等系�
 
 如果无法事先预测需要多少分片，最好采用一种能让分片数量轻松适应工作负载的方案。前述键范围分片具备这一性质，但大量写入集中到相邻键时容易形成热点。一种解决办法是将键范围分片与哈希函数结合，使每个分片包含一段 *哈希值* 范围，而不是一段 *键* 范围。
 
-[图 7-5](/ch7#fig_sharding_hash_range) 展示了一个 16 位哈希函数，它会返回 0 到 65,535 = 2¹⁶ − 1 之间的数（实际使用的哈希通常至少有 32 位）。即使输入键十分相似（例如连续的时间戳），它们的哈希值也会均匀分布在这个范围内。于是，可以为每个分片分配一段哈希值范围：例如 0 到 16,383 归分片 0，16,384 到 32,767 归分片 1，依此类推。
+{{< xref fig="7-5" page="/ch7" anchor="fig_sharding_hash_range" >}}图 7-5{{< /xref >}} 展示了一个 16 位哈希函数，它会返回 0 到 65,535 = 2¹⁶ − 1 之间的数（实际使用的哈希通常至少有 32 位）。即使输入键十分相似（例如连续的时间戳），它们的哈希值也会均匀分布在这个范围内。于是，可以为每个分片分配一段哈希值范围：例如 0 到 16,383 归分片 0，16,384 到 32,767 归分片 1，依此类推。
 
-{{< figure src="/fig/ddia_0705.png" id="fig_sharding_hash_range" caption="图 7-5. 为每个分片分配连续的哈希值范围。" class="w-full my-4" >}}
+{{< fig num="7-5" id="fig_sharding_hash_range" src="/fig/ddia_0705.png" caption="为每个分片分配连续的哈希值范围。" class="ddia-figure ddia-figure--panorama" width="2658" height="832" />}}
 
 与键范围分片一样，哈希范围分片也可以在分片过大或负载过重时将其拆分。这个操作依然昂贵，但可以按需执行，因此分片数量会随数据量调整，而不是预先固定不变。
 
@@ -190,11 +193,11 @@ BigQuery、Snowflake 和 Delta Lake 等数据仓库也支持类似的索引方�
 
 --------
 
-YugabyteDB 和 DynamoDB 采用哈希范围分片 [^17]，MongoDB 也把它作为一种可选方案。Cassandra 和 ScyllaDB 则采用这种方法的一个变体，如 [图 7-6](/ch7#fig_sharding_cassandra) 所示：它们把哈希值空间划分成若干范围，范围数与节点数成正比（[图 7-6](/ch7#fig_sharding_cassandra) 中每个节点有 3 个范围；实际默认值是 Cassandra 每个节点 8 个、ScyllaDB 每个节点 256 个），各范围之间的边界随机选定。这样有些范围会比其他范围大，但每个节点拥有多个范围之后，这些不均衡往往能相互抵消 [^15] [^18]。
+YugabyteDB 和 DynamoDB 采用哈希范围分片 [^17]，MongoDB 也把它作为一种可选方案。Cassandra 和 ScyllaDB 则采用这种方法的一个变体，如 {{< xref fig="7-6" page="/ch7" anchor="fig_sharding_cassandra" >}}图 7-6{{< /xref >}} 所示：它们把哈希值空间划分成若干范围，范围数与节点数成正比（{{< xref fig="7-6" page="/ch7" anchor="fig_sharding_cassandra" >}}图 7-6{{< /xref >}} 中每个节点有 3 个范围；实际默认值是 Cassandra 每个节点 8 个、ScyllaDB 每个节点 256 个），各范围之间的边界随机选定。这样有些范围会比其他范围大，但每个节点拥有多个范围之后，这些不均衡往往能相互抵消 [^15] [^18]。
 
-{{< figure src="/fig/ddia_0706.png" id="fig_sharding_cassandra" caption="图 7-6. Cassandra 和 ScyllaDB 将可能的哈希值范围（这里是 0–1023）拆成边界随机的连续区间，并为每个节点分配多个区间。" class="w-full my-4" >}}
+{{< fig num="7-6" id="fig_sharding_cassandra" src="/fig/ddia_0706.png" caption="Cassandra 和 ScyllaDB 将可能的哈希值范围（这里是 0–1023）拆成边界随机的连续区间，并为每个节点分配多个区间。" class="ddia-figure ddia-figure--standard" width="2658" height="2012" />}}
 
-添加或移除节点时，系统会相应增删范围边界，并拆分或合并分片 [^19]。在 [图 7-6](/ch7#fig_sharding_cassandra) 的例子中，加入节点 3 之后，节点 1 把自己两个范围中的一部分交给节点 3，节点 2 也把一个范围中的一部分交给节点 3。这样，新节点便能分得大致公平的一份数据，同时避免在节点间传输不必要的数据。
+添加或移除节点时，系统会相应增删范围边界，并拆分或合并分片 [^19]。在 {{< xref fig="7-6" page="/ch7" anchor="fig_sharding_cassandra" >}}图 7-6{{< /xref >}} 的例子中，加入节点 3 之后，节点 1 把自己两个范围中的一部分交给节点 3，节点 2 也把一个范围中的一部分交给节点 3。这样，新节点便能分得大致公平的一份数据，同时避免在节点间传输不必要的数据。
 
 #### 一致性哈希 {#sec_sharding_consistent_hashing}
 
@@ -245,13 +248,13 @@ Cassandra 和 ScyllaDB 的分片算法与一致性哈希的原始定义相似 [^
 
 这个问题称为 *请求路由*，与前文 [“负载均衡器、服务发现和服务网格”](/ch5#sec_encoding_service_discovery) 讨论的 *服务发现* 十分相似。二者最大的区别在于：运行应用代码的服务实例通常是无状态的，负载均衡器可以把请求发给任意实例；而在分片数据库中，某个键的请求只能交给持有该键所在分片副本的节点处理。
 
-因此，请求路由必须了解键到分片、以及分片到节点的映射。概括来说，有以下几种办法（如 [图 7-7](/ch7#fig_sharding_routing) 所示）：
+因此，请求路由必须了解键到分片、以及分片到节点的映射。概括来说，有以下几种办法（如 {{< xref fig="7-7" page="/ch7" anchor="fig_sharding_routing" >}}图 7-7{{< /xref >}} 所示）：
 
 1. 允许客户端连接任意节点（例如通过轮询负载均衡器）。如果该节点恰好持有请求涉及的分片，就直接处理请求；否则，它把请求转发给正确的节点，收到响应后再转交给客户端。
 2. 客户端的所有请求都先发送到一个路由层，由路由层判断哪个节点应当处理每个请求，再相应地转发。路由层本身并不处理请求，只充当一个能够感知分片的负载均衡器。
 3. 让客户端了解分片方式以及分片到节点的分配关系。这样，客户端无须经过任何中间层，就能直接连接到正确的节点。
 
-{{< figure src="/fig/ddia_0707.png" id="fig_sharding_routing" caption="图 7-7. 将请求路由到正确节点的三种不同方式。" class="w-full my-4" >}}
+{{< fig num="7-7" id="fig_sharding_routing" src="/fig/ddia_0707.png" caption="将请求路由到正确节点的三种不同方式。" class="ddia-figure ddia-figure--wide" width="2658" height="1182" />}}
 
 在所有情况下，都有一些关键问题：
 
@@ -259,9 +262,9 @@ Cassandra 和 ScyllaDB 的分片算法与一致性哈希的原始定义相似 [^
 * 负责路由的组件（可以是某个数据库节点、路由层或客户端）怎样得知分片到节点的分配发生了变化？
 * 分片从一个节点迁移到另一个节点时，会有一段切换期：新节点已经接管，但发往旧节点的请求可能仍在途中。应当如何处理这些请求？
 
-许多分布式数据系统依靠 ZooKeeper、etcd 等独立协调服务来记录分片分配，如 [图 7-8](/ch7#fig_sharding_zookeeper) 所示。这些服务使用共识算法（参见 [第 10 章](/ch10#ch_consistency)）实现容错并防止脑裂。每个节点都在 ZooKeeper 中注册，ZooKeeper 维护分片到节点的权威映射；路由层或能够感知分片的客户端等其他参与者，可以订阅 ZooKeeper 中的信息。只要分片易主，或有节点加入、退出，ZooKeeper 就会通知路由层，使其路由信息保持最新。
+许多分布式数据系统依靠 ZooKeeper、etcd 等独立协调服务来记录分片分配，如 {{< xref fig="7-8" page="/ch7" anchor="fig_sharding_zookeeper" >}}图 7-8{{< /xref >}} 所示。这些服务使用共识算法（参见 [第 10 章](/ch10#ch_consistency)）实现容错并防止脑裂。每个节点都在 ZooKeeper 中注册，ZooKeeper 维护分片到节点的权威映射；路由层或能够感知分片的客户端等其他参与者，可以订阅 ZooKeeper 中的信息。只要分片易主，或有节点加入、退出，ZooKeeper 就会通知路由层，使其路由信息保持最新。
 
-{{< figure src="/fig/ddia_0708.png" id="fig_sharding_zookeeper" caption="图 7-8. 使用 ZooKeeper 跟踪分片到节点的分配。" class="w-full my-4" >}}
+{{< fig num="7-8" id="fig_sharding_zookeeper" src="/fig/ddia_0708.png" caption="使用 ZooKeeper 跟踪分片到节点的分配。" class="ddia-figure ddia-figure--wide" width="2658" height="1163" />}}
 
 例如，HBase 和 SolrCloud 使用 ZooKeeper 管理分片分配，Kubernetes 使用 etcd 记录每个服务实例的运行位置。MongoDB 的架构与之相似，不过它依靠自有的 *配置服务器* 实现，并以 *mongos* 守护进程作为路由层。Kafka、YugabyteDB 和 TiDB 则使用内置的 Raft 共识协议实现这项协调功能。
 
@@ -281,11 +284,11 @@ Cassandra、ScyllaDB 和 Riak 采用另一种办法：节点之间通过 *流言
 
 ### 本地二级索引 {#id166}
 
-假设你正在运营一个二手车交易网站（如 [图 7-9](/ch7#fig_sharding_local_secondary) 所示）。每条车辆信息都有唯一 ID，并以该 ID 作为分区键进行分片（例如，ID 0 到 499 归分片 0，ID 500 到 999 归分片 1，依此类推）。
+假设你正在运营一个二手车交易网站（如 {{< xref fig="7-9" page="/ch7" anchor="fig_sharding_local_secondary" >}}图 7-9{{< /xref >}} 所示）。每条车辆信息都有唯一 ID，并以该 ID 作为分区键进行分片（例如，ID 0 到 499 归分片 0，ID 500 到 999 归分片 1，依此类推）。
 
 如果要让用户搜索车辆，并按颜色与品牌筛选，就需要在 `color` 和 `make` 上建立二级索引（在文档数据库中它们是字段，在关系数据库中则是列）。声明索引后，数据库会自动维护它。例如，每增加一辆红色汽车，所在分片就会自动把它的 ID 加入索引条目 `color:red` 对应的 ID 列表。正如 [第 4 章](/ch4#ch_storage) 所述，这种 ID 列表也称为 *倒排列表*。
 
-{{< figure src="/fig/ddia_0709.png" id="fig_sharding_local_secondary" caption="图 7-9. 本地二级索引：每个分片只索引其自己分片内的记录。" class="w-full my-4" >}}
+{{< fig num="7-9" id="fig_sharding_local_secondary" src="/fig/ddia_0709.png" caption="本地二级索引：每个分片只索引其自己分片内的记录。" class="ddia-figure ddia-figure--wide" width="2658" height="1260" />}}
 
 > [!WARNING] 警告
 
@@ -297,7 +300,7 @@ Cassandra、ScyllaDB 和 Riak 采用另一种办法：节点之间通过 *流言
 
 读取本地二级索引时，如果已经知道目标记录的分区键，就只需在对应分片上搜索。如果只想获得 *部分* 结果而不要求全部，也可以把请求发给任意分片。
 
-但是，如果需要全部结果，又事先不知道这些记录的分区键，就必须把查询发送到所有分片，再合并返回结果，因为匹配的记录可能散布在每个分片中。在 [图 7-9](/ch7#fig_sharding_local_secondary) 中，分片 0 和分片 1 都有红色汽车。
+但是，如果需要全部结果，又事先不知道这些记录的分区键，就必须把查询发送到所有分片，再合并返回结果，因为匹配的记录可能散布在每个分片中。在 {{< xref fig="7-9" page="/ch7" anchor="fig_sharding_local_secondary" >}}图 7-9{{< /xref >}} 中，分片 0 和分片 1 都有红色汽车。
 
 这种查询分片数据库的方式，会让二级索引上的读取查询变得相当昂贵。即使并行查询所有分片，也很容易出现尾部延迟放大（参见 [“响应时间指标的应用”](/ch2#sec_introduction_slo_sla)）。它还会限制应用的可伸缩性：增加分片能容纳更多数据，但如果每次查询仍要由所有分片处理，查询吞吐量并不会随之提高。
 
@@ -307,13 +310,13 @@ Cassandra、ScyllaDB 和 Riak 采用另一种办法：节点之间通过 *流言
 
 除了让每个分片各自维护本地二级索引，也可以构建一个覆盖所有分片数据的 *全局索引*。不过，不能只把这个索引存放在单个节点上，否则它很可能成为瓶颈，使分片失去意义。因此全局索引本身也必须分片，但可以采用与主键索引不同的分片方式。
 
-[图 7-10](/ch7#fig_sharding_global_secondary) 展示了它可能采用的形式：来自所有分片的红色汽车 ID 都列在索引的 `color:red` 条目下；索引本身则经过分片，以字母 *a* 到 *r* 开头的颜色归分片 0，以 *s* 到 *z* 开头的颜色归分片 1。汽车品牌索引也以类似方式分片，边界位于 *f* 与 *h* 之间。
+{{< xref fig="7-10" page="/ch7" anchor="fig_sharding_global_secondary" >}}图 7-10{{< /xref >}} 展示了它可能采用的形式：来自所有分片的红色汽车 ID 都列在索引的 `color:red` 条目下；索引本身则经过分片，以字母 *a* 到 *r* 开头的颜色归分片 0，以 *s* 到 *z* 开头的颜色归分片 1。汽车品牌索引也以类似方式分片，边界位于 *f* 与 *h* 之间。
 
-{{< figure src="/fig/ddia_0710.png" id="fig_sharding_global_secondary" caption="图 7-10. 全局二级索引反映来自所有分片的数据，并且本身按索引值进行分片。" class="w-full my-4" >}}
+{{< fig num="7-10" id="fig_sharding_global_secondary" src="/fig/ddia_0710.png" caption="全局二级索引反映来自所有分片的数据，并且本身按索引值进行分片。" class="ddia-figure ddia-figure--wide" width="2658" height="1129" />}}
 
 这种索引也称为 *按词项分区* [^30]。回顾 [“全文检索”](/ch4#sec_storage_full_text)：在全文检索中，*词项* 是文本中可供搜索的关键字；这里我们把它推广为二级索引中任何可供搜索的值。
 
-全局索引以词项作为分区键，因此查找某个词项或值时，可以直接确定需要查询哪个分片。和前面一样，每个分片可以包含一段连续的词项范围（如 [图 7-10](/ch7#fig_sharding_global_secondary) 所示），也可以根据词项的哈希值把词项分配到各个分片。
+全局索引以词项作为分区键，因此查找某个词项或值时，可以直接确定需要查询哪个分片。和前面一样，每个分片可以包含一段连续的词项范围（如 {{< xref fig="7-10" page="/ch7" anchor="fig_sharding_global_secondary" >}}图 7-10{{< /xref >}} 所示），也可以根据词项的哈希值把词项分配到各个分片。
 
 全局索引的优点是，如果查询只有一个条件（如 *color = red*），只需读取一个分片就能取得倒排列表。不过，如果想要的不只是 ID，而是完整记录，仍需读取负责存储这些 ID 的所有分片。
 

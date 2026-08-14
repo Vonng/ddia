@@ -1,5 +1,6 @@
 ---
 title: 索引
+book_kind: index
 search_exclude: true
 weight: 550
 breadcrumbs: false
@@ -55,7 +56,7 @@ breadcrumbs: false
   - （另見 共識）
 - AI (artificial intelligence)（見 machine learning）
 - AI Act (European Union), [資料系統、法律與社會](/tw/ch1#sec_introduction_compliance)
-- Airbyte, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- Airbyte, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - Airflow（工作流排程器）, [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows), [批處理](/tw/ch11#ch_batch), [工作流排程](/tw/ch11#sec_batch_workflows)
   - 雲資料倉整合, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - 用於 ETL, [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
@@ -96,7 +97,7 @@ breadcrumbs: false
   - 訊息順序, [確認與重新傳遞](/tw/ch12#sec_stream_reordering)
 - 分析系統, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics)
   - 作為衍生資料系統, [記錄系統與派生資料](/tw/ch1#sec_introduction_derived)
-  - 來自運營系統的 ETL, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+  - 來自運營系統的 ETL, [資料倉儲](/tw/ch1#sec_introduction_dwh)
   - 治理, [超越資料湖](/tw/ch1#beyond-the-data-lake)
 - 分析, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics)-[記錄系統與派生資料](/tw/ch1#sec_introduction_derived)
   - 與事務處理的比較, [事務處理與分析的特徵](/tw/ch1#sec_introduction_oltp)
@@ -266,7 +267,7 @@ breadcrumbs: false
   - 資料整合, [批處理與流處理](/tw/ch13#sec_future_batch_streaming)-[統一批處理和流處理](/tw/ch13#id338)
   - 圖表和迭代處理, [機器學習](/tw/ch11#id290)
   - high-level APIs and languages, [查詢語言](/tw/ch11#sec_batch_query_lanauges)-[查詢語言](/tw/ch11#sec_batch_query_lanauges)
-  - 雲資料倉庫中, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
+  - 雲資料倉儲中, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - 在分散式系統中, [分散式系統中的批處理](/tw/ch11#sec_batch_distributed)
   - 加入和分組, [JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)-[JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)
   - 限制, [批處理](/tw/ch11#ch_batch)
@@ -291,7 +292,7 @@ breadcrumbs: false
 - 泥漿大球, [簡單性：管理複雜度](/tw/ch2#id38)
 - 大資料
   - 對資料最小化, [資料系統、法律與社會](/tw/ch1#sec_introduction_compliance), [立法與自律](/tw/ch14#sec_future_legislation)
-- BigQuery（資料庫）, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [批處理](/tw/ch11#ch_batch)
+- BigQuery（資料庫）, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [批處理](/tw/ch11#ch_batch)
   - DataFrames, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - 硬化和叢集, [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
   - 移動資料, [混洗資料](/tw/ch11#sec_shuffle)
@@ -341,9 +342,9 @@ breadcrumbs: false
 - Bufstream（訊息系統）, [磁碟空間使用](/tw/ch12#sec_stream_disk_usage)
 - 新建或購買, [雲服務與自託管](/tw/ch1#sec_introduction_cloud)
 - 快速網路交通模式, [我們不能簡單地使網路延遲可預測嗎？](/tw/ch9#can-we-not-simply-make-network-delays-predictable)
-- 商業分析員, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics), [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+- 商業分析員, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics), [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
 - 商業資料處理, [事務處理與分析的特徵](/tw/ch1#sec_introduction_oltp)
-- 商業情報, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics)-[資料倉庫](/tw/ch1#sec_introduction_dwh)
+- 商業情報, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics)-[資料倉儲](/tw/ch1#sec_introduction_dwh)
 - Business Process Execution Language (BPEL), [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows)
 - Business Process Model and Notation (BPMN), [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows)
   - 例項, [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows)
@@ -387,7 +388,7 @@ breadcrumbs: false
   - 使用時鐘, [仲裁一致性的侷限](/tw/ch6#sec_replication_quorum_limitations), [用於事件排序的時間戳](/tw/ch9#sec_distributed_lww)
   - 節點（硬化）, [分片](/tw/ch7#ch_sharding)
 - 貓（Unix 工具）, [簡單日誌分析](/tw/ch11#sec_batch_log_analysis)
-- 目錄, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- 目錄, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - 因果關係, [版本向量](/tw/ch6#version-vectors)
   - （另見 causal dependencies）
 - 因果關係, ["先發生"關係與併發](/tw/ch6#sec_replication_happens_before)-[版本向量](/tw/ch6#version-vectors)
@@ -424,7 +425,7 @@ breadcrumbs: false
   - 保持衍生狀態, [資料庫與流](/tw/ch12#sec_stream_databases)
 - 混亂工程, [容錯](/tw/ch2#id27), [故障注入](/tw/ch9#sec_fault_injection)
 - 檢查站
-  - 在高效能計算中, [雲計算與超級計算](/tw/ch1#id17)
+  - 在高效能運算中, [雲端計算與超級計算](/tw/ch1#id17)
   - 在流處理器中, [微批次與存檔點](/tw/ch12#id329)
 - 斷路器（限制重試）, [描述效能](/tw/ch2#sec_introduction_percentiles)
 - 電路交換網路, [同步與非同步網路](/tw/ch9#sec_distributed_sync_networks)
@@ -454,9 +455,9 @@ breadcrumbs: false
   - synchronization using GPS, [不可靠的時鐘](/tw/ch9#sec_distributed_clocks), [時鐘同步和準確性](/tw/ch9#sec_distributed_clock_accuracy), [帶置信區間的時鐘讀數](/tw/ch9#clock-readings-with-a-confidence-interval), [用於全域性快照的同步時鐘](/tw/ch9#sec_distributed_spanner)
   - 時間與單調時鐘, [單調時鐘與日曆時鐘](/tw/ch9#sec_distributed_monotonic_timeofday)
   - 時間標記事件, [你用的是誰的時鐘？](/tw/ch12#id438)
-- 雲服務, [雲服務與自託管](/tw/ch1#sec_introduction_cloud)-[雲計算與超級計算](/tw/ch1#id17)
+- 雲服務, [雲服務與自託管](/tw/ch1#sec_introduction_cloud)-[雲端計算與超級計算](/tw/ch1#id17)
   - 可用區, [透過冗餘容忍硬體故障](/tw/ch2#tolerating-hardware-faults-through-redundancy), [讀己之寫](/tw/ch6#sec_replication_ryw)
-  - 資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - 需要發現服務, [服務發現](/tw/ch10#service-discovery)
   - 網路故障, [實踐中的網路故障](/tw/ch9#sec_distributed_network_faults)
   - 利弊關係, [雲服務的利弊](/tw/ch1#sec_introduction_cloud_tradeoffs)-[雲服務的利弊](/tw/ch1#sec_introduction_cloud_tradeoffs)
@@ -464,7 +465,7 @@ breadcrumbs: false
   - regions（見 regions (geographic distribution)）
   - 無伺服器, [微服務與無伺服器](/tw/ch1#sec_introduction_microservices)
   - 共享資源, [網路擁塞和排隊](/tw/ch9#network-congestion-and-queueing)
-  - 對超級計算, [雲計算與超級計算](/tw/ch1#id17)
+  - 對超級計算, [雲端計算與超級計算](/tw/ch1#id17)
 - 雲內, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native)-[雲時代的運維](/tw/ch1#sec_introduction_operations)
 - 雲飛
   - R2（見 R2（物件儲存））
@@ -701,7 +702,7 @@ breadcrumbs: false
   - 文件資料模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)
   - 永續性, [全記憶體儲存](/tw/ch4#sec_storage_inmemory)
   - 雜湊變硬, [固定數量的分片](/tw/ch7#fixed-number-of-shards)
-  - 加入支援, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 加入支援, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - 再平衡, [運維：自動/手動再平衡](/tw/ch7#sec_sharding_operations)
   - vBuckets（硬化）, [分片](/tw/ch7#ch_sharding)
 - CouchDB（資料庫）
@@ -739,8 +740,8 @@ breadcrumbs: false
   - 雲資料倉整合, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
 - 儀表板（業務情報）, [事務處理與分析的特徵](/tw/ch1#sec_introduction_oltp)
 - Dask（處理框架）, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
-- 資料目錄, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
-- 資料聯結器, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- 資料目錄, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
+- 資料聯結器, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - 資料合同, [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
   - 資料變更捕獲, [資料變更捕獲與事件溯源](/tw/ch12#sec_stream_event_sourcing)
 - data corruption（見 corruption of data）
@@ -755,7 +756,7 @@ breadcrumbs: false
     - 後處理資料, [應用演化後重新處理資料](/tw/ch13#sec_future_reprocessing)
     - 統一, [統一批處理和流處理](/tw/ch13#id338)
   - 透過解開資料庫, [分拆資料庫](/tw/ch13#sec_future_unbundling)-[多分割槽資料處理](/tw/ch13#sec_future_unbundled_multi_shard)
-    - 與聯邦資料庫的比較, [一切的元資料庫](/tw/ch13#id341)
+    - 與聯邦資料庫的比較, [一切的後設資料庫](/tw/ch13#id341)
   - 透過生成資料合併工具, [組合使用派生資料的工具](/tw/ch13#id442)-[排序事件以捕獲因果關係](/tw/ch13#sec_future_capture_causality)
     - 衍生資料與分散式事務, [派生資料與分散式事務](/tw/ch13#sec_future_derived_vs_transactions)
     - 總訂單的限制, [全序的限制](/tw/ch13#id335)
@@ -763,8 +764,8 @@ breadcrumbs: false
     - 關於資料流的推理, [理解資料流](/tw/ch13#id443)
   - 需求, [記錄系統與派生資料](/tw/ch1#sec_introduction_derived)
   - 使用批次處理, [批處理](/tw/ch11#ch_batch), [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
-- 資料湖, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
-  - 資料湖區, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [分析（Analytics）](/tw/ch11#sec_batch_olap)
+- 資料湖, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+  - 資料湖區, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [分析（Analytics）](/tw/ch11#sec_batch_olap)
 - data locality（見 區域性）
 - 資料網格, [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
 - 資料最小化, [資料系統、法律與社會](/tw/ch1#sec_introduction_compliance), [立法與自律](/tw/ch14#sec_future_legislation)
@@ -774,14 +775,14 @@ breadcrumbs: false
     - 資料日誌語言, [Datalog：遞迴關係查詢](/tw/ch3#id62)-[Datalog：遞迴關係查詢](/tw/ch3#id62)
     - 屬性圖, [屬性圖](/tw/ch3#id56)
     - RDF and triple-stores, [三元組儲存與 SPARQL](/tw/ch3#id59)-[SPARQL 查詢語言](/tw/ch3#the-sparql-query-language)
-  - 關係模型對文件模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)-[文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 關係模型對文件模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)-[文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - 支援多個, [事件溯源與 CQRS](/tw/ch3#sec_datamodels_events)
-- 資料管道, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [記錄系統與派生資料](/tw/ch1#sec_introduction_derived), [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
+- 資料管道, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [記錄系統與派生資料](/tw/ch1#sec_introduction_derived), [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
 - 資料產品, [超越資料湖](/tw/ch1#beyond-the-data-lake)
 - data protection regulations（見 GDPR）
 - 資料居住法, [分散式與單節點系統](/tw/ch1#sec_introduction_distributed), [面向多租戶的分片](/tw/ch7#sec_sharding_multitenancy)
-- 資料科學, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics), [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
-- 資料倉, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- 資料科學, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics), [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+- 資料倉, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - 資料系統
   - 正確性、制約因素和完整性, [追求正確性](/tw/ch13#sec_future_correctness)-[用於可審計資料系統的工具](/tw/ch13#id366)
   - 資料整合, [資料整合](/tw/ch13#sec_future_integration)-[統一批處理和流處理](/tw/ch13#id338)
@@ -797,9 +798,9 @@ breadcrumbs: false
   - 可伸縮性, [可伸縮性](/tw/ch2#sec_introduction_scalability)-[可伸縮性原則](/tw/ch2#id35)
   - 解析資料庫, [分拆資料庫](/tw/ch13#sec_future_unbundling)-[多分割槽資料處理](/tw/ch13#sec_future_unbundled_multi_shard)
   - 不可靠的時鐘, [不可靠的時鐘](/tw/ch9#sec_distributed_clocks)-[限制垃圾回收的影響](/tw/ch9#sec_distributed_gc_impact)
-- 資料儲存, [資料倉庫](/tw/ch1#sec_introduction_dwh), [術語表](/tw/glossary)
-  - 基於雲的解決辦法, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
-  - ETL, [資料倉庫](/tw/ch1#sec_introduction_dwh), [保持系統同步](/tw/ch12#sec_stream_sync)
+- 資料儲存, [資料倉儲](/tw/ch1#sec_introduction_dwh), [術語表](/tw/glossary)
+  - 基於雲的解決辦法, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
+  - ETL, [資料倉儲](/tw/ch1#sec_introduction_dwh), [保持系統同步](/tw/ch12#sec_stream_sync)
   - 用於批處理, [批處理](/tw/ch11#ch_batch)
   - 保持資料系統的同步, [保持系統同步](/tw/ch12#sec_stream_sync)
   - 設計, [星型與雪花型：分析模式](/tw/ch3#sec_datamodels_analytics)
@@ -829,7 +830,7 @@ breadcrumbs: false
   - 失敗, [硬體與軟體故障](/tw/ch2#sec_introduction_hardware_faults)
   - geographically distributed（見 regions (geographic distribution)）
   - 多種使用和共享資源, [網路擁塞和排隊](/tw/ch9#network-congestion-and-queueing)
-  - 網路架構, [雲計算與超級計算](/tw/ch1#id17)
+  - 網路架構, [雲端計算與超級計算](/tw/ch1#id17)
   - 網路斷層, [實踐中的網路故障](/tw/ch9#sec_distributed_network_faults)
 - 資料流動, [資料流的模式](/tw/ch5#sec_encoding_dataflow)-[分散式 actor 框架](/tw/ch5#distributed-actor-frameworks), [圍繞資料流設計應用](/tw/ch13#sec_future_dataflow)-[流處理器和服務](/tw/ch13#id345)
   - 資料流系統的正確性, [資料流系統的正確性](/tw/ch13#id453)
@@ -847,7 +848,7 @@ breadcrumbs: false
   - 分批處理, [DataFrames](/tw/ch11#id287)
   - 在筆記本中, [機器學習](/tw/ch11#id290)
   - 批次處理框架中的支援, [批處理](/tw/ch11#ch_batch)
-- DataFusion（查詢引擎）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- DataFusion（查詢引擎）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - Datalog（查詢語言）, [Datalog：遞迴關係查詢](/tw/ch3#id62)-[Datalog：遞迴關係查詢](/tw/ch3#id62)
 - 資料流（變化資料捕獲）, [變更流的 API 支援](/tw/ch12#sec_stream_change_api)
 - 資料型別
@@ -877,7 +878,7 @@ breadcrumbs: false
 - 宣告語言, [資料模型與查詢語言](/tw/ch3#ch_datamodels), [術語表](/tw/glossary)
   - 並同步引擎, [同步引擎的利弊](/tw/ch6#pros-and-cons-of-sync-engines)
   - 資料日誌, [Datalog：遞迴關係查詢](/tw/ch3#id62)
-  - 文件資料庫中, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 文件資料庫中, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - recursive SQL queries, [SQL 中的圖查詢](/tw/ch3#id58)
   - SPARQL, [SPARQL 查詢語言](/tw/ch3#the-sparql-query-language)
 - DeepSeek
@@ -890,7 +891,7 @@ breadcrumbs: false
 - 刪除資料, [不變性的侷限性](/tw/ch12#sec_stream_immutability_limitations)
   - in LSM storage, [磁碟空間使用](/tw/ch4#disk-space-usage)
   - 法律依據, [資料系統、法律與社會](/tw/ch1#sec_introduction_compliance)
-- Delta Lake（表格式）, [構建和合並 SSTable](/tw/ch4#constructing-and-merging-sstables), [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- Delta Lake（表格式）, [構建和合並 SSTable](/tw/ch4#constructing-and-merging-sstables), [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - 硬化和叢集, [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
 - 非軍事區（聯網）, [對外提供派生資料](/tw/ch11#sec_batch_serving_derived)
 - 非正常化（資料表示）, [正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)-[多對一與多對多關係](/tw/ch3#sec_datamodels_many_to_many), [術語表](/tw/glossary)
@@ -961,12 +962,12 @@ breadcrumbs: false
 - DNS (Domain Name System), [請求路由](/tw/ch7#sec_sharding_routing), [服務發現](/tw/ch10#service-discovery)
   - 用於負載平衡, [負載均衡器、服務發現和服務網格](/tw/ch5#sec_encoding_service_discovery)
 - Docker （集裝箱管理器）, [應用程式碼和狀態的分離](/tw/ch13#id344)
-- 文件資料模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)-[文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
-  - 比較關係模式, [何時使用哪種模型](/tw/ch3#sec_datamodels_document_summary)-[文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+- 文件資料模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)-[文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 比較關係模式, [何時使用哪種模型](/tw/ch3#sec_datamodels_document_summary)-[文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - 多物件事務, 需要, [多物件事務的需求](/tw/ch8#sec_transactions_need)
   - 硬化二級指數, [分片與二級索引](/tw/ch7#sec_sharding_secondary_indexes)
   - 相對關係模式
-    - 模式的趨同, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+    - 模式的趨同, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
     - 資料位置, [讀寫的資料區域性](/tw/ch3#sec_datamodels_document_locality)
 - document-partitioned indexes（見 local secondary indexes）
 - 領域驅動設計, [簡單性：管理複雜度](/tw/ch2#id38), [事件溯源與 CQRS](/tw/ch3#sec_datamodels_events)
@@ -1019,15 +1020,15 @@ breadcrumbs: false
 - Elastic Compute Cloud (EC2)
   - 現場例項, [故障處理](/tw/ch11#id281)
 - 彈性, [分散式與單節點系統](/tw/ch1#sec_introduction_distributed)
-  - 雲資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [查詢語言](/tw/ch11#sec_batch_query_lanauges)
+  - 雲資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [查詢語言](/tw/ch11#sec_batch_query_lanauges)
 - 彈性搜尋（搜尋伺服器）
   - 本地二級指數, [本地二級索引](/tw/ch7#id166)
-  - 剖析器（流搜尋）, [在流上搜索](/tw/ch12#id320)
+  - 剖析器（流搜尋）, [在流上搜尋](/tw/ch12#id320)
   - 服務衍生資料, [對外提供派生資料](/tw/ch11#sec_batch_serving_derived)
   - 硬調和, [固定數量的分片](/tw/ch7#fixed-number-of-shards)
   - 使用 Lucene, [全文檢索](/tw/ch4#sec_storage_full_text)
 - 精靈（程式語言）, [端到端的事件流](/tw/ch13#id349)
-- ELT (extract-load-transform), [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- ELT (extract-load-transform), [資料倉儲](/tw/ch1#sec_introduction_dwh)
   - 與批次處理的關係, [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
 - 嚴重平行（演算法）
   - 提取-轉換-載入（ETL）（見 ETL）
@@ -1072,7 +1073,7 @@ breadcrumbs: false
   - 用於硬性轉讓, [請求路由](/tw/ch7#sec_sharding_routing)
   - 使用 Raft 演算法, [單主複製](/tw/ch6#sec_replication_leader)
 - 伊特魯姆（塊鏈）, [用於可審計資料系統的工具](/tw/ch13#id366)
-- 乙太網（網路）, [雲計算與超級計算](/tw/ch1#id17), [不可靠的網路](/tw/ch9#sec_distributed_networks), [我們不能簡單地使網路延遲可預測嗎？](/tw/ch9#can-we-not-simply-make-network-delays-predictable)
+- 乙太網（網路）, [雲端計算與超級計算](/tw/ch1#id17), [不可靠的網路](/tw/ch9#sec_distributed_networks), [我們不能簡單地使網路延遲可預測嗎？](/tw/ch9#can-we-not-simply-make-network-delays-predictable)
   - 包檢查和, [弱形式的謊言](/tw/ch9#weak-forms-of-lying), [端到端原則](/tw/ch13#sec_future_e2e_argument)
 - 道德操守, [做正確的事情](/tw/ch14)-[立法與自律](/tw/ch14#sec_future_legislation)
   - 道德守則和專業實務, [做正確的事情](/tw/ch14)
@@ -1087,7 +1088,7 @@ breadcrumbs: false
     - 監視, [監視](/tw/ch14#id374)
   - 尊重、尊嚴和機構, [立法與自律](/tw/ch14#sec_future_legislation)
   - 意外後果, [做正確的事情](/tw/ch14), [反饋迴路](/tw/ch14#id372)
-- ETL, [資料倉庫](/tw/ch1#sec_introduction_dwh), [保持系統同步](/tw/ch12#sec_stream_sync), [術語表](/tw/glossary)
+- ETL, [資料倉儲](/tw/ch1#sec_introduction_dwh), [保持系統同步](/tw/ch12#sec_stream_sync), [術語表](/tw/glossary)
   - 與批次處理的關係, [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)-[提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
   - 使用批次處理, [批處理](/tw/ch11#ch_batch)
 - 歐幾利得距離（語義搜尋）, [向量嵌入](/tw/ch4#id92)
@@ -1187,7 +1188,7 @@ breadcrumbs: false
   - 拜占庭斷層, [拜占庭故障](/tw/ch9#sec_distributed_byzantine)-[弱形式的謊言](/tw/ch9#weak-forms-of-lying)
   - 失敗與, [可靠性與容錯](/tw/ch2#sec_introduction_reliability)
   - 事務處理, [事務](/tw/ch8#ch_transactions)
-  - 超級計算機和雲計算處理, [雲計算與超級計算](/tw/ch1#id17)
+  - 超級計算機和雲端計算處理, [雲端計算與超級計算](/tw/ch1#id17)
   - 硬體, [硬體與軟體故障](/tw/ch2#sec_introduction_hardware_faults)
   - 在分散式系統中, [故障與部分失效](/tw/ch9#sec_distributed_partial_failure)
   - introducing deliberately（見 fault injection）
@@ -1197,8 +1198,8 @@ breadcrumbs: false
     - 容忍,多領導複製, [跨地域執行](/tw/ch6#sec_replication_multi_dc)
   - 軟體故障, [軟體故障](/tw/ch2#software-faults)
   - tolerating（見 fault tolerance）
-- 特性工程（機器學習）, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
-- 聯邦資料庫, [一切的元資料庫](/tw/ch13#id341)
+- 特性工程（機器學習）, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+- 聯邦資料庫, [一切的後設資料庫](/tw/ch13#id341)
 - Feldera（資料庫）
   - 增量檢視維護, [維護物化檢視](/tw/ch12#sec_stream_mat_view)
 - 圍欄, [線性一致性與網路延遲](/tw/ch10#linearizability-and-network-delays)
@@ -1217,7 +1218,7 @@ breadcrumbs: false
   - 會計分類賬, [總結](/tw/ch3#summary)
   - 不可改變性, [不可變事件的優點](/tw/ch12#sec_stream_immutability_pros)
   - 時間序列資料, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
-- 五特蘭, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- 五特蘭, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - FizzBee (specification language), [模型檢查與規範語言](/tw/ch9#model-checking-and-specification-languages)
 - 平面指數（媒介指數）, [向量嵌入](/tw/ch4#id92)
 - FlatBuffers（資料格式）, [編碼資料的格式](/tw/ch5#sec_encoding_formats)
@@ -1226,7 +1227,7 @@ breadcrumbs: false
   - DataFrames, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes), [DataFrames](/tw/ch11#id287)
   - 過失容忍, [故障處理](/tw/ch11#id281), [微批次與存檔點](/tw/ch12#id329), [失敗後重建狀態](/tw/ch12#sec_stream_state_fault_tolerance)
   - FlinkML, [機器學習](/tw/ch11#id290)
-  - 資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - high availability using ZooKeeper, [協調服務](/tw/ch10#sec_consistency_coordination)
   - 整合批次和流處理, [統一批處理和流處理](/tw/ch13#id338)
   - 查詢最佳化器, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
@@ -1310,7 +1311,7 @@ breadcrumbs: false
   - Compute Engine
     - 預設例項, [故障處理](/tw/ch11#id281)
   - 資料流（流程處理）
-    - 資料倉整合, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+    - 資料倉整合, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
     - 移動資料, [混洗資料](/tw/ch11#sec_shuffle)
   - 資料流（流處理器）, [流分析](/tw/ch12#id318), [原子提交再現](/tw/ch12#sec_stream_atomic_commit), [統一批處理和流處理](/tw/ch13#id338)
     - （另見 Beam）
@@ -1386,7 +1387,7 @@ breadcrumbs: false
   - 區域查詢, [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
   - 合適的雜湊函式, [按鍵的雜湊分片](/tw/ch7#sec_sharding_hash)
   - 有固定的硬塊數, [固定數量的分片](/tw/ch7#fixed-number-of-shards)
-- 散列表格, [日誌結構儲存](/tw/ch4#sec_storage_log_structured)
+- 雜湊表格, [日誌結構儲存](/tw/ch4#sec_storage_log_structured)
 - Hazelcast（模擬資料網）
   - FencedLock, [隔離殭屍程序和延遲請求](/tw/ch9#sec_distributed_fencing_tokens)
   - Flake ID Generator, [ID 生成器和邏輯時鐘](/tw/ch10#sec_consistency_logical)
@@ -1424,15 +1425,15 @@ breadcrumbs: false
 - hierarchical queries（見 recursive common table expressions）
 - high availability（見 fault tolerance）
 - 高頻事務, [時鐘同步和準確性](/tw/ch9#sec_distributed_clock_accuracy)
-- high-performance computing (HPC), [雲計算與超級計算](/tw/ch1#id17)
+- high-performance computing (HPC), [雲端計算與超級計算](/tw/ch1#id17)
 - 提示移交, [追趕錯過的寫入](/tw/ch6#sec_replication_read_repair)
 - 直方圖, [響應時間指標的應用](/tw/ch2#sec_introduction_slo_sla)
-- 蜂窩（資料倉）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- 蜂窩（資料倉）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - 查詢最佳化器, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
 - HNSW (vector index), [向量嵌入](/tw/ch4#id92)
 - 購物視窗（流程處理）, [視窗的型別](/tw/ch12#id324)
   - （另見 windows）
-- Hoptimator（查詢引擎）, [一切的元資料庫](/tw/ch13#id341)
+- Hoptimator（查詢引擎）, [一切的後設資料庫](/tw/ch13#id341)
 - 地平線醜聞, [人類與可靠性](/tw/ch2#id31)
   - 缺乏事務, [事務](/tw/ch8#ch_transactions)
 - horizontal scaling（見 scaling out）
@@ -1449,7 +1450,7 @@ breadcrumbs: false
 - HTTP, use in APIs（見 services）
 - 人類錯誤, [人類與可靠性](/tw/ch2#id31), [實踐中的網路故障](/tw/ch9#sec_distributed_network_faults), [批處理](/tw/ch11#ch_batch)
 - 混合邏輯時鐘, [混合邏輯時鐘](/tw/ch10#hybrid-logical-clocks)
-- 混合事務/分析處理, [資料倉庫](/tw/ch1#sec_introduction_dwh), [分析型資料儲存](/tw/ch4#sec_storage_analytics)
+- 混合事務/分析處理, [資料倉儲](/tw/ch1#sec_introduction_dwh), [分析型資料儲存](/tw/ch4#sec_storage_analytics)
 - hydrating IDs (join), [社交網路案例研究中的反正規化](/tw/ch3#denormalization-in-the-social-networking-case-study)
 - 高頻圖, [屬性圖](/tw/ch3#id56)
 - HyperLogLog (algorithm), [流分析](/tw/ch12#id318)
@@ -1466,7 +1467,7 @@ breadcrumbs: false
     - 分散式事務支援, [XA 事務](/tw/ch8#xa-transactions)
   - System R（資料庫）, [事務到底是什麼？](/tw/ch8#sec_transactions_overview)
   - WebSphere（訊息系統）, [訊息代理](/tw/ch5#message-brokers)
-- Iceberg（表格式）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- Iceberg（表格式）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - 物件儲存的資料庫, [設定新的副本](/tw/ch6#sec_replication_new_replica)
   - 基於日誌的資訊代理儲存, [磁碟空間使用](/tw/ch12#sec_stream_disk_usage)
 - 冪等性, [遠端過程呼叫（RPC）的問題](/tw/ch5#sec_problems_with_rpc), [冪等性](/tw/ch12#sec_stream_idempotence), [術語表](/tw/glossary)
@@ -1546,7 +1547,7 @@ breadcrumbs: false
   - 防止寫入skew, [寫偏差的特徵](/tw/ch8#characterizing-write-skew), [兩階段鎖定的實現](/tw/ch8#implementation-of-two-phase-locking)
   - 可序列隔離, [兩階段鎖定的實現](/tw/ch8#implementation-of-two-phase-locking)
   - 快速隔離支援, [快照隔離與可重複讀](/tw/ch8#sec_transactions_snapshot_isolation)
-- 例項（雲計算）, [雲服務的分層](/tw/ch1#layering-of-cloud-services)
+- 例項（雲端計算）, [雲服務的分層](/tw/ch1#layering-of-cloud-services)
 - integrating different data systems（見 資料整合）
 - 誠信, [及時性與完整性](/tw/ch13#sec_future_integrity)
   - 協調-避免資料系統, [無協調資料系統](/tw/ch13#id454)
@@ -1603,11 +1604,11 @@ breadcrumbs: false
 - JMESPath（查詢語言）, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
 - 合併表格, [多對一與多對多關係](/tw/ch3#sec_datamodels_many_to_many), [屬性圖](/tw/ch3#id56)
 - 加入, [術語表](/tw/glossary)
-  - 作為關係運算符表示, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
+  - 作為關係運算子表示, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - handling GraphQL query, [GraphQL](/tw/ch3#id63)
   - 應用程式程式碼, [正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization), [社交網路案例研究中的反正規化](/tw/ch3#denormalization-in-the-social-networking-case-study)
   - in DataFrames, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
-  - 關係資料庫和文件資料庫, [正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)
+  - 關聯式資料庫和文件資料庫, [正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)
   - 二級指數和, [多列索引與二級索引](/tw/ch4#sec_storage_index_multicolumn)
   - 排序合併, [JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)
   - 串流連線, [流連線](/tw/ch12#sec_stream_joins)-[連線的時間依賴性](/tw/ch12#sec_stream_join_time)
@@ -1615,7 +1616,7 @@ breadcrumbs: false
     - 序列表連線, [流表連線（流擴充）](/tw/ch12#sec_stream_table_joins)
     - 表格連線, [表表連線（維護物化檢視）](/tw/ch12#id326)
     - 時間的依賴性, [連線的時間依賴性](/tw/ch12#sec_stream_join_time)
-  - 文件資料庫中的支援, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 文件資料庫中的支援, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
 - JOTM (transaction coordinator), [兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)
 - 日記（檔案系統）, [使 B 樹可靠](/tw/ch4#sec_storage_btree_wal)
 - JSON
@@ -1626,7 +1627,7 @@ breadcrumbs: false
   - 文件資料模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)
   - 應用資料的問題, [JSON、XML 及其二進位制變體](/tw/ch5#sec_encoding_json)
   - GraphQL response, [GraphQL](/tw/ch3#id63)
-  - 關係資料庫, [文件模型中的模式靈活性](/tw/ch3#sec_datamodels_schema_flexibility)
+  - 關聯式資料庫, [文件模型中的模式靈活性](/tw/ch3#sec_datamodels_schema_flexibility)
   - 代表簡歷（例）, [用於一對多關係的文件資料模型](/tw/ch3#the-document-data-model-for-one-to-many-relationships)
   - 模式, [JSON 模式](/tw/ch5#json-schema)
 - JSON-LD, [三元組儲存與 SPARQL](/tw/ch3#id59)
@@ -1667,7 +1668,7 @@ breadcrumbs: false
     - 按金鑰範圍, [按鍵的範圍分片](/tw/ch7#sec_sharding_key_range), [總結](/tw/ch7#summary)
     - 搖擺和熱點, [偏斜的工作負載與緩解熱點](/tw/ch7#sec_sharding_skew)
 - Kinesis（訊息系統）, [訊息代理](/tw/ch5#message-brokers), [使用日誌進行訊息儲存](/tw/ch12#id300)
-  - 資料倉整合, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 資料倉整合, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - Kryo (Java), [特定語言的格式](/tw/ch5#id96)
 - ksqlDB (stream database), [維護物化檢視](/tw/ch12#sec_stream_mat_view)
 - Kubernetes（叢集經理）, [雲服務與自託管](/tw/ch1#sec_introduction_cloud), [微服務與無伺服器](/tw/ch1#sec_introduction_microservices), [分散式作業編排](/tw/ch11#id278), [應用程式碼和狀態的分離](/tw/ch13#id344)
@@ -1684,7 +1685,7 @@ breadcrumbs: false
 - labeled property graphs（見 property graphs）
 - 羊肉達建築, [統一批處理和流處理](/tw/ch13#id338)
 - Lamport 時間戳, [Lamport 時間戳](/tw/ch10#lamport-timestamps)
-- Lance（資料格式）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column)
+- Lance（資料格式）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column)
   - （另見 column-oriented storage）
 - large language models (LLMs)
   - 預處理培訓資料, [機器學習](/tw/ch11#id290)
@@ -1864,13 +1865,13 @@ breadcrumbs: false
   - 部署資料產品, [超越資料湖](/tw/ch1#beyond-the-data-lake)
   - 道德考慮, [預測分析](/tw/ch14#id369)
     - （另見 ethics）
-  - 特性工程, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [機器學習](/tw/ch11#id290)
+  - 特性工程, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [機器學習](/tw/ch11#id290)
   - 分析系統, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics)
   - 迭代處理, [機器學習](/tw/ch11#id290)
   - LLMs（見 large language models (LLMs)）
   - 培訓資料產生的模型, [應用程式碼作為派生函式](/tw/ch13#sec_future_dataflow_derivation)
   - 與批次處理的關係, [機器學習](/tw/ch11#id290)-[機器學習](/tw/ch11#id290)
-  - 使用資料湖, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+  - 使用資料湖, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
   - using GPUs, [雲服務的分層](/tw/ch1#layering-of-cloud-services), [分散式與單節點系統](/tw/ch1#sec_introduction_distributed)
   - 使用矩陣, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
 - 瘋狂（決定性模擬測試）, [確定性模擬測試](/tw/ch9#deterministic-simulation-testing)
@@ -1913,7 +1914,7 @@ breadcrumbs: false
   - 人煙稀少, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
 - Maxwell（變化資料捕獲）, [資料變更捕獲的實現](/tw/ch12#id307)
 - 說, [平均值、中位數與百分位點](/tw/ch2#id24)
-- 媒體監測, [在流上搜索](/tw/ch12#id320)
+- 媒體監測, [在流上搜尋](/tw/ch12#id320)
 - 中位數, [平均值、中位數與百分位點](/tw/ch2#id24)
 - 會議室預訂（例）, [寫偏差的更多例子](/tw/ch8#more-examples-of-write-skew), [謂詞鎖](/tw/ch8#predicate-locks), [強制約束](/tw/ch13#sec_future_constraints)
 - 除錯（除錯伺服器）, [全記憶體儲存](/tw/ch4#sec_storage_inmemory)
@@ -1994,7 +1995,7 @@ breadcrumbs: false
   - 文件資料模型, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)
   - 雜湊變硬, [按鍵的雜湊分片](/tw/ch7#sec_sharding_hash), [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
   - 在雲層中, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native)
-  - 加入支援, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 加入支援, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - 加入（\$$ookup 運算子）, [正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)
   - JSON Schema validation, [JSON 模式](/tw/ch5#json-schema)
   - 基於領導者的複製, [單主複製](/tw/ch6#sec_replication_leader)
@@ -2059,7 +2060,7 @@ breadcrumbs: false
 - 奈米msg（資訊庫）, [直接從生產者傳遞給消費者](/tw/ch12#id296)
 - Narayana（事務協調員）, [兩階段提交（2PC）](/tw/ch8#sec_transactions_2pc)
 - NATS（訊息系統）, [訊息代理](/tw/ch5#message-brokers)
-- 自然語言處理, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+- 自然語言處理, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
 - Neo4j（資料庫）
   - Cypher 查詢語言, [Cypher 查詢語言](/tw/ch3#id57)
   - 圖表資料模型, [圖資料模型](/tw/ch3#sec_datamodels_graph)
@@ -2074,7 +2075,7 @@ breadcrumbs: false
 - Network Time Protocol（見 網路時間協議）
 - 網路
   - 擁堵和排隊, [網路擁塞和排隊](/tw/ch9#network-congestion-and-queueing)
-  - 資料中心網路地形, [雲計算與超級計算](/tw/ch1#id17)
+  - 資料中心網路地形, [雲端計算與超級計算](/tw/ch1#id17)
   - faults（見 faults）
   - 線性化和網路延遲, [線性一致性與網路延遲](/tw/ch10#linearizability-and-network-delays)
   - 網路分割槽, [實踐中的網路故障](/tw/ch9#sec_distributed_network_faults)
@@ -2085,7 +2086,7 @@ breadcrumbs: false
 - 下鍵鎖定, [索引範圍鎖](/tw/ch8#sec_transactions_2pl_range)
 - NFS (network file system), [分散式檔案系統](/tw/ch11#sec_batch_dfs)
   - 在物件儲存中, [物件儲存](/tw/ch11#id277)
-- Nimble（資料格式）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column)
+- Nimble（資料格式）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column)
   - （另見 column-oriented storage）
 - node (in graphs)（見 vertices）
 - 節點（程序）, [分散式與單節點系統](/tw/ch1#sec_introduction_distributed), [術語表](/tw/glossary)
@@ -2127,14 +2128,14 @@ breadcrumbs: false
   - 與關鍵價值庫存的比較, [物件儲存](/tw/ch11#id277)
   - 資料庫由, [設定新的副本](/tw/ch6#sec_replication_new_replica)
   - 備份, [複製](/tw/ch6#ch_replication)
-  - 用於雲資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [寫入列式儲存](/tw/ch4#writing-to-column-oriented-storage)
+  - 用於雲資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [寫入列式儲存](/tw/ch4#writing-to-column-oriented-storage)
   - 資料庫複製, [設定新的副本](/tw/ch6#sec_replication_new_replica)
   - Google Cloud Storage（見 Google Cloud Storage）
   - 物件大小, [儲存與計算的分離](/tw/ch1#sec_introduction_storage_compute)
   - S3（見 S3（物件儲存））
   - storing LSM segment files, [構建和合並 SSTable](/tw/ch4#constructing-and-merging-sstables)
   - 支援圍欄, [隔離殭屍程序和延遲請求](/tw/ch9#sec_distributed_fencing_tokens)
-  - 資料湖中的使用, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+  - 資料湖中的使用, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
 - 物件關係對映（ORM）框架, [物件關係對映（ORM）](/tw/ch3#object-relational-mapping-orm)
   - 處理錯誤和中止事務, [處理錯誤和中止](/tw/ch8#handling-errors-and-aborts)
   - 不安全的讀寫週期程式碼, [原子寫操作](/tw/ch8#atomic-write-operations)
@@ -2155,7 +2156,7 @@ breadcrumbs: false
   - 資料正常化, [正規化的權衡](/tw/ch3#trade-offs-of-normalization)
   - 工作量特點, [實際序列執行](/tw/ch8#sec_transactions_serial)
 - 現場部署, [雲服務與自託管](/tw/ch1#sec_introduction_cloud)
-  - 資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - 一個大表格（資料倉計劃）, [星型與雪花型：分析模式](/tw/ch3#sec_datamodels_analytics), [星型與雪花型：分析模式](/tw/ch3#sec_datamodels_analytics)
 - 單熱編碼, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
 - 一對夫婦關係, [用於一對多關係的文件資料模型](/tw/ch3#the-document-data-model-for-one-to-many-relationships)
@@ -2163,7 +2164,7 @@ breadcrumbs: false
   - JSON representation, [用於一對多關係的文件資料模型](/tw/ch3#the-document-data-model-for-one-to-many-relationships)
 - 線上系統, [批處理](/tw/ch11#ch_batch)
   - （另見 services）
-  - 相對於科學計算, [雲計算與超級計算](/tw/ch1#id17)
+  - 相對於科學計算, [雲端計算與超級計算](/tw/ch1#id17)
 - 腫瘤, [三元組儲存與 SPARQL](/tw/ch3#id59)
 - Oozie（工作流排程器）, [批處理](/tw/ch11#ch_batch)
 - OpenAPI (service definition format), [微服務與無伺服器](/tw/ch1#sec_introduction_microservices), [Web 服務](/tw/ch5#sec_web_services), [Web 服務](/tw/ch5#sec_web_services)
@@ -2177,7 +2178,7 @@ breadcrumbs: false
 - 業務系統, [分析型與事務型系統](/tw/ch1#sec_introduction_analytics)
   - （另見 線上事務處理）
   - 作為記錄系統, [記錄系統與派生資料](/tw/ch1#sec_introduction_derived)
-  - ETL into analytical systems, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+  - ETL into analytical systems, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - 操作轉換, [CRDT 與操作變換](/tw/ch6#sec_replication_crdts)
 - 行動組, [雲時代的運維](/tw/ch1#sec_introduction_operations)
 - 運算元, [查詢執行：編譯與向量化](/tw/ch4#sec_storage_vectorized)
@@ -2200,7 +2201,7 @@ breadcrumbs: false
   - 快速隔離支援, [快照隔離與可重複讀](/tw/ch8#sec_transactions_snapshot_isolation), [快照隔離、可重複讀和命名混淆](/tw/ch8#snapshot-isolation-repeatable-read-and-naming-confusion)
   - TimesTen (in-memory database), [全記憶體儲存](/tw/ch4#sec_storage_inmemory)
   - WAL-based replication, [預寫日誌（WAL）傳輸](/tw/ch6#write-ahead-log-wal-shipping)
-- ORC（資料格式）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column)
+- ORC（資料格式）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column)
   - （另見 column-oriented storage）
 - 協調（服務部署）, [雲服務與自託管](/tw/ch1#sec_introduction_cloud), [微服務與無伺服器](/tw/ch1#sec_introduction_microservices)
   - 批次任務執行, [分散式作業編排](/tw/ch11#id278)-[分散式作業編排](/tw/ch11#id278)
@@ -2228,8 +2229,8 @@ breadcrumbs: false
   - sending via UDP, [直接從生產者傳遞給消費者](/tw/ch12#id296)
 - PageRank (algorithm), [圖資料模型](/tw/ch3#sec_datamodels_graph), [查詢語言](/tw/ch11#sec_batch_query_lanauges), [機器學習](/tw/ch11#id290)
 - paging（見 virtual memory）
-- 大熊貓（蟒蛇圖書館）, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes), [列式儲存](/tw/ch4#sec_storage_column), [DataFrames](/tw/ch11#id287)
-- Parquet（資料格式）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column), [歸檔儲存](/tw/ch5#archival-storage), [查詢語言](/tw/ch11#sec_batch_query_lanauges)
+- 大熊貓（蟒蛇圖書館）, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes), [列式儲存](/tw/ch4#sec_storage_column), [DataFrames](/tw/ch11#id287)
+- Parquet（資料格式）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column), [歸檔儲存](/tw/ch5#archival-storage), [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - （另見 column-oriented storage）
   - 物件儲存的資料庫, [設定新的副本](/tw/ch6#sec_replication_new_replica)
   - 文件資料模型, [列式儲存](/tw/ch4#sec_storage_column)
@@ -2276,9 +2277,9 @@ breadcrumbs: false
 - 樞軸表, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
 - 時間點, [不可靠的時鐘](/tw/ch9#sec_distributed_clocks)
 - 點查詢, [事務處理與分析的特徵](/tw/ch1#sec_introduction_oltp)
-- 極地（資料目錄）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- 極地（資料目錄）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - 投票, [表示使用者、帖子與關注關係](/tw/ch2#id20)
-- 多邊儲存器, [一切的元資料庫](/tw/ch13#id341)
+- 多邊儲存器, [一切的後設資料庫](/tw/ch13#id341)
 - POSIX (portable operating system interface)
   - 符合的檔案系統, [設定新的副本](/tw/ch6#sec_replication_new_replica), [分散式檔案系統](/tw/ch11#sec_batch_dfs), [物件儲存](/tw/ch11#id277)
 - 郵政局地平線醜聞, [人類與可靠性](/tw/ch2#id31)
@@ -2287,7 +2288,7 @@ breadcrumbs: false
   - archiving WAL to object stores, [設定新的副本](/tw/ch6#sec_replication_new_replica)
   - 資料變更捕獲, [資料變更捕獲的實現](/tw/ch12#id307), [變更流的 API 支援](/tw/ch12#sec_stream_change_api)
   - 分散式事務支援, [XA 事務](/tw/ch8#xa-transactions)
-  - 外國資料包, [一切的元資料庫](/tw/ch13#id341)
+  - 外國資料包, [一切的後設資料庫](/tw/ch13#id341)
   - 全文搜尋支援, [組合使用派生資料的工具](/tw/ch13#id442)
   - 在雲層中, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native)
   - JSON Schema validation, [JSON 模式](/tw/ch5#json-schema)
@@ -2328,7 +2329,7 @@ breadcrumbs: false
   - 執行緒, [程序暫停](/tw/ch9#sec_distributed_clocks_pauses)
 - Prefect（工作流排程器）, [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows), [批處理](/tw/ch11#ch_batch), [工作流排程](/tw/ch11#sec_batch_workflows)
   - 雲資料倉整合, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
-- Presto（查詢引擎）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- Presto（查詢引擎）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - 主金鑰, [多列索引與二級索引](/tw/ch4#sec_storage_index_multicolumn), [術語表](/tw/glossary)
   - 自動遞增, [ID 生成器和邏輯時鐘](/tw/ch10#sec_consistency_logical)
   - 對分割槽鍵, [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
@@ -2373,7 +2374,7 @@ breadcrumbs: false
 - Quantcast File System（分散式檔案系統）, [物件儲存](/tw/ch11#id277)
 - 查詢引擎
   - 彙編和向量化, [查詢執行：編譯與向量化](/tw/ch4#sec_storage_vectorized)
-  - 在雲資料倉庫中, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 在雲資料倉儲中, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - 運算元, [查詢執行：編譯與向量化](/tw/ch4#sec_storage_vectorized)
   - 最佳化申報查詢, [資料模型與查詢語言](/tw/ch3#ch_datamodels)
 - 查詢語言
@@ -2403,7 +2404,7 @@ breadcrumbs: false
 
 ### R
 
-- R（語言）, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes), [DataFrames](/tw/ch11#id287)
+- R（語言）, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes), [DataFrames](/tw/ch11#id287)
 - R樹（指數）, [多維索引與全文索引](/tw/ch4#sec_storage_multidimensional)
 - R2（物件儲存）, [雲服務的分層](/tw/ch1#layering-of-cloud-services), [分散式檔案系統](/tw/ch11#sec_batch_dfs)
 - RabbitMQ（訊息系統）, [訊息代理](/tw/ch5#message-brokers), [訊息代理與資料庫的對比](/tw/ch12#id297)
@@ -2439,7 +2440,7 @@ breadcrumbs: false
 - Ray（工作流排程器）, [機器學習](/tw/ch11#id290)
 - RDF (Resource Description Framework), [RDF 資料模型](/tw/ch3#the-rdf-data-model)
   - querying with SPARQL, [SPARQL 查詢語言](/tw/ch3#the-sparql-query-language)
-- 遠端直接記憶體訪問, [雲服務的分層](/tw/ch1#layering-of-cloud-services), [雲計算與超級計算](/tw/ch1#id17)
+- 遠端直接記憶體訪問, [雲服務的分層](/tw/ch1#layering-of-cloud-services), [雲端計算與超級計算](/tw/ch1#id17)
 - 反應（使用者介面庫）, [端到端的事件流](/tw/ch13#id349)
 - 被動方案擬訂, [同步引擎的利弊](/tw/ch6#pros-and-cons-of-sync-engines)
 - 讀取承諾隔離級別, [讀已提交](/tw/ch8#sec_transactions_read_committed)-[實現讀已提交](/tw/ch8#sec_transactions_read_committed_impl)
@@ -2502,7 +2503,7 @@ breadcrumbs: false
 - redo log（見 write-ahead log）
 - Redpanda（訊息系統）, [訊息代理](/tw/ch5#message-brokers), [設定新的副本](/tw/ch6#sec_replication_new_replica)
   - 分層儲存, [磁碟空間使用](/tw/ch12#sec_stream_disk_usage)
-- Redshift（資料庫）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- Redshift（資料庫）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - 冗餘
   - 硬體元件, [透過冗餘容忍硬體故障](/tw/ch2#tolerating-hardware-faults-through-redundancy)
   - 生成資料, [記錄系統與派生資料](/tw/ch1#sec_introduction_derived)
@@ -2522,8 +2523,8 @@ breadcrumbs: false
 - 區域（硬化）, [分片](/tw/ch7#ch_sharding)
 - 暫存器, [什麼使系統具有線性一致性？](/tw/ch10#sec_consistency_lin_definition)
 - regulation（見 legal matters）
-- 關係資料模型, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [關係模型與文件模型](/tw/ch3#sec_datamodels_history)-[文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
-  - 與檔案模型的比較, [何時使用哪種模型](/tw/ch3#sec_datamodels_document_summary)-[文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+- 關係資料模型, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [關係模型與文件模型](/tw/ch3#sec_datamodels_history)-[文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 與檔案模型的比較, [何時使用哪種模型](/tw/ch3#sec_datamodels_document_summary)-[文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - graph queries in SQL, [SQL 中的圖查詢](/tw/ch3#id58)
   - 模擬資料庫, [全記憶體儲存](/tw/ch4#sec_storage_inmemory)
   - 多對多對多的關係, [多對一與多對多關係](/tw/ch3#sec_datamodels_many_to_many)
@@ -2531,14 +2532,14 @@ breadcrumbs: false
   - 物件關係不匹配, [物件關係不匹配](/tw/ch3#sec_datamodels_document)
   - 代表可重排列表, [何時使用哪種模型](/tw/ch3#sec_datamodels_document_summary)
   - 對文件模式
-    - 模式的趨同, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+    - 模式的趨同, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
     - 資料位置, [讀寫的資料區域性](/tw/ch3#sec_datamodels_document_locality)
-- 關係資料庫
+- 關聯式資料庫
   - 最終一致性, [複製延遲的問題](/tw/ch6#sec_replication_lag)
   - 歷史, [關係模型與文件模型](/tw/ch3#sec_datamodels_history)
   - 基於領導者的複製, [單主複製](/tw/ch6#sec_replication_leader)
   - 邏輯日誌, [邏輯（基於行）日誌複製](/tw/ch6#logical-row-based-log-replication)
-  - 哲學比Unix, [分拆資料庫](/tw/ch13#sec_future_unbundling), [一切的元資料庫](/tw/ch13#id341)
+  - 哲學比Unix, [分拆資料庫](/tw/ch13#sec_future_unbundling), [一切的後設資料庫](/tw/ch13#id341)
   - 方案變化, [文件模型中的模式靈活性](/tw/ch3#sec_datamodels_schema_flexibility), [編碼與演化](/tw/ch5#ch_encoding), [不同時間寫入的不同值](/tw/ch5#different-values-written-at-different-times)
   - 硬化二級指數, [分片與二級索引](/tw/ch7#sec_sharding_secondary_indexes)
   - 基於語句的複製, [基於語句的複製](/tw/ch6#statement-based-replication)
@@ -2605,7 +2606,7 @@ breadcrumbs: false
 - 資料居住法, [分散式與單節點系統](/tw/ch1#sec_introduction_distributed), [面向多租戶的分片](/tw/ch7#sec_sharding_multitenancy)
 - 彈性系統, [可靠性與容錯](/tw/ch2#sec_introduction_reliability)
   - （另見 fault tolerance）
-- 資源隔離, [雲計算與超級計算](/tw/ch1#id17), [面向多租戶的分片](/tw/ch7#sec_sharding_multitenancy)
+- 資源隔離, [雲端計算與超級計算](/tw/ch1#id17), [面向多租戶的分片](/tw/ch7#sec_sharding_multitenancy)
 - 資源限制, [雲時代的運維](/tw/ch1#sec_introduction_operations)
 - 響應時間
   - 作為業績計量, [描述效能](/tw/ch2#sec_introduction_percentiles), [批處理](/tw/ch11#ch_batch)
@@ -2620,7 +2621,7 @@ breadcrumbs: false
   - （另見 services）
 - 重報（工作流程引擎）, [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows)
 - RethinkDB（資料庫）
-  - 加入支援, [文件和關係資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
+  - 加入支援, [文件和關聯式資料庫的融合](/tw/ch3#convergence-of-document-and-relational-databases)
   - 鍵程硬化, [按鍵的範圍分片](/tw/ch7#sec_sharding_key_range)
 - 重試風暴, [描述效能](/tw/ch2#sec_introduction_percentiles), [軟體故障](/tw/ch2#software-faults)
 - reverse ETL, [超越資料湖](/tw/ch1#beyond-the-data-lake)
@@ -2714,10 +2715,10 @@ breadcrumbs: false
     - 計劃演變, [欄位標籤與模式演化](/tw/ch5#field-tags-and-schema-evolution)
   - 鐵路移民計劃, [應用演化後重新處理資料](/tw/ch13#sec_future_reprocessing)
   - 傳統的設計方法,謬誤, [從同一事件日誌中派生多個檢視](/tw/ch12#sec_stream_deriving_views)
-- 科學計算, [雲計算與超級計算](/tw/ch1#id17)
-- scikit-learn （Python 圖書館）, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+- 科學計算, [雲端計算與超級計算](/tw/ch1#id17)
+- scikit-learn （Python 圖書館）, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
 - ScyllaDB（資料庫）
-  - 叢集元資料, [請求路由](/tw/ch7#sec_sharding_routing)
+  - 叢集後設資料, [請求路由](/tw/ch7#sec_sharding_routing)
   - consistency level ANY, [單主與無主複製的效能](/tw/ch6#sec_replication_leaderless_perf)
   - 雜湊變硬, [按鍵的雜湊分片](/tw/ch7#sec_sharding_hash), [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
   - 最後寫成的解決衝突, [檢測併發寫入](/tw/ch6#sec_replication_concurrent)
@@ -2729,7 +2730,7 @@ breadcrumbs: false
   - 使用時鐘, [仲裁一致性的侷限](/tw/ch6#sec_replication_quorum_limitations), [用於事件排序的時間戳](/tw/ch9#sec_distributed_lww)
   - 節點（硬化）, [分片](/tw/ch7#ch_sharding)
 - search engines（見 全文檢索）
-- 搜尋流, [在流上搜索](/tw/ch12#id320)
+- 搜尋流, [在流上搜尋](/tw/ch12#id320)
 - 備庫（見 基於領導者的複製）
 - 二級指數, [多列索引與二級索引](/tw/ch4#sec_storage_index_multicolumn), [術語表](/tw/glossary)
   - 多對多關係, [多對一與多對多關係](/tw/ch3#sec_datamodels_many_to_many)
@@ -2742,7 +2743,7 @@ breadcrumbs: false
 - 二次排序, [JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)
 - sed （Unix 工具） （英語）., [簡單日誌分析](/tw/ch11#sec_batch_log_analysis)
 - 自我託管, [雲服務與自託管](/tw/ch1#sec_introduction_cloud)
-  - 資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - 自我歡樂, [本章小結](/tw/ch12#id332)
 - 自動驗證系統, [不要盲目信任承諾](/tw/ch13#id364)
 - 語義搜尋, [向量嵌入](/tw/ch4#id92)
@@ -2841,12 +2842,12 @@ breadcrumbs: false
 - 混洗, [混洗資料](/tw/ch11#sec_shuffle)-[混洗資料](/tw/ch11#sec_shuffle)
 - 兄弟, [手動衝突解決](/tw/ch6#manual-conflict-resolution), [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship), [衝突解決與複製](/tw/ch8#conflict-resolution-and-replication)
   - （另見 conflicts）
-- 倉, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- 倉, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - 相似性搜尋
   - 編輯距離, [全文檢索](/tw/ch4#sec_storage_full_text)
   - 基因組資料, [總結](/tw/ch3#summary)
 - 簡單, [簡單性：管理複雜度](/tw/ch2#id38)
-- 歌手, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+- 歌手, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - single-instruction-multi-data (SIMD) instructions, [查詢執行：編譯與向量化](/tw/ch4#sec_storage_vectorized)
 - single-leader replication（見 基於領導者的複製）
 - 單條執行, [原子寫操作](/tw/ch8#atomic-write-operations), [實際序列執行](/tw/ch8#sec_transactions_serial)
@@ -2887,7 +2888,7 @@ breadcrumbs: false
     - indexes and MVCC, [索引與快照隔離](/tw/ch8#indexes-and-snapshot-isolation)
     - 可見度規則, [觀察一致快照的可見性規則](/tw/ch8#sec_transactions_mvcc_visibility)
   - 全球快照同步時鐘, [用於全域性快照的同步時鐘](/tw/ch9#sec_distributed_spanner)
-- Snowflake（資料庫）, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [雲服務的分層](/tw/ch1#layering-of-cloud-services), [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [批處理](/tw/ch11#ch_batch)
+- Snowflake（資料庫）, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [雲服務的分層](/tw/ch1#layering-of-cloud-services), [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [批處理](/tw/ch11#ch_batch)
   - 面向列的儲存, [列式儲存](/tw/ch4#sec_storage_column)
   - 處理寫入, [寫入列式儲存](/tw/ch4#writing-to-column-oriented-storage)
   - 硬化和叢集, [按雜湊範圍分片](/tw/ch7#sharding-by-hash-range)
@@ -2901,7 +2902,7 @@ breadcrumbs: false
   - 的責任, [資料系統、法律與社會](/tw/ch1#sec_introduction_compliance), [立法與自律](/tw/ch14#sec_future_legislation)
 - 社會技術系統, [人類與可靠性](/tw/ch2#id31)
 - 軟體即服務（SaaS）, [資料系統架構中的權衡](/tw/ch1#ch_tradeoffs), [雲服務與自託管](/tw/ch1#sec_introduction_cloud)
-  - ETL from, [資料倉庫](/tw/ch1#sec_introduction_dwh)
+  - ETL from, [資料倉儲](/tw/ch1#sec_introduction_dwh)
   - 多重租賃, [面向多租戶的分片](/tw/ch7#sec_sharding_multitenancy)
 - 軟體錯誤, [軟體故障](/tw/ch2#software-faults)
   - 維護誠信, [維護完整性，儘管軟體有Bug](/tw/ch13#id455)
@@ -2932,11 +2933,11 @@ breadcrumbs: false
   - 使用時鐘快照隔離, [用於全域性快照的同步時鐘](/tw/ch9#sec_distributed_spanner)
   - 事務, [事務到底是什麼？](/tw/ch8#sec_transactions_overview), [資料庫內部的分散式事務](/tw/ch8#sec_transactions_internal)
   - TrueTime API, [帶置信區間的時鐘讀數](/tw/ch9#clock-readings-with-a-confidence-interval)
-- Spark（處理框架）, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [批處理](/tw/ch11#ch_batch), [資料流引擎](/tw/ch11#sec_batch_dataflow)
+- Spark（處理框架）, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake), [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [批處理](/tw/ch11#ch_batch), [資料流引擎](/tw/ch11#sec_batch_dataflow)
   - 成本效率, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - DataFrames, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes), [DataFrames](/tw/ch11#id287)
   - 過失容忍, [故障處理](/tw/ch11#id281)
-  - 資料倉庫, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+  - 資料倉儲, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - high availability using ZooKeeper, [協調服務](/tw/ch10#sec_consistency_coordination)
   - MLlib, [機器學習](/tw/ch11#id290)
   - 查詢最佳化器, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
@@ -2957,8 +2958,8 @@ breadcrumbs: false
 - 電子表格, [資料系統架構中的權衡](/tw/ch1#ch_tradeoffs), [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
   - 資料流程式設計, [圍繞資料流設計應用](/tw/ch13#sec_future_dataflow)
   - 樞軸表, [資料框、矩陣與陣列](/tw/ch3#sec_datamodels_dataframes)
-- SQL (Structured Query Language), [簡單性：管理複雜度](/tw/ch2#id38), [關係模型與文件模型](/tw/ch3#sec_datamodels_history), [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
-  - 用於分析, [資料倉庫](/tw/ch1#sec_introduction_dwh), [列式儲存](/tw/ch4#sec_storage_column)
+- SQL (Structured Query Language), [簡單性：管理複雜度](/tw/ch2#id38), [關係模型與文件模型](/tw/ch3#sec_datamodels_history), [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
+  - 用於分析, [資料倉儲](/tw/ch1#sec_introduction_dwh), [列式儲存](/tw/ch4#sec_storage_column)
   - 圖表查詢, [SQL 中的圖查詢](/tw/ch3#id58)
   - 隔離級別標準,問題, [快照隔離、可重複讀和命名混淆](/tw/ch8#snapshot-isolation-repeatable-read-and-naming-confusion)
   - 加入, [正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)
@@ -3032,7 +3033,7 @@ breadcrumbs: false
   - 面向列, [列式儲存](/tw/ch4#sec_storage_column)-[查詢執行：編譯與向量化](/tw/ch4#sec_storage_vectorized)
     - 列壓縮, [列壓縮](/tw/ch4#sec_storage_column_compression)-[列壓縮](/tw/ch4#sec_storage_column_compression)
     - 定義, [列式儲存](/tw/ch4#sec_storage_column)
-    - 公園, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column), [歸檔儲存](/tw/ch5#archival-storage)
+    - 公園, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses), [列式儲存](/tw/ch4#sec_storage_column), [歸檔儲存](/tw/ch5#archival-storage)
     - 排序在, [列儲存中的排序順序](/tw/ch4#sort-order-in-column-storage)-[列儲存中的排序順序](/tw/ch4#sort-order-in-column-storage)
     - 寬柱型, [列壓縮](/tw/ch4#sec_storage_column_compression)
     - 寫入, [寫入列式儲存](/tw/ch4#writing-to-column-oriented-storage)
@@ -3074,7 +3075,7 @@ breadcrumbs: false
   - relation to databases（見 streams）
   - 與服務的關係, [流處理器和服務](/tw/ch13#id345)
   - 與批次處理的關係, [批處理](/tw/ch11#ch_batch)
-  - 在流中搜索, [在流上搜索](/tw/ch12#id320)
+  - 在流中搜尋, [在流上搜尋](/tw/ch12#id320)
   - 單條執行, [日誌與傳統的訊息傳遞相比](/tw/ch12#sec_stream_logs_vs_messaging), [併發控制](/tw/ch12#sec_stream_concurrency)
   - 流式分析, [流分析](/tw/ch12#id318)
   - 串流連線, [流連線](/tw/ch12#sec_stream_joins)-[連線的時間依賴性](/tw/ch12#sec_stream_join_time)
@@ -3104,11 +3105,11 @@ breadcrumbs: false
 - 主題、上游和物體（三層）, [三元組儲存與 SPARQL](/tw/ch3#id59)
 - 訂閱者, [傳遞事件流](/tw/ch12#sec_stream_transmit)
   - （另見 consumers）
-- 超級計算機, [雲計算與超級計算](/tw/ch1#id17)
+- 超級計算機, [雲端計算與超級計算](/tw/ch1#id17)
 - Superset（資料視覺化軟體）, [分析（Analytics）](/tw/ch11#sec_batch_olap)
 - 監視, [監視](/tw/ch14#id374)
   - （另見 隱私）
-- 壽司原則, [從資料倉庫到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
+- 壽司原則, [從資料倉儲到資料湖](/tw/ch1#from-data-warehouse-to-data-lake)
 - 可持續性, [分散式與單節點系統](/tw/ch1#sec_introduction_distributed)
 - Swagger（服務定義格式）, [Web 服務](/tw/ch5#sec_web_services)
 - swapping to disk（見 virtual memory）
@@ -3154,7 +3155,7 @@ breadcrumbs: false
   - 用於事務會話, [單物件與多物件操作](/tw/ch8#sec_transactions_multi_object)
 - 時間（工作流程引擎）, [持久化執行與工作流](/tw/ch5#sec_encoding_dataflow_workflows)
 - Tensorflow （機器學習圖書館）, [機器學習](/tw/ch11#id290)
-- Teradata（資料庫）, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- Teradata（資料庫）, [雲原生系統架構](/tw/ch1#sec_introduction_cloud_native), [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - term-partitioned indexes（見 global secondary indexes）
 - 終止（協商一致）, [單值共識](/tw/ch10#single-value-consensus), [原子提交作為共識](/tw/ch10#atomic-commitment-as-consensus)
 - 測試, [人類與可靠性](/tw/ch2#id31)
@@ -3286,8 +3287,8 @@ breadcrumbs: false
 - 三（資料結構）, [構建和合並 SSTable](/tw/ch4#constructing-and-merging-sstables), [全文檢索](/tw/ch4#sec_storage_full_text)
   - as SSTable index, [SSTable 檔案格式](/tw/ch4#the-sstable-file-format)
 - 觸發器（資料庫）, [傳遞事件流](/tw/ch12#sec_stream_transmit)
-- Trino（資料倉庫）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
-  - 聯邦資料庫, [一切的元資料庫](/tw/ch13#id341)
+- Trino（資料倉儲）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
+  - 聯邦資料庫, [一切的後設資料庫](/tw/ch13#id341)
   - 查詢最佳化器, [查詢語言](/tw/ch11#sec_batch_query_lanauges)
   - 用於 ETL, [提取-轉換-載入（ETL）](/tw/ch11#sec_batch_etl_usage)
   - 工作流程示例, [工作流排程](/tw/ch11#sec_batch_workflows)
@@ -3327,7 +3328,7 @@ breadcrumbs: false
   - 程序暫停, [程序暫停](/tw/ch9#sec_distributed_clocks_pauses)
 - 解析資料庫, [分拆資料庫](/tw/ch13#sec_future_unbundling)-[多分割槽資料處理](/tw/ch13#sec_future_unbundled_multi_shard)
   - 構建資料儲存技術, [組合使用資料儲存技術](/tw/ch13#id447)-[分拆系統與整合系統](/tw/ch13#id448)
-    - 聯邦制與拆分制, [一切的元資料庫](/tw/ch13#id341)
+    - 聯邦制與拆分制, [一切的後設資料庫](/tw/ch13#id341)
   - 圍繞資料流設計應用程式, [圍繞資料流設計應用](/tw/ch13#sec_future_dataflow)-[流處理器和服務](/tw/ch13#id345)
   - 觀察匯出狀態, [觀察派生資料狀態](/tw/ch13#sec_future_observing)-[多分割槽資料處理](/tw/ch13#sec_future_unbundled_multi_shard)
     - 實現檢視和快取, [物化檢視和快取](/tw/ch13#id451)
@@ -3341,10 +3342,10 @@ breadcrumbs: false
   - 需要協商一致, [唯一性約束需要達成共識](/tw/ch13#id452)
   - 需要線性, [約束與唯一性保證](/tw/ch10#sec_consistency_uniqueness)
   - 以日誌為基礎的信件中的獨特性, [基於日誌訊息傳遞中的唯一性](/tw/ch13#sec_future_uniqueness_log)
-- 團結（資料目錄）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- 團結（資料目錄）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
 - universally unique identifiers（見 UUIDs）
 - unix 哲學
-  - 比較關係資料庫, [分拆資料庫](/tw/ch13#sec_future_unbundling), [一切的元資料庫](/tw/ch13#id341)
+  - 比較關聯式資料庫, [分拆資料庫](/tw/ch13#sec_future_unbundling), [一切的後設資料庫](/tw/ch13#id341)
   - 與流處理的比較, [流處理](/tw/ch12#sec_stream_processing)
 - unix 管道, [簡單日誌分析](/tw/ch11#sec_batch_log_analysis)
   - 與分散式批次處理相比, [工作流排程](/tw/ch11#sec_batch_workflows)
@@ -3387,7 +3388,7 @@ breadcrumbs: false
 - 版本向量, [不同拓撲的問題](/tw/ch6#problems-with-different-topologies), [版本向量](/tw/ch6#version-vectors)
   - 點數, [版本向量](/tw/ch6#version-vectors)
   - 對向量時鐘, [版本向量](/tw/ch6#version-vectors)
-- Vertica（資料庫）, [雲資料倉庫](/tw/ch4#sec_cloud_data_warehouses)
+- Vertica（資料庫）, [雲資料倉儲](/tw/ch4#sec_cloud_data_warehouses)
   - 處理寫入, [寫入列式儲存](/tw/ch4#writing-to-column-oriented-storage)
 - vertical scaling（見 scaling up）
 - 頂點（圖）, [圖資料模型](/tw/ch3#sec_datamodels_graph)
@@ -3501,9 +3502,9 @@ breadcrumbs: false
   - 資料位置, [讀寫的資料區域性](/tw/ch3#sec_datamodels_document_locality)
   - encoding RDF data, [RDF 資料模型](/tw/ch3#the-rdf-data-model)
   - 應用資料的問題, [JSON、XML 及其二進位制變體](/tw/ch5#sec_encoding_json)
-  - 關係資料庫, [文件模型中的模式靈活性](/tw/ch3#sec_datamodels_schema_flexibility)
+  - 關聯式資料庫, [文件模型中的模式靈活性](/tw/ch3#sec_datamodels_schema_flexibility)
   - XML databases, [關係模型與文件模型](/tw/ch3#sec_datamodels_history), [文件的查詢語言](/tw/ch3#query-languages-for-documents)
-- Xorq（查詢引擎）, [一切的元資料庫](/tw/ch13#id341)
+- Xorq（查詢引擎）, [一切的後設資料庫](/tw/ch13#id341)
 - XPath, [文件的查詢語言](/tw/ch3#query-languages-for-documents)
 - XQuery, [文件的查詢語言](/tw/ch3#query-languages-for-documents)
 

@@ -1,5 +1,7 @@
 ---
-title: 第二部分：分布式数据
+title: 分布式数据
+book_kind: part
+book_number: II
 search_exclude: true
 weight: 200
 breadcrumbs: false
@@ -69,7 +71,7 @@ breadcrumbs: false
 
 复制和分区是不同的机制，但它们经常同时使用。如 [图 II-1](#fig_replication_partitioning) 所示。
 
-{{< figure src="/v1/ddia_part-ii_01.png" id="fig_replication_partitioning" caption="图 II-1 一个数据库切分为两个分区，每个分区都有两个副本" class="w-full my-4" >}}
+{{< fig num="II-1" id="fig_replication_partitioning" src="/v1/ddia_part-ii_01.png" caption="一个数据库切分为两个分区，每个分区都有两个副本" class="ddia-figure ddia-figure--wide" width="2880" height="1606" />}}
 
 
 理解了这些概念，就可以开始讨论在分布式系统中需要做出的困难抉择。[第八章](/ch8) 将讨论 **事务（Transaction）**，这对于了解数据系统中可能出现的各种问题，以及我们可以做些什么很有帮助。
@@ -98,7 +100,7 @@ breadcrumbs: false
 - [可串行化](/ch8#sec_transactions_serializability)
 - [分布式事务](/ch8#sec_transactions_distributed)
 - [总结](/ch8#summary)
-- [参考文献](/ch8#参考文献)
+- [参考文献](/ch8#references)
 
 ## [9. 分布式系统的麻烦](/ch9)
 - [故障与部分失效](/ch9#sec_distributed_partial_failure)

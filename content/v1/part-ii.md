@@ -1,5 +1,7 @@
 ---
-title: 第二部分：分布式数据
+title: 分布式数据
+book_kind: part
+book_number: II
 search_exclude: true
 weight: 200
 breadcrumbs: false
@@ -59,11 +61,9 @@ breadcrumbs: false
 分区 (Partitioning)
 : 将一个大型数据库拆分成较小的子集（称为 **分区**，即 partitions），从而不同的分区可以指派给不同的 **节点**（nodes，亦称 **分片**，即 sharding）。[第六章](/v1/ch6) 将讨论分区。
 
-复制和分区是不同的机制，但它们经常同时使用。如 [图 II-1](/v1/ddia_part-ii_01.png) 所示。
+复制和分区是不同的机制，但它们经常同时使用。如 {{< xref fig="II-1" page="/part-ii" anchor="fig_ddia_part-ii_01" >}}图 II-1{{< /xref >}} 所示。
 
-![](/v1/ddia_part-ii_01.png)
-
-**图 II-1 一个数据库切分为两个分区，每个分区都有两个副本**
+{{< fig num="II-1" id="fig_ddia_part-ii_01" src="/v1/ddia_part-ii_01.png" caption="一个数据库切分为两个分区，每个分区都有两个副本" class="ddia-figure ddia-figure--wide" width="2880" height="1606" />}}
 
 理解了这些概念，就可以开始讨论在分布式系统中需要做出的困难抉择。[第七章](/v1/ch7) 将讨论 **事务（Transaction）**，这对于了解数据系统中可能出现的各种问题，以及我们可以做些什么很有帮助。[第八章](/v1/ch8) 和 [第九章](/v1/ch9) 将讨论分布式系统的根本局限性。
 

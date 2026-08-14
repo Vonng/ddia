@@ -1,5 +1,6 @@
 ---
 title: 贡献者
+book_kind: backmatter
 search_exclude: true
 weight: 800
 breadcrumbs: false
@@ -23,6 +24,10 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 [繁體中文](/tw) **版本维护** by  [@afunTW](https://github.com/afunTW)
 
 ## 贡献列表
+
+下面的头像墙汇集了本项目在 GitHub 上留下贡献记录的朋友；点击头像可查看其主页。
+
+{{< contributors data="contributors" >}}
 
 [GitHub 贡献者列表](https://github.com/Vonng/ddia/graphs/contributors)
 

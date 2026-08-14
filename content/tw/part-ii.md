@@ -1,5 +1,7 @@
 ---
-title: 第二部分：分散式資料
+title: 分散式資料
+book_kind: part
+book_number: II
 search_exclude: true
 weight: 200
 breadcrumbs: false
@@ -37,7 +39,7 @@ breadcrumbs: false
 
 共享記憶體架構可以提供有限的容錯能力，高階機器可以使用熱插拔的元件（不關機更換磁碟，記憶體模組，甚至處理器）—— 但它必然囿於單個地理位置的桎梏。
 
-另一種方法是 **共享磁碟架構（shared-disk architecture）**，它使用多臺具有獨立處理器和記憶體的機器，但將資料儲存在機器之間共享的磁碟陣列上，這些磁碟透過快速網路連線。這種架構用於某些資料倉庫，但競爭和鎖定的開銷限制了共享磁碟方法的可伸縮性 [^2]。
+另一種方法是 **共享磁碟架構（shared-disk architecture）**，它使用多臺具有獨立處理器和記憶體的機器，但將資料儲存在機器之間共享的磁碟陣列上，這些磁碟透過快速網路連線。這種架構用於某些資料倉儲，但競爭和鎖定的開銷限制了共享磁碟方法的可伸縮性 [^2]。
 
 > [!NOTE]
 > 網路附屬儲存（Network Attached Storage, NAS），或 **儲存區網路（Storage Area Network, SAN）**
@@ -69,7 +71,7 @@ breadcrumbs: false
 
 複製和分割槽是不同的機制，但它們經常同時使用。如 [圖 II-1](#fig_replication_partitioning) 所示。
 
-{{< figure src="/v1/ddia_part-ii_01.png" id="fig_replication_partitioning" caption="圖 II-1 一個數據庫切分為兩個分割槽，每個分割槽都有兩個副本" class="w-full my-4" >}}
+{{< fig num="II-1" id="fig_replication_partitioning" src="/v1/ddia_part-ii_01.png" caption="一個資料庫切分為兩個分割槽，每個分割槽都有兩個副本" class="ddia-figure ddia-figure--wide" width="2880" height="1606" />}}
 
 
 理解了這些概念，就可以開始討論在分散式系統中需要做出的困難抉擇。[第八章](/tw/ch8) 將討論 **事務（Transaction）**，這對於瞭解資料系統中可能出現的各種問題，以及我們可以做些什麼很有幫助。
@@ -98,7 +100,7 @@ breadcrumbs: false
 - [可序列化](/tw/ch8#sec_transactions_serializability)
 - [分散式事務](/tw/ch8#sec_transactions_distributed)
 - [總結](/tw/ch8#summary)
-- [參考文獻](/tw/ch8#參考文獻)
+- [參考文獻](/tw/ch8#references)
 
 ## [9. 分散式系統的麻煩](/tw/ch9)
 - [故障與部分失效](/tw/ch9#sec_distributed_partial_failure)

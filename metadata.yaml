@@ -1,6 +1,14 @@
 ---
-title: 设计数据密集型应用
+title: 设计数据密集型应用（第二版）
+subtitle: Designing Data-Intensive Applications
 author: Martin Kleppmann
-rights:  Creative Commons Non-Commercial Share Alike 3.0
-language: zh
-cover-image: ./static/title.jpg
+translator: 冯若航 / Vonng
+description: DDIA 第二版中文翻译，系统讲解数据模型、存储、事务、分布式系统、批处理与流处理。
+subject:
+  - 数据库
+  - 分布式系统
+  - 数据工程
+identifier: https://ddia.vonng.com/
+rights: Creative Commons Non-Commercial Share Alike 3.0
+language: zh-CN
+cover-image: static/title-epub.jpg

@@ -9,6 +9,7 @@ sections:
 hero:
   eyebrow: DDIA · 第一版中文翻译
   title: 设计**数据密集型**应用
+  title_size: 4.45rem
   lead: 完整保留第一版中文译文，沿着可靠性、分布式数据与派生数据三条主线理解现代数据系统。
   note: 这是第一版阅读入口；可随时通过版本菜单切换到第二版。
   image:
@@ -24,6 +25,10 @@ hero:
       url: preface/
       icon: fa-solid fa-book-open
       style: ghost
+    - label: 整书打印
+      url: _print/
+      icon: fa-solid fa-print
+      style: ghost
 
 metrics:
   eyebrow: 第一版
@@ -35,7 +40,7 @@ metrics:
     - { value: '12', label: 章, desc: 从可靠性到数据系统的未来, icon: fa-solid fa-book, url: toc/ }
     - { value: '3', label: 部分, desc: 基础、分布式与派生数据, icon: fa-solid fa-layer-group, url: part-i/ }
     - { value: '4', label: 阅读版本, desc: 两版 × 简繁中文, icon: fa-solid fa-language }
-    - { value: '1', label: 开放项目, desc: 通过 GitHub 持续校订, icon: fa-brands fa-github, url: https://github.com/Vonng/ddia, external: true }
+    - { value: '90', label: 编号插图, desc: 稳定图号、交叉引用与缩放, icon: fa-solid fa-diagram-project, url: toc/#list-of-figures }
 
 gallery:
   eyebrow: 阅读路线
@@ -68,9 +73,9 @@ principles:
     - icon: fa-solid fa-magnifying-glass
       title: 搜索与命令面板
       desc: 按 `⌘ K` 搜索全文与常用操作，或按 `/` 直接运行阅读、版本、语言和页面命令。
-    - icon: fa-solid fa-file-lines
-      title: 可复制、可打印
-      desc: 每页提供文本复制、源码查看与打印，并生成适合工具读取的 `llms.txt`。
+    - icon: fa-solid fa-book-open-reader
+      title: 图表与整书出版
+      desc: 图号与引用语义化互联，支持高清缩放、整书打印、Markdown 与 EPUB 出版链路。
     - icon: fa-solid fa-code-pull-request
       title: 开放校订
       desc: 页面可直接跳转 GitHub 编辑或提交问题，第一版内容同样接受勘误与改进。

@@ -1,0 +1,29 @@
+{{- $page := .page -}}
+{{- $data := .data -}}
+{{- $id := .id -}}
+<section id="{{ $id }}" class="oink-section ddia-legal{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
+  <div class="landing-container">
+    {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
+    <div class="ddia-legal__grid">
+      {{- range $data.notices }}
+      <article class="ddia-legal__notice">
+        <div class="ddia-legal__icon"><i class="{{ .icon }}" aria-hidden="true"></i></div>
+        <p class="ddia-legal__label">{{ .label }}</p>
+        <h3>{{ partial "landing/markdown.html" (dict "page" $page "value" .title) }}</h3>
+        <div class="ddia-legal__body">{{ partial "landing/markdown-block.html" (dict "page" $page "value" .body) }}</div>
+      </article>
+      {{- end }}
+    </div>
+    {{- with $data.actions }}
+    <div class="ddia-legal__actions" aria-label="法律声明相关链接">
+      {{- range . }}
+      <a href="{{ .url | relLangURL }}"{{ if .external }} target="_blank" rel="noopener noreferrer"{{ end }}>
+        {{- with .icon }}<i class="{{ . }}" aria-hidden="true"></i>{{ end }}
+        <span>{{ .label }}</span>
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      </a>
+      {{- end }}
+    </div>
+    {{- end }}
+  </div>
+</section>
