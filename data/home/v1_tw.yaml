@@ -112,33 +112,3 @@ cta:
       url: glossary/
       icon: fa-solid fa-spell-check
       style: ghost
-
-footer:
-  brand:
-    name: DDIA 中文版
-    tagline: '**D**esigning **D**ata-**I**ntensive **A**pplications'
-    slogan: 第一版繁體中文譯文完整閱讀與開放校訂
-  columns:
-    - title: 閱讀
-      links:
-        - { label: 完整目錄, url: toc/ }
-        - { label: 序言, url: preface/ }
-        - { label: 術語表, url: glossary/ }
-        - { label: 後記, url: colophon/ }
-    - title: 主題
-      links:
-        - { label: 第一部分 · 資料系統基礎, url: part-i/ }
-        - { label: 第二部分 · 分散式資料, url: part-ii/ }
-        - { label: 第三部分 · 衍生資料, url: part-iii/ }
-        - { label: 版本與語言, url: '#faq' }
-    - title: 專案
-      links:
-        - { label: 貢獻者, url: contrib/ }
-        - { label: GitHub, url: 'https://github.com/Vonng/ddia', external: true }
-        - { label: 問題回饋, url: 'https://github.com/Vonng/ddia/issues', external: true }
-        - { label: 譯者部落格, url: 'https://vonng.com', external: true }
-    - title: 原作
-      links:
-        - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
-        - { label: DDIA 第一版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/', external: true }
-        - { label: DDIA 第二版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/', external: true }

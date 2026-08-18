@@ -52,13 +52,11 @@ breadcrumbs: false
 
 因此，需要在两种表示之间进行转换。从内存表示转换为字节序列，称为 *编码*（也称为 *序列化* 或 *编组*）；反过来则称为 *解码*（也称为 *解析*、*反序列化* 或 *解组*）。
 
---------
 
 > [!TIP] 术语冲突
 >
 > 遗憾的是，*序列化* 一词也用于事务的语境，而且含义完全不同（参见 [第 8 章](/ch8#ch_transactions)）。虽然“序列化”可能更常用，但为了避免一词多义，本书在这里始终使用 *编码*。
 
---------
 
 也有一些情况不需要编码和解码。例如，[“查询执行：编译与向量化”](/ch4#sec_storage_vectorized) 中介绍过，数据库可以直接操作从磁盘加载的压缩数据。还有一些 *零拷贝* 数据格式，例如 Cap’n Proto 和 FlatBuffers；它们既可用于运行时，也可直接用于磁盘或网络上的数据，无需显式的转换步骤。
 
@@ -100,11 +98,10 @@ JSON 模式规范提供了许多功能。它包含字符串、数值、整数、
 
 JSON 模式可以采用开放或封闭的内容模型。开放内容模型允许出现模式未定义的任意字段，而且这些字段可以是任意数据类型；封闭内容模型则只允许出现显式定义的字段。在 JSON 模式中，把 `additionalProperties` 设为 `true` 就会启用开放内容模型，而这恰好是默认值。因此，JSON 模式通常是在定义 *不允许什么*（也就是已定义字段上的无效值），而不是穷举模式中 *允许什么*。
 
-开放内容模型功能强大，但也可能相当复杂。假设你想定义一个从整数（例如 ID）到字符串的映射。JSON 没有映射或字典类型，只有“对象”类型；对象的键必须是字符串，值则可以是任意类型。此时可以借助 JSON 模式，用 `patternProperties` 和 `additionalProperties` 约束对象，规定键只能由数字组成、值只能是字符串，如 {{< xref page="/ch5" anchor="fig_encoding_json_schema" >}}示例 5-1{{< /xref >}} 所示。
+开放内容模型功能强大，但也可能相当复杂。假设你想定义一个从整数（例如 ID）到字符串的映射。JSON 没有映射或字典类型，只有“对象”类型；对象的键必须是字符串，值则可以是任意类型。此时可以借助 JSON 模式，用 `patternProperties` 和 `additionalProperties` 约束对象，规定键只能由数字组成、值只能是字符串，如 {{< xref eg="5-1" page="/ch5" anchor="fig_encoding_json_schema" >}}示例 5-1{{< /xref >}} 所示。
 
 
-{{< example num="5-1" id="fig_encoding_json_schema" caption="以整数为键、字符串为值的 JSON 模式示例。由于 JSON 模式要求所有键均为字符串，整数键表示为只包含数字的字符串。" />}}
-
+{{< eg num="5-1" id="fig_encoding_json_schema" caption="以整数为键、字符串为值的 JSON 模式示例。由于 JSON 模式要求所有键均为字符串，整数键表示为只包含数字的字符串。" >}}
 ```json
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
@@ -117,6 +114,7 @@ JSON 模式可以采用开放或封闭的内容模型。开放内容模型允许
     "additionalProperties": false
 }
 ```
+{{< /eg >}}
 
 除了开放和封闭内容模型以及验证器，JSON 模式还支持条件式 `if/else` 模式逻辑、命名类型、远程模式引用等诸多功能。这些能力造就了一门十分强大的模式语言，却也让模式定义变得庞杂难用。解析远程模式、推断条件规则，或者以向前或向后兼容的方式演化模式，都可能很有挑战 [^10]。XML 模式也有类似的问题 [^11]。
 
@@ -124,10 +122,9 @@ JSON 模式可以采用开放或封闭的内容模型。开放内容模型允许
 
 JSON 比 XML 简洁，但两者与二进制格式相比仍然很占空间。于是，人们开发出了大量 JSON 的二进制编码（例如 MessagePack、CBOR、BSON、BJSON、UBJSON、BISON、Hessian 和 Smile）以及 XML 的二进制编码（例如 WBXML 和 Fast Infoset）。这些格式更紧凑，有时解析也更快，因此在各自的细分领域得到应用；但没有一种像文本版 JSON 和 XML 那样普及 [^12]。
 
-其中一些格式扩展了数据类型集合，例如区分整数和浮点数，或者支持二进制字符串；除此之外，它们仍然沿用 JSON/XML 的数据模型。尤其是，它们没有规定模式，所以必须把所有对象字段名都写进编码后的数据。也就是说，对 {{< xref page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 中的 JSON 文档进行二进制编码时，某处仍须包含 `userName`、`favoriteNumber` 和 `interests` 这些字符串。
+其中一些格式扩展了数据类型集合，例如区分整数和浮点数，或者支持二进制字符串；除此之外，它们仍然沿用 JSON/XML 的数据模型。尤其是，它们没有规定模式，所以必须把所有对象字段名都写进编码后的数据。也就是说，对 {{< xref eg="5-2" page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 中的 JSON 文档进行二进制编码时，某处仍须包含 `userName`、`favoriteNumber` 和 `interests` 这些字符串。
 
-{{< example num="5-2" id="fig_encoding_json" caption="本章将使用多种二进制格式编码的示例记录" />}}
-
+{{< eg num="5-2" id="fig_encoding_json" caption="本章将使用多种二进制格式编码的示例记录" >}}
 ```json
 {
     "userName": "Martin",
@@ -135,8 +132,9 @@ JSON 比 XML 简洁，但两者与二进制格式相比仍然很占空间。于�
     "interests": ["daydreaming", "hacking"]
 }
 ```
+{{< /eg >}}
 
-下面来看 MessagePack，它是 JSON 的一种二进制编码。{{< xref fig="5-2" page="/ch5" anchor="fig_encoding_messagepack" >}}图 5-2{{< /xref >}} 展示了用 MessagePack 编码 {{< xref page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 中的 JSON 文档后得到的字节序列。开头几个字节的含义如下：
+下面来看 MessagePack，它是 JSON 的一种二进制编码。{{< xref fig="5-2" page="/ch5" anchor="fig_encoding_messagepack" >}}图 5-2{{< /xref >}} 展示了用 MessagePack 编码 {{< xref eg="5-2" page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 中的 JSON 文档后得到的字节序列。开头几个字节的含义如下：
 
 1. 第一个字节 `0x83` 表示接下来是一个对象（高四位 = `0x80`），其中有三个字段（低四位 = `0x03`）。（如果对象超过 15 个字段，字段数无法装进四位，就会改用另一种类型标识符，并用两个或四个字节编码字段数。）
 2. 第二个字节 `0xa8` 表示接下来是一个字符串（高四位 = `0xa0`），长度为八个字节（低四位 = `0x08`）。
@@ -154,7 +152,7 @@ JSON 比 XML 简洁，但两者与二进制格式相比仍然很占空间。于�
 
 Protocol Buffers（protobuf）是 Google 开发的二进制编码库。它与最初由 Facebook 开发的 Apache Thrift 很相似 [^13]；本节关于 Protocol Buffers 的大部分内容也适用于 Thrift。
 
-Protocol Buffers 要求任何待编码的数据都有模式。要用 Protocol Buffers 编码 {{< xref page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 中的数据，可以用 Protocol Buffers 的接口定义语言（IDL）这样描述模式：
+Protocol Buffers 要求任何待编码的数据都有模式。要用 Protocol Buffers 编码 {{< xref eg="5-2" page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 中的数据，可以用 Protocol Buffers 的接口定义语言（IDL）这样描述模式：
 
 ```protobuf
 syntax = "proto3";
@@ -168,7 +166,7 @@ message Person {
 
 Protocol Buffers 自带代码生成工具。它接收上述模式定义，生成用各种编程语言实现该模式的类，应用程序可以调用生成的代码来编码或解码符合模式的记录。与 JSON 模式相比，Protocol Buffers 的模式语言非常简单：它只定义记录的字段及其类型，不支持对字段取值施加其他约束。
 
-使用 Protocol Buffers 编码器对 {{< xref page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 进行编码，需要 33 字节，如 {{< xref fig="5-3" page="/ch5" anchor="fig_encoding_protobuf" >}}图 5-3{{< /xref >}} 所示 [^14]。
+使用 Protocol Buffers 编码器对 {{< xref eg="5-2" page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}} 进行编码，需要 33 字节，如 {{< xref fig="5-3" page="/ch5" anchor="fig_encoding_protobuf" >}}图 5-3{{< /xref >}} 所示 [^14]。
 
 {{< fig num="5-3" id="fig_encoding_protobuf" src="/fig/ddia_0503.png" caption="使用 Protocol Buffers 编码的示例记录。" class="ddia-figure ddia-figure--standard" width="2880" height="1775" />}}
 
@@ -225,7 +223,7 @@ record Person {
 }
 ```
 
-首先请注意，模式中没有标签号。如果用这个模式编码示例记录（{{< xref page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}}），Avro 的二进制编码只有 32 字节，是目前所见编码中最紧凑的。{{< xref fig="5-4" page="/ch5" anchor="fig_encoding_avro" >}}图 5-4{{< /xref >}} 展示了这个字节序列的组成。
+首先请注意，模式中没有标签号。如果用这个模式编码示例记录（{{< xref eg="5-2" page="/ch5" anchor="fig_encoding_json" >}}示例 5-2{{< /xref >}}），Avro 的二进制编码只有 32 字节，是目前所见编码中最紧凑的。{{< xref fig="5-4" page="/ch5" anchor="fig_encoding_avro" >}}图 5-4{{< /xref >}} 展示了这个字节序列的组成。
 
 仔细查看这个字节序列，会发现其中没有任何内容标识字段或数据类型；编码仅仅是各个值的拼接。字符串就是长度前缀加上 UTF-8 字节，但编码数据本身并不说明它是字符串——它同样可能是整数或其他任何东西。整数则使用变长编码。
 
@@ -375,10 +373,9 @@ Web 浏览器并不是唯一的客户端。例如，运行在移动设备或桌�
 
 调用 Web 服务 API 的代码必须知道应该请求哪个 HTTP 端点、应发送什么格式的数据，以及预期得到什么响应。即使服务遵循 RESTful 设计原则，客户端也得通过某种途径获知这些细节。服务开发者通常使用接口定义语言（IDL）来定义并记录 API 端点和数据模型，随后再逐步演化它们。其他开发者可以根据服务定义判断如何发起请求。最流行的两种服务 IDL 是 OpenAPI（也称为 Swagger [^32]）和 gRPC。OpenAPI 用于收发 JSON 数据的 Web 服务，而 gRPC 服务收发 Protocol Buffers 数据。
 
-开发者通常用 JSON 或 YAML 编写 OpenAPI 服务定义，参见 {{< xref page="/ch5" anchor="fig_open_api_def" >}}示例 5-3{{< /xref >}}。服务定义可以描述端点、文档、版本、数据模型等许多内容。gRPC 的定义看起来与此相似，但采用 Protocol Buffers 的服务定义语法。
+开发者通常用 JSON 或 YAML 编写 OpenAPI 服务定义，参见 {{< xref eg="5-3" page="/ch5" anchor="fig_open_api_def" >}}示例 5-3{{< /xref >}}。服务定义可以描述端点、文档、版本、数据模型等许多内容。gRPC 的定义看起来与此相似，但采用 Protocol Buffers 的服务定义语法。
 
-{{< example num="5-3" id="fig_open_api_def" caption="使用 YAML 编写的 OpenAPI 服务定义示例" />}}
-
+{{< eg num="5-3" id="fig_open_api_def" caption="使用 YAML 编写的 OpenAPI 服务定义示例" >}}
 ```yaml
 openapi: 3.0.0
 info:
@@ -402,11 +399,11 @@ paths:
                     type: string
                     example: Pong!
 ```
+{{< /eg >}}
 
-即使选定了设计理念和 IDL，开发者仍要编写代码来实现服务的 API 调用。通常可以采用服务框架来简化这项工作。Spring Boot、FastAPI 和 gRPC 等框架让开发者只需编写每个 API 端点的业务逻辑，由框架负责路由、指标、缓存、身份认证等事务。{{< xref page="/ch5" anchor="fig_fastapi_def" >}}示例 5-4{{< /xref >}} 给出了 {{< xref page="/ch5" anchor="fig_open_api_def" >}}示例 5-3{{< /xref >}} 所定义服务的一种 Python 实现。
+即使选定了设计理念和 IDL，开发者仍要编写代码来实现服务的 API 调用。通常可以采用服务框架来简化这项工作。Spring Boot、FastAPI 和 gRPC 等框架让开发者只需编写每个 API 端点的业务逻辑，由框架负责路由、指标、缓存、身份认证等事务。{{< xref eg="5-4" page="/ch5" anchor="fig_fastapi_def" >}}示例 5-4{{< /xref >}} 给出了 {{< xref eg="5-3" page="/ch5" anchor="fig_open_api_def" >}}示例 5-3{{< /xref >}} 所定义服务的一种 Python 实现。
 
-{{< example num="5-4" id="fig_fastapi_def" caption="使用 FastAPI 实现示例 5-3 中定义的服务" />}}
-
+{{< eg num="5-4" id="fig_fastapi_def" caption="使用 FastAPI 实现示例 5-3 中定义的服务" >}}
 ```python
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -421,6 +418,7 @@ class PongResponse(BaseModel):
 async def ping():
     return PongResponse()
 ```
+{{< /eg >}}
 
 许多框架把服务定义与服务器代码结合在一起。以流行的 Python 框架 FastAPI 为例，开发者先用代码编写服务器，框架再自动生成 IDL；gRPC 等框架则反过来，先编写服务定义，再生成服务器代码的脚手架。两种方式都能根据服务定义生成多种语言的客户端库和 SDK。除了生成代码，Swagger 等 IDL 工具还可以生成文档、验证模式变更是否兼容，并提供图形界面，供开发者查询和测试服务。
 
@@ -476,13 +474,11 @@ RPC 经常用于跨组织边界通信，这让服务兼容性变得更加困难�
 
 在这个例子中，处理一笔付款需要多次服务调用。支付处理服务可能先调用欺诈检测服务检查风险，再调用信用卡服务扣款，最后调用银行服务把扣下的款项存入账户，如 {{< xref fig="5-7" page="/ch5" anchor="fig_encoding_workflow" >}}图 5-7{{< /xref >}} 所示。这一系列步骤称为 *工作流*，其中每一步称为 *任务*。工作流通常定义成一张任务图，其定义可以使用通用编程语言、领域特定语言（DSL），也可以使用业务流程执行语言（BPEL）之类的标记语言 [^44]。
 
---------
 
 > [!TIP] 任务、活动与函数
 >
 > 不同的工作流引擎对任务有不同称呼。例如，Temporal 使用 *活动* 一词，另一些引擎则称之为 *持久函数*。名称虽异，概念相同。
 
---------
 
 {{< fig num="5-7" id="fig_encoding_workflow" src="/fig/ddia_0507.png" caption="使用图形化的业务流程模型与标记法（BPMN）表示工作流的示例。" class="ddia-figure ddia-figure--panorama" width="2658" height="720" />}}
 
@@ -497,10 +493,9 @@ RPC 经常用于跨组织边界通信，这让服务兼容性变得更加困难�
 
 对于需要事务语义的服务架构，持久化执行框架已经成为一种流行的构建方式。在支付示例中，我们希望每笔付款都恰好处理一次。但工作流执行期间一旦发生故障，就可能出现信用卡已经扣款，银行账户却没有收到相应款项的情况。在基于服务的架构中，无法简单地把这两项任务包进一个数据库事务；况且，系统可能还要与我们无法充分控制的第三方支付网关交互。
 
-持久化执行框架可以为工作流提供 *恰好一次语义*。任务失败后，框架会重新执行它，但会跳过失败前已经成功完成的 RPC 调用或状态变更：框架表面上再次发起调用，实际上却直接返回上一次调用的结果。这之所以可行，是因为框架把所有 RPC 和状态变更都记录在预写日志（WAL）之类的持久存储中 [^45] [^46]。{{< xref page="/ch5" anchor="fig_temporal_workflow" >}}示例 5-5{{< /xref >}} 展示了用 Temporal 定义支持持久化执行的工作流。
+持久化执行框架可以为工作流提供 *恰好一次语义*。任务失败后，框架会重新执行它，但会跳过失败前已经成功完成的 RPC 调用或状态变更：框架表面上再次发起调用，实际上却直接返回上一次调用的结果。这之所以可行，是因为框架把所有 RPC 和状态变更都记录在预写日志（WAL）之类的持久存储中 [^45] [^46]。{{< xref eg="5-5" page="/ch5" anchor="fig_temporal_workflow" >}}示例 5-5{{< /xref >}} 展示了用 Temporal 定义支持持久化执行的工作流。
 
-{{< example num="5-5" id="fig_temporal_workflow" caption="用于图 5-7 所示支付工作流的 Temporal 工作流定义片段" />}}
-
+{{< eg num="5-5" id="fig_temporal_workflow" caption="用于图 5-7 所示支付工作流的 Temporal 工作流定义片段" >}}
 ```python
 @workflow.defn
 class PaymentWorkflow:
@@ -520,17 +515,16 @@ class PaymentWorkflow:
         )
         # ...
 ```
+{{< /eg >}}
 
 Temporal 之类的框架并非没有难题。外部服务——例如示例中的第三方支付网关——仍然必须提供幂等 API，开发者也必须记得为调用使用唯一 ID，以防重复执行 [^47]。此外，持久化执行框架会按顺序记录每次 RPC 调用，因此要求后续执行以同样的顺序发起同样的调用。这让代码变更十分脆弱：仅仅调整函数调用顺序，就可能引入未定义行为 [^48]。与其修改现有工作流的代码，更安全的做法是单独部署一个新版本，让已有工作流的重执行继续使用旧版代码，只有新启动的工作流才使用新版 [^49]。
 
 同样，持久化执行框架要求以确定性的方式重放所有代码，也就是相同输入必须产生相同输出。因此，随机数生成器、系统时钟等非确定性代码会带来问题 [^48]。框架通常会为这类库函数提供自己的确定性实现，但开发者必须记得使用。有些框架还提供静态分析工具，用于检查是否引入了非确定性行为，例如 Temporal 的 workflowcheck。
 
---------
 
 > [!NOTE]
 > 让代码具有确定性是个强大的思想，但要可靠地做到这一点并不容易。我们会在[“确定性的力量”](/ch9#sidebar_distributed_determinism)中再次讨论这个话题。
 
---------
 
 ### 事件驱动的架构 {#sec_encoding_dataflow_msg}
 

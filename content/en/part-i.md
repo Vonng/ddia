@@ -4,9 +4,8 @@ weight: 100
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-This page is from the 1st edition， 2nd edition is not available yet.
-{{< /callout >}}
+> [!WARNING]
+> This page is from the 1st edition， 2nd edition is not available yet.
 
 The first five chapters go through the fundamental ideas that apply to all data systems, whether running on a single machine or distributed across a cluster of machines:
 

@@ -54,15 +54,15 @@ format of data written by older code, and so you can explicitly handle it (if ne
 keeping the old code to read the old data). Forward compatibility can be trickier, because it
 requires older code to ignore additions made by a newer version of the code.
 
-Another challenge with forward compatibility is illustrated in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
+Another challenge with forward compatibility is illustrated in {{< xref fig="5-1" page="/ch5" anchor="fig_encoding_preserve_field" >}}Figure 5-1{{< /xref >}}.
 Say you add a field to a record schema, and the newer code creates a record containing that new
 field and stores it in a database. Subsequently, an older version of the code (which doesn’t yet
 know about the new field) reads the record, updates it, and writes it back. In this situation, the
 desirable behavior is usually for the old code to keep the new field intact, even though it couldn’t
 be interpreted. But if the record is decoded into a model object that does not explicitly
-preserve unknown fields, data can be lost, like in [Figure 5-1](/en/ch5#fig_encoding_preserve_field).
+preserve unknown fields, data can be lost, like in {{< xref fig="5-1" page="/ch5" anchor="fig_encoding_preserve_field" >}}Figure 5-1{{< /xref >}}.
 
-{{< figure src="/fig/ddia_0501.png" id="fig_encoding_preserve_field" caption="When an older version of the application updates data previously written by a newer version of the application, data may be lost if you’re not careful." class="w-full my-4" >}}
+{{< fig num="5-1" id="fig_encoding_preserve_field" src="/fig/ddia_0501.png" caption="When an older version of the application updates data previously written by a newer version of the application, data may be lost if you’re not careful." />}}
 
 In this chapter we will look at several formats for encoding data, including JSON, XML, Protocol
 Buffers, and Avro. In particular, we will look at how they handle schema changes and how they
@@ -207,7 +207,7 @@ JSON Schema so that keys may only contain digits, and values can only be strings
 `patternProperties` and `additionalProperties` as shown in [Example 5-1](/en/ch5#fig_encoding_json_schema).
 
 
-{{< figure id="fig_encoding_json_schema" title="Example 5-1. Example JSON Schema with integer keys and string values. Integer keys are represented as strings containing only integers since JSON Schema requires all keys to be strings." class="w-full my-4" >}}
+#### Example 5-1. Example JSON Schema with integer keys and string values. Integer keys are represented as strings containing only integers since JSON Schema requires all keys to be strings. {#fig_encoding_json_schema}
 
 ```json
 {
@@ -242,7 +242,7 @@ particular, since they don’t prescribe a schema, they need to include all the 
 the encoded data. That is, in a binary encoding of the JSON document in [Example 5-2](/en/ch5#fig_encoding_json), they
 will need to include the strings `userName`, `favoriteNumber`, and `interests` somewhere.
 
-{{< figure id="fig_encoding_json" title="Example 5-2. Example record which we will encode in several binary formats in this chapter" class="w-full my-4" >}}
+#### Example 5-2. Example record which we will encode in several binary formats in this chapter {#fig_encoding_json}
 
 ```json
 {
@@ -273,7 +273,7 @@ is worth the loss of human-readability.
 
 In the following sections we will see how we can do much better, and encode the same record in just 32 bytes.
 
-{{< figure link="#fig_encoding_json" src="/fig/ddia_0502.png" id="fig_encoding_messagepack" caption="Figure 5-2. Example record Example 5-2 encoded using MessagePack." class="w-full my-4" >}}
+{{< fig num="5-2" id="fig_encoding_messagepack" src="/fig/ddia_0502.png" caption="Example record Example 5-2 encoded using MessagePack." link="#fig_encoding_json" />}}
 
 
 ### Protocol Buffers {#sec_encoding_protobuf}
@@ -304,7 +304,7 @@ types, but it does not support other restrictions on the possible values of fiel
 
 Encoding [Example 5-2](/en/ch5#fig_encoding_json) using a Protocol Buffers encoder requires 33 bytes, as shown in [Figure 5-3](/en/ch5#fig_encoding_protobuf) [^14].
 
-{{< figure src="/fig/ddia_0503.png" id="fig_encoding_protobuf" caption="Figure 5-3. Example record encoded using Protocol Buffers." class="w-full my-4" >}}
+{{< fig num="5-3" id="fig_encoding_protobuf" src="/fig/ddia_0503.png" caption="Example record encoded using Protocol Buffers." />}}
 
 
 Similarly to [Figure 5-2](/en/ch5#fig_encoding_messagepack), each field has a type annotation (to indicate whether it
@@ -346,7 +346,7 @@ You can add new fields to the schema, provided that you give each field a new ta
 code (which doesn’t know about the new tag numbers you added) tries to read data written by new
 code, including a new field with a tag number it doesn’t recognize, it can simply ignore that field.
 The datatype annotation allows the parser to determine how many bytes it needs to skip, and preserve
-the unknown fields to avoid the problem in [Figure 5-1](/en/ch5#fig_encoding_preserve_field). This maintains forward
+the unknown fields to avoid the problem in {{< xref fig="5-1" page="/ch5" anchor="fig_encoding_preserve_field" >}}Figure 5-1{{< /xref >}}. This maintains forward
 compatibility: old code can read records that were written by new code.
 
 What about backward compatibility? As long as each field has a unique tag number, new code can
@@ -412,7 +412,7 @@ prefix followed by UTF-8 bytes, but there’s nothing in the encoded data that t
 string. It could just as well be an integer, or something else entirely. An integer is encoded using
 a variable-length encoding.
 
-{{< figure src="/fig/ddia_0504.png" id="fig_encoding_avro" caption="Figure 5-4. Example record encoded using Avro." class="w-full my-4" >}}
+{{< fig num="5-4" id="fig_encoding_avro" src="/fig/ddia_0504.png" caption="Example record encoded using Avro." />}}
 
 
 To parse the binary data, you go through the fields in the order that they appear in the schema and
@@ -435,7 +435,7 @@ encoding, and the *reader’s schema*, which may be different. This is illustrat
 [Figure 5-5](/en/ch5#fig_encoding_avro_schemas). The reader’s schema defines the fields of each record that the
 application code is expecting, and their types.
 
-{{< figure src="/fig/ddia_0505.png" id="fig_encoding_avro_schemas" caption="Figure 5-5. In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer's schema must be identical to the one used for encoding, but the reader's schema can be an older or newer version." class="w-full my-4" >}}
+{{< fig num="5-5" id="fig_encoding_avro_schemas" src="/fig/ddia_0505.png" caption="In Protocol Buffers, encoding and decoding can use different versions of a schema. In Avro, decoding uses two schemas: the writer's schema must be identical to the one used for encoding, but the reader's schema can be an older or newer version." />}}
 
 If the reader’s and writer’s schema are the same, decoding is easy. If they are different, Avro
 resolves the differences by looking at the writer’s schema and the reader’s schema side by side and
@@ -449,7 +449,7 @@ schema, it is ignored. If the code reading the data expects some field, but the 
 not contain a field of that name, it is filled in with a default value declared in the reader’s
 schema.
 
-{{< figure src="/fig/ddia_0506.png" id="fig_encoding_avro_resolution" caption="Figure 5-6. An Avro reader resolves differences between the writer's schema and the reader's schema." class="w-full my-4" >}}
+{{< fig num="5-6" id="fig_encoding_avro_resolution" src="/fig/ddia_0506.png" caption="An Avro reader resolves differences between the writer's schema and the reader's schema." />}}
 
 #### Schema evolution rules {#schema-evolution-rules}
 
@@ -734,7 +734,7 @@ Developers typically write OpenAPI service definitions in JSON or YAML; see [Exa
 The service definition allows developers to define service endpoints, documentation, versions, data
 models, and much more. gRPC definitions look similar, but are defined using Protocol Buffers service definitions.
 
-{{< figure id="fig_open_api_def" title="Example 5-3. Example OpenAPI service definition in YAML" class="w-full my-4" >}}
+#### Example 5-3. Example OpenAPI service definition in YAML {#fig_open_api_def}
 
 ```yaml
 openapi: 3.0.0
@@ -767,7 +767,7 @@ business logic for each API endpoint while the framework code handles routing, m
 authentication, and so on. [Example 5-4](/en/ch5#fig_fastapi_def) shows an example Python implementation of the service
 defined in [Example 5-3](/en/ch5#fig_open_api_def).
 
-{{< figure id="fig_fastapi_def" title="Example 5-4. Example FastAPI service implementing the definition from [Example 5-3](/en/ch5#fig_open_api_def)" class="w-full my-4" >}}
+#### Example 5-4. Example FastAPI service implementing the definition from [Example 5-3](/en/ch5#fig_open_api_def) {#fig_fastapi_def}
 
 ```python
 from fastapi import FastAPI
@@ -952,7 +952,7 @@ Different workflow engines use different names for tasks. Temporal, for example,
 
 --------
 
-{{< figure src="/fig/ddia_0507.png" id="fig_encoding_workflow" title="Figure 5-7. Example of a workflow expressed using Business Process Model and Notation (BPMN), a graphical notation." class="w-full my-4" >}}
+{{< fig num="5-7" id="fig_encoding_workflow" src="/fig/ddia_0507.png" caption="Example of a workflow expressed using Business Process Model and Notation (BPMN), a graphical notation." />}}
 
 
 Workflows are run, or executed, by a *workflow engine*. Workflow engines determine when to run each
@@ -989,7 +989,7 @@ execution frameworks log all RPCs and state changes to durable storage like a wr
 [Example 5-5](/en/ch5#fig_temporal_workflow) shows an example of a workflow definition that supports durable execution
 using Temporal.
 
-{{< figure id="fig_temporal_workflow" title="Example 5-5. A Temporal workflow definition fragment for the payment workflow in [Figure 5-7](/en/ch5#fig_encoding_workflow)." class="w-full my-4" >}}
+#### Example 5-5. A Temporal workflow definition fragment for the payment workflow in [Figure 5-7](/en/ch5#fig_encoding_workflow). {#fig_temporal_workflow}
 
 ```python
 @workflow.defn
@@ -1086,7 +1086,7 @@ to use event sourcing (see [“Event Sourcing and CQRS”](/en/ch3#sec_datamodel
 
 If a consumer republishes messages to another topic, you may need to be careful to preserve unknown
 fields, to prevent the issue described previously in the context of databases
-([Figure 5-1](/en/ch5#fig_encoding_preserve_field)).
+({{< xref fig="5-1" page="/ch5" anchor="fig_encoding_preserve_field" >}}Figure 5-1{{< /xref >}}).
 
 #### Distributed actor frameworks {#distributed-actor-frameworks}
 

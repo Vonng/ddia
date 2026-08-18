@@ -144,7 +144,7 @@ To start, let’s assume that you want to continue storing data in the append-on
 memory, in which every key is mapped to the byte offset in the file at which the most recent value
 for that key can be found, as illustrated in [Figure 4-1](/en/ch4#fig_storage_csv_hash_index).
 
-{{< figure src="/fig/ddia_0401.png" id="fig_storage_csv_hash_index" caption="Figure 4-1. Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map." class="w-full my-4" >}}
+{{< fig num="4-1" id="fig_storage_csv_hash_index" src="/fig/ddia_0401.png" caption="Storing a log of key-value pairs in a CSV-like format, indexed with an in-memory hash map." />}}
 
 Whenever you append a new key-value pair to the file, you also update the hash map to reflect the
 offset of the data you just wrote. When you want to look up a value, you use the hash map to find
@@ -172,7 +172,7 @@ One example of such a structure is a *Sorted String Table*, or *SSTable* for sho
 [Figure 4-2](/en/ch4#fig_storage_sstable_index). This file format also stores key-value pairs, but it ensures that
 they are sorted by key, and each key only appears once in the file.
 
-{{< figure src="/fig/ddia_0402.png" id="fig_storage_sstable_index" caption="Figure 4-2. An SSTable with a sparse index, allowing queries to jump to the right block." class="w-full my-4" >}}
+{{< fig num="4-2" id="fig_storage_sstable_index" src="/fig/ddia_0402.png" caption="An SSTable with a sparse index, allowing queries to jump to the right block." />}}
 
 Now you do not need to keep all the keys in memory: you can group the key-value pairs within an
 SSTable into *blocks* of a few kilobytes, and then store the first key of each block in the index.
@@ -225,7 +225,7 @@ the same key appears in more than one input file, keep only the more recent valu
 new merged segment file, also sorted by key, with one value per key, and it uses minimal memory
 because we can iterate over the SSTables one key at a time.
 
-{{< figure src="/fig/ddia_0403.png" id="fig_storage_sstable_merging" caption="Figure 4-3. Merging several SSTable segments, retaining only the most recent value for each key." class="w-full my-4" >}}
+{{< fig num="4-3" id="fig_storage_sstable_merging" src="/fig/ddia_0403.png" caption="Merging several SSTable segments, retaining only the most recent value for each key." />}}
 
 To ensure that the data in the memtable is not lost if the database crashes, the storage engine
 keeps a separate log on disk to which every write is immediately appended. This log is not sorted by
@@ -280,7 +280,7 @@ We set the bits corresponding to those indexes to 1, and leave the rest as 0. Fo
 is then stored as part of the SSTable, along with the sparse index of keys. This takes a bit of
 extra space, but the Bloom filter is generally small compared to the rest of the SSTable.
 
-{{< figure src="/fig/ddia_0404.png" id="fig_storage_bloom" caption="Figure 4-4. A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable." class="w-full my-4" >}}
+{{< fig num="4-4" id="fig_storage_bloom" src="/fig/ddia_0404.png" caption="A Bloom filter provides a fast, probabilistic check whether a particular key exists in a particular SSTable." />}}
 
 When we want to know whether a key appears in the SSTable, we compute the same hash of that key as
 before, and check the bits at those indexes. For example, in [Figure 4-4](/en/ch4#fig_storage_bloom), we’re querying
@@ -385,7 +385,7 @@ multiplying the page number by the page size gives us the byte offset in the fil
 located. We can use these page references to construct a tree of pages, as illustrated in
 [Figure 4-5](/en/ch4#fig_storage_b_tree).
 
-{{< figure src="/fig/ddia_0405.png" id="fig_storage_b_tree" caption="Figure 4-5. Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270." class="w-full my-4" >}}
+{{< fig num="4-5" id="fig_storage_b_tree" src="/fig/ddia_0405.png" caption="Looking up the key 251 using a B-tree index. From the root page we first follow the reference to the page for keys 200–300, then the page for keys 250–270." />}}
 
 One page is designated as the *root* of the B-tree; whenever you want to look up a key in the index,
 you start here. The page contains several keys and references to child pages.
@@ -412,7 +412,7 @@ it to that page. If there isn’t enough free space in the page to accommodate t
 is split into two half-full pages, and the parent page is updated to account for the new subdivision
 of key ranges.
 
-{{< figure src="/fig/ddia_0406.png" id="fig_storage_b_tree_split" caption="Figure 4-6. Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children." class="w-full my-4" >}}
+{{< fig num="4-6" id="fig_storage_b_tree_split" src="/fig/ddia_0406.png" caption="Growing a B-tree by splitting a page on the boundary key 337. The parent page is updated to reference both children." />}}
 
 In the example of [Figure 4-6](/en/ch4#fig_storage_b_tree_split), we want to insert the key 334, but the page for the
 range 333–345 is already full. We therefore split it into a page for the range 333–337 (including
@@ -802,7 +802,7 @@ buying fruit or candy during the 2024 calendar year), but it only needs to acces
 the `fact_sales` table: `date_key`, `product_sk`,
 and `quantity`. The query ignores all other columns.
 
-{{< figure id="fig_storage_analytics_query" title="Example 4-1. Analyzing whether people are more inclined to buy fresh fruit or candy, depending on the day of the week" class="w-full my-4" >}}
+#### Example 4-1. Analyzing whether people are more inclined to buy fresh fruit or candy, depending on the day of the week {#fig_storage_analytics_query}
 
 ```sql
 SELECT
@@ -846,7 +846,7 @@ an expanded version of the fact table from [Figure 3-5](/en/ch3#fig_dwh_schema).
 
 --------
 
-{{< figure src="/fig/ddia_0407.png" id="fig_column_store" caption="Figure 4-7. Storing relational data by column, rather than by row." class="w-full my-4" >}}
+{{< fig num="4-7" id="fig_column_store" src="/fig/ddia_0407.png" caption="Storing relational data by column, rather than by row." />}}
 
 The column-oriented storage layout relies on each column storing the rows in the same order.
 Thus, if you need to reassemble an entire row, you can take the 23rd entry from each of the
@@ -875,7 +875,7 @@ repetitive, which is a good sign for compression. Depending on the data in the c
 compression techniques can be used. One technique that is particularly effective in data warehouses
 is *bitmap encoding*, illustrated in [Figure 4-8](/en/ch4#fig_bitmap_index).
 
-{{< figure src="/fig/ddia_0408.png" id="fig_bitmap_index" caption="Figure 4-8. Compressed, bitmap-indexed storage of a single column." class="w-full my-4" >}}
+{{< fig num="4-8" id="fig_bitmap_index" src="/fig/ddia_0408.png" caption="Compressed, bitmap-indexed storage of a single column." />}}
 
 Often, the number of distinct values in a column is small compared to the number of rows (for
 example, a retailer may have billions of sales transactions, but only 100,000 distinct products).
@@ -1013,7 +1013,7 @@ Vectorized processing
  shown in [Figure 4-9](/en/ch4#fig_bitmap_and). The result would be a bitmap containing a 1 for all sales of bananas in
  a particular store.
 
-{{< figure src="/fig/ddia_0409.png" id="fig_bitmap_and" caption="Figure 4-9. A bitwise AND between two bitmaps lends itself to vectorization." class="w-full my-4" >}}
+{{< fig num="4-9" id="fig_bitmap_and" src="/fig/ddia_0409.png" caption="A bitwise AND between two bitmaps lends itself to vectorization." />}}
 
 The two approaches are very different in terms of their implementation, but both are used in practice [^77]. Both can achieve very good
 performance by taking advantages of the characteristics of modern CPUs:
@@ -1047,7 +1047,7 @@ wasteful to crunch through the raw data every time. Why not cache some of the co
 queries use most often? A *data cube* or *OLAP cube* does this by creating a grid of aggregates grouped by different dimensions [^82].
 [Figure 4-10](/en/ch4#fig_data_cube) shows an example.
 
-{{< figure src="/fig/ddia_0410.png" id="fig_data_cube" caption="Figure 4-10. Two dimensions of a data cube, aggregating data by summing." class="w-full my-4" >}}
+{{< fig num="4-10" id="fig_data_cube" src="/fig/ddia_0410.png" caption="Two dimensions of a data cube, aggregating data by summing." />}}
 
 Imagine for now that each fact has foreign keys to only two dimension tables—in [Figure 4-10](/en/ch4#fig_data_cube),
 these are `date_key` and `product_sk`. You can now draw a two-dimensional table, with
@@ -1240,7 +1240,7 @@ Hierarchical Navigable Small World (HNSW)
  query vector. The process continues until the last layer is reached. As with IVF indexes, HNSW
  indexes are approximate.
 
-{{< figure src="/fig/ddia_0411.png" id="fig_vector_hnsw" caption="Figure 4-11. Searching for the database entry that is closest to a given query vector in a HNSW index." class="w-full my-4" >}}
+{{< fig num="4-11" id="fig_vector_hnsw" src="/fig/ddia_0411.png" caption="Searching for the database entry that is closest to a given query vector in a HNSW index." />}}
 
 
 Many popular vector databases implement IVF and HNSW indexes. Facebook’s Faiss library has many variations of each [^101], and PostgreSQL’s pgvector supports both as well [^102].

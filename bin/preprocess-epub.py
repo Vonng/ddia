@@ -34,16 +34,31 @@ XREF_RE = re.compile(
     r"\{\{<\s*xref\b(.*?)>\}\}(.*?)\{\{<\s*/xref\s*>\}\}", re.DOTALL
 )
 FIG_RE = re.compile(r"\{\{<\s*fig\b(.*?)/>\}\}", re.DOTALL)
+# OINK 0.5 numbered example: `{{< eg num id caption >}}` wrapping the body
+# (usually one fence), closed by `{{< /eg >}}` at the same indentation.
 EXAMPLE_RE = re.compile(
-    r"^(?P<indent>[ \t]*)\{\{<\s*example\b(?P<attrs>.*?)/>\}\}[ \t]*$",
+    r"^(?P<indent>[ \t]*)\{\{<\s*eg\b(?P<attrs>.*?)>\}\}[ \t]*\n"
+    r"(?P<body>.*?)\n"
+    r"(?P=indent)\{\{<\s*/eg\s*>\}\}[ \t]*$",
     re.MULTILINE | re.DOTALL,
 )
 TABLE_RE = re.compile(
     r"\{\{<\s*tbl\b(.*?)>\}\}(.*?)\{\{<\s*/tbl\s*>\}\}", re.DOTALL
 )
+# OINK 0.5 native numbered table: the pipe table itself, followed by the
+# attribute line that numbers it. Footnote references keep working in a native
+# table because the cells stay part of the page document, so this is the form
+# the book uses; the `tbl` shortcode remains for compound bodies.
+NATIVE_TABLE_RE = re.compile(
+    r"(?P<table>(?:^[ \t]*\|[^\n]*\n)+)"
+    r"^[ \t]*\{(?P<attrs>[^}\n]*\bnum=\"[^\"]*\"[^}\n]*)\}[ \t]*$",
+    re.MULTILINE,
+)
+ID_ATTR_RE = re.compile(r"#([A-Za-z][\w:.-]*)")
 LEGACY_FIGURE_RE = re.compile(r"\{\{<\s*figure\b(.*?)>\}\}", re.DOTALL)
 SITE_ONLY_RE = re.compile(
-    r"\{\{<\s*(?:book-(?:toc|figures)|contributors)\b.*?>\}\}", re.DOTALL
+    r"\{\{<\s*(?:book-(?:toc|figures|tables|equations|examples)|contributors)\b.*?>\}\}",
+    re.DOTALL,
 )
 ABS_IMAGE_RE = re.compile(r"!\[([^\]]*)\]\(/(?!static/)([^)]+)\)")
 SHORTCODE_RE = re.compile(r"\{\{[<%].*?[>%]\}\}", re.DOTALL)
@@ -179,7 +194,7 @@ def _xref_label(attrs: dict[str, str], inner: str) -> str:
     label = inner.strip()
     if label:
         return label
-    for kind, localized in (("fig", "图"), ("tbl", "表"), ("eq", "公式")):
+    for kind, localized in (("fig", "图"), ("tbl", "表"), ("eq", "公式"), ("eg", "示例")):
         if attrs.get(kind):
             return f"{localized} {attrs[kind]}"
     return attrs.get("anchor", "引用")
@@ -202,7 +217,7 @@ def convert_markdown(
         label = _xref_label(attrs, match.group(2))
         anchor = attrs.get("anchor")
         if not anchor:
-            for kind in ("fig", "tbl", "eq"):
+            for kind in ("fig", "tbl", "eq", "eg"):
                 if attrs.get(kind):
                     anchor = f"{kind}-{attrs[kind]}"
                     break
@@ -214,15 +229,34 @@ def convert_markdown(
         target = page if page in BOOK_ORDER else stem
         return f"[{label}]({_chunk_link(stem, target, anchor)})"
 
-    def replace_table(match: re.Match[str]) -> str:
-        attrs = _attrs(match.group(1))
-        number = attrs.get("num", "")
-        caption = attrs.get("caption", "").strip()
-        target = attrs.get("id") or (f"tbl-{number}" if number else "")
+    def _book_table(number: str, caption: str, target: str, body: str) -> str:
         label = f"**表 {number}.**" if number else "**表.**"
         heading = f"{label} {caption}".rstrip()
         fenced_attrs = f" {{#{target} .book-table}}" if target else " {.book-table}"
-        return f"\n:::{fenced_attrs}\n{heading}\n\n{match.group(2).strip()}\n:::\n"
+        return f"\n:::{fenced_attrs}\n{heading}\n\n{body.strip()}\n:::\n"
+
+    def replace_table(match: re.Match[str]) -> str:
+        attrs = _attrs(match.group(1))
+        number = attrs.get("num", "")
+        return _book_table(
+            number,
+            attrs.get("caption", "").strip(),
+            attrs.get("id") or (f"tbl-{number}" if number else ""),
+            match.group(2),
+        )
+
+    def replace_native_table(match: re.Match[str]) -> str:
+        raw = match.group("attrs")
+        attrs = _attrs(raw)
+        number = attrs.get("num", "")
+        identifier = ID_ATTR_RE.search(raw)
+        return _book_table(
+            number,
+            attrs.get("caption", "").strip(),
+            (identifier.group(1) if identifier else "")
+            or (f"tbl-{number}" if number else ""),
+            match.group("table"),
+        )
 
     def replace_figure(match: re.Match[str]) -> str:
         attrs = _attrs(match.group(1))
@@ -247,14 +281,17 @@ def convert_markdown(
     def replace_example(match: re.Match[str]) -> str:
         attrs = _attrs(match.group("attrs"))
         indent = match.group("indent")
+        body = match.group("body")
         number = attrs.get("num", "").strip()
         caption = attrs.get("caption", "").strip()
-        target = attrs.get("id") or (f"example-{number}" if number else "")
+        target = attrs.get("id") or (f"eg-{number}" if number else "")
         label = f"示例 {number}." if number else "示例："
         anchor = f' id="{escape(target)}"' if target else ""
+        # The caption stays an anchored paragraph; the wrapped body (fences)
+        # follows after a blank line so Pandoc parses it as Markdown again.
         return (
             f'{indent}<p{anchor} class="book-example-caption">'
-            f"<strong>{escape(label)}</strong> {escape(caption)}</p>"
+            f"<strong>{escape(label)}</strong> {escape(caption)}</p>\n\n{body}"
         )
 
     def replace_legacy_figure(match: re.Match[str]) -> str:
@@ -286,6 +323,7 @@ def convert_markdown(
         text,
     )
     text = TABLE_RE.sub(replace_table, text)
+    text = NATIVE_TABLE_RE.sub(replace_native_table, text)
     text = FIG_RE.sub(replace_figure, text)
     text = EXAMPLE_RE.sub(replace_example, text)
     text = LEGACY_FIGURE_RE.sub(replace_legacy_figure, text)

@@ -1,12 +1,10 @@
 {{ define "main" -}}
+{{- /* Book home page with `layout: landing`: render data/home/<lang>.yaml through
+       the OINK landing renderer (mirrors the theme's layouts/index.html, which
+       the `type: book` + `layout: landing` lookup would otherwise bypass). */ -}}
 {{- $home := partial "landing/home-data.html" . -}}
-{{- $sections := slice -}}
-{{- if isset $home "sections" -}}
-  {{- $sections = $home.sections -}}
-{{- else -}}
-  {{- range slice "hero" "metrics" "capabilities" "principles" "cta" -}}
-    {{- if isset $home . }}{{ $sections = $sections | append . }}{{ end -}}
-  {{- end -}}
+{{- if and $home (not (isset $home "sections")) -}}
+  {{- errorf "data/home: sections is required; list the section keys in render order" -}}
 {{- end -}}
-{{- partial "landing/render.html" (dict "page" . "data" (merge $home (dict "sections" $sections))) -}}
+{{- partial "landing/render.html" (dict "page" . "data" $home) -}}
 {{- end }}

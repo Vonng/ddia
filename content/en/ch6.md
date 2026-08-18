@@ -88,7 +88,7 @@ longer contain the same data. The most common solution is called *leader-based r
    followers. However, writes are only accepted on the leader (the followers are read-only from the
    client’s point of view).
 
-{{< figure src="/fig/ddia_0601.png" id="fig_replication_leader_follower" caption="Figure 6-1. Single-leader replication directs all writes to a designated leader, which sends a stream of changes to the follower replicas." class="w-full my-4" >}}
+{{< fig num="6-1" id="fig_replication_leader_follower" src="/fig/ddia_0601.png" caption="Single-leader replication directs all writes to a designated leader, which sends a stream of changes to the follower replicas." />}}
 
 If the database is sharded (see [Chapter 7](/en/ch7#ch_sharding)), each shard has one leader. Different shards may
 have their leaders on different nodes, but each shard must nevertheless have one leader node. In
@@ -123,7 +123,7 @@ shortly afterward, it is received by the leader. At some point, the leader forwa
 to the followers. Eventually, the leader notifies the client that the update was successful.
 [Figure 6-2](/en/ch6#fig_replication_sync_replication) shows one possible way how the timings could work out.
 
-{{< figure src="/fig/ddia_0602.png" id="fig_replication_sync_replication" caption="Figure 6-2. Leader-based replication with one synchronous and one asynchronous follower." class="w-full my-4" >}}
+{{< fig num="6-2" id="fig_replication_sync_replication" src="/fig/ddia_0602.png" caption="Leader-based replication with one synchronous and one asynchronous follower." />}}
 
 In the example of [Figure 6-2](/en/ch6#fig_replication_sync_replication), the replication to follower 1 is
 *synchronous*: the leader waits until follower 1 has confirmed that it received the write before
@@ -523,7 +523,7 @@ With asynchronous replication, there is a problem, illustrated in
 new data may not yet have reached the replica. To the user, it looks as though the data they
 submitted was lost, so they will be understandably unhappy.
 
-{{< figure src="/fig/ddia_0603.png" id="fig_replication_read_your_writes" caption="Figure 6-3. A user makes a write, followed by a read from a stale replica. To prevent this anomaly, we need read-after-write consistency." class="w-full my-4" >}}
+{{< fig num="6-3" id="fig_replication_read_your_writes" src="/fig/ddia_0603.png" caption="A user makes a write, followed by a read from a stale replica. To prevent this anomaly, we need read-after-write consistency." />}}
 
 In this situation, we need *read-after-write consistency*, also known as *read-your-writes consistency* [^23].
 This is a guarantee that if the user reloads the page, they will always see any updates they
@@ -613,7 +613,7 @@ hadn’t returned anything, because user 2345 probably wouldn’t know that user
 a comment. However, it’s very confusing for user 2345 if they first see user 1234’s comment appear,
 and then see it disappear again.
 
-{{< figure src="/fig/ddia_0604.png" id="fig_replication_monotonic_reads" caption="Figure 6-4. A user first reads from a fresh replica, then from a stale replica. Time appears to go backward. To prevent this anomaly, we need monotonic reads." class="w-full my-4" >}}
+{{< fig num="6-4" id="fig_replication_monotonic_reads" src="/fig/ddia_0604.png" caption="A user first reads from a fresh replica, then from a stale replica. Time appears to go backward. To prevent this anomaly, we need monotonic reads." />}}
 
 *Monotonic reads* [^22] is a guarantee that this
 kind of anomaly does not happen. It’s a lesser guarantee than strong consistency, but a stronger
@@ -653,7 +653,7 @@ Mr. Poons
 To the observer it looks as though Mrs. Cake is answering the question before Mr. Poons has even asked
 it. Such psychic powers are impressive, but very confusing [^27].
 
-{{< figure src="/fig/ddia_0605.png" id="fig_replication_consistent_prefix" caption="Figure 6-5. If some shards are replicated slower than others, an observer may see the answer before they see the question." class="w-full my-4" >}}
+{{< fig num="6-5" id="fig_replication_consistent_prefix" src="/fig/ddia_0605.png" caption="If some shards are replicated slower than others, an observer may see the answer before they see the question." />}}
 
 Preventing this kind of anomaly requires another type of guarantee: *consistent prefix reads* [^22]. 
 This guarantee says that if a sequence of writes happens in a certain order, 
@@ -749,7 +749,7 @@ regular leader–follower replication is used (with followers maybe in a differe
 from the leader); between regions, each region’s leader replicates its changes to the leaders in
 other regions.
 
-{{< figure src="/fig/ddia_0606.png" id="fig_replication_multi_dc" caption="Figure 6-6. Multi-leader replication across multiple regions." class="w-full my-4" >}}
+{{< fig num="6-6" id="fig_replication_multi_dc" src="/fig/ddia_0606.png" caption="Multi-leader replication across multiple regions." />}}
 
 Let’s compare how the single-leader and multi-leader configurations fare in a multi-region deployment:
 
@@ -809,7 +809,7 @@ only one plausible topology: leader 1 must send all of its writes to leader 2, a
 more than two leaders, various different topologies are possible. Some examples are illustrated in
 [Figure 6-7](/en/ch6#fig_replication_topologies).
 
-{{< figure src="/fig/ddia_0607.png" id="fig_replication_topologies" caption="Figure 6-7. Three example topologies in which multi-leader replication can be set up." class="w-full my-4" >}}
+{{< fig num="6-7" id="fig_replication_topologies" src="/fig/ddia_0607.png" caption="Three example topologies in which multi-leader replication can be set up." />}}
 
 The most general topology is *all-to-all*, shown in [Figure 6-7](/en/ch6#fig_replication_topologies)(c),
 in which every leader sends its writes to every other leader. However, more restricted topologies
@@ -847,7 +847,7 @@ On the other hand, all-to-all topologies can have issues too. In particular, som
 be faster than others (e.g., due to network congestion), with the result that some replication
 messages may “overtake” others, as illustrated in [Figure 6-8](/en/ch6#fig_replication_causality).
 
-{{< figure src="/fig/ddia_0608.png" id="fig_replication_causality" caption="Figure 6-8. With multi-leader replication, writes may arrive in the wrong order at some replicas." class="w-full my-4" >}}
+{{< fig num="6-8" id="fig_replication_causality" src="/fig/ddia_0608.png" caption="With multi-leader replication, writes may arrive in the wrong order at some replicas." />}}
 
 In [Figure 6-8](/en/ch6#fig_replication_causality), client A inserts a row into a table on leader 1, and client B
 updates that row on leader 3. However, leader 2 may receive the writes in a different order: it may
@@ -978,7 +978,7 @@ independently changes the title from A to C. Each user’s change is successfull
 local leader. However, when the changes are asynchronously replicated, a conflict is detected.
 This problem does not occur in a single-leader database.
 
-{{< figure src="/fig/ddia_0609.png" id="fig_replication_write_conflict" caption="Figure 6-9. A write conflict caused by two leaders concurrently updating the same record." class="w-full my-4" >}}
+{{< fig num="6-9" id="fig_replication_write_conflict" src="/fig/ddia_0609.png" caption="A write conflict caused by two leaders concurrently updating the same record." />}}
 
 > [!NOTE]
 > We say that the two writes in [Figure 6-9](/en/ch6#fig_replication_write_conflict) are *concurrent* because neither
@@ -1091,7 +1091,7 @@ suffers from a number of problems:
   not careful to order them consistently. When the conflict between “B/C” and “C/B” is merged, it
   may result in “B/C/C/B” or something similarly surprising.
 
-{{< figure src="/fig/ddia_0610.png" id="fig_replication_amazon_anomaly" caption="Figure 6-10. Example of Amazon's shopping cart anomaly: if conflicts on a shopping cart are merged by taking the union, deleted items may reappear." class="w-full my-4" >}}
+{{< fig num="6-10" id="fig_replication_amazon_anomaly" src="/fig/ddia_0610.png" caption="Example of Amazon's shopping cart anomaly: if conflicts on a shopping cart are merged by taking the union, deleted items may reappear." />}}
 
 
 <a id="sec_replication_automatic_resolution"></a>
@@ -1141,7 +1141,7 @@ perform automatic merges for all the aforementioned types of data.
 text. Assume you have two replicas that both start off with the text “ice”. One replica prepends the
 letter “n” to make “nice”, while concurrently the other replica appends an exclamation mark to make “ice!”.
 
-{{< figure src="/fig/ddia_0611.png" id="fig_replication_ot_crdt" caption="Figure 6-11. How two concurrent insertions into a string are merged by OT and a CRDT respectively." class="w-full my-4" >}}
+{{< fig num="6-11" id="fig_replication_ot_crdt" src="/fig/ddia_0611.png" caption="How two concurrent insertions into a string are merged by OT and a CRDT respectively." />}}
 
 The merged result “nice!” is achieved differently by both types of algorithms:
 
@@ -1234,7 +1234,7 @@ replica misses it. Let’s say that it’s sufficient for two out of three repli
 acknowledge the write: after user 1234 has received two *ok* responses, we consider the write to be
 successful. The client simply ignores the fact that one of the replicas missed the write.
 
-{{< figure src="/fig/ddia_0612.png" id="fig_replication_quorum_node_outage" caption="Figure 6-12. A quorum write, quorum read, and read repair after a node outage." class="w-full my-4" >}}
+{{< fig num="6-12" id="fig_replication_quorum_node_outage" src="/fig/ddia_0612.png" caption="A quorum write, quorum read, and read repair after a node outage." />}}
 
 
 Now imagine that the unavailable node comes back online, and clients start reading from it. Any
@@ -1326,7 +1326,7 @@ Normally, reads and writes are always sent to all *n* replicas in parallel. The 
 determine how many nodes we wait for—i.e., how many of the *n* nodes need to report success
 before we consider the read or write to be successful.
 
-{{< figure src="/fig/ddia_0613.png" id="fig_replication_quorum_overlap" caption="Figure 6-13. If *w* + *r* > *n*, at least one of the *r* replicas you read from must have seen the most recent successful write." class="w-full my-4" >}}
+{{< fig num="6-13" id="fig_replication_quorum_overlap" src="/fig/ddia_0613.png" caption="If w + r > n, at least one of the r replicas you read from must have seen the most recent successful write." />}}
 
 
 If fewer than the required *w* or *r* nodes are available, writes or reads return an error. A node
@@ -1504,7 +1504,7 @@ A and B, simultaneously writing to a key *X* in a three-node datastore:
 * Node 2 first receives the write from A, then the write from B.
 * Node 3 first receives the write from B, then the write from A.
 
-{{< figure src="/fig/ddia_0614.png" id="fig_replication_concurrency" caption="Figure 6-14. Concurrent writes in a Dynamo-style datastore: there is no well-defined ordering." class="w-full my-4" >}}
+{{< fig num="6-14" id="fig_replication_concurrency" src="/fig/ddia_0614.png" caption="Concurrent writes in a Dynamo-style datastore: there is no well-defined ordering." />}}
 
 
 If each node simply overwrote the value for a key whenever it received a write request from a
@@ -1609,7 +1609,7 @@ empty. Between them, the clients make five writes to the database:
    `[milk, flour]` (note that `[eggs]` was already overwritten in the last step) but is concurrent
    with `[eggs, milk, ham]`, so the server keeps those two concurrent values.
 
-{{< figure src="/fig/ddia_0615.png" id="fig_replication_causality_single" caption="Figure 6-15. Capturing causal dependencies between two clients concurrently editing a shopping cart." class="w-full my-4" >}}
+{{< fig num="6-15" id="fig_replication_causality_single" src="/fig/ddia_0615.png" caption="Capturing causal dependencies between two clients concurrently editing a shopping cart." />}}
 
 
 The dataflow between the operations in [Figure 6-15](/en/ch6#fig_replication_causality_single) is illustrated
@@ -1619,7 +1619,7 @@ graphically in [Figure 6-16](/en/ch6#fig_replication_causal_dependencies). The a
 on the server, since there is always another operation going on concurrently. But old versions of
 the value do get overwritten eventually, and no writes are lost.
 
-{{< figure link="#fig_replication_causality_single" src="/fig/ddia_0616.png" id="fig_replication_causal_dependencies" caption="Figure 6-16. Graph of causal dependencies in Figure 6-15." class="w-full my-4" >}}
+{{< fig num="6-16" id="fig_replication_causal_dependencies" src="/fig/ddia_0616.png" caption="Graph of causal dependencies in Figure 6-15." link="#fig_replication_causality_single" />}}
 
 
 Note that the server can determine whether two operations are concurrent by looking at the version

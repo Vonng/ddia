@@ -28,7 +28,7 @@ languages:
     locale: zh-CN
     contentDir: content/zh
     weight: 1
-    title: 设计数据密集型应用（第二版）
+    title: 设计数据密集型应用 v2
     params:
       description: DDIA 第二版中文翻译，系统讲解数据模型、存储、事务、分布式系统、批处理与流处理。
       version: v2
@@ -319,7 +319,12 @@ markup:
           inline:
             - ['\(', '\)']
     parser:
-      attribute: true
+      # OINK native component forms (block attribute lines, standalone
+      # figures) need these; Hugo never merges a theme's markup settings.
+      attribute:
+        title: true
+        block: true
+      wrapStandAloneImageWithinParagraph: false
       autoHeadingID: true
       autoHeadingIDType: github
     renderer:
@@ -342,15 +347,15 @@ params:
     to_year: present
 
   # Local, language-aware full-text search.
-  offlineSearch: true
-  offlineSearchIndex: content
-  offlineSearchSummaryLength: 120
-  offlineSearchMaxResults: 12
+  offline_search: true
+  offline_search_index: content
+  offline_search_summary_length: 120
+  offline_search_max_results: 12
 
   page_width: wide
   # Book content follows the normal publication measure; individual pages may
-  # opt into slim or wide in front matter.
-  content_width: norm
+  # opt into slim or wide in front matter (`reading_width`).
+  reading_width: normal
   version_menu_pagelinks: false
 
   comments:
@@ -366,14 +371,15 @@ params:
       reactionsEnabled: 1
       emitMetadata: 0
       inputPosition: bottom
+      # lightTheme / darkTheme are left unset so the theme's own giscus
+      # palettes (assets/css/giscus-{light,dark}.css) follow the site colors.
       theme: auto
-      lightTheme: light
-      darkTheme: dark
       loading: lazy
 
   ui:
     quick_links: [read, contribute]
-    showLightDarkModeMenu: true
+    # Dark palette plus the theme menu (shorthand for { enable, show_menu }).
+    dark_mode: true
     sidebar_icon_policy: groups
     sidebar_menu_compact: true
     sidebar_menu_foldable: true
@@ -385,12 +391,10 @@ params:
     sidebar_menu_truncate: 2000
     # The right rail already owns the page outline; keep the chapter tree flat.
     sidebar_headings: false
-    ul_show: 2
+    sidebar_expand_levels: 2
     book_draft_banner: true
-    pager:
-      types: [book]
-    keyboard_nav:
-      enable: true
+    pager_types: [book]
+    keyboard_nav: true
     page_context_menu:
       enable: true
       # Assistant handoffs stay disabled: activating them discloses the full
@@ -399,14 +403,11 @@ params:
       links: []
     # Numbered Book figures now carry caption-backed alternatives and stable
     # intrinsic dimensions, so zoom remains accessible without layout shift.
-    image_zoom:
-      enable: true
-    typography:
-      preset: system
+    image_zoom: true
+    typography: system
     lastmod_commit: hash
-    feedback:
-      enable: false
-    readingtime:
-      enable: false
-    scrollSpy:
-      disable: false
+    feedback: false
+    reading_time: false
+    # Bootstrap scroll spy on the outline, in addition to the theme's own
+    # outline tracker (the theme default is off).
+    scroll_spy: true

@@ -183,8 +183,6 @@ the management decide what to do next. In order to differentiate this pattern of
 from transaction processing, it has been called *online analytic processing* (OLAP) [^5].
 The difference between OLTP and analytics is not always clear-cut, but some typical characteristics are listed in [Table 1-1](/en/ch1#tab_oltp_vs_olap).
 
-{{< figure id="tab_oltp_vs_olap" title="Table 1-1. Comparing characteristics of operational and analytic systems" class="w-full my-4" >}}
-
 | Property            | Operational systems (OLTP)                      | Analytical systems (OLAP)                 |
 |---------------------|-------------------------------------------------|-------------------------------------------|
 | Main read pattern   | Point queries (fetch individual records by key) | Aggregate over large number of records    |
@@ -194,6 +192,7 @@ The difference between OLTP and analytics is not always clear-cut, but some typi
 | Type of queries     | Fixed set of queries, predefined by application | Analyst can make arbitrary queries        |
 | Data represents     | Latest state of data (current point in time)    | History of events that happened over time |
 | Dataset size        | Gigabytes to terabytes                          | Terabytes to petabytes                    |
+{#tab_oltp_vs_olap num="1-1" caption="Comparing characteristics of operational and analytic systems"}
 
 > [!NOTE]
 > The meaning of *online* in *OLAP* is unclear; it probably refers to the fact that queries are not
@@ -254,7 +253,7 @@ the data warehouse. This process of getting data into the data warehouse is know
 *transform* and *load* steps is swapped (i.e., the transformation is done in the data warehouse,
 after loading), resulting in *ELT*.
 
-{{< figure src="/fig/ddia_0101.png" id="fig_dwh_etl" caption="Figure 1-1. Simplified outline of ETL into a data warehouse." class="w-full my-4" >}}
+{{< fig num="1-1" id="fig_dwh_etl" src="/fig/ddia_0101.png" caption="Simplified outline of ETL into a data warehouse." />}}
 
 In some cases the data sources of the ETL processes are external SaaS products such as customer
 relationship management (CRM), email marketing, or credit card processing systems. In those cases,
@@ -426,7 +425,7 @@ in [Figure 1-2](/en/ch1#fig_cloud_spectrum). At one extreme is bespoke software 
 the other extreme are widely-used cloud services or Software as a Service (SaaS) products that are
 implemented and operated by an external vendor, and which you only access through a web interface or API.
 
-{{< figure src="/fig/ddia_0102.png" id="fig_cloud_spectrum" caption="Figure 1-2. A spectrum of types of software and its operations." class="w-full my-4" >}}
+{{< fig num="1-2" id="fig_cloud_spectrum" src="/fig/ddia_0102.png" caption="A spectrum of types of software and its operations." />}}
 
 The middle ground is off-the-shelf software (open source or commercial) that you *self-host*, i.e.,
 deploy yourself—for example, if you download MySQL and install it on a server you control. This
@@ -523,12 +522,11 @@ advantages: better performance on the same hardware, faster recovery from failur
 quickly scale computing resources to match the load, and supporting larger datasets [^25] [^26] [^27].
 [Table 1-2](/en/ch1#tab_cloud_native_dbs) lists some examples of both types of systems.
 
-{{< figure id="tab_cloud_native_dbs" title="Table 1-2. Examples of self-hosted and cloud-native database systems" class="w-full my-4" >}}
-
 | Category         | Self-hosted systems         | Cloud-native systems                                                  |
 |------------------|-----------------------------|-----------------------------------------------------------------------|
 | Operational/OLTP | MySQL, PostgreSQL, MongoDB  | AWS Aurora [^25], Azure SQL DB Hyperscale [^26], Google Cloud Spanner |
 | Analytical/OLAP  | Teradata, ClickHouse, Spark | Snowflake [^27], Google BigQuery, Azure Synapse Analytics             |
+{#tab_cloud_native_dbs num="1-2" caption="Examples of self-hosted and cloud-native database systems"}
 
 #### Layering of cloud services {#layering-of-cloud-services}
 

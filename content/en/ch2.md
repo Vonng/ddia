@@ -60,7 +60,7 @@ Barack Obama have over 100 million followers).
 Imagine we keep all of the data in a relational database as shown in [Figure 2-1](/en/ch2#fig_twitter_relational). We
 have one table for users, one table for posts, and one table for follow relationships.
 
-{{< figure src="/fig/ddia_0201.png" id="fig_twitter_relational" caption="Figure 2-1. Simple relational schema for a social network in which users can follow each other." class="w-full my-4" >}}
+{{< fig num="2-1" id="fig_twitter_relational" src="/fig/ddia_0201.png" caption="Simple relational schema for a social network in which users can follow each other." />}}
 
 Let’s say the main read operation that our social network must support is the *home timeline*, which
 displays recent posts by people you are following (for simplicity we will ignore ads, suggested
@@ -113,7 +113,7 @@ because the home timelines are derived data that needs to be updated. The proces
 carried out, we use the term *fan-out* to describe the factor by which the number of requests
 increases.
 
-{{< figure src="/fig/ddia_0202.png" id="fig_twitter_timelines" caption="Figure 2-2. Fan-out: delivering new posts to every follower of the user who made the post." class="w-full my-4" >}}
+{{< fig num="2-2" id="fig_twitter_timelines" src="/fig/ddia_0202.png" caption="Fan-out: delivering new posts to every follower of the user who made the post." />}}
 
 
 At a rate of 5,700 posts posted per second, if the average post reaches 200 followers (i.e., a
@@ -172,7 +172,7 @@ the process of handling an earlier request, and therefore the incoming request n
 the earlier request has been completed. As throughput approaches the maximum that the hardware can
 handle, queueing delays increase sharply.
 
-{{< figure src="/fig/ddia_0203.png" id="fig_throughput" caption="Figure 2-3. As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing." class="w-full my-4" >}}
+{{< fig num="2-3" id="fig_throughput" src="/fig/ddia_0203.png" caption="As the throughput of a service approaches its capacity, the response time increases dramatically due to queueing." />}}
 
 
 --------
@@ -223,7 +223,7 @@ terms in a specific way (illustrated in [Figure 2-4](/en/ch2#fig_response_time))
  i.e., during which it is *latent*. In particular, *network latency* or *network delay* refers to
  the time that request and response spend traveling through the network.
 
-{{< figure src="/fig/ddia_0204.png" id="fig_response_time" caption="Figure 2-4. Response time, service time, network latency, and queueing delay." class="w-full my-4" >}}
+{{< fig num="2-4" id="fig_response_time" src="/fig/ddia_0204.png" caption="Response time, service time, network latency, and queueing delay." />}}
 
 In [Figure 2-4](/en/ch2#fig_response_time), time flows from left to right, each communicating node is shown as a
 horizontal line, and a request or response message is shown as a thick diagonal arrow from one node
@@ -251,7 +251,7 @@ gray bar represents a request to a service, and its height shows how long that r
 requests are reasonably fast, but there are occasional *outliers* that take much longer.
 Variation in network delay is also known as *jitter*.
 
-{{< figure src="/fig/ddia_0205.png" id="fig_lognormal" caption="Figure 2-5. Illustrating mean and percentiles: response times for a sample of 100 requests to a service." class="w-full my-4" >}}
+{{< fig num="2-5" id="fig_lognormal" src="/fig/ddia_0205.png" caption="Illustrating mean and percentiles: response times for a sample of 100 requests to a service." />}}
 
 It’s common to report the *average* response time of a service (technically, the *arithmetic mean*:
 that is, sum all the response times, and divide by the number of requests). The mean response time
@@ -325,7 +325,7 @@ Even if only a small percentage of backend calls are slow, the chance of getting
 increases if an end-user request requires multiple backend calls, and so a higher proportion of
 end-user requests end up being slow (an effect known as *tail latency amplification* [^26]).
 
-{{< figure src="/fig/ddia_0206.png" id="fig_tail_amplification" caption="Figure 2-6. When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request." class="w-full my-4" >}}
+{{< fig num="2-6" id="fig_tail_amplification" src="/fig/ddia_0206.png" caption="When several backend calls are needed to serve a request, it takes just a single slow backend request to slow down the entire end-user request." />}}
 
 Percentiles are often used in *service level objectives* (SLOs) and *service level agreements*
 (SLAs) as ways of defining the expected performance and availability of a service [^27].

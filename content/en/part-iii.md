@@ -4,9 +4,8 @@ weight: 300
 breadcrumbs: false
 ---
 
-{{< callout type="warning" >}}
-This page is from the 1st edition， 2nd edition is not available yet.
-{{< /callout >}}
+> [!WARNING]
+> This page is from the 1st edition， 2nd edition is not available yet.
 
 In Parts [I](/en/part-i) and [II](/en/part-ii) of this book, we assembled from the ground up all the major considerations that go into a distributed database, 
 from the layout of data on disk all the way to the limits of distributed consistency in the presence of faults. However, this discussion assumed that there was only one database in the application.

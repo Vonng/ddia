@@ -3,8 +3,8 @@
 {{- $id := .id -}}
 {{- $source := index hugo.Data ($data.data | default "contributors") | default dict -}}
 {{- $items := $source.items | default slice -}}
-<section id="{{ $id }}" class="oink-section ddia-contributors{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
-  <div class="landing-container">
+<section id="{{ $id }}" class="td-landing-section ddia-contributors{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
+  <div class="td-site-container">
     {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
 
     <div class="ddia-contributors__featured" aria-label="显著贡献者">

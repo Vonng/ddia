@@ -7,11 +7,18 @@ d:dev
 dev:
 	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" hugo serve
 
+serve:
+	hugo serve --environment production --minify --disableFastRender --disableLiveReload
+
 b:build
 build:
 	hugo build
 
-.PHONY: default d dev b build
+check:
+	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" \
+		hugo --cleanDestinationDir --printPathWarnings --panicOnWarning
+
+.PHONY: default d dev serve b build check
 
 # generate zh-tw version
 translate:

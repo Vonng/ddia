@@ -1,8 +1,8 @@
 {{- $page := .page -}}
 {{- $data := .data -}}
 {{- $id := .id -}}
-<section id="{{ $id }}" class="oink-section ddia-legal{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
-  <div class="landing-container">
+<section id="{{ $id }}" class="td-landing-section ddia-legal{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
+  <div class="td-site-container">
     {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
     <div class="ddia-legal__grid">
       {{- range $data.notices }}

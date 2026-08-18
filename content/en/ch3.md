@@ -169,13 +169,13 @@ representing such *one-to-many relationships* is to put positions, education, an
 information in separate tables, with a foreign key reference to the `users` table, as in
 [Figure 3-1](/en/ch3#fig_obama_relational).
 
-{{< figure src="/fig/ddia_0301.png" id="fig_obama_relational" caption="Figure 3-1. Representing a LinkedIn profile using a relational schema." class="w-full my-4" >}}
+{{< fig num="3-1" id="fig_obama_relational" src="/fig/ddia_0301.png" caption="Representing a LinkedIn profile using a relational schema." />}}
 
 Another way of representing the same information, which is perhaps more natural and maps more
 closely to an object structure in application code, is as a JSON document as shown in
 [Example 3-1](/en/ch3#fig_obama_json).
 
-{{< figure id="fig_obama_json" title="Example 3-1. Representing a LinkedIn profile as a JSON document" class="w-full my-4" >}}
+#### Example 3-1. Representing a LinkedIn profile as a JSON document {#fig_obama_json}
 
 ```json
 {
@@ -216,7 +216,7 @@ The one-to-many relationships from the user profile to the user’s positions, e
 contact information imply a tree structure in the data, and the JSON representation makes this tree
 structure explicit (see [Figure 3-2](/en/ch3#fig_json_tree)).
 
-{{< figure src="/fig/ddia_0302.png" id="fig_json_tree" caption="Figure 3-2. One-to-many relationships forming a tree structure." class="w-full my-4" >}}
+{{< fig num="3-2" id="fig_json_tree" src="/fig/ddia_0302.png" caption="One-to-many relationships forming a tree structure." />}}
 
 --------
 
@@ -393,7 +393,7 @@ an organization has several past or present employees). In a relational model, s
 is usually represented as an *associative table* or *join table*, as shown in
 [Figure 3-3](/en/ch3#fig_datamodels_m2m_rel): each position associates one user ID with one organization ID.
 
-{{< figure src="/fig/ddia_0303.png" id="fig_datamodels_m2m_rel" caption="Figure 3-3. Many-to-many relationships in the relational model." class="w-full my-4" >}}
+{{< fig num="3-3" id="fig_datamodels_m2m_rel" src="/fig/ddia_0303.png" caption="Many-to-many relationships in the relational model." />}}
 
 Many-to-one and many-to-many relationships do not easily fit within one self-contained JSON
 document; they lend themselves more to a normalized representation. In a document model, one
@@ -402,7 +402,7 @@ possible representation is given in [Example 3-2](/en/ch3#fig_datamodels_m2m_jso
 document, but the links to organizations and schools are best represented as references to other
 documents.
 
-{{< figure id="fig_datamodels_m2m_json" title="Example 3-2. A résumé that references organizations by ID." class="w-full my-4" >}}
+#### Example 3-2. A résumé that references organizations by ID. {#fig_datamodels_m2m_json}
 
 ```json
 {
@@ -417,7 +417,7 @@ documents.
 }
 ```
 
-{{< figure src="/fig/ddia_0304.png" id="fig_datamodels_many_to_many" caption="Figure 3-4. Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document." class="w-full my-4" >}}
+{{< fig num="3-4" id="fig_datamodels_many_to_many" src="/fig/ddia_0304.png" caption="Many-to-many relationships in the document model: the data within each dotted box can be grouped into one document." />}}
 
 Many-to-many relationships often need to be queried in “both directions”: for example, finding all
 of the organizations that a particular person has worked for, and finding all of the people who have
@@ -450,7 +450,7 @@ retailer. At the center of the schema is a so-called *fact table* (in this examp
 (here, each row represents a customer’s purchase of a product). If we were analyzing website traffic
 rather than retail sales, each row might represent a page view or a click by a user.
 
-{{< figure src="/fig/ddia_0305.png" id="fig_dwh_schema" caption="Figure 3-5. Example of a star schema for use in a data warehouse." class="w-full my-4" >}}
+{{< fig num="3-5" id="fig_dwh_schema" src="/fig/ddia_0305.png" caption="Example of a star schema for use in a data warehouse." />}}
 
 Usually, facts are captured as individual events, because this allows maximum flexibility of
 analysis later. However, this means that the fact table can become extremely large. A big enterprise
@@ -763,7 +763,7 @@ are married and living in London. Each person and each location is represented a
 relationships between them as edges. This example will help demonstrate some queries that are easy
 in graph databases, but difficult in other models.
 
-{{< figure src="/fig/ddia_0306.png" id="fig_datamodels_graph" caption="Figure 3-6. Example of graph-structured data (boxes represent vertices, arrows represent edges)." class="w-full my-4" >}}
+{{< fig num="3-6" id="fig_datamodels_graph" src="/fig/ddia_0306.png" caption="Example of graph-structured data (boxes represent vertices, arrows represent edges)." />}}
 
 ### Property Graphs {#id56}
 
@@ -789,7 +789,7 @@ store the properties of each vertex or edge). The head and tail vertex are store
 you want the set of incoming or outgoing edges for a vertex, you can query the `edges` table by
 `head_vertex` or `tail_vertex`, respectively.
 
-{{< figure id="fig_graph_sql_schema" title="Example 3-3. Representing a property graph using a relational schema" class="w-full my-4" >}}
+#### Example 3-3. Representing a property graph using a relational schema {#fig_graph_sql_schema}
 
 ```sql
 CREATE TABLE vertices (
@@ -868,7 +868,7 @@ only used internally within the query to create edges between the vertices, usin
 `(idaho) -[:WITHIN]-> (usa)` creates an edge labeled `WITHIN`, with `idaho` as the tail node and
 `usa` as the head node.
 
-{{< figure id="fig_cypher_create" title="Example 3-4. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as a Cypher query" class="w-full my-4" >}}
+#### Example 3-4. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as a Cypher query {#fig_cypher_create}
 
 ```
 CREATE
@@ -891,7 +891,7 @@ property of each of those vertices.
 that are related by an edge labeled `BORN_IN`. The tail vertex of that edge is bound to the
 variable `person`, and the head vertex is left unnamed.
 
-{{< figure id="fig_cypher_query" title="Example 3-5. Cypher query to find people who emigrated from the US to Europe" class="w-full my-4" >}}
+#### Example 3-5. Cypher query to find people who emigrated from the US to Europe {#fig_cypher_query}
 
 ```
 MATCH
@@ -949,7 +949,7 @@ something called *recursive common table expressions* (the `WITH RECURSIVE` synt
 to Europe—expressed in SQL using this technique. However, the syntax is very clumsy in comparison to
 Cypher.
 
-{{< figure id="fig_graph_sql_query" title="Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions" class="w-full my-4" >}}
+#### Example 3-6. The same query as [Example 3-5](/en/ch3#fig_cypher_query), written in SQL using recursive common table expressions {#fig_graph_sql_query}
 
 ```sql
 WITH RECURSIVE
@@ -1056,7 +1056,7 @@ The subject of a triple is equivalent to a vertex in a graph. The object is one 
 [Example 3-7](/en/ch3#fig_graph_n3_triples) shows the same data as in [Example 3-4](/en/ch3#fig_cypher_create), written as
 triples in a format called *Turtle*, a subset of *Notation3* (*N3*) [^48].
 
-{{< figure id="fig_graph_n3_triples" title="Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples" class="w-full my-4" >}}
+#### Example 3-7. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Turtle triples {#fig_graph_n3_triples}
 
 ```
 @prefix : <urn:example:>.
@@ -1085,7 +1085,7 @@ It’s quite repetitive to repeat the same subject over and over again, but fort
 semicolons to say multiple things about the same subject. This makes the Turtle format quite
 readable: see [Example 3-8](/en/ch3#fig_graph_n3_shorthand).
 
-{{< figure id="fig_graph_n3_shorthand" title="Example 3-8. A more concise way of writing the data in [Example 3-7](/en/ch3#fig_graph_n3_triples)" class="w-full my-4" >}}
+#### Example 3-8. A more concise way of writing the data in [Example 3-7](/en/ch3#fig_graph_n3_triples) {#fig_graph_n3_shorthand}
 
 ```
 @prefix : <urn:example:>.
@@ -1120,7 +1120,7 @@ a data model that was designed for the Semantic Web. RDF data can also be encode
 example (more verbosely) in XML, as shown in [Example 3-9](/en/ch3#fig_graph_rdf_xml). Tools like Apache Jena can
 automatically convert between different RDF encodings.
 
-{{< figure id="fig_graph_rdf_xml" title="Example 3-9. The data of [Example 3-8](/en/ch3#fig_graph_n3_shorthand), expressed using RDF/XML syntax" class="w-full my-4" >}}
+#### Example 3-9. The data of [Example 3-8](/en/ch3#fig_graph_n3_shorthand), expressed using RDF/XML syntax {#fig_graph_rdf_xml}
 
 ```xml
 <rdf:RDF xmlns="urn:example:"
@@ -1173,7 +1173,7 @@ similar.
 The same query as before—finding people who have moved from the US to Europe—is similarly concise in
 SPARQL as it is in Cypher (see [Example 3-10](/en/ch3#fig_sparql_query)).
 
-{{< figure id="fig_sparql_query" title="Example 3-10. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in SPARQL" class="w-full my-4" >}}
+#### Example 3-10. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in SPARQL {#fig_sparql_query}
 
 ```
 PREFIX : <urn:example:>
@@ -1231,7 +1231,7 @@ the second column contains `val2`, and so on.
 are represented as two-column join tables. For example, Lucy has the ID 100 and Idaho has the ID 3,
 so the relationship “Lucy was born in Idaho” is represented as `born_in(100, 3)`.
 
-{{< figure id="fig_datalog_triples" title="Example 3-11. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Datalog facts" class="w-full my-4" >}}
+#### Example 3-11. A subset of the data in [Figure 3-6](/en/ch3#fig_datamodels_graph), represented as Datalog facts {#fig_datalog_triples}
 
 ```
 location(1, "North America", "continent").
@@ -1250,7 +1250,7 @@ Now that we have defined the data, we can write the same query as before, as sho
 let that put you off. Datalog is a subset of Prolog, a programming language that you might have seen
 before if you’ve studied computer science.
 
-{{< figure id="fig_datalog_query" title="Example 3-12. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in Datalog" class="w-full my-4" >}}
+#### Example 3-12. The same query as [Example 3-5](/en/ch3#fig_cypher_query), expressed in Datalog {#fig_datalog_query}
 
 ```sql
 within_recursive(LocID, PlaceName) :- location(LocID, PlaceName, _). /* Rule 1 */
@@ -1295,7 +1295,7 @@ One possible way of applying the rules is thus (and as illustrated in [Figure 3-
 By repeated application of rules 1 and 2, the `within_recursive` virtual table can tell us all the
 locations in North America (or any other location) contained in our database.
 
-{{< figure link="#fig_datalog_query" src="/fig/ddia_0307.png" id="fig_datalog_naive" title="Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from Example 3-12." class="w-full my-4" >}}
+{{< fig num="3-7" id="fig_datalog_naive" src="/fig/ddia_0307.png" caption="Determining that Idaho is in North America, using the Datalog rules from Example 3-12." link="#fig_datalog_query" />}}
 
 > Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from [Example 3-12](/en/ch3#fig_datalog_query).
 
@@ -1337,7 +1337,7 @@ for the sender of the message. Moreover, if a message is a reply to another mess
 requests the sender name and the content of the message it is replying to (which might be rendered
 in a smaller font above the reply, in order to provide some context).
 
-{{< figure id="fig_graphql_query" title="Example 3-13. Example GraphQL query for a group chat application" class="w-full my-4" >}}
+#### Example 3-13. Example GraphQL query for a group chat application {#fig_graphql_query}
 
 ```
 query ChatApp {
@@ -1370,7 +1370,7 @@ request a profile picture URL for the sender of the `replyTo` message, but if th
 were changed to add that profile picture, it would be easy for the client to add the required
 `imageUrl` attribute to the query without changing the server.
 
-{{< figure id="fig_graphql_response" title="Example 3-14. A possible response to the query in [Example 3-13](/en/ch3#fig_graphql_query)" class="w-full my-4" >}}
+#### Example 3-14. A possible response to the query in [Example 3-13](/en/ch3#fig_graphql_query) {#fig_graphql_response}
 
 ```json
 {
@@ -1449,7 +1449,7 @@ and so on. Reservations may also be cancelled, and meanwhile, the conference org
 the capacity of the event by moving it to a different room. With all of this going on, simply
 calculating the number of available seats becomes a challenging query.
 
-{{< figure src="/fig/ddia_0308.png" id="fig_event_sourcing" title="Figure 3-8. Using a log of immutable events as source of truth, and deriving materialized views from it." class="w-full my-4" >}}
+{{< fig num="3-8" id="fig_event_sourcing" src="/fig/ddia_0308.png" caption="Using a log of immutable events as source of truth, and deriving materialized views from it." />}}
 
 In [Figure 3-8](/en/ch3#fig_event_sourcing), every change to the state of the conference (such as the organizer
 opening registrations, or attendees making and cancelling registrations) is first stored as an
@@ -1589,7 +1589,7 @@ is no data for many user-movie combinations, but this is fine. This matrix may h
 of columns and would therefore not fit well in a relational database, but dataframes and libraries
 that offer sparse arrays (such as NumPy for Python) can handle such data easily.
 
-{{< figure src="/fig/ddia_0309.png" id="fig_dataframe_to_matrix" title="Figure 3-9. Transforming a relational database of movie ratings into a matrix representation." class="w-full my-4" >}}
+{{< fig num="3-9" id="fig_dataframe_to_matrix" src="/fig/ddia_0309.png" caption="Transforming a relational database of movie ratings into a matrix representation." />}}
 
 A matrix can only contain numbers, and various techniques are used to transform non-numerical data
 into numbers in the matrix. For example:

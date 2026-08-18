@@ -179,33 +179,3 @@ contributors:
       name: 持续翻译修正
       role: 多处译文与措辞修正
       url: https://github.com/Vonng/ddia/graphs/contributors
-footer:
-  brand:
-    name: DDIA 中文版
-    tagline: '**D**esigning **D**ata-**I**ntensive **A**pplications'
-    slogan: 设计、实现与评价现代数据系统的思维框架
-  columns:
-    - title: 阅读
-      links:
-        - { label: 章节目录, url: '#chapters' }
-        - { label: 开始阅读, url: preface/ }
-        - { label: 完整目录, url: toc/ }
-        - { label: 打印本书, url: _print/ }
-    - title: 版本
-      links:
-        - { label: 第二版·简体中文, url: / }
-        - { label: 第二版·繁体中文, url: /tw/ }
-        - { label: 第一版·简体中文, url: /v1/ }
-        - { label: 第一版·繁体中文, url: /v1_tw/ }
-    - title: 参与
-      links:
-        - { label: 中文翻译贡献者, url: contrib/ }
-        - { label: GitHub 仓库, url: 'https://github.com/Vonng/ddia', external: true }
-        - { label: 提交问题, url: 'https://github.com/Vonng/ddia/issues', external: true }
-        - { label: 提交修订, url: 'https://github.com/Vonng/ddia/pulls', external: true }
-    - title: 相关链接
-      links:
-        - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
-        - { label: 冯若航 / Vonng, url: 'https://vonng.com', external: true }
-        - { label: O'Reilly 英文原版, url: 'https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html', external: true }
-        - { label: Oink 主题, url: 'https://oink.pgsty.com', external: true }

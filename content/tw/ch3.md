@@ -28,7 +28,6 @@ breadcrumbs: false
 
 實踐中廣泛使用著幾種不同的資料模型，通常各有用途。某些型別的資料和查詢在一種模型中很容易表達，在另一種模型中卻很彆扭。本章將比較關係模型、文件模型、圖資料模型、事件溯源和資料框，探討其中的權衡。我們還將簡要介紹操作這些模型的查詢語言，幫助你判斷何時應該使用哪種模型。
 
---------
 
 > [!TIP] 術語：宣告式查詢語言
 >
@@ -38,7 +37,6 @@ breadcrumbs: false
 >
 > 例如，資料庫或許能跨多個 CPU 核心和多臺機器並行執行一條宣告式查詢，而你無須操心如何實現這種並行 [^2]。若是手寫演算法，自行實現這種並行執行將費不少功夫。
 
---------
 
 ## 關係模型與文件模型 {#sec_datamodels_history}
 
@@ -58,12 +56,10 @@ NoSQL 運動留下的一項持久影響，是通常以 JSON 表示資料的 *文
 
 如今，大量應用開發使用物件導向的程式語言，這也引出了針對 SQL 資料模型的一項常見批評：資料若儲存在關係表中，就需要一個笨拙的轉換層，在應用程式碼中的物件與資料庫的表、行、列模型之間來回轉換。兩種模型之間的這種脫節，有時稱為 *阻抗不匹配*。
 
---------
 
 > [!NOTE]
 > *阻抗不匹配* 一詞借自電子學。每個電路的輸入和輸出都有一定的阻抗（對交流電的阻力）。把一個電路的輸出接到另一個電路的輸入時，若兩邊阻抗匹配，連線處的功率傳輸就能達到最大；阻抗不匹配則可能造成訊號反射等問題。
 
---------
 
 #### 物件關係對映（ORM） {#object-relational-mapping-orm}
 
@@ -89,10 +85,9 @@ ActiveRecord、Hibernate 等物件關係對映（ORM）框架減少了轉換層�
 
 {{< fig num="3-1" id="fig_obama_relational" src="/fig/ddia_0301.png" caption="使用關係模式表示 LinkedIn 個人資料。" class="ddia-figure ddia-figure--standard" width="1772" height="1414" />}}
 
-同一份資訊還可以表示為 JSON 文件，如 {{< xref page="/ch3" anchor="fig_obama_json" >}}示例 3-1{{< /xref >}} 所示。這種形式可能更為自然，也更貼近應用程式碼中的物件結構。
+同一份資訊還可以表示為 JSON 文件，如 {{< xref eg="3-1" page="/ch3" anchor="fig_obama_json" >}}示例 3-1{{< /xref >}} 所示。這種形式可能更為自然，也更貼近應用程式碼中的物件結構。
 
-{{< example num="3-1" id="fig_obama_json" caption="將 LinkedIn 個人資料表示為 JSON 文件" />}}
-
+{{< eg num="3-1" id="fig_obama_json" caption="將 LinkedIn 個人資料表示為 JSON 文件" >}}
 ```json
 {
     "user_id": 251,
@@ -115,6 +110,7 @@ ActiveRecord、Hibernate 等物件關係對映（ORM）框架減少了轉換層�
     }
 }
 ```
+{{< /eg >}}
 
 一些開發者認為，JSON 模型減輕了應用程式碼與儲存層之間的阻抗不匹配。不過，正如我們將在 [第 5 章](/tw/ch5#ch_encoding) 看到的，JSON 用作資料編碼格式時也有不少問題。沒有模式常被視為它的一項優勢，我們將在 [“文件模型中的模式靈活性”](/tw/ch3#sec_datamodels_schema_flexibility) 進一步討論。
 
@@ -124,16 +120,14 @@ ActiveRecord、Hibernate 等物件關係對映（ORM）框架減少了轉換層�
 
 {{< fig num="3-2" id="fig_json_tree" src="/fig/ddia_0302.png" caption="一對多關係形成樹狀結構。" class="ddia-figure ddia-figure--wide" width="1772" height="780" />}}
 
---------
 
 > [!NOTE]
 > 這種關係有時稱為 *一對少*，而非 *一對多*，因為一份簡歷通常只有少數幾個職位 [^9] [^10]。如果相關專案確實可能多到驚人——例如名人的社交媒體帖子可能收到成千上萬條評論——把它們全部嵌進同一個文件就太過笨重，此時更適合採用 {{< xref fig="3-1" page="/ch3" anchor="fig_obama_relational" >}}圖 3-1{{< /xref >}} 所示的關係方法。
 
---------
 
 ### 正規化、反正規化與連線 {#sec_datamodels_normalization}
 
-前一節的 {{< xref page="/ch3" anchor="fig_obama_json" >}}示例 3-1{{< /xref >}} 用 ID 表示 `region_id`，而沒有直接寫成純文字字串 `"Washington, DC, United States"`。為什麼要這樣做？
+前一節的 {{< xref eg="3-1" page="/ch3" anchor="fig_obama_json" >}}示例 3-1{{< /xref >}} 用 ID 表示 `region_id`，而沒有直接寫成純文字字串 `"Washington, DC, United States"`。為什麼要這樣做？
 
 如果使用者介面提供自由文字框讓使用者填寫地區，那麼把輸入直接存成文字字串很合理。不過，預先提供標準化的地理區域列表，讓使用者透過下拉選單或自動補全來選擇，也有不少好處：
 
@@ -216,10 +210,9 @@ SELECT posts.id, posts.sender_id
 
 {{< fig num="3-3" id="fig_datamodels_m2m_rel" src="/fig/ddia_0303.png" caption="關係模型中的多對多關係。" class="ddia-figure ddia-figure--wide" width="1772" height="745" />}}
 
-多對一和多對多關係很難塞進一個自包含的 JSON 文件，它們更適合正規化表示。{{< xref page="/ch3" anchor="fig_datamodels_m2m_json" >}}示例 3-2{{< /xref >}} 給出了文件模型中的一種方案，{{< xref fig="3-4" page="/ch3" anchor="fig_datamodels_many_to_many" >}}圖 3-4{{< /xref >}} 則以圖示說明：每個虛線框內的資料可以組成一份文件，但指向組織和學校的連結最好表示為對其他文件的引用。
+多對一和多對多關係很難塞進一個自包含的 JSON 文件，它們更適合正規化表示。{{< xref eg="3-2" page="/ch3" anchor="fig_datamodels_m2m_json" >}}示例 3-2{{< /xref >}} 給出了文件模型中的一種方案，{{< xref fig="3-4" page="/ch3" anchor="fig_datamodels_many_to_many" >}}圖 3-4{{< /xref >}} 則以圖示說明：每個虛線框內的資料可以組成一份文件，但指向組織和學校的連結最好表示為對其他文件的引用。
 
-{{< example num="3-2" id="fig_datamodels_m2m_json" caption="透過 ID 引用組織的簡歷" />}}
-
+{{< eg num="3-2" id="fig_datamodels_m2m_json" caption="透過 ID 引用組織的簡歷" >}}
 ```json
 {
     "user_id": 251,
@@ -232,6 +225,7 @@ SELECT posts.id, posts.sender_id
     ...
 }
 ```
+{{< /eg >}}
 
 {{< fig num="3-4" id="fig_datamodels_many_to_many" src="/fig/ddia_0304.png" caption="文件模型中的多對多關係；每個虛線框內的資料可以組成一份文件。" class="ddia-figure ddia-figure--standard" width="1772" height="1121" />}}
 
@@ -239,7 +233,7 @@ SELECT posts.id, posts.sender_id
 
 正規化表示只在一處儲存關係，再依靠 *二級索引*（將在 [第 4 章](/tw/ch4#ch_storage) 討論）從兩個方向高效查詢。{{< xref fig="3-3" page="/ch3" anchor="fig_datamodels_m2m_rel" >}}圖 3-3{{< /xref >}} 的關係模式中，可以讓資料庫分別為 `positions` 表的 `user_id` 列和 `org_id` 列建立索引。
 
-在 {{< xref page="/ch3" anchor="fig_datamodels_m2m_json" >}}示例 3-2{{< /xref >}} 的文件模型中，資料庫則需要索引 `positions` 陣列內各物件的 `org_id` 欄位。許多文件資料庫以及支援 JSON 的關聯式資料庫，都能為文件內部的值建立這種索引。
+在 {{< xref eg="3-2" page="/ch3" anchor="fig_datamodels_m2m_json" >}}示例 3-2{{< /xref >}} 的文件模型中，資料庫則需要索引 `positions` 陣列內各物件的 `org_id` 欄位。許多文件資料庫以及支援 JSON 的關聯式資料庫，都能為文件內部的值建立這種索引。
 
 ### 星型與雪花型：分析模式 {#sec_datamodels_analytics}
 
@@ -366,12 +360,10 @@ db.observations.aggregate([
 
 這種融合對應用程式開發人員來說是件好事，因為關係模型和文件模型能夠在同一個資料庫中結合使用時，最能發揮各自所長。許多文件資料庫需要以關係模型的方式引用其他文件，許多關聯式資料庫也有些部分會受益於模式靈活性。關係模型與文件模型的混合是一種強大的組合。
 
---------
 
 > [!NOTE]
 > Codd 對關係模型的原始描述 [^3] 實際上允許關係模式中出現類似 JSON 的結構，他稱之為 *非簡單域*。其思想是，一行中的值不一定只是數字或字串之類的原始資料型別，也可以是巢狀的關係（表），因此可以把任意巢狀的樹結構作為一個值。這與三十多年後加入 SQL 的 JSON 或 XML 支援非常相似。
 
---------
 
 
 ## 圖資料模型 {#sec_datamodels_graph}
@@ -426,10 +418,9 @@ db.observations.aggregate([
 * 一個標籤，描述兩個頂點之間的關係型別
 * 一組屬性（鍵值對）
 
-可以把圖儲存看成兩個關係表：一張儲存頂點，另一張儲存邊，如 {{< xref page="/ch3" anchor="fig_graph_sql_schema" >}}示例 3-3{{< /xref >}} 所示（該模式使用 PostgreSQL 的 `jsonb` 資料型別儲存每個頂點或每條邊的屬性）。每條邊都儲存頭部頂點和尾部頂點；如果想找出某個頂點的所有入邊或出邊，可以分別按 `head_vertex` 或 `tail_vertex` 查詢 `edges` 表。
+可以把圖儲存看成兩個關係表：一張儲存頂點，另一張儲存邊，如 {{< xref eg="3-3" page="/ch3" anchor="fig_graph_sql_schema" >}}示例 3-3{{< /xref >}} 所示（該模式使用 PostgreSQL 的 `jsonb` 資料型別儲存每個頂點或每條邊的屬性）。每條邊都儲存頭部頂點和尾部頂點；如果想找出某個頂點的所有入邊或出邊，可以分別按 `head_vertex` 或 `tail_vertex` 查詢 `edges` 表。
 
-{{< example num="3-3" id="fig_graph_sql_schema" caption="使用關係模式表示屬性圖" />}}
-
+{{< eg num="3-3" id="fig_graph_sql_schema" caption="使用關係模式表示屬性圖" >}}
 ```sql
 CREATE TABLE vertices (
     vertex_id integer PRIMARY KEY,
@@ -448,21 +439,20 @@ CREATE TABLE edges (
 CREATE INDEX edges_tails ON edges (tail_vertex);
 CREATE INDEX edges_heads ON edges (head_vertex);
 ```
+{{< /eg >}}
 
 這個模型有幾個重要特點：
 
 1. 任何頂點都可以透過邊連線到任何其他頂點。沒有模式限制哪些事物可以關聯，哪些不可以。
-2. 給定任意頂點，都能高效地找到它的入邊和出邊，從而雙向 *遍歷* 圖——即沿著一系列頂點構成的路徑前後移動。（這正是 {{< xref page="/ch3" anchor="fig_graph_sql_schema" >}}示例 3-3{{< /xref >}} 同時為 `tail_vertex` 和 `head_vertex` 列建立索引的原因。）
+2. 給定任意頂點，都能高效地找到它的入邊和出邊，從而雙向 *遍歷* 圖——即沿著一系列頂點構成的路徑前後移動。（這正是 {{< xref eg="3-3" page="/ch3" anchor="fig_graph_sql_schema" >}}示例 3-3{{< /xref >}} 同時為 `tail_vertex` 和 `head_vertex` 列建立索引的原因。）
 3. 為不同型別的頂點和關係使用不同的標籤，就可以在一個圖中儲存多種不同的資訊，同時仍保持清晰的資料模型。
 
 邊表就像我們在 [“多對一與多對多關係”](/tw/ch3#sec_datamodels_many_to_many) 看到的多對多關聯表（連線表），只不過經過了泛化，可以在同一張表中儲存許多不同型別的關係。標籤和屬性也可以建立索引，以便高效查詢具有某種屬性的頂點或邊。
 
---------
 
 > [!NOTE]
 > 圖模型有一項侷限：一條邊只能關聯兩個頂點，而關係模型中的連線表可以在一行中儲存多個外來鍵引用，從而表示三元甚至更高元的關係。在圖中，可以為連線表的每一行另建一個頂點，再用邊把它與其他頂點相連；也可以使用 *超圖* 來表示這類關係。
 
---------
 
 這些特性為資料建模提供了很大的靈活性，如 {{< xref fig="3-6" page="/ch3" anchor="fig_datamodels_graph" >}}圖 3-6{{< /xref >}} 所示。圖中有一些傳統關係模式難以表達的事物，例如不同國家採用不同的行政區劃結構（法國有 *省* 和 *大區*，美國有 *縣* 和 *州*）、國中之國這樣的歷史怪事（暫且忽略主權國家與民族錯綜複雜的關係），以及粒度不一的資料（Lucy 現在的住所具體到城市，而出生地只記錄到州）。
 
@@ -472,10 +462,9 @@ CREATE INDEX edges_heads ON edges (head_vertex);
 
 *Cypher* 是屬性圖的查詢語言，最初為 Neo4j 圖資料庫而創，後來以 *openCypher* 之名發展為開放標準 [^38]。除了 Neo4j，Memgraph、KùzuDB [^35]、Amazon Neptune、Apache AGE（資料儲存在 PostgreSQL 中）等系統也支援 Cypher。它以電影《駭客帝國》中的角色命名，與密碼學中的密碼並無關係 [^39]。
 
-{{< xref page="/ch3" anchor="fig_cypher_create" >}}示例 3-4{{< /xref >}} 展示了把 {{< xref fig="3-6" page="/ch3" anchor="fig_datamodels_graph" >}}圖 3-6{{< /xref >}} 左側部分插入圖資料庫的 Cypher 查詢，圖的其餘部分也可以用同樣方式加入。每個頂點都有一個 `usa` 或 `idaho` 之類的符號名稱。該名稱不會存入資料庫，只在查詢內部用來建立頂點之間的邊。箭頭記法 `(idaho) -[:WITHIN]-> (usa)` 會建立一條標籤為 `WITHIN` 的邊，以 `idaho` 為尾節點、`usa` 為頭節點。
+{{< xref eg="3-4" page="/ch3" anchor="fig_cypher_create" >}}示例 3-4{{< /xref >}} 展示了把 {{< xref fig="3-6" page="/ch3" anchor="fig_datamodels_graph" >}}圖 3-6{{< /xref >}} 左側部分插入圖資料庫的 Cypher 查詢，圖的其餘部分也可以用同樣方式加入。每個頂點都有一個 `usa` 或 `idaho` 之類的符號名稱。該名稱不會存入資料庫，只在查詢內部用來建立頂點之間的邊。箭頭記法 `(idaho) -[:WITHIN]-> (usa)` 會建立一條標籤為 `WITHIN` 的邊，以 `idaho` 為尾節點、`usa` 為頭節點。
 
-{{< example num="3-4" id="fig_cypher_create" caption="圖 3-6 中的一部分資料，以 Cypher 查詢表示" />}}
-
+{{< eg num="3-4" id="fig_cypher_create" caption="圖 3-6 中的一部分資料，以 Cypher 查詢表示" >}}
 ```
 CREATE
     (namerica :Location {name:'North America', type:'continent'}),
@@ -485,19 +474,20 @@ CREATE
     (idaho) -[:WITHIN ]-> (usa) -[:WITHIN]-> (namerica),
     (lucy) -[:BORN_IN]-> (idaho)
 ```
+{{< /eg >}}
 
 把 {{< xref fig="3-6" page="/ch3" anchor="fig_datamodels_graph" >}}圖 3-6{{< /xref >}} 的所有頂點和邊加入資料庫後，就可以提出一些有趣的問題。例如：*找出所有從美國移居歐洲的人的姓名*。更確切地說，我們要找出同時具有一條指向美國境內某地的 `BORN_IN` 邊，以及一條指向歐洲境內某地的 `LIVES_IN` 邊的頂點，並返回這些頂點的 `name` 屬性。
 
-{{< xref page="/ch3" anchor="fig_cypher_query" >}}示例 3-5{{< /xref >}} 展示了如何用 Cypher 表述這個查詢。`MATCH` 子句使用同樣的箭頭記法在圖中尋找模式：`(person) -[:BORN_IN]-> ()` 匹配由一條 `BORN_IN` 邊相連的任意兩個頂點；這條邊的尾部頂點繫結到變數 `person`，頭部頂點則不命名。
+{{< xref eg="3-5" page="/ch3" anchor="fig_cypher_query" >}}示例 3-5{{< /xref >}} 展示了如何用 Cypher 表述這個查詢。`MATCH` 子句使用同樣的箭頭記法在圖中尋找模式：`(person) -[:BORN_IN]-> ()` 匹配由一條 `BORN_IN` 邊相連的任意兩個頂點；這條邊的尾部頂點繫結到變數 `person`，頭部頂點則不命名。
 
-{{< example num="3-5" id="fig_cypher_query" caption="查詢從美國移居歐洲者的 Cypher 查詢" />}}
-
+{{< eg num="3-5" id="fig_cypher_query" caption="查詢從美國移居歐洲者的 Cypher 查詢" >}}
 ```
 MATCH
     (person) -[:BORN_IN]-> () -[:WITHIN*0..]-> (:Location {name:'United States'}),
     (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (:Location {name:'Europe'})
 RETURN person.name
 ```
+{{< /eg >}}
 
 這條查詢可以這樣解讀：
 
@@ -514,7 +504,7 @@ RETURN person.name
 
 ### SQL 中的圖查詢 {#id58}
 
-{{< xref page="/ch3" anchor="fig_graph_sql_schema" >}}示例 3-3{{< /xref >}} 表明，可以在關聯式資料庫中表示圖資料。但是，如果圖資料採用關係結構儲存，還能使用 SQL 查詢它嗎？
+{{< xref eg="3-3" page="/ch3" anchor="fig_graph_sql_schema" >}}示例 3-3{{< /xref >}} 表明，可以在關聯式資料庫中表示圖資料。但是，如果圖資料採用關係結構儲存，還能使用 SQL 查詢它嗎？
 
 答案是肯定的，但有些困難。圖查詢每遍歷一條邊，實際上都相當於與 `edges` 表連線一次。在關聯式資料庫中，通常事先就知道查詢需要哪些連線；而在圖查詢中，找到目標頂點之前可能要遍歷數量不定的邊，也就是說，連線次數無法預先確定。
 
@@ -522,10 +512,9 @@ RETURN person.name
 
 Cypher 用 `:WITHIN*0..` 非常簡潔地表達了這一點：“沿著 `WITHIN` 邊走零次或多次”。它類似於正規表示式中的 `*` 運算子。
 
-從 SQL:1999 開始，可以用所謂的 *遞迴公用表表示式*（`WITH RECURSIVE` 語法）在查詢中表示長度可變的遍歷路徑。{{< xref page="/ch3" anchor="fig_graph_sql_query" >}}示例 3-6{{< /xref >}} 用這種技術在 SQL 中寫出了同一個查詢——查詢從美國移居歐洲者的姓名。只不過，與 Cypher 相比，它的語法十分笨拙。
+從 SQL:1999 開始，可以用所謂的 *遞迴公用表表示式*（`WITH RECURSIVE` 語法）在查詢中表示長度可變的遍歷路徑。{{< xref eg="3-6" page="/ch3" anchor="fig_graph_sql_query" >}}示例 3-6{{< /xref >}} 用這種技術在 SQL 中寫出了同一個查詢——查詢從美國移居歐洲者的姓名。只不過，與 Cypher 相比，它的語法十分笨拙。
 
-{{< example num="3-6" id="fig_graph_sql_query" caption="使用遞迴公用表表示式，以 SQL 寫出與示例 3-5 相同的查詢" />}}
-
+{{< eg num="3-6" id="fig_graph_sql_query" caption="使用遞迴公用表表示式，以 SQL 寫出與示例 3-5 相同的查詢" >}}
 ```sql
 WITH RECURSIVE
 
@@ -569,6 +558,7 @@ WITH RECURSIVE
     JOIN born_in_usa ON vertices.vertex_id = born_in_usa.vertex_id ❻
     JOIN lives_in_europe ON vertices.vertex_id = lives_in_europe.vertex_id;
 ```
+{{< /eg >}}
 
 ❶：首先找到 `name` 屬性為 `"United States"` 的頂點，把它作為 `in_usa` 頂點集的第一個元素。
 
@@ -602,10 +592,9 @@ Oracle 為遞迴查詢提供了另一套 SQL 擴充套件，稱為 *層次查詢
 > [!NOTE]
 > 嚴格來說，提供類似三元組資料模型的資料庫，通常還要為每個元組儲存一些額外後設資料。例如，AWS Neptune 使用四元組（4-tuple），即為每個三元組增加一個圖 ID [^46]；Datomic 使用五元組，為每個三元組再加上事務 ID 和一個表示刪除的布林值 [^47]。這些資料庫仍然保留著上文所述的基本 *主語—謂語—賓語* 結構，因此本書仍將它們統稱為三元組儲存。
 
-{{< xref page="/ch3" anchor="fig_graph_n3_triples" >}}示例 3-7{{< /xref >}} 把 {{< xref page="/ch3" anchor="fig_cypher_create" >}}示例 3-4{{< /xref >}} 中的同一份資料寫成了三元組，使用的格式稱為 *Turtle*，它是 *Notation3*（*N3*）的一個子集 [^48]。
+{{< xref eg="3-7" page="/ch3" anchor="fig_graph_n3_triples" >}}示例 3-7{{< /xref >}} 把 {{< xref eg="3-4" page="/ch3" anchor="fig_cypher_create" >}}示例 3-4{{< /xref >}} 中的同一份資料寫成了三元組，使用的格式稱為 *Turtle*，它是 *Notation3*（*N3*）的一個子集 [^48]。
 
-{{< example num="3-7" id="fig_graph_n3_triples" caption="圖 3-6 中的一部分資料，以 Turtle 三元組表示" />}}
-
+{{< eg num="3-7" id="fig_graph_n3_triples" caption="圖 3-6 中的一部分資料，以 Turtle 三元組表示" >}}
 ```
 @prefix : <urn:example:>.
 _:lucy a :Person.
@@ -623,13 +612,13 @@ _:namerica a :Location.
 _:namerica :name "North America".
 _:namerica :type "continent".
 ```
+{{< /eg >}}
 
 在這個例子中，圖的頂點寫成 `_:someName`。名稱在當前檔案之外沒有任何意義；之所以需要它，只是為了分辨哪些三元組引用了同一個頂點。當謂語表示邊時，賓語是另一個頂點，如 `_:idaho :within _:usa`；當謂語表示屬性時，賓語則是字串字面量，如 `_:usa :name "United States"`。
 
-一遍遍重複同一個主語顯得相當囉嗦，好在可以用分號連續陳述關於同一主語的多件事。這使 Turtle 格式頗為清晰易讀，如 {{< xref page="/ch3" anchor="fig_graph_n3_shorthand" >}}示例 3-8{{< /xref >}} 所示。
+一遍遍重複同一個主語顯得相當囉嗦，好在可以用分號連續陳述關於同一主語的多件事。這使 Turtle 格式頗為清晰易讀，如 {{< xref eg="3-8" page="/ch3" anchor="fig_graph_n3_shorthand" >}}示例 3-8{{< /xref >}} 所示。
 
-{{< example num="3-8" id="fig_graph_n3_shorthand" caption="示例 3-7 中資料的簡潔寫法" />}}
-
+{{< eg num="3-8" id="fig_graph_n3_shorthand" caption="示例 3-7 中資料的簡潔寫法" >}}
 ```
 @prefix : <urn:example:>.
 _:lucy a :Person; :name "Lucy"; :bornIn _:idaho.
@@ -637,23 +626,19 @@ _:idaho a :Location; :name "Idaho"; :type "state"; :within _:usa.
 _:usa a :Location; :name "United States"; :type "country"; :within _:namerica.
 _:namerica a :Location; :name "North America"; :type "continent".
 ```
-
---------
+{{< /eg >}}
 
 > [!TIP] 語義網
-
-三元組儲存的一部分研究與開發，源於 *語義網* 的推動。這項始於 21 世紀初的嘗試，希望資料不僅以供人閱讀的網頁釋出，也以標準化、機器可讀的格式釋出，從而促進整個網際網路範圍內的資料交換。最初設想的語義網並未成功 [^49] [^50]，但這個專案仍留下了若干具體技術：JSON-LD 等 *連結資料* 標準 [^51]、生物醫學中使用的 *本體* [^52]、Facebook 的 Open Graph 協議 [^53]（用於展開連結預覽 [^54]）、Wikidata 等知識圖譜，以及由 [`schema.org`](https://schema.org/) 維護的結構化資料標準詞彙表。
-
-三元組儲存也是一項走出語義網原始場景、在別處找到用武之地的技術：即使你對語義網毫無興趣，三元組仍可以成為很好的應用內部資料模型。
-
---------
+>
+> 三元組儲存的一部分研究與開發，源於 *語義網* 的推動。這項始於 21 世紀初的嘗試，希望資料不僅以供人閱讀的網頁釋出，也以標準化、機器可讀的格式釋出，從而促進整個網際網路範圍內的資料交換。最初設想的語義網並未成功 [^49] [^50]，但這個專案仍留下了若干具體技術：JSON-LD 等 *連結資料* 標準 [^51]、生物醫學中使用的 *本體* [^52]、Facebook 的 Open Graph 協議 [^53]（用於展開連結預覽 [^54]）、Wikidata 等知識圖譜，以及由 [`schema.org`](https://schema.org/) 維護的結構化資料標準詞彙表。
+>
+> 三元組儲存也是一項走出語義網原始場景、在別處找到用武之地的技術：即使你對語義網毫無興趣，三元組仍可以成為很好的應用內部資料模型。
 
 #### RDF 資料模型 {#the-rdf-data-model}
 
-{{< xref page="/ch3" anchor="fig_graph_n3_shorthand" >}}示例 3-8{{< /xref >}} 使用的 Turtle 語言，實際上是對 *資源描述框架*（RDF）資料進行編碼的一種方式 [^55]；RDF 是專為語義網設計的資料模型。RDF 資料也可以採用其他編碼，例如用更為冗長的 XML 表示，如 {{< xref page="/ch3" anchor="fig_graph_rdf_xml" >}}示例 3-9{{< /xref >}} 所示。Apache Jena 等工具可以在不同 RDF 編碼之間自動轉換。
+{{< xref eg="3-8" page="/ch3" anchor="fig_graph_n3_shorthand" >}}示例 3-8{{< /xref >}} 使用的 Turtle 語言，實際上是對 *資源描述框架*（RDF）資料進行編碼的一種方式 [^55]；RDF 是專為語義網設計的資料模型。RDF 資料也可以採用其他編碼，例如用更為冗長的 XML 表示，如 {{< xref eg="3-9" page="/ch3" anchor="fig_graph_rdf_xml" >}}示例 3-9{{< /xref >}} 所示。Apache Jena 等工具可以在不同 RDF 編碼之間自動轉換。
 
-{{< example num="3-9" id="fig_graph_rdf_xml" caption="使用 RDF/XML 語法表示示例 3-8 中的資料" />}}
-
+{{< eg num="3-9" id="fig_graph_rdf_xml" caption="使用 RDF/XML 語法表示示例 3-8 中的資料" >}}
 ```xml
 <rdf:RDF xmlns="urn:example:"
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -681,6 +666,7 @@ _:namerica a :Location; :name "North America"; :type "continent".
     </Person>
 </rdf:RDF>
 ```
+{{< /eg >}}
 
 RDF 有一些奇特之處，因為它是為網際網路範圍的資料交換而設計的。三元組的主語、謂語和賓語通常都是 URI。例如，謂語可能寫成 `<http://my-company.com/namespace#within>` 或 `<http://my-company.com/namespace#lives_in>`，而不只是 `WITHIN` 或 `LIVES_IN`。這樣設計是為了讓不同來源的資料可以合併：即使別人賦予 `within` 或 `lives_in` 不同含義，也不會發生衝突，因為對方的謂語實際是 `<http://other.org/foo#within>` 和 `<http://other.org/foo#lives_in>`。
 
@@ -690,10 +676,9 @@ RDF 有一些奇特之處，因為它是為網際網路範圍的資料交換而�
 
 *SPARQL* 是一種面向 RDF 資料模型的三元組儲存查詢語言 [^56]。（它是 *SPARQL Protocol and RDF Query Language* 的縮寫，讀作 “sparkle”。）SPARQL 早於 Cypher；Cypher 的模式匹配借鑑了 SPARQL，因此兩者看起來十分相似。
 
-之前那條查詢從美國移居歐洲者的查詢，用 SPARQL 表示時和用 Cypher 一樣簡潔（見 {{< xref page="/ch3" anchor="fig_sparql_query" >}}示例 3-10{{< /xref >}}）。
+之前那條查詢從美國移居歐洲者的查詢，用 SPARQL 表示時和用 Cypher 一樣簡潔（見 {{< xref eg="3-10" page="/ch3" anchor="fig_sparql_query" >}}示例 3-10{{< /xref >}}）。
 
-{{< example num="3-10" id="fig_sparql_query" caption="與示例 3-5 相同的查詢，用 SPARQL 表示" />}}
-
+{{< eg num="3-10" id="fig_sparql_query" caption="與示例 3-5 相同的查詢，用 SPARQL 表示" >}}
 ```
 PREFIX : <urn:example:>
 
@@ -703,6 +688,7 @@ SELECT ?personName WHERE {
  ?person :livesIn / :within* / :name "Europe".
 }
 ```
+{{< /eg >}}
 
 二者結構十分相似。下面兩個表示式是等價的（SPARQL 中的變數以問號開頭）：
 
@@ -730,10 +716,9 @@ Datalog 實際上基於關係資料模型，而不是圖模型；之所以把它
 
 Datalog 資料庫由 *事實* 組成，每項事實對應關係表中的一行。假設有一張儲存地點的 *location* 表，包含 *ID*、*name* 和 *type* 三列；“美國是一個國家”這項事實就可以寫成 `location(2, "United States", "country")`，其中 `2` 是美國的 ID。一般來說，`table(val1, val2, …​)` 表示 `table` 中有這樣一行：第一列為 `val1`，第二列為 `val2`，依此類推。
 
-{{< xref page="/ch3" anchor="fig_datalog_triples" >}}示例 3-11{{< /xref >}} 展示了如何用 Datalog 寫出 {{< xref fig="3-6" page="/ch3" anchor="fig_datamodels_graph" >}}圖 3-6{{< /xref >}} 左側的資料。圖中的邊（`within`、`born_in` 和 `lives_in`）表示為兩列的連線表。例如，Lucy 的 ID 是 100，愛達荷州的 ID 是 3，因此“Lucy 出生在愛達荷州”這項關係表示為 `born_in(100, 3)`。
+{{< xref eg="3-11" page="/ch3" anchor="fig_datalog_triples" >}}示例 3-11{{< /xref >}} 展示了如何用 Datalog 寫出 {{< xref fig="3-6" page="/ch3" anchor="fig_datamodels_graph" >}}圖 3-6{{< /xref >}} 左側的資料。圖中的邊（`within`、`born_in` 和 `lives_in`）表示為兩列的連線表。例如，Lucy 的 ID 是 100，愛達荷州的 ID 是 3，因此“Lucy 出生在愛達荷州”這項關係表示為 `born_in(100, 3)`。
 
-{{< example num="3-11" id="fig_datalog_triples" caption="圖 3-6 中資料的子集，表示為 Datalog 事實" />}}
-
+{{< eg num="3-11" id="fig_datalog_triples" caption="圖 3-6 中資料的子集，表示為 Datalog 事實" >}}
 ```
 location(1, "North America", "continent").
 location(2, "United States", "country").
@@ -745,11 +730,11 @@ within(3, 2). /* 愛達荷州在美國 */
 person(100, "Lucy").
 born_in(100, 3). /* Lucy 出生在愛達荷州 */
 ```
+{{< /eg >}}
 
-定義好資料之後，就可以寫出與之前相同的查詢，如 {{< xref page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 所示。它看起來與 Cypher 或 SPARQL 中的等價查詢頗為不同，但不必因此望而卻步。Datalog 是 Prolog 的一個子集；如果學過電腦科學，你或許見過這種程式語言。
+定義好資料之後，就可以寫出與之前相同的查詢，如 {{< xref eg="3-12" page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 所示。它看起來與 Cypher 或 SPARQL 中的等價查詢頗為不同，但不必因此望而卻步。Datalog 是 Prolog 的一個子集；如果學過電腦科學，你或許見過這種程式語言。
 
-{{< example num="3-12" id="fig_datalog_query" caption="與示例 3-5 相同的查詢，用 Datalog 表示" />}}
-
+{{< eg num="3-12" id="fig_datalog_query" caption="與示例 3-5 相同的查詢，用 Datalog 表示" >}}
 ```sql
 within_recursive(LocID, PlaceName) :- location(LocID, PlaceName, _). /* 規則 1 */
 
@@ -765,10 +750,11 @@ migrated(PName, BornIn, LivingIn) :- person(PersonID, PName), /* 規則 3 */
 us_to_europe(Person) :- migrated(Person, "United States", "Europe"). /* 規則 4 */
 /* us_to_europe 包含行 "Lucy"。 */
 ```
+{{< /eg >}}
 
 Cypher 和 SPARQL 一上來便使用 `SELECT`，Datalog 卻每次只向前邁一小步。我們透過定義 *規則*，從底層事實派生出新的虛擬表。這些派生表類似於（虛擬的）SQL 檢視：它們並不儲存在資料庫中，卻可以像儲存事實的表一樣接受查詢。
 
-{{< xref page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 定義了三個派生表：`within_recursive`、`migrated` 和 `us_to_europe`。每條規則中 `:-` 符號之前的部分，定義了虛擬表的名稱與各列。例如，`migrated(PName, BornIn, LivingIn)` 是一張三列表，分別包含姓名、出生地名稱和居住地名稱。
+{{< xref eg="3-12" page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 定義了三個派生表：`within_recursive`、`migrated` 和 `us_to_europe`。每條規則中 `:-` 符號之前的部分，定義了虛擬表的名稱與各列。例如，`migrated(PName, BornIn, LivingIn)` 是一張三列表，分別包含姓名、出生地名稱和居住地名稱。
 
 虛擬表的內容由規則中 `:-` 符號之後的部分定義，它會嘗試在各表中找出匹配特定模式的行。例如，`person(PersonID, PName)` 可以匹配 `person(100, "Lucy")` 這一行，此時變數 `PersonID` 繫結為 `100`，`PName` 繫結為 `"Lucy"`。只要系統能為 `:-` 右側的 *所有* 模式找到匹配，規則便可以應用。應用規則的效果，就好像把 `:-` 左側的內容加入資料庫，並將其中的變數替換為各自匹配的值。
 
@@ -782,11 +768,11 @@ Cypher 和 SPARQL 一上來便使用 `SELECT`，Datalog 卻每次只向前邁一
 
 {{< fig num="3-7" id="fig_datalog_naive" src="/fig/ddia_0307.png" caption="使用示例 3-12 中的 Datalog 規則確定愛達荷州在北美。" link="#fig_datalog_query" class="ddia-figure ddia-figure--panorama" width="1772" height="585" />}}
 
-> 圖 3-7. 使用 {{< xref page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 中的 Datalog 規則確定愛達荷州在北美。
+> 圖 3-7. 使用 {{< xref eg="3-12" page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 中的 Datalog 規則確定愛達荷州在北美。
 
 接下來，規則 3 可以找出出生在 `BornIn`、現居 `LivingIn` 的人。規則 4 以 `BornIn = 'United States'` 和 `LivingIn = 'Europe'` 呼叫規則 3，只返回符合條件者的姓名。最後查詢虛擬表 `us_to_europe`，Datalog 系統便會給出與先前 Cypher 和 SPARQL 查詢相同的答案。
 
-Datalog 需要一種不同於本章其他查詢語言的思維方式。它允許逐條規則地搭建複雜查詢，讓一條規則引用其他規則，就像把程式碼拆成彼此呼叫的函式。函式可以遞迴，Datalog 規則也同樣可以呼叫自身；{{< xref page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 的規則 2 正是如此，由此實現了 Datalog 查詢中的圖遍歷。
+Datalog 需要一種不同於本章其他查詢語言的思維方式。它允許逐條規則地搭建複雜查詢，讓一條規則引用其他規則，就像把程式碼拆成彼此呼叫的函式。函式可以遞迴，Datalog 規則也同樣可以呼叫自身；{{< xref eg="3-12" page="/ch3" anchor="fig_datalog_query" >}}示例 3-12{{< /xref >}} 的規則 2 正是如此，由此實現了 Datalog 查詢中的圖遍歷。
 
 ### GraphQL {#id63}
 
@@ -794,10 +780,9 @@ GraphQL 也是一種查詢語言，但它在設計上比本章介紹的其他語
 
 GraphQL 的靈活性並非沒有代價。採用 GraphQL 的組織通常需要一套工具，把 GraphQL 查詢轉換成對內部服務的請求，而這些內部服務往往使用 REST 或 gRPC（參見 [第 5 章](/tw/ch5#ch_encoding)）。此外還要應對授權、限流和效能等問題 [^61]。GraphQL 查詢來自不受信任的來源，因此查詢語言本身也受到嚴格限制：它不允許任何執行成本可能很高的操作，否則使用者就能大量提交昂貴查詢，對伺服器發動拒絕服務攻擊。具體來說，GraphQL 不允許遞迴查詢（Cypher、SPARQL、SQL 和 Datalog 都允許），也不能隨意給出“查詢出生在美國、現居歐洲的人”這樣的搜尋條件，除非服務所有者特意提供了相應搜尋功能。
 
-儘管如此，GraphQL 仍然很有用。{{< xref page="/ch3" anchor="fig_graphql_query" >}}示例 3-13{{< /xref >}} 展示了如何用它實現 Discord 或 Slack 這類群聊應用。查詢請求使用者有權訪問的所有頻道，並取回每個頻道的名稱和最近 50 條訊息。對每條訊息，它請求時間戳、正文，以及傳送者姓名和頭像 URL。若某條訊息是對另一條訊息的回覆，查詢還會請求原訊息的正文與傳送者姓名；介面可以用較小字號把這些內容顯示在回覆上方，作為上下文。
+儘管如此，GraphQL 仍然很有用。{{< xref eg="3-13" page="/ch3" anchor="fig_graphql_query" >}}示例 3-13{{< /xref >}} 展示了如何用它實現 Discord 或 Slack 這類群聊應用。查詢請求使用者有權訪問的所有頻道，並取回每個頻道的名稱和最近 50 條訊息。對每條訊息，它請求時間戳、正文，以及傳送者姓名和頭像 URL。若某條訊息是對另一條訊息的回覆，查詢還會請求原訊息的正文與傳送者姓名；介面可以用較小字號把這些內容顯示在回覆上方，作為上下文。
 
-{{< example num="3-13" id="fig_graphql_query" caption="群聊應用的 GraphQL 查詢示例" />}}
-
+{{< eg num="3-13" id="fig_graphql_query" caption="群聊應用的 GraphQL 查詢示例" >}}
 ```
 query ChatApp {
     channels {
@@ -819,11 +804,11 @@ query ChatApp {
     }
 }
 ```
+{{< /eg >}}
 
-{{< xref page="/ch3" anchor="fig_graphql_response" >}}示例 3-14{{< /xref >}} 給出了 {{< xref page="/ch3" anchor="fig_graphql_query" >}}示例 3-13{{< /xref >}} 中查詢的一種可能響應。響應是一份與查詢結構相呼應的 JSON 文件：請求了哪些屬性，它就不多不少地返回哪些屬性。這樣一來，伺服器無須預先知道客戶端渲染介面需要什麼；客戶端直接提出所需內容即可。例如，這條查詢沒有請求 `replyTo` 訊息傳送者的頭像 URL。若介面後來要顯示該頭像，客戶端只需在查詢中加入 `imageUrl` 屬性，無須修改伺服器。
+{{< xref eg="3-14" page="/ch3" anchor="fig_graphql_response" >}}示例 3-14{{< /xref >}} 給出了 {{< xref eg="3-13" page="/ch3" anchor="fig_graphql_query" >}}示例 3-13{{< /xref >}} 中查詢的一種可能響應。響應是一份與查詢結構相呼應的 JSON 文件：請求了哪些屬性，它就不多不少地返回哪些屬性。這樣一來，伺服器無須預先知道客戶端渲染介面需要什麼；客戶端直接提出所需內容即可。例如，這條查詢沒有請求 `replyTo` 訊息傳送者的頭像 URL。若介面後來要顯示該頭像，客戶端只需在查詢中加入 `imageUrl` 屬性，無須修改伺服器。
 
-{{< example num="3-14" id="fig_graphql_response" caption="對示例 3-13 中查詢的一種可能響應" />}}
-
+{{< eg num="3-14" id="fig_graphql_response" caption="對示例 3-13 中查詢的一種可能響應" >}}
 ```json
 {
 "data": {
@@ -848,10 +833,11 @@ query ChatApp {
 },
 ...
 ```
+{{< /eg >}}
 
-{{< xref page="/ch3" anchor="fig_graphql_response" >}}示例 3-14{{< /xref >}} 把訊息傳送者的姓名和頭像 URL 直接嵌入訊息物件。同一個使用者若傳送多條訊息，這些資訊會在每條訊息中重複。原則上當然可以減少這種重複，但 GraphQL 選擇接受更大的響應，以換取根據資料渲染介面時更加簡單。
+{{< xref eg="3-14" page="/ch3" anchor="fig_graphql_response" >}}示例 3-14{{< /xref >}} 把訊息傳送者的姓名和頭像 URL 直接嵌入訊息物件。同一個使用者若傳送多條訊息，這些資訊會在每條訊息中重複。原則上當然可以減少這種重複，但 GraphQL 選擇接受更大的響應，以換取根據資料渲染介面時更加簡單。
 
-`replyTo` 欄位也是如此：{{< xref page="/ch3" anchor="fig_graphql_response" >}}示例 3-14{{< /xref >}} 中的第二條訊息回覆了第一條，因此第一條訊息的內容（“Hey!…”）和傳送者 Aaliyah 又在 `replyTo` 下重複了一遍。也可以只返回被回覆訊息的 ID，但如果該 ID 不在這次返回的最近 50 條訊息之中，客戶端就得向伺服器再發一次請求。直接複製內容，處理起來簡單得多。
+`replyTo` 欄位也是如此：{{< xref eg="3-14" page="/ch3" anchor="fig_graphql_response" >}}示例 3-14{{< /xref >}} 中的第二條訊息回覆了第一條，因此第一條訊息的內容（“Hey!…”）和傳送者 Aaliyah 又在 `replyTo` 下重複了一遍。也可以只返回被回覆訊息的 ID，但如果該 ID 不在這次返回的最近 50 條訊息之中，客戶端就得向伺服器再發一次請求。直接複製內容，處理起來簡單得多。
 
 伺服器端資料庫可以用更加正規化的形式儲存資料，並在處理查詢時執行必要的連線。例如，伺服器可以把訊息正文與傳送者的使用者 ID、被回覆訊息的 ID 存在一起；收到上述查詢時，再解析這些 ID，找出它們引用的記錄。不過，客戶端只能要求伺服器執行 GraphQL 模式中明確開放的連線。
 

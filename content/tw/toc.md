@@ -24,4 +24,8 @@ search_boost: 2
 
 ## 表格目錄 {#list-of-tables}
 
-{{< book-figures kind="tbl" >}}
+{{< book-tables >}}
+
+## 示例目錄 {#list-of-examples}
+
+{{< book-examples >}}

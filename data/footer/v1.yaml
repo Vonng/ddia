@@ -1,0 +1,29 @@
+# DDIA fat footer (data/footer/<lang>.yaml); OINK 0.5 moved this out of data/home.
+brand:
+  name: DDIA 中文版
+  tagline: '**D**esigning **D**ata-**I**ntensive **A**pplications'
+  slogan: 第一版中文译文完整阅读与开放校订
+columns:
+  - title: 阅读
+    links:
+      - { label: 完整目录, url: toc/ }
+      - { label: 序言, url: preface/ }
+      - { label: 术语表, url: glossary/ }
+      - { label: 后记, url: colophon/ }
+  - title: 主题
+    links:
+      - { label: 第一部分 · 数据系统基础, url: part-i/ }
+      - { label: 第二部分 · 分布式数据, url: part-ii/ }
+      - { label: 第三部分 · 派生数据, url: part-iii/ }
+      - { label: 版本与语言, url: '#faq' }
+  - title: 项目
+    links:
+      - { label: 贡献者, url: contrib/ }
+      - { label: GitHub, url: 'https://github.com/Vonng/ddia', external: true }
+      - { label: 问题反馈, url: 'https://github.com/Vonng/ddia/issues', external: true }
+      - { label: 译者博客, url: 'https://vonng.com', external: true }
+  - title: 原作
+    links:
+      - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
+      - { label: DDIA 第一版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/', external: true }
+      - { label: DDIA 第二版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/', external: true }

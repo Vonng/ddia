@@ -85,9 +85,16 @@ body.td-book {
   opacity: 0.75;
 }
 
-// Chapter maps and edition covers remain intentionally unnumbered.
-.td-book .td-content > p:has(> img[src^='/map/']) {
+// Chapter maps and edition covers remain intentionally unnumbered. With
+// `wrapStandAloneImageWithinParagraph: false` OINK renders a standalone
+// Markdown image as a bare block-level <img class="td-image">, so the card
+// treatment lives on the image itself rather than a wrapping paragraph.
+.td-book .td-content > img.td-image[src^='/map/'] {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
+  height: auto;
   margin-block: 0.75rem 2.75rem;
   padding: clamp(0.65rem, 1.5vw, 1.2rem);
   border: 1px solid var(--ddia-figure-border);
@@ -96,22 +103,12 @@ body.td-book {
   box-shadow: var(--ddia-figure-shadow);
 }
 
-.td-book .td-content img[src^='/map/'] {
+.td-book .td-content > img.td-image:is([src='/title.jpg'], [src='/title-v1.jpg']) {
   display: block;
   width: 100%;
-  height: auto;
-  margin: 0;
-}
-
-.td-book .td-content > p:has(> img[src='/title.jpg'], > img[src='/title-v1.jpg']) {
   max-width: 17rem;
-  margin-block: 1rem 3rem;
-}
-
-.td-book .td-content img:is([src='/title.jpg'], [src='/title-v1.jpg']) {
-  display: block;
-  width: 100%;
   height: auto;
+  margin-block: 1rem 3rem;
   border-radius: 0.35rem 0.8rem 0.8rem 0.35rem;
   box-shadow: 0 20px 52px rgba(16, 24, 40, 0.22);
 }
@@ -187,11 +184,11 @@ body.td-book {
 }
 
 // Tables use the traditional publication convention: caption above body.
+// OINK 0.5 already stacks the numbered table caption first (column-reverse
+// flex); this only adds the DDIA surface and typography.
 .td-book-figure--tbl {
-  display: flex;
   width: 100%;
   max-width: var(--ddia-figure-measure);
-  flex-direction: column;
   margin: 3rem auto;
   padding: clamp(0.75rem, 1.8vw, 1.25rem);
   border: 1px solid var(--ddia-figure-border);
@@ -199,15 +196,11 @@ body.td-book {
   background: var(--ddia-figure-surface);
 }
 
-.td-book-figure--tbl > .td-book-figure__body {
-  order: 2;
-}
-
 .td-book-figure--tbl > figcaption {
-  order: 1;
   margin: 0 0 0.8rem;
   color: var(--bs-body-color);
   font-family: var(--td-ui-font-family);
+  font-size: 1rem;
   text-align: start;
 }
 
@@ -215,89 +208,31 @@ body.td-book {
   color: var(--ddia-accent);
 }
 
-// Code/data examples keep their public IDs without becoming document headings.
-.td-book .td-book-example {
-  margin-block: 2.75rem 0.85rem;
-  padding: 0.7rem 0.9rem;
+// Numbered code/data examples (`eg`): OINK frames the whole figure and uses the
+// caption as its header bar; keep DDIA's figure surface and accent on the frame.
+.td-book .td-book-figure--eg {
+  margin-block: 2.75rem 2rem;
   border-color: var(--ddia-figure-border);
-  border-inline-start: 4px solid var(--ddia-accent);
+  border-inline-start-color: var(--ddia-accent);
   border-radius: 0.65rem;
+}
+
+.td-book .td-book-figure--eg > figcaption {
+  padding: 0.7rem 0.9rem;
+  border-block-end-color: var(--ddia-figure-border);
   background: var(--ddia-figure-surface);
   font-size: 1rem;
 }
 
-.td-book .td-book-example__label {
+.td-book .td-book-figure--eg .td-eg-label {
   color: var(--ddia-accent);
 }
 
-.td-book .td-book-example__caption {
-  margin-inline-start: 0.45rem;
+.td-book .td-book-figure--eg .td-eg-caption {
   color: var(--bs-secondary-color);
   font-family: var(--td-ui-font-family);
   font-size: 0.92rem;
   font-weight: 600;
-}
-
-.td-book .td-book-example__body {
-  margin-block-start: 0.75rem;
-}
-
-.td-contributor-wall {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: 0.65rem;
-  margin-block: 1.25rem 2rem;
-}
-
-.td-contributor {
-  display: flex;
-  min-width: 0;
-  gap: 0.75rem;
-  align-items: center;
-  padding: 0.7rem;
-  border: 1px solid var(--bs-border-color);
-  border-radius: 0.75rem;
-  background: var(--bs-body-bg);
-  text-decoration: none;
-
-  &:hover {
-    border-color: color-mix(in srgb, var(--ddia-accent) 42%, var(--bs-border-color));
-    background: var(--bs-tertiary-bg);
-  }
-
-  img {
-    width: 2.5rem;
-    height: 2.5rem;
-    flex: 0 0 2.5rem;
-    border-radius: 50%;
-    background: var(--bs-secondary-bg);
-    object-fit: cover;
-  }
-
-  > span {
-    min-width: 0;
-  }
-
-  strong,
-  small {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  strong {
-    color: var(--bs-body-color);
-    font-family: var(--td-ui-font-family);
-    font-size: 0.86rem;
-  }
-
-  small {
-    margin-block-start: 0.12rem;
-    color: var(--bs-secondary-color);
-    font-family: var(--td-ui-font-family);
-    font-size: 0.7rem;
-  }
 }
 
 // Generated whole-book navigation -------------------------------------------
@@ -431,7 +366,7 @@ body.td-book {
 
   .td-book-figure.ddia-figure,
   .td-book-figure--tbl,
-  .td-book .td-content > p:has(> img[src^='/map/']) {
+  .td-book .td-content > img.td-image[src^='/map/'] {
     padding: 0;
     border: 0;
     background: transparent;
@@ -474,21 +409,21 @@ body.td-book {
 
 .ddia-people {
   background:
-    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--oink-blue) 7%, transparent), transparent 34%),
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--td-blue) 7%, transparent), transparent 34%),
     color-mix(in srgb, var(--bs-secondary-bg) 34%, transparent);
 
-  .oink-card-grid {
+  .td-landing-card-grid {
     gap: clamp(18px, 2.5vw, 28px);
   }
 
-  .oink-card {
+  .td-landing-card {
     display: grid;
     grid-template-columns: 116px minmax(0, 1fr);
     grid-template-rows: auto auto 1fr auto;
     gap: 0 24px;
     overflow: hidden;
     padding: clamp(24px, 3vw, 34px);
-    border-color: color-mix(in srgb, var(--oink-line) 78%, var(--oink-blue));
+    border-color: color-mix(in srgb, var(--td-line) 78%, var(--td-blue));
   }
 
   .ddia-person__portrait {
@@ -506,10 +441,10 @@ body.td-book {
     justify-content: center;
     margin-bottom: 10px;
     padding: 0.18rem 0.72rem;
-    border: 1px solid color-mix(in srgb, var(--oink-copper) 34%, var(--oink-line));
+    border: 1px solid color-mix(in srgb, var(--td-copper) 34%, var(--td-line));
     border-radius: 999px;
-    background: color-mix(in srgb, var(--oink-copper) 8%, transparent);
-    color: var(--oink-copper);
+    background: color-mix(in srgb, var(--td-copper) 8%, transparent);
+    color: var(--td-copper);
     font-family: var(--td-meta-font-family);
     font-size: 0.68rem;
     font-weight: 800;
@@ -517,16 +452,16 @@ body.td-book {
     line-height: 1;
   }
 
-  .oink-card__media {
+  .td-landing-card__media {
     width: 116px;
     height: 116px;
     margin: 0;
     overflow: hidden;
-    border: 3px solid color-mix(in srgb, var(--oink-paper) 76%, transparent);
+    border: 3px solid color-mix(in srgb, var(--td-paper) 76%, transparent);
     border-radius: 50%;
     background: var(--bs-secondary-bg);
     box-shadow:
-      0 0 0 1px var(--oink-line),
+      0 0 0 1px var(--td-line),
       0 16px 36px rgba(16, 24, 40, 0.16);
 
     img {
@@ -538,7 +473,7 @@ body.td-book {
     }
   }
 
-  .oink-card__meta {
+  .td-landing-card__meta {
     grid-column: 2;
     margin-bottom: 10px;
     font-family: var(--td-ui-font-family);
@@ -549,31 +484,31 @@ body.td-book {
     text-transform: none;
 
     a {
-      color: var(--oink-blue);
+      color: var(--td-blue);
       text-decoration: underline;
-      text-decoration-color: color-mix(in srgb, var(--oink-blue) 34%, transparent);
+      text-decoration-color: color-mix(in srgb, var(--td-blue) 34%, transparent);
       text-underline-offset: 0.18em;
     }
   }
 
-  .oink-card h3,
-  .oink-card__description,
-  .oink-card-link {
+  .td-landing-card h3,
+  .td-landing-card__description,
+  .td-landing-card-link {
     grid-column: 2;
   }
 
-  .oink-card h3 {
+  .td-landing-card h3 {
     margin-bottom: 10px;
     font-size: clamp(1.3rem, 2vw, 1.65rem);
     line-height: 1.2;
   }
 
-  .oink-card__description {
+  .td-landing-card__description {
     font-size: 0.92rem;
     line-height: 1.78;
   }
 
-  .oink-card-link {
+  .td-landing-card-link {
     justify-self: start;
     margin-top: 16px;
     padding-top: 0;
@@ -582,30 +517,30 @@ body.td-book {
 
 .ddia-preface {
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--oink-copper) 7%, transparent), transparent 44%),
+    linear-gradient(135deg, color-mix(in srgb, var(--td-copper) 7%, transparent), transparent 44%),
     var(--bs-body-bg);
 
-  .oink-section__head {
+  .td-landing-section__head {
     width: 100%;
     max-width: none;
   }
 
-  .oink-section__head h2 {
+  .td-landing-section__head h2 {
     max-width: none;
     font-size: clamp(1.05rem, 4.3vw, 3.2rem);
     line-height: 1.12;
     white-space: nowrap;
   }
 
-  .oink-markdown {
+  .td-landing-markdown {
     position: relative;
     max-width: 880px;
     margin-inline: auto;
     padding: clamp(32px, 6vw, 68px) clamp(24px, 6vw, 76px);
-    border: 1px solid var(--oink-line);
+    border: 1px solid var(--td-line);
     border-radius: clamp(14px, 2vw, 24px);
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--oink-paper) 96%, transparent), var(--oink-paper));
+      linear-gradient(180deg, color-mix(in srgb, var(--td-paper) 96%, transparent), var(--td-paper));
     box-shadow: 0 26px 70px rgba(16, 24, 40, 0.09);
 
     &::after {
@@ -613,7 +548,7 @@ body.td-book {
       position: absolute;
       inset: 12px;
       pointer-events: none;
-      border: 1px solid color-mix(in srgb, var(--oink-copper) 22%, transparent);
+      border: 1px solid color-mix(in srgb, var(--td-copper) 22%, transparent);
       border-radius: calc(clamp(14px, 2vw, 24px) - 6px);
     }
 
@@ -623,8 +558,8 @@ body.td-book {
       margin: 0 0 clamp(30px, 5vw, 48px);
       padding: 0 0 clamp(24px, 4vw, 36px);
       border: 0;
-      border-bottom: 1px solid color-mix(in srgb, var(--oink-copper) 36%, var(--oink-line));
-      color: var(--oink-ink);
+      border-bottom: 1px solid color-mix(in srgb, var(--td-copper) 36%, var(--td-line));
+      color: var(--td-ink);
       font-family: var(--ddia-serif);
       text-align: center;
 
@@ -632,7 +567,7 @@ body.td-book {
         content: '“';
         display: block;
         height: 0.72em;
-        color: color-mix(in srgb, var(--oink-copper) 62%, transparent);
+        color: color-mix(in srgb, var(--td-copper) 62%, transparent);
         font-family: Georgia, serif;
         font-size: 5rem;
         line-height: 1;
@@ -647,7 +582,7 @@ body.td-book {
 
       p:last-child {
         margin: 0.8rem 0 0;
-        color: var(--oink-muted);
+        color: var(--td-muted);
         font-family: var(--td-ui-font-family);
         font-size: 0.8rem;
         letter-spacing: 0.08em;
@@ -658,7 +593,7 @@ body.td-book {
       position: relative;
       z-index: 1;
       margin-block: 0 1.3em;
-      color: color-mix(in srgb, var(--oink-ink) 88%, var(--oink-soft));
+      color: color-mix(in srgb, var(--td-ink) 88%, var(--td-soft));
       font-family: var(--ddia-serif);
       font-size: clamp(1rem, 1.4vw, 1.08rem);
       line-height: 1.96;
@@ -669,7 +604,7 @@ body.td-book {
     > p:first-of-type::first-letter {
       float: left;
       margin: 0.11em 0.11em 0 0;
-      color: var(--oink-copper);
+      color: var(--td-copper);
       font-family: var(--td-heading-font-family);
       font-size: 3.15em;
       font-weight: 800;
@@ -685,20 +620,20 @@ body.td-book {
 .ddia-chapters {
   background: color-mix(in srgb, var(--bs-secondary-bg) 46%, transparent);
 
-  .oink-card-grid {
+  .td-landing-card-grid {
     gap: clamp(16px, 2vw, 24px);
   }
 
-  .oink-card {
+  .td-landing-card {
     padding: clamp(24px, 3vw, 32px);
   }
 
-  .oink-card__meta {
+  .td-landing-card__meta {
     margin-bottom: 7px;
-    color: var(--oink-copper);
+    color: var(--td-copper);
   }
 
-  .oink-card h3 {
+  .td-landing-card h3 {
     margin-bottom: 18px;
     font-size: 1.32rem;
 
@@ -706,18 +641,18 @@ body.td-book {
       display: inline-flex;
       gap: 0.48rem;
       align-items: center;
-      color: var(--oink-ink);
+      color: var(--td-ink);
 
       &::after {
         content: '→';
-        color: var(--oink-copper);
+        color: var(--td-copper);
         font-family: var(--td-meta-font-family);
         font-size: 0.82em;
         transition: transform 160ms ease;
       }
 
       &:hover {
-        color: var(--oink-blue);
+        color: var(--td-blue);
       }
 
       &:hover::after {
@@ -726,7 +661,7 @@ body.td-book {
     }
   }
 
-  .oink-card__description {
+  .td-landing-card__description {
     width: 100%;
     font-size: 0.9rem;
   }
@@ -738,8 +673,8 @@ body.td-book {
 
   li {
     padding: 0.72rem 0 0.72rem 0.15rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--oink-line) 72%, transparent);
-    color: var(--oink-muted);
+    border-bottom: 1px solid color-mix(in srgb, var(--td-line) 72%, transparent);
+    color: var(--td-muted);
     font-family: var(--td-meta-font-family);
     font-variant-numeric: tabular-nums;
 
@@ -749,25 +684,25 @@ body.td-book {
   }
 
   li::marker {
-    color: var(--oink-copper);
+    color: var(--td-copper);
     font-size: 0.76rem;
     font-weight: 800;
   }
 
   li a {
-    color: var(--oink-ink);
+    color: var(--td-ink);
     font-family: var(--td-ui-font-family);
     font-weight: 650;
 
     &:hover {
-      color: var(--oink-blue);
+      color: var(--td-blue);
     }
   }
 }
 
 .ddia-legal {
   background:
-    radial-gradient(circle at 88% 20%, color-mix(in srgb, var(--oink-blue) 10%, transparent), transparent 34%),
+    radial-gradient(circle at 88% 20%, color-mix(in srgb, var(--td-blue) 10%, transparent), transparent 34%),
     color-mix(in srgb, var(--bs-body-bg) 88%, var(--bs-secondary-bg));
 }
 
@@ -782,20 +717,20 @@ body.td-book {
   min-width: 0;
   padding: clamp(24px, 3vw, 32px);
   overflow: hidden;
-  border: 1px solid var(--oink-line);
-  border-radius: var(--oink-radius-md);
-  background: var(--oink-paper);
+  border: 1px solid var(--td-line);
+  border-radius: var(--td-radius-md);
+  background: var(--td-paper);
 
   &:last-child {
-    border-color: color-mix(in srgb, var(--oink-copper) 46%, var(--oink-line));
+    border-color: color-mix(in srgb, var(--td-copper) 46%, var(--td-line));
     background:
-      linear-gradient(145deg, color-mix(in srgb, var(--oink-copper) 8%, transparent), transparent 60%),
-      var(--oink-paper);
+      linear-gradient(145deg, color-mix(in srgb, var(--td-copper) 8%, transparent), transparent 60%),
+      var(--td-paper);
   }
 
   h3 {
     margin: 0 0 12px;
-    color: var(--oink-ink);
+    color: var(--td-ink);
     font-size: 1.18rem;
   }
 }
@@ -806,16 +741,16 @@ body.td-book {
   height: 44px;
   margin-bottom: 22px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--oink-blue) 28%, var(--oink-line));
+  border: 1px solid color-mix(in srgb, var(--td-blue) 28%, var(--td-line));
   border-radius: 12px;
-  background: color-mix(in srgb, var(--oink-blue) 7%, transparent);
-  color: var(--oink-blue);
+  background: color-mix(in srgb, var(--td-blue) 7%, transparent);
+  color: var(--td-blue);
   font-size: 1.15rem;
 }
 
 .ddia-legal__label {
   margin: 0 0 6px;
-  color: var(--oink-copper);
+  color: var(--td-copper);
   font-family: var(--td-meta-font-family);
   font-size: 0.68rem;
   font-weight: 750;
@@ -823,7 +758,7 @@ body.td-book {
 }
 
 .ddia-legal__body {
-  color: var(--oink-soft);
+  color: var(--td-soft);
   font-size: 0.88rem;
   line-height: 1.78;
 
@@ -844,7 +779,7 @@ body.td-book {
     display: inline-flex;
     gap: 9px;
     align-items: center;
-    color: var(--oink-blue);
+    color: var(--td-blue);
     font-size: 0.79rem;
     font-weight: 700;
 
@@ -877,17 +812,17 @@ body.td-book {
   align-items: center;
   min-width: 0;
   padding: 18px;
-  border: 1px solid var(--oink-line);
-  border-radius: var(--oink-radius-md);
-  background: var(--oink-paper);
+  border: 1px solid var(--td-line);
+  border-radius: var(--td-radius-md);
+  background: var(--td-paper);
   transition:
     transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
 
   &:hover {
-    border-color: var(--oink-copper-dim);
-    box-shadow: var(--oink-shadow);
+    border-color: var(--td-copper-dim);
+    box-shadow: var(--td-shadow);
     transform: translateY(-2px);
   }
 }
@@ -901,11 +836,11 @@ body.td-book {
   img {
     width: 54px;
     height: 54px;
-    border: 2px solid var(--oink-paper);
+    border: 2px solid var(--td-paper);
     border-radius: 50%;
     background: var(--bs-secondary-bg);
     object-fit: cover;
-    box-shadow: 0 0 0 1px var(--oink-line);
+    box-shadow: 0 0 0 1px var(--td-line);
   }
 }
 
@@ -939,7 +874,7 @@ body.td-book {
 
   h3 {
     overflow: hidden;
-    color: var(--oink-ink);
+    color: var(--td-ink);
     font-size: 0.92rem;
     font-weight: 800;
     text-overflow: ellipsis;
@@ -948,7 +883,7 @@ body.td-book {
 
   p {
     margin-top: 4px;
-    color: var(--oink-soft);
+    color: var(--td-soft);
     font-size: 0.73rem;
     line-height: 1.45;
   }
@@ -957,7 +892,7 @@ body.td-book {
     display: block;
     margin-top: 5px;
     overflow: hidden;
-    color: var(--oink-muted);
+    color: var(--td-muted);
     font-family: var(--td-meta-font-family);
     font-size: 0.62rem;
     text-overflow: ellipsis;
@@ -971,12 +906,12 @@ body.td-book {
   height: 32px;
   place-items: center;
   border-radius: 50%;
-  color: var(--oink-muted);
+  color: var(--td-muted);
   font-size: 0.72rem;
 
   &:hover {
-    background: color-mix(in srgb, var(--oink-blue) 8%, transparent);
-    color: var(--oink-blue);
+    background: color-mix(in srgb, var(--td-blue) 8%, transparent);
+    color: var(--td-blue);
   }
 }
 
@@ -999,19 +934,19 @@ body.td-book {
     min-width: 0;
     min-height: 54px;
     padding: 8px 10px;
-    border: 1px solid color-mix(in srgb, var(--oink-line) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--td-line) 72%, transparent);
     border-radius: 10px;
-    background: color-mix(in srgb, var(--oink-paper) 78%, transparent);
-    color: var(--oink-soft);
+    background: color-mix(in srgb, var(--td-paper) 78%, transparent);
+    color: var(--td-soft);
     transition:
       background-color 150ms ease,
       border-color 150ms ease,
       color 150ms ease;
 
     &:hover {
-      border-color: color-mix(in srgb, var(--oink-blue) 34%, var(--oink-line));
-      background: var(--oink-paper);
-      color: var(--oink-blue);
+      border-color: color-mix(in srgb, var(--td-blue) 34%, var(--td-line));
+      background: var(--td-paper);
+      color: var(--td-blue);
     }
   }
 
@@ -1042,17 +977,17 @@ body.td-book {
 }
 
 @media (max-width: 900px) {
-  .ddia-people .oink-card {
+  .ddia-people .td-landing-card {
     grid-template-columns: 88px minmax(0, 1fr);
     gap: 0 18px;
   }
 
   .ddia-people .ddia-person__portrait,
-  .ddia-people .oink-card__media {
+  .ddia-people .td-landing-card__media {
     width: 88px;
   }
 
-  .ddia-people .oink-card__media {
+  .ddia-people .td-landing-card__media {
     height: 88px;
   }
 
@@ -1062,13 +997,13 @@ body.td-book {
 }
 
 @media (max-width: 560px) {
-  .ddia-people .oink-card {
+  .ddia-people .td-landing-card {
     display: flex;
     align-items: flex-start;
   }
 
   .ddia-people .ddia-person__portrait,
-  .ddia-people .oink-card__media {
+  .ddia-people .td-landing-card__media {
     width: 92px;
   }
 
@@ -1076,35 +1011,35 @@ body.td-book {
     margin-bottom: 20px;
   }
 
-  .ddia-people .oink-card__media {
+  .ddia-people .td-landing-card__media {
     height: 92px;
   }
 
-  .ddia-people .oink-card__meta {
+  .ddia-people .td-landing-card__meta {
     order: 2;
   }
 
-  .ddia-people .oink-card h3 {
+  .ddia-people .td-landing-card h3 {
     order: 1;
   }
 
-  .ddia-people .oink-card__description {
+  .ddia-people .td-landing-card__description {
     order: 3;
   }
 
-  .ddia-people .oink-card-link {
+  .ddia-people .td-landing-card-link {
     order: 4;
   }
 
-  .ddia-preface .oink-markdown {
+  .ddia-preface .td-landing-markdown {
     padding: 34px 24px;
   }
 
-  .ddia-preface .oink-markdown::after {
+  .ddia-preface .td-landing-markdown::after {
     inset: 8px;
   }
 
-  .ddia-preface .oink-markdown > p {
+  .ddia-preface .td-landing-markdown > p {
     text-align: start;
   }
 
