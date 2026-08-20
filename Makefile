@@ -15,10 +15,16 @@ build:
 	hugo build
 
 check:
-	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" \
-		hugo --cleanDestinationDir --printPathWarnings --panicOnWarning
+	GOWORK=off go mod verify
+	GOWORK=off hugo --cleanDestinationDir \
+		--printPathWarnings --printI18nWarnings --panicOnWarning
 
-.PHONY: default d dev serve b build check
+check-local:
+	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" \
+		hugo --cleanDestinationDir \
+		--printPathWarnings --printI18nWarnings --panicOnWarning
+
+.PHONY: default d dev serve b build check check-local
 
 # generate zh-tw version
 translate:
