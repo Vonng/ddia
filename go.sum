@@ -1,2 +1,4 @@
 github.com/pgsty/oink v0.6.1 h1:fsajKQEXat8Tr6uBpC4uwyFXx8XgiQAp960DBEF6ogc=
 github.com/pgsty/oink v0.6.1/go.mod h1:wHzQR6qVOx5rgkDCvXBZhmsDrAb3O+0CRNBHyIzsYT0=
+github.com/pgsty/oink v0.7.0 h1:BY0SgsphppMSOsPsGAj/SsFL+wKGATaAIYmVXvvr0Lc=
+github.com/pgsty/oink v0.7.0/go.mod h1:wHzQR6qVOx5rgkDCvXBZhmsDrAb3O+0CRNBHyIzsYT0=
