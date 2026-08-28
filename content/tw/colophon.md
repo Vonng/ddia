@@ -9,7 +9,7 @@ breadcrumbs: false
 
 **Martin Kleppmann** 是英國劍橋大學副教授，教授分散式系統與密碼學協議。2017 年出版的《設計資料密集型應用》第一版確立了他在資料系統領域的權威地位；他在分散式系統方面的研究也推動了 local-first 軟體運動。此前他曾在 LinkedIn、Rapportive 等網際網路公司擔任軟體工程師和創業者，負責大規模資料基礎設施。
 
-**Chris Riccomini** 是軟體工程師、創業投資人和作者，擁有 15 年以上在 PayPal、LinkedIn、WePay 的工作經驗。他運營 Materialized View Capital，專注於基礎設施初創企業投資；同時也是 Apache Samza 與 SlateDB 的共同創造者，併合著了 *The Missing README: A Guide for the New Software Engineer*。
+**Chris Riccomini** 是軟體工程師、創業投資人和作者，擁有 15 年以上在 PayPal、LinkedIn、WePay 的工作經驗。他運營 Materialized View Capital，專注於基礎設施初創企業投資；同時也是 Apache Samza 與 SlateDB 的共同創造者，併合著了 **The Missing README: A Guide for the New Software Engineer**。
 
 ![](http://martin.kleppmann.com/2017/03/ddia-poster.jpg)
 
