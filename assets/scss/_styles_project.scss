@@ -21,13 +21,10 @@
 }
 
 // Long-form reading measure --------------------------------------------------
-
-body.td-book {
-  --td-body-font-family: var(--ddia-serif);
-}
+// Measure only: the book reads in the theme's own face. `--ddia-serif` below
+// stays for the landing card, which is editorial rather than book prose.
 
 .td-book .td-content {
-  font-family: var(--td-body-font-family);
   font-size: clamp(1rem, calc(0.97rem + 0.13vw), 1.075rem);
   line-height: 1.86;
   text-wrap: pretty;
