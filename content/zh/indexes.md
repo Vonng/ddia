@@ -581,7 +581,7 @@ breadcrumbs: false
     - 无头系统, [检测并发写入](/ch6#sec_replication_concurrent)
     - 最后写入胜利, [最后写入胜利（丢弃并发写入）](/ch6#sec_replication_lww)
     - 使用自定义逻辑, [手动冲突解决](/ch6#manual-conflict-resolution), [捕获先发生关系](/ch6#capturing-the-happens-before-relationship)
-  - 兄弟, [手动冲突解决](/ch6#manual-conflict-resolution), [捕获先发生关系](/ch6#capturing-the-happens-before-relationship)
+  - 兄弟值, [手动冲突解决](/ch6#manual-conflict-resolution), [捕获先发生关系](/ch6#capturing-the-happens-before-relationship)
     - 合并, [捕获先发生关系](/ch6#capturing-the-happens-before-relationship)
   - 写偏差, [写偏差与幻读](/ch8#sec_transactions_write_skew)-[物化冲突](/ch8#materializing-conflicts)
 - 调和
@@ -2840,7 +2840,7 @@ breadcrumbs: false
 - 粉碎（专栏编码）, [列式存储](/ch4#sec_storage_column)
 - 粉碎（相关模型）, [何时使用哪种模型](/ch3#sec_datamodels_document_summary)
 - 混洗, [混洗数据](/ch11#sec_shuffle)-[混洗数据](/ch11#sec_shuffle)
-- 兄弟, [手动冲突解决](/ch6#manual-conflict-resolution), [捕获先发生关系](/ch6#capturing-the-happens-before-relationship), [冲突解决与复制](/ch8#conflict-resolution-and-replication)
+- 兄弟值, [手动冲突解决](/ch6#manual-conflict-resolution), [捕获先发生关系](/ch6#capturing-the-happens-before-relationship), [冲突解决与复制](/ch8#conflict-resolution-and-replication)
   - （另见 conflicts）
 - 仓, [数据仓库](/ch1#sec_introduction_dwh)
 - 相似性搜索

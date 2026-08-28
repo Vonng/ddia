@@ -581,7 +581,7 @@ breadcrumbs: false
     - 無頭系統, [檢測併發寫入](/tw/ch6#sec_replication_concurrent)
     - 最後寫入勝利, [最後寫入勝利（丟棄併發寫入）](/tw/ch6#sec_replication_lww)
     - 使用自定義邏輯, [手動衝突解決](/tw/ch6#manual-conflict-resolution), [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship)
-  - 兄弟, [手動衝突解決](/tw/ch6#manual-conflict-resolution), [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship)
+  - 兄弟值, [手動衝突解決](/tw/ch6#manual-conflict-resolution), [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship)
     - 合併, [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship)
   - 寫偏差, [寫偏差與幻讀](/tw/ch8#sec_transactions_write_skew)-[物化衝突](/tw/ch8#materializing-conflicts)
 - 調和
@@ -2840,7 +2840,7 @@ breadcrumbs: false
 - 粉碎（專欄編碼）, [列式儲存](/tw/ch4#sec_storage_column)
 - 粉碎（相關模型）, [何時使用哪種模型](/tw/ch3#sec_datamodels_document_summary)
 - 混洗, [混洗資料](/tw/ch11#sec_shuffle)-[混洗資料](/tw/ch11#sec_shuffle)
-- 兄弟, [手動衝突解決](/tw/ch6#manual-conflict-resolution), [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship), [衝突解決與複製](/tw/ch8#conflict-resolution-and-replication)
+- 兄弟值, [手動衝突解決](/tw/ch6#manual-conflict-resolution), [捕獲先發生關係](/tw/ch6#capturing-the-happens-before-relationship), [衝突解決與複製](/tw/ch8#conflict-resolution-and-replication)
   - （另見 conflicts）
 - 倉, [資料倉儲](/tw/ch1#sec_introduction_dwh)
 - 相似性搜尋
