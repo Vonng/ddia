@@ -8,7 +8,7 @@
 
 **译者**：[冯若航](https://vonng.com) / [Vonng](https://github.com/Vonng) (rh@vonng.com) [Pigsty](https://pgsty.com) 创始人，[活跃](https://committers.top/china)[开源贡献者](https://gitstar-ranking.com/Vonng)，PostgreSQL Hacker。开源 RDS PG 发行版 [Pigsty](https://pigsty.cc/zh/) 与公众号《[老冯云数](https://mp.weixin.qq.com/s/p4Ys10ZdEDAuqNAiRmcnIQ)》作者，[数据库老司机](https://pigsty.cc/zh/blog/db)，[云计算泥石流](https://pigsty.cc/zh/blog/cloud)，曾于阿里，苹果，探探担任架构师与DBA。
 
-**校订**： [@yingang](https://github.com/yingang) ｜ [**繁體中文**](content/tw/_index.md) by [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](#贡献)
+**校订**： [@yingang](https://github.com/yingang) ｜ [**繁體中文**](content/tw/_index.md) by [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](https://ddia.vonng.com/contrib/)
 
 **阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [Hugo](https://gohugo.io/documentation/) / [OINK 0.8.0](https://oink.pgsty.com/) 主题自行构建。在线版支持稳定图表编号与交叉引用、顺序阅读、整书打印、Markdown / `llms.txt` 输出和 EPUB 导出。
 
@@ -104,13 +104,80 @@
 5. 词汇表、后记关于野猪的部分 by [@cg-zhou](https://github.com/Vonng/ddia/commits?author=cg-zhou)
 6. 繁體中文版本与转换脚本 by [@afunTW](https://github.com/afunTW)
 7. 多处翻译修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
-8. 感谢所有作出贡献，提出意见的朋友们：
+8. 感谢所有提交 Issue 或 PR 的朋友；无论是否采纳、合并或关闭，反馈本身即是贡献。完整名单见[贡献者页面](https://ddia.vonng.com/contrib/)：
+
+<details>
+<summary>210 位贡献者</summary>
+
+[@Vonng](https://github.com/Vonng) · [@yingang](https://github.com/yingang) · [@afunTW](https://github.com/afunTW) · [@117503445](https://github.com/117503445) · [@1ess](https://github.com/1ess) · [@1stcoderXiaoLin](https://github.com/1stcoderXiaoLin)
+[@2997ms](https://github.com/2997ms) · [@2w1nd](https://github.com/2w1nd) · [@674019130](https://github.com/674019130) · [@abbychau](https://github.com/abbychau) · [@afredlyj](https://github.com/afredlyj) · [@aha-jansen](https://github.com/aha-jansen)
+[@akxxsb](https://github.com/akxxsb) · [@AldenWangExis](https://github.com/AldenWangExis) · [@AlexZFX](https://github.com/AlexZFX) · [@AlphaWang](https://github.com/AlphaWang) · [@amber-moe](https://github.com/amber-moe) · [@anaer](https://github.com/anaer)
+[@artiship](https://github.com/artiship) · [@atlas927](https://github.com/atlas927) · [@auula](https://github.com/auula) · [@avenarius-argus](https://github.com/avenarius-argus) · [@Axlgrep](https://github.com/Axlgrep) · [@b7woreo](https://github.com/b7woreo)
+[@baijinping](https://github.com/baijinping) · [@bbwang-gl](https://github.com/bbwang-gl) · [@bearomorphism](https://github.com/bearomorphism) · [@BeBraveBeCurious](https://github.com/BeBraveBeCurious) · [@bestgrc](https://github.com/bestgrc) · [@blindpirate](https://github.com/blindpirate)
+[@bluebear4](https://github.com/bluebear4) · [@Bowser1704](https://github.com/Bowser1704) · [@bp4m4h94](https://github.com/bp4m4h94) · [@brucevoin](https://github.com/brucevoin) · [@brynne8](https://github.com/brynne8) · [@ButcherV](https://github.com/ButcherV)
+[@c25423](https://github.com/c25423) · [@c2j](https://github.com/c2j) · [@cch123](https://github.com/cch123) · [@cclauss](https://github.com/cclauss) · [@ccxhwmy](https://github.com/ccxhwmy) · [@cg-zhou](https://github.com/cg-zhou)
+[@chesha1](https://github.com/chesha1) · [@chlch](https://github.com/chlch) · [@chroming](https://github.com/chroming) · [@codexvn](https://github.com/codexvn) · [@cuprumz](https://github.com/cuprumz) · [@cwr31](https://github.com/cwr31)
+[@daihaowxg](https://github.com/daihaowxg) · [@DavidZhiXing](https://github.com/DavidZhiXing) · [@dch1228](https://github.com/dch1228) · [@demo-zexuan](https://github.com/demo-zexuan) · [@demonkit](https://github.com/demonkit) · [@derekwu0101](https://github.com/derekwu0101)
+[@duroey](https://github.com/duroey) · [@elsonLee](https://github.com/elsonLee) · [@enochii](https://github.com/enochii) · [@ethan-tan-stori](https://github.com/ethan-tan-stori) · [@EvanMu96](https://github.com/EvanMu96) · [@exzhawk](https://github.com/exzhawk)
+[@FangYuan33](https://github.com/FangYuan33) · [@fantasyczl](https://github.com/fantasyczl) · [@feeeei](https://github.com/feeeei) · [@Flyraty](https://github.com/Flyraty) · [@fuxuemingzhu](https://github.com/fuxuemingzhu) · [@ganler](https://github.com/ganler)
+[@Gezi-lzq](https://github.com/Gezi-lzq) · [@Gilbert1024](https://github.com/Gilbert1024) · [@goace](https://github.com/goace) · [@guaidaokakaxi](https://github.com/guaidaokakaxi) · [@haifeiWu](https://github.com/haifeiWu) · [@hanyu2](https://github.com/hanyu2)
+[@hecenjie](https://github.com/hecenjie) · [@hezhengdong](https://github.com/hezhengdong) · [@hli988](https://github.com/hli988) · [@huang06](https://github.com/huang06) · [@huiscool](https://github.com/huiscool) · [@ibyte2011](https://github.com/ibyte2011)
+[@imcheney](https://github.com/imcheney) · [@jacklightChen](https://github.com/jacklightChen) · [@jasonlei-chn](https://github.com/jasonlei-chn) · [@JCYoky](https://github.com/JCYoky) · [@jenac](https://github.com/jenac) · [@jiajiadebug](https://github.com/jiajiadebug)
+[@jiong-han](https://github.com/jiong-han) · [@justlorain](https://github.com/justlorain) · [@Juude](https://github.com/Juude) · [@KAKXA](https://github.com/KAKXA) · [@kangni](https://github.com/kangni) · [@kehao-chen](https://github.com/kehao-chen)
+[@kemingy](https://github.com/kemingy) · [@KevinZhangt](https://github.com/KevinZhangt) · [@kimi0230](https://github.com/kimi0230) · [@Klu5ure](https://github.com/Klu5ure) · [@krisjin](https://github.com/krisjin) · [@l1t1](https://github.com/l1t1)
+[@leo-987](https://github.com/leo-987) · [@lewiszlw](https://github.com/lewiszlw) · [@LHRchina](https://github.com/LHRchina) · [@liangGTY](https://github.com/liangGTY) · [@LiminCode](https://github.com/LiminCode) · [@lis186](https://github.com/lis186)
+[@lllliuliu](https://github.com/lllliuliu) · [@llmmddCoder](https://github.com/llmmddCoder) · [@longjiquan](https://github.com/longjiquan) · [@lpxxn](https://github.com/lpxxn) · [@lqbilbo](https://github.com/lqbilbo) · [@lroolle](https://github.com/lroolle)
+[@luchao2424631502](https://github.com/luchao2424631502) · [@Lyianu](https://github.com/Lyianu) · [@lynkeib](https://github.com/lynkeib) · [@lyuxi99](https://github.com/lyuxi99) · [@lzwill](https://github.com/lzwill) · [@Makonike](https://github.com/Makonike)
+[@MamaShip](https://github.com/MamaShip) · [@marvin263](https://github.com/marvin263) · [@mawenqi](https://github.com/mawenqi) · [@Max-Tortoise](https://github.com/Max-Tortoise) · [@meijies](https://github.com/meijies) · [@meilin96](https://github.com/meilin96)
+[@MintBlue](https://github.com/MintBlue) · [@mrdrivingduck](https://github.com/mrdrivingduck) · [@msxfXF](https://github.com/msxfXF) · [@MuAlex](https://github.com/MuAlex) · [@mxdljwxx](https://github.com/mxdljwxx) · [@NageNalock](https://github.com/NageNalock)
+[@narojay](https://github.com/narojay) · [@nevertiree](https://github.com/nevertiree) · [@NIL-zhuang](https://github.com/NIL-zhuang) · [@northmorn](https://github.com/northmorn) · [@omegaatt36](https://github.com/omegaatt36) · [@OneSizeFitsQuorum](https://github.com/OneSizeFitsQuorum)
+[@Ozarklake](https://github.com/Ozarklake) · [@PanggNOTlovebean](https://github.com/PanggNOTlovebean) · [@Panmax](https://github.com/Panmax) · [@patricksuo](https://github.com/patricksuo) · [@Pcrab](https://github.com/Pcrab) · [@PragmaTwice](https://github.com/PragmaTwice)
+[@q00218426](https://github.com/q00218426) · [@qig243](https://github.com/qig243) · [@quwang123](https://github.com/quwang123) · [@rabomen](https://github.com/rabomen) · [@rentiansheng](https://github.com/rentiansheng) · [@rovernerd](https://github.com/rovernerd)
+[@saintube](https://github.com/saintube) · [@samwu4166](https://github.com/samwu4166) · [@scaugrated](https://github.com/scaugrated) · [@seagullbird](https://github.com/seagullbird) · [@secret4233](https://github.com/secret4233) · [@shiyiwan](https://github.com/shiyiwan)
+[@shukebeta](https://github.com/shukebeta) · [@skyran1278](https://github.com/skyran1278) · [@smallyard](https://github.com/smallyard) · [@songzhibin97](https://github.com/songzhibin97) · [@soulrrrrr](https://github.com/soulrrrrr) · [@spike014](https://github.com/spike014)
+[@SpikeWong](https://github.com/SpikeWong) · [@starsea](https://github.com/starsea) · [@Stephan14](https://github.com/Stephan14) · [@Style980102](https://github.com/Style980102) · [@sunbuhui](https://github.com/sunbuhui) · [@Sunt-ing](https://github.com/Sunt-ing)
+[@SunVdong](https://github.com/SunVdong) · [@sunyiwei24601](https://github.com/sunyiwei24601) · [@sunzeren](https://github.com/sunzeren) · [@SXP-Simon](https://github.com/SXP-Simon) · [@taco-wang](https://github.com/taco-wang) · [@tankilo](https://github.com/tankilo)
+[@tigerinus](https://github.com/tigerinus) · [@tisonkun](https://github.com/tisonkun) · [@tooloudwind](https://github.com/tooloudwind) · [@TrafalgarRicardoLu](https://github.com/TrafalgarRicardoLu) · [@TronYY](https://github.com/TronYY) · [@truenorth-lj](https://github.com/truenorth-lj)
+[@ui-HookeyChiang](https://github.com/ui-HookeyChiang) · [@uncle-lv](https://github.com/uncle-lv) · [@undeflife](https://github.com/undeflife) · [@Valerie-space](https://github.com/Valerie-space) · [@Vermouth1995](https://github.com/Vermouth1995) · [@vult137](https://github.com/vult137)
+[@WAangzE](https://github.com/WAangzE) · [@wafer-li](https://github.com/wafer-li) · [@walshzhang](https://github.com/walshzhang) · [@wangqiim](https://github.com/wangqiim) · [@wayne87140](https://github.com/wayne87140) · [@Waynting](https://github.com/Waynting)
+[@woodpenker](https://github.com/woodpenker) · [@wwek](https://github.com/wwek) · [@wynn5a](https://github.com/wynn5a) · [@xianlaioy](https://github.com/xianlaioy) · [@xiekeyi98](https://github.com/xiekeyi98) · [@XIJINIAN](https://github.com/XIJINIAN)
+[@xiyihan0](https://github.com/xiyihan0) · [@xyohn](https://github.com/xyohn) · [@yangshangde](https://github.com/yangshangde) · [@ych](https://github.com/ych) · [@yhao3](https://github.com/yhao3) · [@yhm138](https://github.com/yhm138)
+[@yjhmelody](https://github.com/yjhmelody) · [@YKIsTheBest](https://github.com/YKIsTheBest) · [@Ynjxsjmh](https://github.com/Ynjxsjmh) · [@YunfengGao](https://github.com/YunfengGao) · [@z-soulx](https://github.com/z-soulx) · [@zenuo](https://github.com/zenuo)
+[@zhangnew](https://github.com/zhangnew) · [@Zhayhp](https://github.com/Zhayhp) · [@zhtisi](https://github.com/zhtisi) · [@Zombo1296](https://github.com/Zombo1296) · [@ZvanYang](https://github.com/ZvanYang) · [@zydmayday](https://github.com/zydmayday)
+
+</details>
 
 <details>
 <summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
 
 | ISSUE & Pull Requests                           | USER                                                       | Title                                                          |
 |-------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------|
+| [414](https://github.com/Vonng/ddia/issues/414) | [@Valerie-space](https://github.com/Valerie-space)         | 反馈字体选项                                                     |
+| [413](https://github.com/Vonng/ddia/pull/413)   | [@luchao2424631502](https://github.com/luchao2424631502)   | ch1：修改错别字                                                  |
+| [412](https://github.com/Vonng/ddia/issues/412) | [@chesha1](https://github.com/chesha1)                     | 反馈网站使用体验                                                   |
+| [411](https://github.com/Vonng/ddia/pull/411)   | [@Waynting](https://github.com/Waynting)                   | 修复 GDPR 引文括号渲染                                             |
+| [410](https://github.com/Vonng/ddia/pull/410)   | [@aha-jansen](https://github.com/aha-jansen)               | 修复 EPUB 封面、目录与导航                                          |
+| [409](https://github.com/Vonng/ddia/pull/409)   | [@Klu5ure](https://github.com/Klu5ure)                     | 修正 README 翻译进度                                               |
+| [408](https://github.com/Vonng/ddia/pull/408)   | [@hezhengdong](https://github.com/hezhengdong)             | 修复 ch8 列表排版                                                  |
+| [407](https://github.com/Vonng/ddia/pull/407)   | [@AldenWangExis](https://github.com/AldenWangExis)         | 统一简繁强调格式                                                    |
+| [406](https://github.com/Vonng/ddia/issues/406) | [@AldenWangExis](https://github.com/AldenWangExis)         | 反馈简体强调格式不一致                                                |
+| [405](https://github.com/Vonng/ddia/pull/405)   | [@AldenWangExis](https://github.com/AldenWangExis)         | 补全简繁术语缩写                                                    |
+| [404](https://github.com/Vonng/ddia/issues/404) | [@AldenWangExis](https://github.com/AldenWangExis)         | 反馈简繁译文不同步                                                   |
+| [403](https://github.com/Vonng/ddia/issues/403) | [@AldenWangExis](https://github.com/AldenWangExis)         | 反馈简繁译文不同步                                                   |
+| [402](https://github.com/Vonng/ddia/pull/402)   | [@AldenWangExis](https://github.com/AldenWangExis)         | 优化 ch1 简繁措辞                                                  |
+| [401](https://github.com/Vonng/ddia/pull/401)   | [@AldenWangExis](https://github.com/AldenWangExis)         | 修复 EPUB 目录跳转                                                 |
+| [400](https://github.com/Vonng/ddia/pull/400)   | [@SXP-Simon](https://github.com/SXP-Simon)                 | 补译 ch13 标题                                                    |
+| [399](https://github.com/Vonng/ddia/issues/399) | [@1stcoderXiaoLin](https://github.com/1stcoderXiaoLin)     | 反馈网站不可用                                                     |
+| [398](https://github.com/Vonng/ddia/pull/398)   | [@c2j](https://github.com/c2j)                             | 支持整本 PDF 导出                                                  |
+| [397](https://github.com/Vonng/ddia/pull/397)   | [@daihaowxg](https://github.com/daihaowxg)                 | 修正 ch2 笔误                                                    |
+| [395](https://github.com/Vonng/ddia/issues/395) | [@ethan-tan-stori](https://github.com/ethan-tan-stori)     | 反馈 ch6 译法问题                                                  |
+| [394](https://github.com/Vonng/ddia/issues/394) | [@wayne87140](https://github.com/wayne87140)               | 建议术语补充英文原文                                                  |
+| [393](https://github.com/Vonng/ddia/pull/393)   | [@cg-zhou](https://github.com/cg-zhou)                     | 修正贡献者链接与名单                                                  |
+| [391](https://github.com/Vonng/ddia/issues/391) | [@demonkit](https://github.com/demonkit)                   | 反馈 ch1 译文不顺                                                   |
+| [390](https://github.com/Vonng/ddia/pull/390)   | [@bearomorphism](https://github.com/bearomorphism)         | 修正 ch1 文字与排版                                                  |
+| [389](https://github.com/Vonng/ddia/pull/389)   | [@demo-zexuan](https://github.com/demo-zexuan)             | 恢复 EPUB 导出并修复图片                                              |
+| [388](https://github.com/Vonng/ddia/issues/388) | [@MintBlue](https://github.com/MintBlue)                   | 反馈 EPUB 导出失效                                                  |
+| [387](https://github.com/Vonng/ddia/pull/387)   | [@ButcherV](https://github.com/ButcherV)                   | 修正 part-i 重复标点                                                |
 | [386](https://github.com/Vonng/ddia/pull/386)   | [@uncle-lv](https://github.com/uncle-lv)                   | ch2: 优化一处翻译                                                    |
 | [384](https://github.com/Vonng/ddia/pull/384)   | [@PanggNOTlovebean](https://github.com/PanggNOTlovebean)   | docs: 优化中文文档的措辞和表达                                              |
 | [383](https://github.com/Vonng/ddia/pull/383)   | [@PanggNOTlovebean](https://github.com/PanggNOTlovebean)   | docs: 修正 ch4 中的术语和表达错误                                          |
@@ -159,7 +226,7 @@
 | [281](https://github.com/Vonng/ddia/pull/281)   | [@lyuxi99](https://github.com/lyuxi99)                     | 更正多处内部链接错误                                                     |
 | [280](https://github.com/Vonng/ddia/pull/280)   | [@lyuxi99](https://github.com/lyuxi99)                     | ch9: 更正内部链接错误                                                  |
 | [279](https://github.com/Vonng/ddia/issues/279) | [@codexvn](https://github.com/codexvn)                     | ch9: 指出公式在 GitHub Pages 显示的问题                                  |
-| [278](https://github.com/Vonng/ddia/pull/278)   | [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)         | 发现了繁体中文版本中的错误翻译                                                |
+| [278](https://github.com/Vonng/ddia/pull/278)   | [@truenorth-lj](https://github.com/truenorth-lj)           | 发现了繁体中文版本中的错误翻译                                                |
 | [275](https://github.com/Vonng/ddia/pull/275)   | [@117503445](https://github.com/117503445)                 | 更正 LICENSE 链接                                                  |
 | [274](https://github.com/Vonng/ddia/pull/274)   | [@uncle-lv](https://github.com/uncle-lv)                   | ch7: 修正错别字                                                     |
 | [273](https://github.com/Vonng/ddia/pull/273)   | [@quwang123](https://github.com/quwang123)             | ch7: 统一了 write skew 的翻译                                        |
@@ -205,7 +272,7 @@
 | [166](https://github.com/Vonng/ddia/pull/166)   | [@bp4m4h94](https://github.com/bp4m4h94)                   | ch1: 发现错误的文献索引                                                 |
 | [164](https://github.com/Vonng/ddia/pull/164)   | [@longjiquan](https://github.com/longjiquan)           | preface: 更正错误的标点符号                                             |
 | [163](https://github.com/Vonng/ddia/pull/163)   | [@llmmddCoder](https://github.com/llmmddCoder)             | ch1: 更正错误字                                                     |
-| [160](https://github.com/Vonng/ddia/pull/160)   | [@Zhayhp](https://github.com/Zhayhp)                       | ch2: 建议将 network model 翻译为网状模型                                 |
+| [160](https://github.com/Vonng/ddia/issues/160) | [@Zhayhp](https://github.com/Zhayhp)                       | ch2: 建议将 network model 翻译为网状模型                                 |
 | [159](https://github.com/Vonng/ddia/pull/159)   | [@1ess](https://github.com/1ess)                           | ch4: 更正错误字                                                     |
 | [157](https://github.com/Vonng/ddia/pull/157)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch7: 更正不太通顺的翻译                                                 |
 | [155](https://github.com/Vonng/ddia/pull/155)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch7: 更正不太通顺的翻译                                                 |

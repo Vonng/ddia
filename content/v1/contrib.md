@@ -25,11 +25,11 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 
 ## 贡献列表
 
-下面的头像墙汇集了本项目在 GitHub 上留下贡献记录的朋友；点击头像可查看其主页。
+头像墙收录提交过 Issue 或 PR 的朋友；无论是否采纳、合并或关闭，反馈本身即是贡献。
 
 {{< contributors data="contributors" >}}
 
-[GitHub 贡献者列表](https://github.com/Vonng/ddia/graphs/contributors)
+[GitHub 提交贡献者](https://github.com/Vonng/ddia/graphs/contributors)
 
 0. 全文校订 by [@yingang](https://github.com/Vonng/ddia/commits?author=yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
@@ -41,7 +41,7 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 7. 多处翻译修正 by [@songzhibin97](https://github.com/Vonng/ddia/commits?author=songzhibin97) [@MamaShip](https://github.com/Vonng/ddia/commits?author=MamaShip) [@FangYuan33](https://github.com/Vonng/ddia/commits?author=FangYuan33)
 
 
-感谢所有提出意见，作出贡献的朋友们，您可以在这里找到所有贡献的 [Issue 列表](https://github.com/Vonng/ddia/issues) 与 [PR 列表](https://github.com/Vonng/ddia/pulls)：
+完整记录：[Issues](https://github.com/Vonng/ddia/issues) · [Pull Requests](https://github.com/Vonng/ddia/pulls)。
 
 | ISSUE & Pull Requests                           | USER                                                       | Title                                                          |
 |-------------------------------------------------|------------------------------------------------------------|----------------------------------------------------------------|
@@ -77,7 +77,7 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 | [281](https://github.com/Vonng/ddia/pull/281)   | [@lyuxi99](https://github.com/lyuxi99)                     | 更正多处内部链接错误                                                     |
 | [280](https://github.com/Vonng/ddia/pull/280)   | [@lyuxi99](https://github.com/lyuxi99)                     | ch9: 更正内部链接错误                                                  |
 | [279](https://github.com/Vonng/ddia/issues/279) | [@codexvn](https://github.com/codexvn)                     | ch9: 指出公式在 GitHub Pages 显示的问题                                  |
-| [278](https://github.com/Vonng/ddia/pull/278)   | [@LJlkdskdjflsa](https://github.com/LJlkdskdjflsa)         | 发现了繁体中文版本中的错误翻译                                                |
+| [278](https://github.com/Vonng/ddia/pull/278)   | [@truenorth-lj](https://github.com/truenorth-lj)           | 发现了繁体中文版本中的错误翻译                                                |
 | [275](https://github.com/Vonng/ddia/pull/275)   | [@117503445](https://github.com/117503445)                 | 更正 LICENSE 链接                                                  |
 | [274](https://github.com/Vonng/ddia/pull/274)   | [@uncle-lv](https://github.com/uncle-lv)                   | ch7: 修正错别字                                                     |
 | [273](https://github.com/Vonng/ddia/pull/273)   | [@quwang123](https://github.com/quwang123)             | ch7: 统一了 write skew 的翻译                                        |
@@ -123,7 +123,7 @@ Yin Gang [@yingang](https://github.com/yingang) 对本书进行了全文校订�
 | [166](https://github.com/Vonng/ddia/pull/166)   | [@bp4m4h94](https://github.com/bp4m4h94)                   | ch1: 发现错误的文献索引                                                 |
 | [164](https://github.com/Vonng/ddia/pull/164)   | [@longjiquan](https://github.com/longjiquan)           | preface: 更正错误的标点符号                                             |
 | [163](https://github.com/Vonng/ddia/pull/163)   | [@llmmddCoder](https://github.com/llmmddCoder)             | ch1: 更正错误字                                                     |
-| [160](https://github.com/Vonng/ddia/pull/160)   | [@Zhayhp](https://github.com/Zhayhp)                       | ch2: 建议将 network model 翻译为网状模型                                 |
+| [160](https://github.com/Vonng/ddia/issues/160) | [@Zhayhp](https://github.com/Zhayhp)                       | ch2: 建议将 network model 翻译为网状模型                                 |
 | [159](https://github.com/Vonng/ddia/pull/159)   | [@1ess](https://github.com/1ess)                           | ch4: 更正错误字                                                     |
 | [157](https://github.com/Vonng/ddia/pull/157)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch7: 更正不太通顺的翻译                                                 |
 | [155](https://github.com/Vonng/ddia/pull/155)   | [@ZvanYang](https://github.com/ZvanYang)                   | ch7: 更正不太通顺的翻译                                                 |

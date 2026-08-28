@@ -143,8 +143,8 @@ contributors:
   type: contributors
   partial: landing/sections/ddia-contributors.html
   eyebrow: 贡献者
-  title: 不是一个人的译本，来自 142 位贡献者
-  desc: 142 位贡献者，从初翻、校订到繁体维护与排版修正，每一次提交都让这部中文译本更准确、更完整。
+  title: '[不是一个人的译本，来自 210 位贡献者](contrib/)'
+  desc: 无论 Issue 或 PR 是否采纳、合并或关闭，每一份反馈都值得感谢。
   data: contributors
   featured:
     - github: yingang
