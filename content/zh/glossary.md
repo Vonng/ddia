@@ -13,12 +13,12 @@ breadcrumbs: false
 
 ### 原子（atomic）
 
-1. 在并发语境下：指一个操作看起来在某个单一时刻生效，其他并发进程不会看到它处于“半完成”状态。另见 **isolation**。
+1. 在并发语境下：指一个操作看起来在某个单一时刻生效，其他并发进程不会看到它处于“半完成”状态。另见 *isolation*。
 2. 在事务语境下：指一组写入要么全部提交、要么全部回滚，即使发生故障也不例外。参见“[原子性](/ch8#sec_transactions_acid_atomicity)”和“[两阶段提交（2PC）](/ch8#sec_transactions_2pc)”。
 
 ### 背压（backpressure）
 
-当接收方跟不上时，强制发送方降速。也称为 **flow control**。参见“[系统过载后无法恢复时会发生什么](/ch2#sidebar_metastable)”。
+当接收方跟不上时，强制发送方降速。也称为 *flow control*。参见“[系统过载后无法恢复时会发生什么](/ch2#sidebar_metastable)”。
 
 ### 批处理（batch process）
 
@@ -70,7 +70,7 @@ breadcrumbs: false
 
 ### 分布式（distributed）
 
-系统在多个通过网络连接的节点上运行。其典型特征是 **部分失效**：一部分坏了，另一部分仍在工作，而软件往往难以精确知道哪里坏了。参见“[故障与部分失效](/ch9#sec_distributed_partial_failure)”。
+系统在多个通过网络连接的节点上运行。其典型特征是 *部分失效*：一部分坏了，另一部分仍在工作，而软件往往难以精确知道哪里坏了。参见“[故障与部分失效](/ch9#sec_distributed_partial_failure)”。
 
 ### 持久性（durable）
 
@@ -90,23 +90,23 @@ Extract-Transform-Load（提取-转换-加载）：从源数据库抽取数据�
 
 ### 流量控制（flow control）
 
-见 **backpressure**。
+见 *backpressure*。
 
 ### 追随者（follower）
 
-不直接接收客户端写入、仅应用来自主节点变更的副本。也称 **secondary**、**read replica** 或 **hot standby**。参见“[单主复制](/ch6#sec_replication_leader)”。
+不直接接收客户端写入、仅应用来自主节点变更的副本。也称 *secondary*、*read replica* 或 *hot standby*。参见“[单主复制](/ch6#sec_replication_leader)”。
 
 ### 全文检索（full-text search）
 
-按任意关键词搜索文本，通常支持近似拼写、同义词等能力。全文索引是支持此类查询的一种 **secondary index**。参见“[全文检索](/ch4#sec_storage_full_text)”。
+按任意关键词搜索文本，通常支持近似拼写、同义词等能力。全文索引是支持此类查询的一种 *secondary index*。参见“[全文检索](/ch4#sec_storage_full_text)”。
 
 ### 图（graph）
 
-由 **vertices**（可引用对象，也称 **nodes** 或 **entities**）和 **edges**（顶点间连接，也称 **relationships** 或 **arcs**）组成的数据结构。参见“[图状数据模型](/ch3#sec_datamodels_graph)”。
+由 *vertices*（可引用对象，也称 *nodes* 或 *entities*）和 *edges*（顶点间连接，也称 *relationships* 或 *arcs*）组成的数据结构。参见“[图状数据模型](/ch3#sec_datamodels_graph)”。
 
 ### 哈希（hash）
 
-把输入映射成看似随机数字的函数。相同输入总得相同输出；不同输入通常输出不同，但也可能碰撞（**collision**）。参见“[按键的哈希分片](/ch7#sec_sharding_hash)”。
+把输入映射成看似随机数字的函数。相同输入总得相同输出；不同输入通常输出不同，但也可能碰撞（*collision*）。参见“[按键的哈希分片](/ch7#sec_sharding_hash)”。
 
 ### 幂等（idempotent）
 
@@ -118,7 +118,7 @@ Extract-Transform-Load（提取-转换-加载）：从源数据库抽取数据�
 
 ### 隔离性（isolation）
 
-在事务语境下，并发事务相互干扰的程度。**Serializable** 最强，也常用更弱隔离级别。参见“[隔离性](/ch8#sec_transactions_acid_isolation)”。
+在事务语境下，并发事务相互干扰的程度。*Serializable* 最强，也常用更弱隔离级别。参见“[隔离性](/ch8#sec_transactions_acid_isolation)”。
 
 ### 连接（join）
 
@@ -126,7 +126,7 @@ Extract-Transform-Load（提取-转换-加载）：从源数据库抽取数据�
 
 ### 领导者（leader）
 
-当数据或服务跨多个节点复制时，被指定为可接受写入的副本。可通过协议选举或管理员指定。也称 **primary** 或 **source**。参见“[单主复制](/ch6#sec_replication_leader)”。
+当数据或服务跨多个节点复制时，被指定为可接受写入的副本。可通过协议选举或管理员指定。也称 *primary* 或 *source*。参见“[单主复制](/ch6#sec_replication_leader)”。
 
 ### 线性一致（linearizable）
 
@@ -142,7 +142,7 @@ Extract-Transform-Load（提取-转换-加载）：从源数据库抽取数据�
 
 ### 日志（log）
 
-只追加写入的数据文件。**WAL** 用于崩溃恢复（参见“[让 B 树可靠](/ch4#sec_storage_btree_wal)”）；**log-structured** 存储把日志作为主存储格式（参见“[日志结构存储](/ch4#sec_storage_log_structured)”）；**replication log** 用于主从复制（参见“[单主复制](/ch6#sec_replication_leader)”）；**event log** 可表示数据流（参见“[基于日志的消息代理](/ch12#sec_stream_log) ”）。
+只追加写入的数据文件。*WAL* 用于崩溃恢复（参见“[让 B 树可靠](/ch4#sec_storage_btree_wal)”）；*log-structured* 存储把日志作为主存储格式（参见“[日志结构存储](/ch4#sec_storage_log_structured)”）；*replication log* 用于主从复制（参见“[单主复制](/ch6#sec_replication_leader)”）；*event log* 可表示数据流（参见“[基于日志的消息代理](/ch12#sec_stream_log) ”）。
 
 ### 物化（materialize）
 
@@ -166,15 +166,15 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 分片（sharding）
 
-把单机装不下的大数据集或计算拆成更小部分并分散到多台机器上。也称 **partitioning**。参见[第 7 章](/ch7#ch_sharding)。
+把单机装不下的大数据集或计算拆成更小部分并分散到多台机器上。也称 *partitioning*。参见[第 7 章](/ch7#ch_sharding)。
 
 ### 百分位（percentile）
 
-通过统计多少值高于/低于某阈值来描述分布。例如某时段 95 分位响应时间为 **t**，表示 95% 请求耗时小于 **t**，5% 更长。参见“[描述性能](/ch2#sec_introduction_percentiles)”。
+通过统计多少值高于/低于某阈值来描述分布。例如某时段 95 分位响应时间为 *t*，表示 95% 请求耗时小于 *t*，5% 更长。参见“[描述性能](/ch2#sec_introduction_percentiles)”。
 
 ### 主键（primary key）
 
-唯一标识一条记录的值（通常为数字或字符串）。在很多应用中由系统在创建时生成（顺序或随机），而非用户手工指定。另见 **secondary index**。
+唯一标识一条记录的值（通常为数字或字符串）。在很多应用中由系统在创建时生成（顺序或随机），而非用户手工指定。另见 *secondary index*。
 
 ### 法定票数（quorum）
 
@@ -186,7 +186,7 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 复制（replication）
 
-在多个节点（**replicas**）上保存同一份数据，以便部分节点不可达时仍可访问。参见[第 6 章](/ch6#ch_replication)。
+在多个节点（*replicas*）上保存同一份数据，以便部分节点不可达时仍可访问。参见[第 6 章](/ch6#ch_replication)。
 
 ### 模式（schema）
 
@@ -198,7 +198,7 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 可串行化（serializable）
 
-一种 **isolation** 保证：多个事务并发执行时，行为等价于某个串行顺序逐个执行。参见“[可串行化](/ch8#sec_transactions_serializability)”。
+一种 *isolation* 保证：多个事务并发执行时，行为等价于某个串行顺序逐个执行。参见“[可串行化](/ch8#sec_transactions_serializability)”。
 
 ### 无共享（shared-nothing）
 
@@ -206,7 +206,7 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 偏斜（skew）
 
-1. 分片负载不均：某些分片请求/数据很多，另一些很少。也称 **hot spots**。参见“[负载偏斜与热点消除](/ch7#sec_sharding_skew)”。
+1. 分片负载不均：某些分片请求/数据很多，另一些很少。也称 *hot spots*。参见“[负载偏斜与热点消除](/ch7#sec_sharding_skew)”。
 2. 一种时序异常，导致事件呈现为非预期的非顺序。参见“[快照隔离与可重复读](/ch8#sec_transactions_snapshot_isolation)”中的读偏斜、“[写偏斜与幻读](/ch8#sec_transactions_write_skew)”中的写偏斜、以及“[用于事件排序的时间戳](/ch9#sec_distributed_lww)”中的时钟偏斜。
 
 ### 脑裂（split brain）
@@ -223,11 +223,11 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 同步（synchronous）
 
-**asynchronous** 的反义词。
+*asynchronous* 的反义词。
 
 ### 记录系统（system of record）
 
-持有某类数据主权威版本的系统，也称 **source of truth**。数据变更首先写入这里，其他数据集可由其派生。参见“[记录系统与派生数据](/ch1#sec_introduction_derived)”。
+持有某类数据主权威版本的系统，也称 *source of truth*。数据变更首先写入这里，其他数据集可由其派生。参见“[记录系统与派生数据](/ch1#sec_introduction_derived)”。
 
 ### 超时（timeout）
 
@@ -235,7 +235,7 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 全序（total order）
 
-一种可比较关系（如时间戳），任意两者都能判定大小。若存在不可比较元素，则称 **partial order**（偏序）。
+一种可比较关系（如时间戳），任意两者都能判定大小。若存在不可比较元素，则称 *partial order*（偏序）。
 
 ### 事务（transaction）
 
@@ -243,12 +243,12 @@ Online Transaction Processing（在线事务处理）：典型访问模式是快
 
 ### 两阶段提交（two-phase commit, 2PC）
 
-保证多个数据库节点对同一事务要么都 **atomically** 提交、要么都中止的算法。参见“[两阶段提交（2PC）](/ch8#sec_transactions_2pc)”。
+保证多个数据库节点对同一事务要么都 *atomically* 提交、要么都中止的算法。参见“[两阶段提交（2PC）](/ch8#sec_transactions_2pc)”。
 
 ### 两阶段锁（two-phase locking, 2PL）
 
-实现 **serializable isolation** 的算法：事务对读写数据加锁并持有到事务结束。参见“[两阶段锁（2PL）](/ch8#sec_transactions_2pl)”。
+实现 *serializable isolation* 的算法：事务对读写数据加锁并持有到事务结束。参见“[两阶段锁（2PL）](/ch8#sec_transactions_2pl)”。
 
 ### 无界（unbounded）
 
-没有已知上限或大小。与 **bounded** 相反。
+没有已知上限或大小。与 *bounded* 相反。
