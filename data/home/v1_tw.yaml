@@ -52,7 +52,7 @@ gallery:
     - title: 第一部分 · 資料系統基礎
       badge: 第 1–4 章
       icon: fa-solid fa-database
-      desc: 可靠性、可伸縮性、可維護性，以及資料模型、儲存和編碼演化。
+      desc: 可靠性、可擴展性、可維護性，以及資料模型、儲存和編碼演化。
       url: part-i/
     - title: 第二部分 · 分散式資料
       badge: 第 5–9 章
@@ -102,7 +102,7 @@ faq:
 
 cta:
   title: 從經典的第一章開始。
-  desc: 理解可靠性、可伸縮性與可維護性，建立評價資料系統的第一套坐標系。
+  desc: 理解可靠性、可擴展性與可維護性，建立評價資料系統的第一套坐標系。
   actions:
     - label: 閱讀第一章
       url: ch1/

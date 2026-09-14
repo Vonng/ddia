@@ -98,6 +98,7 @@ def convert_file(src_filepath, dst_filepath, src_folder, dst_folder, cfg='s2twp.
                     .replace('獨立完成', '獨力完成')
                     .replace('非規範化', '反正規化')
                     .replace('規範化', '正規化')
+                    .replace('伸縮', '擴展')
                     .replace('隻影響', '只影響'),
                 src_folder, dst_folder
             )

@@ -255,7 +255,7 @@ languages:
           commands:
             - id: start_reading
               title: 從第一章開始閱讀
-              description: 進入第一版第一章「可靠性、可伸縮性和可維護性」
+              description: 進入第一版第一章「可靠性、可擴展性和可維護性」
               url: /ch1/
               icon: fa-solid fa-book-open
               keywords: [開始, 閱讀, 第一章]

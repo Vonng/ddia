@@ -339,7 +339,7 @@ Microsoft SQL Server、SAP HANA 和 SingleStore 等資料庫在同一產品中�
 
 ### 雲資料倉儲 {#sec_cloud_data_warehouses}
 
-Teradata、Vertica 和 SAP HANA 等資料倉儲供應商，既以商業許可證銷售本地部署的資料倉儲，也提供雲端解決方案。隨著越來越多的客戶遷往雲端，Google Cloud BigQuery、Amazon Redshift 和 Snowflake 等新一代雲資料倉儲也得到廣泛採用。與傳統資料倉儲不同，雲資料倉儲會利用物件儲存、無伺服器計算平臺等可伸縮的雲基礎設施。
+Teradata、Vertica 和 SAP HANA 等資料倉儲供應商，既以商業許可證銷售本地部署的資料倉儲，也提供雲端解決方案。隨著越來越多的客戶遷往雲端，Google Cloud BigQuery、Amazon Redshift 和 Snowflake 等新一代雲資料倉儲也得到廣泛採用。與傳統資料倉儲不同，雲資料倉儲會利用物件儲存、無伺服器計算平臺等可擴展的雲基礎設施。
 
 雲資料倉儲通常能更好地整合其他雲服務，也更具彈性。例如，許多雲資料倉儲支援自動攝取日誌，並且可以輕鬆接入 Google Cloud Dataflow、Amazon Web Services Kinesis 等資料處理框架。它們把查詢計算與儲存層解耦，因此也更具彈性 [^54]。資料持久儲存在物件儲存而非本地磁碟上，於是儲存容量和查詢計算資源可以分別調整，正如 [“雲原生系統架構”](/tw/ch1#sec_introduction_cloud_native) 所介紹的那樣。
 
