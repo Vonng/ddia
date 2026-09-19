@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import posixpath
 import re
 import sys
@@ -117,6 +118,22 @@ def main() -> int:
 
         for name, root_node in roots.items():
             for node in root_node.iter():
+                if local_name(node.tag) == "svg" and "viewBox" in node.attrib:
+                    try:
+                        view_box = [
+                            float(value)
+                            for value in re.split(r"[\s,]+", node.attrib["viewBox"].strip())
+                        ]
+                        valid_view_box = (
+                            len(view_box) == 4
+                            and all(math.isfinite(value) for value in view_box)
+                            and view_box[2] > 0
+                            and view_box[3] > 0
+                        )
+                    except ValueError:
+                        valid_view_box = False
+                    if not valid_view_box:
+                        errors.append(f"{name}: invalid SVG viewBox {node.attrib['viewBox']!r}")
                 for raw_attr, value in node.attrib.items():
                     if local_name(raw_attr) not in {"href", "src"} or not value:
                         continue
