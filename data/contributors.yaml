@@ -1,11 +1,16 @@
+excluded_issues:
+- 396
 items:
   - github: "Vonng"
     name: 冯若航
     role: 译者与维护者
+    featured: true
   - github: "yingang"
     role: 全文校订与维护
+    featured: true
   - github: "afunTW"
     role: 繁体中文版本维护
+    featured: true
   - github: "117503445"
   - github: "1ess"
   - github: "1stcoderXiaoLin"
@@ -45,6 +50,7 @@ items:
   - github: "cclauss"
   - github: "ccxhwmy"
   - github: "cg-zhou"
+    featured: true
   - github: "chesha1"
   - github: "chlch"
   - github: "chroming"
@@ -64,6 +70,7 @@ items:
   - github: "EvanMu96"
   - github: "exzhawk"
   - github: "FangYuan33"
+    featured: true
   - github: "fantasyczl"
   - github: "feeeei"
   - github: "Flyraty"
@@ -81,15 +88,18 @@ items:
   - github: "huang06"
   - github: "huiscool"
   - github: "ibyte2011"
+  - github: "Ice-pumpkin"
   - github: "imcheney"
   - github: "jacklightChen"
   - github: "jasonlei-chn"
   - github: "JCYoky"
   - github: "jenac"
   - github: "jiajiadebug"
+    featured: true
   - github: "jiong-han"
   - github: "justlorain"
   - github: "Juude"
+  - github: "JYu1999"
   - github: "KAKXA"
   - github: "kangni"
   - github: "kehao-chen"
@@ -118,6 +128,7 @@ items:
   - github: "lzwill"
   - github: "Makonike"
   - github: "MamaShip"
+    featured: true
   - github: "marvin263"
   - github: "mawenqi"
   - github: "Max-Tortoise"
@@ -127,10 +138,12 @@ items:
   - github: "mrdrivingduck"
   - github: "msxfXF"
   - github: "MuAlex"
+    featured: true
   - github: "mxdljwxx"
   - github: "NageNalock"
   - github: "narojay"
   - github: "nevertiree"
+    featured: true
   - github: "NIL-zhuang"
   - github: "northmorn"
   - github: "omegaatt36"
@@ -151,12 +164,14 @@ items:
   - github: "samwu4166"
   - github: "scaugrated"
   - github: "seagullbird"
+    featured: true
   - github: "secret4233"
   - github: "shiyiwan"
   - github: "shukebeta"
   - github: "skyran1278"
   - github: "smallyard"
   - github: "songzhibin97"
+    featured: true
   - github: "soulrrrrr"
   - github: "spike014"
   - github: "SpikeWong"

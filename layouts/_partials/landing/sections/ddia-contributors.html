@@ -5,7 +5,8 @@
 {{- $items := $source.items | default slice -}}
 <section id="{{ $id }}" class="td-landing-section ddia-contributors{{ with $data.class }} {{ . }}{{ end }}" aria-labelledby="{{ $id }}-title">
   <div class="td-site-container">
-    {{- partial "landing/heading.html" (dict "page" $page "data" $data "id" $id) }}
+    {{- $heading := merge $data (dict "title" (replace $data.title "{count}" (string (len $items)))) -}}
+    {{- partial "landing/heading.html" (dict "page" $page "data" $heading "id" $id) }}
 
     <div class="ddia-contributors__featured" aria-label="显著贡献者">
       {{- range $data.featured }}

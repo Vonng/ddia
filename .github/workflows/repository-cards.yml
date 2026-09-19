@@ -1,0 +1,102 @@
+name: Repository Cards
+
+on:
+  schedule:
+    # 00:00 UTC = 08:00 Asia/Shanghai. GitHub may queue scheduled runs.
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/repository-cards.yml
+      - static/logo.png
+      - data/contributors.yaml
+      - bin/repository-cards/**
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/repository-cards.yml
+      - static/logo.png
+      - data/contributors.yaml
+      - bin/repository-cards/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-cards-${{ github.event.pull_request.number || 'publish' }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Validate repository cards
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r bin/repository-cards/requirements.txt
+      - run: python -m unittest discover -s bin/repository-cards -p 'test_*.py' -v
+
+  publish:
+    name: Update README images
+    needs: check
+    if: github.repository == 'Vonng/ddia' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: read
+    env:
+      OUTPUT_BRANCH: codex/repository-cards
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r bin/repository-cards/requirements.txt
+
+      - name: Load the generated-assets branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifacts="$RUNNER_TEMP/repository-cards"
+          if git ls-remote --exit-code --heads origin "$OUTPUT_BRANCH"; then
+            git fetch --depth=1 origin "$OUTPUT_BRANCH"
+            git worktree add --detach "$artifacts" FETCH_HEAD
+          else
+            status=$?
+            # Exit 2 means no matching ref; transport/auth failures must stop.
+            if [ "$status" -ne 2 ]; then exit "$status"; fi
+            git worktree add --detach "$artifacts" HEAD
+            git -C "$artifacts" checkout --orphan "$OUTPUT_BRANCH"
+            git -C "$artifacts" rm -rf .
+          fi
+
+      - name: Refresh contributor and star cards
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python bin/repository-cards/update.py --output "$RUNNER_TEMP/repository-cards"
+
+      - name: Publish changed assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/repository-cards"
+          git add README.md history.json curated.json contributors.json \
+            contributors-light.svg contributors-dark.svg \
+            star-history-light.svg star-history-dark.svg
+          if git diff --cached --quiet; then
+            echo "Repository cards are already current."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -s -m "chore: update repository cards $(date -u +%F)"
+          # A normal push preserves history and refuses concurrent overwrites.
+          git push origin "HEAD:refs/heads/$OUTPUT_BRANCH"

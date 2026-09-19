@@ -143,7 +143,7 @@ contributors:
   type: contributors
   partial: landing/sections/ddia-contributors.html
   eyebrow: 贡献者
-  title: '[不是一个人的译本，来自 210 位贡献者](contrib/)'
+  title: '[不是一个人的译本，来自 {count} 位贡献者](contrib/)'
   desc: 无论 Issue 或 PR 是否采纳、合并或关闭，每一份反馈都值得感谢。
   data: contributors
   featured:
