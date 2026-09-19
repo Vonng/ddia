@@ -34,4 +34,4 @@ uv run --with PyYAML==6.0.3 -- python -m unittest discover \
   -s bin/repository-cards -p 'test_*.py' -v
 ```
 
-The scripts retain the original SILO generator's AGPL-3.0-or-later notices. The generated-assets branch contains only images, their data, and a short provenance document; do not merge it into `main`.
+The scripts retain the original SILO generator's [AGPL-3.0-or-later license](LICENSE) and copyright notices. The generated-assets branch contains only images, their data, and a short provenance document; do not merge it into `main`.
