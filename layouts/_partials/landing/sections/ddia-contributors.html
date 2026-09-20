@@ -33,15 +33,6 @@
       {{- end }}
     </div>
 
-    <ul class="ddia-contributor-wall" aria-label="完整贡献者列表">
-      {{- range $items }}
-      <li>
-        <a href="https://github.com/{{ .github }}" target="_blank" rel="noopener noreferrer" title="{{ .name | default .github }}{{ with .role }} · {{ . }}{{ end }}">
-          <img src="https://github.com/{{ .github }}.png?size=96" alt="" width="48" height="48" loading="lazy">
-          <span>@{{ .github }}</span>
-        </a>
-      </li>
-      {{- end }}
-    </ul>
+    {{- partial "landing/repository-cards.html" (dict "page" $page "contributors" $items) }}
   </div>
 </section>

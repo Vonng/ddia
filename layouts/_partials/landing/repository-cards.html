@@ -1,0 +1,24 @@
+{{- $base := "https://raw.githubusercontent.com/Vonng/ddia/codex/repository-cards" -}}
+{{- $contrib := .page.Site.GetPage "/contrib" -}}
+{{- $rows := math.Ceil (div (float (len .contributors)) 14) -}}
+{{- $cards := slice
+  (dict "name" "contributors" "height" (add 206 (mul 66 $rows))
+    "alt" "DDIA 中文版贡献者：翻译、校订及 Issue 和 PR 作者"
+    "caption" "感谢每一位贡献者 · 查看完整名单与贡献记录" "url" $contrib.RelPermalink)
+  (dict "name" "star-history" "height" 558
+    "alt" "DDIA 在 GitHub 上的 Star 历史曲线"
+    "caption" "GitHub Star History · 每日更新" "url" "https://github.com/Vonng/ddia")
+-}}
+<div class="ddia-repository-cards">
+  {{- range $cards }}
+  {{- $light := printf "%s/%s-light.svg" $base .name -}}
+  {{- $dark := printf "%s/%s-dark.svg" $base .name -}}
+  <a class="ddia-repository-card" href="{{ .url }}"{{ if eq .name "star-history" }} target="_blank" rel="noopener noreferrer"{{ end }}>
+    <figure>
+      <img src="{{ $light }}" data-td-theme-src-light="{{ $light }}" data-td-theme-src-dark="{{ $dark }}"
+        alt="{{ .alt }}" width="1000" height="{{ .height }}" loading="lazy" decoding="async">
+      <figcaption>{{ .caption }} <span aria-hidden="true">→</span></figcaption>
+    </figure>
+  </a>
+  {{- end }}
+</div>

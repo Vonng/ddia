@@ -912,58 +912,43 @@
   }
 }
 
-.ddia-contributor-wall {
+.ddia-repository-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-  gap: 8px;
-  margin: 14px 0 0;
-  padding: 0;
-  list-style: none;
+  gap: 32px;
+  max-width: 1000px;
+  margin: 28px auto 0;
+}
 
-  li {
-    min-width: 0;
+.ddia-repository-card {
+  display: block;
+  min-width: 0;
+  border-radius: var(--td-radius-md);
+
+  figure {
+    margin: 0;
   }
 
-  a {
-    display: flex;
-    gap: 9px;
-    align-items: center;
-    min-width: 0;
-    min-height: 54px;
-    padding: 8px 10px;
-    border: 1px solid color-mix(in srgb, var(--td-line) 72%, transparent);
-    border-radius: 10px;
-    background: color-mix(in srgb, var(--td-paper) 78%, transparent);
-    color: var(--td-soft);
-    transition:
-      background-color 150ms ease,
-      border-color 150ms ease,
-      color 150ms ease;
-
-    &:hover {
-      border-color: color-mix(in srgb, var(--td-blue) 34%, var(--td-line));
-      background: var(--td-paper);
-      color: var(--td-blue);
-    }
-  }
-
+  // Match the source SVG's proportions; the roster can grow between builds.
   img {
-    width: 36px;
-    height: 36px;
-    flex: 0 0 36px;
-    border-radius: 50%;
-    background: var(--bs-secondary-bg);
-    object-fit: cover;
+    display: block;
+    width: 100%;
+    height: auto;
   }
 
-  span {
-    min-width: 0;
-    overflow: hidden;
-    font-family: var(--td-meta-font-family);
-    font-size: 0.69rem;
-    font-weight: 650;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  figcaption {
+    margin-top: 12px;
+    color: var(--td-muted);
+    font-size: 0.82rem;
+    text-align: center;
+  }
+
+  &:hover figcaption {
+    color: var(--td-blue);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--td-blue);
+    outline-offset: 5px;
   }
 }
 
@@ -1048,15 +1033,10 @@
   .ddia-contributors__featured {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .ddia-contributor-wall {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ddia-contributor-card,
-  .ddia-contributor-wall a {
+  .ddia-contributor-card {
     transition: none;
   }
 }

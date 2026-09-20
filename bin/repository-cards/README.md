@@ -4,6 +4,8 @@ Adapted from [SILO's repository cards](https://github.com/pgsty/silo/tree/main/b
 
 The workflow publishes light and dark contributor and Star History SVGs to `codex/repository-cards` every day at 00:00 UTC (08:00 Asia/Shanghai), and after changes to the generator or reviewed roster. GitHub may queue scheduled runs. Generated assets stay out of the source branch.
 
+The README and the website's homepage contributor section reference these same published SVGs. The website uses OINK's theme-image attributes so the images follow its light, dark, and automatic theme settings. Image refreshes do not require rebuilding the website.
+
 ## Contributor credit
 
 `data/contributors.yaml` is the reviewed roster shared with the website. Every human issue or PR author counts, including open and unmerged work. Existing credit is retained, bots are excluded, and merged work is ordered before proposals and reports. Gold rings preserve the major contributions already acknowledged in the book.
