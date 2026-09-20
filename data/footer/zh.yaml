@@ -10,21 +10,21 @@ columns:
       - { label: 开始阅读, url: preface/ }
       - { label: 完整目录, url: toc/ }
       - { label: 打印本书, url: _print/ }
-  - title: 版本
+  - title: "贡献"
     links:
-      - { label: 第二版·简体中文, url: / }
-      - { label: 第二版·繁体中文, url: /tw/ }
-      - { label: 第一版·简体中文, url: /v1/ }
-      - { label: 第一版·繁体中文, url: /v1_tw/ }
-  - title: 参与
+      - { label: "中文翻译贡献者", url: "contrib/" }
+      - { label: "GitHub 仓库", url: "https://github.com/Vonng/ddia", external: true }
+      - { label: "提交问题", url: "https://github.com/Vonng/ddia/issues", external: true }
+      - { label: "提交修订", url: "https://github.com/Vonng/ddia/pulls", external: true }
+  - title: "关于"
     links:
-      - { label: 中文翻译贡献者, url: contrib/ }
-      - { label: GitHub 仓库, url: 'https://github.com/Vonng/ddia', external: true }
-      - { label: 提交问题, url: 'https://github.com/Vonng/ddia/issues', external: true }
-      - { label: 提交修订, url: 'https://github.com/Vonng/ddia/pulls', external: true }
-  - title: 相关链接
+      - { label: "Martin Kleppmann", url: "https://martin.kleppmann.com", external: true }
+      - { label: "冯若航 / Vonng", url: "https://vonng.com", external: true }
+      - { label: "O'Reilly 原版", url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/", external: true }
+      - { label: "Oink 主题", url: "https://oink.pgsty.com", external: true }
+  - title: "其他"
     links:
-      - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
-      - { label: 冯若航 / Vonng, url: 'https://vonng.com', external: true }
-      - { label: O'Reilly 英文原版, url: 'https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html', external: true }
-      - { label: Oink 主题, url: 'https://oink.pgsty.com', external: true }
+      - { label: "PIGSTY", url: "https://pigsty.cc/", external: true }
+      - { label: "SILO", url: "https://silo.pgsty.com/zh/", external: true }
+      - { label: "PGSQL.CC", url: "https://pgsql.cc/", external: true }
+      - { label: "PG.CENTER", url: "https://pg.center/", external: true }

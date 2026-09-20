@@ -10,20 +10,21 @@ columns:
       - { label: 序言, url: preface/ }
       - { label: 术语表, url: glossary/ }
       - { label: 后记, url: colophon/ }
-  - title: 主题
+  - title: "贡献"
     links:
-      - { label: 第一部分 · 数据系统基础, url: part-i/ }
-      - { label: 第二部分 · 分布式数据, url: part-ii/ }
-      - { label: 第三部分 · 派生数据, url: part-iii/ }
-      - { label: 版本与语言, url: '#faq' }
-  - title: 项目
+      - { label: "中文翻译贡献者", url: "contrib/" }
+      - { label: "GitHub 仓库", url: "https://github.com/Vonng/ddia", external: true }
+      - { label: "提交问题", url: "https://github.com/Vonng/ddia/issues", external: true }
+      - { label: "提交修订", url: "https://github.com/Vonng/ddia/pulls", external: true }
+  - title: "关于"
     links:
-      - { label: 贡献者, url: contrib/ }
-      - { label: GitHub, url: 'https://github.com/Vonng/ddia', external: true }
-      - { label: 问题反馈, url: 'https://github.com/Vonng/ddia/issues', external: true }
-      - { label: 译者博客, url: 'https://vonng.com', external: true }
-  - title: 原作
+      - { label: "Martin Kleppmann", url: "https://martin.kleppmann.com", external: true }
+      - { label: "冯若航 / Vonng", url: "https://vonng.com", external: true }
+      - { label: "O'Reilly 原版", url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/", external: true }
+      - { label: "Oink 主题", url: "https://oink.pgsty.com", external: true }
+  - title: "其他"
     links:
-      - { label: Martin Kleppmann, url: 'https://martin.kleppmann.com', external: true }
-      - { label: DDIA 第一版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/', external: true }
-      - { label: DDIA 第二版, url: 'https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/', external: true }
+      - { label: "PIGSTY", url: "https://pigsty.cc/", external: true }
+      - { label: "SILO", url: "https://silo.pgsty.com/zh/", external: true }
+      - { label: "PGSQL.CC", url: "https://pgsql.cc/", external: true }
+      - { label: "PG.CENTER", url: "https://pg.center/", external: true }
