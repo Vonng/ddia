@@ -1,10 +1,11 @@
 {
-  "revision": "6a24f750e65311f51709acb89b944d50c37a1d38a64def899db925f289c5d44a",
+  "revision": "58275a9bcca009bd93c6646b5dbbab568079d4351b773ff704afeb1a27aa97b6",
   "repositories": [
     "Vonng/ddia"
   ],
   "excludedIssues": [
-    396
+    396,
+    421
   ],
   "bots": [
     "Copilot",
