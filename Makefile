@@ -20,15 +20,17 @@ b:build
 build:
 	hugo build
 
-check:
+check: translation-check
 	GOWORK=off go mod verify
 	GOWORK=off hugo --cleanDestinationDir \
 		--printPathWarnings --printI18nWarnings --panicOnWarning
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --second-edition
 
-check-local:
+check-local: translation-check
 	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" \
 		hugo --cleanDestinationDir \
 		--printPathWarnings --printI18nWarnings --panicOnWarning
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --second-edition
 
 .PHONY: default d dev serve b build check check-local
 
@@ -42,10 +44,22 @@ figures:
 figures-check:
 	bin/figure-layout.py --check
 
+# Source checks are read-only; rendered checks require an existing Hugo build.
+translation-check: translation-tests
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-translation.py
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/emphasis-style.py --check
+	bin/figure-layout.py --check
+
+translation-tests:
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s bin/tests -p 'test_*.py' -v
+
+rendered-check:
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --second-edition
+
 epub:
 	bin/epub
 
 epub-check: epub
 	bin/check-epub.py
 
-.PHONY: translate figures figures-check epub epub-check
+.PHONY: translate figures figures-check translation-check translation-tests rendered-check epub epub-check

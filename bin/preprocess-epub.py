@@ -69,6 +69,24 @@ SITE_LINK_RE = re.compile(
 LOCAL_FRAGMENT_RE = re.compile(
     r"(?P<prefix>\]\()#(?P<fragment>[^)\s]+)(?=[)\s])"
 )
+ALERT_RE = re.compile(
+    r"^(?P<quote>(?:[ \t]{0,3}>[ \t]?)+)"
+    r"\[!(?P<kind>NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]"
+    r"(?:[ \t]+(?P<title>[^\r\n]*))?[ \t]*(?P<newline>\r?\n|$)",
+    re.IGNORECASE,
+)
+FENCE_LINE_RE = re.compile(
+    r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>[^\r\n]*)(?:\r?\n|$)"
+)
+QUOTE_CONTAINER_RE = re.compile(r"^ {0,3}> ?")
+LIST_CONTAINER_RE = re.compile(r"^ {0,3}(?:[-+*]|\d+[.)])(?P<spacing> +)")
+ALERT_TITLES = {
+    "NOTE": "注意",
+    "TIP": "提示",
+    "IMPORTANT": "重要",
+    "WARNING": "警告",
+    "CAUTION": "当心",
+}
 
 BOOK_ORDER = (
     "_index",
@@ -186,6 +204,92 @@ def _escape_alt_text(text: str) -> str:
     return text.replace("]", r"\]").replace("\n", " ").strip()
 
 
+def _fence_opening(line: str) -> tuple[str, int, tuple[tuple[str, int], ...]] | None:
+    """Find a fence after its quote/list containers, excluding indented code."""
+
+    body = line.expandtabs(4)
+    containers = []
+    while True:
+        quote = QUOTE_CONTAINER_RE.match(body)
+        item = LIST_CONTAINER_RE.match(body)
+        if quote:
+            containers.append(("quote", 0))
+            body = body[quote.end() :]
+        elif item:
+            width = item.end()
+            # Five or more spaces after a list marker start indented code;
+            # only the first belongs to the list container in that case.
+            if len(item.group("spacing")) > 4:
+                width -= len(item.group("spacing")) - 1
+            containers.append(("list", width))
+            body = body[width:]
+        else:
+            break
+    marker = FENCE_LINE_RE.fullmatch(body)
+    if not marker or (
+        marker.group("fence")[0] == "`" and "`" in marker.group("info")
+    ):
+        return None
+    return marker.group("fence")[0], len(marker.group("fence")), tuple(containers)
+
+
+def _fence_body(line: str, containers: tuple[tuple[str, int], ...]) -> str | None:
+    """Return fence content, or None when its containing quote/list has ended."""
+
+    body = line.expandtabs(4)
+    for kind, width in containers:
+        if kind == "quote":
+            quote = QUOTE_CONTAINER_RE.match(body)
+            if not quote:
+                return None
+            body = body[quote.end() :]
+        elif not body.strip():
+            continue
+        elif not body.startswith(" " * width):
+            return None
+        else:
+            body = body[width:]
+    return body
+
+
+def _lower_alerts(text: str) -> str:
+    """Replace GFM alert markers with quoted titles, preserving fenced literals."""
+
+    result: list[str] = []
+    fence: tuple[str, int, tuple[tuple[str, int], ...]] | None = None
+    for line in text.splitlines(keepends=True):
+        if fence:
+            body = _fence_body(line, fence[2])
+            if body is not None:
+                marker = FENCE_LINE_RE.fullmatch(body)
+                if (
+                    marker
+                    and marker.group("fence")[0] == fence[0]
+                    and len(marker.group("fence")) >= fence[1]
+                    and not marker.group("info").strip()
+                ):
+                    fence = None
+                result.append(line)
+                continue
+            fence = None
+        opening = _fence_opening(line)
+        if opening:
+            fence = opening
+            result.append(line)
+            continue
+        alert = ALERT_RE.fullmatch(line)
+        if not alert:
+            result.append(line)
+            continue
+        title = (alert.group("title") or "").strip() or ALERT_TITLES[
+            alert.group("kind").upper()
+        ]
+        quote = alert.group("quote")
+        newline = alert.group("newline") or "\n"
+        result.append(f"{quote}**{title}**{newline}{quote.rstrip()}{newline}")
+    return "".join(result)
+
+
 def _local_image(src: str) -> str:
     return "static" + src if src.startswith("/") else src
 
@@ -211,6 +315,7 @@ def convert_markdown(
     heading_ids = heading_ids or {stem: _heading_ids(text)}
     metadata, text = _front_matter(text)
     local_heading_ids = heading_ids.get(stem, set())
+    text = _lower_alerts(text)
 
     def replace_xref(match: re.Match[str]) -> str:
         attrs = _attrs(match.group(1))

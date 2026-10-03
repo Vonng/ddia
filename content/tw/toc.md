@@ -1,7 +1,7 @@
 ---
 title: 目錄
 linkTitle: 目錄
-description: DDIA 第二版完整目錄：十四章，涵蓋資料系統基礎、分散式資料與派生資料。
+description: DDIA 第二版完整目錄：十四章，涵蓋資料系統基礎、分散式資料與衍生資料。
 book_kind: contents
 no_print: true
 weight: 10

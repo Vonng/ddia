@@ -1418,8 +1418,8 @@ Uniqueness
 : No two requests for a fencing token return the same value.
 
 Monotonic sequence
-: If request *x* returned token *t**x*, and request *y* returned token *t**y*, and
- *x* completed before *y* began, then *t**x* < *t**y*.
+: If request *x* returned token *t*<sub>*x*</sub>, and request *y* returned token *t*<sub>*y*</sub>, and
+ *x* completed before *y* began, then *t*<sub>*x*</sub> < *t*<sub>*y*</sub>.
 
 Availability
 : A node that requests a fencing token and does not crash eventually receives a response.

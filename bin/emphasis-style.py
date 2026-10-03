@@ -35,6 +35,9 @@ SPACING_FILES = [*PROSE_FILES, "colophon.md"]
 
 FENCE_RE = re.compile(r"^\s{0,3}(?P<fence>`{3,}|~{3,})")
 INLINE_CODE_RE = re.compile(r"(?P<ticks>`+).*?(?P=ticks)")
+# A bullet's required padding is Markdown syntax, not spacing after emphasis.
+# Include quoted/nested lists while retaining the exact original indentation.
+STAR_LIST_PREFIX_RE = re.compile(r"^(?:[ \t]*>[ \t]?)*[ \t]*\*[ \t]+")
 STRONG_RE = re.compile(
     r"(?<![\\*])\*\*(?!\*)"
     r"(?P<body>[^\s*](?:[^*\n]*?[^\s*])?)"
@@ -89,7 +92,10 @@ def normalize_segment(text: str, *, normalize_strong: bool) -> str:
 def normalize_line(line: str, *, normalize_strong: bool) -> str:
     """Normalize prose while preserving every inline-code span byte-for-byte."""
 
-    output: list[str] = []
+    prefix = STAR_LIST_PREFIX_RE.match(line)
+    output: list[str] = [prefix.group(0)] if prefix else []
+    if prefix:
+        line = line[prefix.end():]
     cursor = 0
     for match in INLINE_CODE_RE.finditer(line):
         output.append(
@@ -129,6 +135,9 @@ def validate_examples() -> None:
         "*read*(*x*)": "*read*(*x*)",
         "《*Book Title*》": "《*Book Title*》",
         "* 使用*术语*说明": "* 使用 *术语* 说明",
+        "* （说明）": "* （说明）",
+        "* 《*书名*》": "* 《*书名*》",
+        "> * 「**术语**」": "> * 「*术语*」",
         "`a**b` 与**术语**相邻": "`a**b` 与 *术语* 相邻",
         "令牌 *t**x* 保持原样": "令牌 *t**x* 保持原样",
         "说明： *重点* ，继续": "说明：*重点*，继续",

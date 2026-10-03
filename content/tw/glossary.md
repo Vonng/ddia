@@ -9,7 +9,7 @@ breadcrumbs: false
 
 ### 非同步（asynchronous）
 
-不等待某件事完成（例如透過網路把資料傳送到另一個節點），且不假設它會在多長時間內完成。參見“[同步與非同步複製](/tw/ch6#sec_replication_sync_async)”、“[同步網路與非同步網路](/tw/ch9#sec_distributed_sync_networks)”和“[系統模型與現實](/tw/ch9#sec_distributed_system_model)”。
+不等待某件事完成（例如透過網路把資料傳送到另一個節點），且不假設它會在多長時間內完成。參見“[同步複製與非同步複製](/tw/ch6#sec_replication_sync_async)”、“[同步網路與非同步網路](/tw/ch9#sec_distributed_sync_networks)”和“[系統模型與現實](/tw/ch9#sec_distributed_system_model)”。
 
 ### 原子（atomic）
 
@@ -18,7 +18,7 @@ breadcrumbs: false
 
 ### 背壓（backpressure）
 
-當接收方跟不上時，強制傳送方降速。也稱為 *flow control*。參見“[系統過載後無法恢復時會發生什麼](/tw/ch2#sidebar_metastable)”。
+當接收方跟不上時，強制傳送方降速。也稱為 *flow control*。參見“[當過載系統無法恢復時](/tw/ch2#sidebar_metastable)”。
 
 ### 批處理（batch process）
 
@@ -26,7 +26,7 @@ breadcrumbs: false
 
 ### 有界（bounded）
 
-具有已知上限或大小。例如可用於描述網路延遲（參見“[超時與無界延遲](/tw/ch9#sec_distributed_queueing)”）和資料集（參見[第 12 章](/tw/ch12#ch_stream)導言）。
+具有已知上限或大小。例如可用於描述網路延遲（參見“[超時和無界延遲](/tw/ch9#sec_distributed_queueing)”）和資料集（參見[第 12 章](/tw/ch12#ch_stream)導言）。
 
 ### 拜占庭故障（Byzantine fault）
 
@@ -42,11 +42,11 @@ breadcrumbs: false
 
 ### 因果關係（causality）
 
-當一件事“先於”另一件事發生時產生的事件依賴關係。例如後續事件對先前事件的響應、建立在先前事件之上，或必須結合先前事件理解。參見“[happens-before 關係與併發](/tw/ch6#sec_replication_happens_before)”。
+當一件事“先於”另一件事發生時產生的事件依賴關係。例如後續事件對先前事件的響應、建立在先前事件之上，或必須結合先前事件理解。參見 [“先發生”關係與併發](/tw/ch6#sec_replication_happens_before)。
 
 ### 共識（consensus）
 
-分散式計算中的基本問題：讓多個節點就某件事達成一致（例如誰是主節點）。這比直覺上要困難得多。參見“[共識](/tw/ch10#sec_consistency_consensus)”。
+分散式計算中的基本問題：讓多個節點就某件事達成一致（例如誰是領導者）。這比直覺上要困難得多。參見“[共識](/tw/ch10#sec_consistency_consensus)”。
 
 ### 資料倉儲（data warehouse）
 
@@ -60,9 +60,11 @@ breadcrumbs: false
 
 在已正規化資料集中引入一定冗餘（常見形式為快取或索引）以換取更快讀取。反正規化值可看作預計算結果，類似物化檢視。參見“[正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)”。
 
-### 派生資料（derived data）
+<a id="派生資料derived-data"></a>
 
-透過可重複流程由其他資料生成的資料集，必要時可重新計算。通常用於加速某類讀取。索引、快取、物化檢視都屬於派生資料。參見“[記錄系統與派生資料](/tw/ch1#sec_introduction_derived)”。
+### 衍生資料（derived data）
+
+透過可重複流程由其他資料生成的資料集，必要時可重新計算。通常用於加速某類讀取。索引、快取、物化檢視都屬於衍生資料。參見“[記錄系統與衍生資料](/tw/ch1#sec_introduction_derived)”。
 
 ### 確定性（deterministic）
 
@@ -82,7 +84,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 故障切換（failover）
 
-在單主系統中，將主角色從一個節點切到另一個節點的過程。參見“[處理節點故障](/tw/ch6#sec_replication_failover)”。
+在單主系統中，將領導者角色從一個節點切到另一個節點的過程。參見“[處理節點故障](/tw/ch6#sec_replication_failover)”。
 
 ### 容錯（fault-tolerant）
 
@@ -94,7 +96,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 追隨者（follower）
 
-不直接接收客戶端寫入、僅應用來自主節點變更的副本。也稱 *secondary*、*read replica* 或 *hot standby*。參見“[單主複製](/tw/ch6#sec_replication_leader)”。
+不直接接收客戶端寫入、僅應用來自領導者的變更的副本。也稱 *secondary*、*read replica* 或 *hot standby*。參見“[單主複製](/tw/ch6#sec_replication_leader)”。
 
 ### 全文檢索（full-text search）
 
@@ -102,7 +104,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 圖（graph）
 
-由 *vertices*（可引用物件，也稱 *nodes* 或 *entities*）和 *edges*（頂點間連線，也稱 *relationships* 或 *arcs*）組成的資料結構。參見“[圖狀資料模型](/tw/ch3#sec_datamodels_graph)”。
+由 *vertices*（可引用物件，也稱 *nodes* 或 *entities*）和 *edges*（頂點間連線，也稱 *relationships* 或 *arcs*）組成的資料結構。參見“[圖資料模型](/tw/ch3#sec_datamodels_graph)”。
 
 ### 雜湊（hash）
 
@@ -114,7 +116,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 索引（index）
 
-一種可高效檢索“某欄位取某值”的記錄的資料結構。參見“[OLTP 的儲存與索引](/tw/ch4#sec_storage_oltp)”。
+一種可高效檢索“某欄位取某值”的記錄的資料結構。參見“[OLTP 系統的儲存與索引](/tw/ch4#sec_storage_oltp)”。
 
 ### 隔離性（isolation）
 
@@ -138,11 +140,11 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 鎖（lock）
 
-保證同一時刻只有一個執行緒/節點/事務訪問某資源的機制；其他訪問者需等待鎖釋放。參見“[兩階段鎖（2PL）](/tw/ch8#sec_transactions_2pl)”和“[分散式鎖與租約](/tw/ch9#sec_distributed_lock_fencing)”。
+保證同一時刻只有一個執行緒/節點/事務訪問某資源的機制；其他訪問者需等待鎖釋放。參見“[兩階段鎖定（2PL）](/tw/ch8#sec_transactions_2pl)”和“[分散式鎖和租約](/tw/ch9#sec_distributed_lock_fencing)”。
 
 ### 日誌（log）
 
-只追加寫入的資料檔案。*WAL* 用於崩潰恢復（參見“[讓 B 樹可靠](/tw/ch4#sec_storage_btree_wal)”）；*log-structured* 儲存把日誌作為主儲存格式（參見“[日誌結構儲存](/tw/ch4#sec_storage_log_structured)”）；*replication log* 用於主從複製（參見“[單主複製](/tw/ch6#sec_replication_leader)”）；*event log* 可表示資料流（參見“[基於日誌的訊息代理](/tw/ch12#sec_stream_log) ”）。
+只追加寫入的資料檔案。*WAL* 用於崩潰恢復（參見“[使 B 樹可靠](/tw/ch4#sec_storage_btree_wal)”）；*log-structured* 儲存把日誌作為主儲存格式（參見“[日誌結構儲存](/tw/ch4#sec_storage_log_structured)”）；*replication log* 用於將寫入從領導者複製到追隨者（參見“[單主複製](/tw/ch6#sec_replication_leader)”）；*event log* 可表示資料流（參見“[基於日誌的訊息代理](/tw/ch12#sec_stream_log) ”）。
 
 ### 物化（materialize）
 
@@ -158,17 +160,19 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### OLAP
 
-Online Analytic Processing（線上分析處理）：典型訪問模式是對大量記錄做聚合（如 count/sum/avg）。參見“[事務系統與分析系統](/tw/ch1#sec_introduction_analytics)”。
+Online Analytic Processing（線上分析處理）：典型訪問模式是對大量記錄做聚合（如 count/sum/avg）。參見“[分析型與事務型系統](/tw/ch1#sec_introduction_analytics)”。
 
 ### OLTP
 
-Online Transaction Processing（線上事務處理）：典型訪問模式是快速讀寫少量記錄，通常按鍵索引。參見“[事務系統與分析系統](/tw/ch1#sec_introduction_analytics)”。
+Online Transaction Processing（線上事務處理）：典型訪問模式是快速讀寫少量記錄，通常按鍵索引。參見“[分析型與事務型系統](/tw/ch1#sec_introduction_analytics)”。
 
 ### 分片（sharding）
 
 把單機裝不下的大資料集或計算拆成更小部分並分散到多臺機器上。也稱 *partitioning*。參見[第 7 章](/tw/ch7#ch_sharding)。
 
-### 百分位（percentile）
+<a id="百分位percentile"></a>
+
+### 分位數（percentile）
 
 透過統計多少值高於/低於某閾值來描述分佈。例如某時段 95 分位響應時間為 *t*，表示 95% 請求耗時小於 *t*，5% 更長。參見“[描述效能](/tw/ch2#sec_introduction_percentiles)”。
 
@@ -176,9 +180,11 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 唯一標識一條記錄的值（通常為數字或字串）。在很多應用中由系統在建立時生成（順序或隨機），而非使用者手工指定。另見 *secondary index*。
 
-### 法定票數（quorum）
+<a id="法定票數quorum"></a>
 
-一個操作被判定成功前所需的最少投票節點數。參見“[讀寫法定票數](/tw/ch6#sec_replication_quorum_condition)”。
+### 法定人數（quorum）
+
+一個操作被判定成功前所需的最少投票節點數。參見“[讀寫仲裁](/tw/ch6#sec_replication_quorum_condition)”。
 
 ### 再平衡（rebalance）
 
@@ -206,12 +212,12 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 偏斜（skew）
 
-1. 分片負載不均：某些分片請求/資料很多，另一些很少。也稱 *hot spots*。參見“[負載偏斜與熱點消除](/tw/ch7#sec_sharding_skew)”。
-2. 一種時序異常，導致事件呈現為非預期的非順序。參見“[快照隔離與可重複讀](/tw/ch8#sec_transactions_snapshot_isolation)”中的讀偏斜、“[寫偏斜與幻讀](/tw/ch8#sec_transactions_write_skew)”中的寫偏斜、以及“[用於事件排序的時間戳](/tw/ch9#sec_distributed_lww)”中的時鐘偏斜。
+1. 分片負載不均：某些分片請求/資料很多，另一些很少。也稱 *hot spots*。參見“[傾斜的工作負載與緩解熱點](/tw/ch7#sec_sharding_skew)”。
+2. 一種時序異常，導致事件呈現為非預期的非順序。參見“[快照隔離與可重複讀](/tw/ch8#sec_transactions_snapshot_isolation)”中的讀偏差、“[寫偏差與幻讀](/tw/ch8#sec_transactions_write_skew)”中的寫偏差、以及“[用於事件排序的時間戳](/tw/ch9#sec_distributed_lww)”中的時鐘偏斜。
 
 ### 腦裂（split brain）
 
-兩個節點同時認為自己是領導者，可能破壞系統保證。參見“[處理節點故障](/tw/ch6#sec_replication_failover)”和“[少數服從多數](/tw/ch9#sec_distributed_majority)”。
+兩個節點同時認為自己是領導者，可能破壞系統保證。參見“[處理節點故障](/tw/ch6#sec_replication_failover)”和“[多數派原則](/tw/ch9#sec_distributed_majority)”。
 
 ### 儲存過程（stored procedure）
 
@@ -225,13 +231,15 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 *asynchronous* 的反義詞。
 
+<a id="權威記錄系統system-of-record"></a>
+
 ### 記錄系統（system of record）
 
-持有某類資料主權威版本的系統，也稱 *source of truth*。資料變更首先寫入這裡，其他資料集可由其派生。參見“[記錄系統與派生資料](/tw/ch1#sec_introduction_derived)”。
+持有某類資料的權威版本的系統，也稱 *權威資料來源*（*source of truth*）。資料變更首先寫入這裡，其他資料集可由其派生。參見“[記錄系統與衍生資料](/tw/ch1#sec_introduction_derived)”。
 
 ### 超時（timeout）
 
-最簡單的故障檢測方式之一：在一定時間內未收到響應即判定超時。但無法確定是遠端節點故障還是網路問題導致。參見“[超時與無界延遲](/tw/ch9#sec_distributed_queueing)”。
+最簡單的故障檢測方式之一：在一定時間內未收到響應即判定超時。但無法確定是遠端節點故障還是網路問題導致。參見“[超時和無界延遲](/tw/ch9#sec_distributed_queueing)”。
 
 ### 全序（total order）
 
@@ -247,7 +255,7 @@ Online Transaction Processing（線上事務處理）：典型訪問模式是快
 
 ### 兩階段鎖（two-phase locking, 2PL）
 
-實現 *serializable isolation* 的演算法：事務對讀寫資料加鎖並持有到事務結束。參見“[兩階段鎖（2PL）](/tw/ch8#sec_transactions_2pl)”。
+實現 *serializable isolation* 的演算法：事務對讀寫資料加鎖並持有到事務結束。參見“[兩階段鎖定（2PL）](/tw/ch8#sec_transactions_2pl)”。
 
 ### 無界（unbounded）
 

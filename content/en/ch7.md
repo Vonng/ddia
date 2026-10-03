@@ -280,7 +280,7 @@ application), a common approach is to first hash the partition key before mappin
 
 A good hash function takes skewed data and makes it uniformly distributed. Say you have a 32-bit
 hash function that takes a string. Whenever you give it a new string, it returns a seemingly random
-number between 0 and 232 − 1. Even if the input strings are very similar, their hashes are evenly 
+number between 0 and 2<sup>32</sup> − 1. Even if the input strings are very similar, their hashes are evenly
 distributed across that range of numbers (but the same input always produces the same output).
 
 For sharding purposes, the hash function need not be cryptographically strong: for example, MongoDB
@@ -363,7 +363,7 @@ solution is to combine key-range sharding with a hash function so that each shar
 of *hash values* rather than a range of *keys*.
 
 [Figure 7-5](/en/ch7#fig_sharding_hash_range) shows an example using a 16-bit hash function that returns a number
-between 0 and 65,535 = 216 − 1 (in reality, the hash is usually 32 bits or more).
+between 0 and 65,535 = 2<sup>16</sup> − 1 (in reality, the hash is usually 32 bits or more).
 Even if the input keys are very similar (e.g., consecutive timestamps), their hashes are uniformly
 distributed across that range. We can then assign a range of hash values to each shard: for example,
 values between 0 and 16,383 to shard 0, values between 16,384 and 32,767 to shard 1, and so on.

@@ -883,7 +883,7 @@ CREATE
 When all the vertices and edges of [Figure 3-6](/en/ch3#fig_datamodels_graph) are added to the database, we can start
 asking interesting questions: for example, *find the names of all the people who emigrated from the
 United States to Europe*. That is, find all the vertices that have a `BORN_IN` edge to a location
-within the US, and also a `LIVING_IN` edge to a location within Europe, and return the `name`
+within the US, and also a `LIVES_IN` edge to a location within Europe, and return the `name`
 property of each of those vertices.
 
 [Example 3-5](/en/ch3#fig_cypher_query) shows how to express that query in Cypher. The same arrow notation is used in a
@@ -1296,8 +1296,6 @@ By repeated application of rules 1 and 2, the `within_recursive` virtual table c
 locations in North America (or any other location) contained in our database.
 
 {{< fig num="3-7" id="fig_datalog_naive" src="/fig/ddia_0307.png" caption="Determining that Idaho is in North America, using the Datalog rules from Example 3-12." link="#fig_datalog_query" />}}
-
-> Figure 3-7. Determining that Idaho is in North America, using the Datalog rules from [Example 3-12](/en/ch3#fig_datalog_query).
 
 Now rule 3 can find people who were born in some location `BornIn` and live in some location
 `LivingIn`. Rule 4 invokes rule 3 with `BornIn = 'United States'` and

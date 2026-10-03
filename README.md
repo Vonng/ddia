@@ -54,7 +54,7 @@
 
 
 * [序言](https://ddia.vonng.com/preface)
-* [第一部分：数据系统基础](https://ddia.vonng.com//part-i)
+* [第一部分：数据系统基础](https://ddia.vonng.com/part-i)
   - [1. 数据系统架构中的权衡](https://ddia.vonng.com/ch1)
   - [2. 定义非功能性需求](https://ddia.vonng.com/ch2)
   - [3. 数据模型与查询语言](https://ddia.vonng.com/ch3)
@@ -66,11 +66,11 @@
   - [8. 事务](https://ddia.vonng.com/ch8)
   - [9. 分布式系统的麻烦](https://ddia.vonng.com/ch9)
   - [10.一致性与共识](https://ddia.vonng.com/ch10)
-* [第三部分：派生数据](https://ddia.vonng.com/part-iii)
+* [第三部分：衍生数据](https://ddia.vonng.com/part-iii)
   - [11. 批处理](https://ddia.vonng.com/ch11)
   - [12. 流处理](https://ddia.vonng.com/ch12)
-  - [13. 流处理系统哲学](https://ddia.vonng.com/ch13)
-  - [14. 做正确的事](https://ddia.vonng.com/ch14)
+  - [13. 流式系统的哲学](https://ddia.vonng.com/ch13)
+  - [14. 做正确的事情](https://ddia.vonng.com/ch14)
 * [术语表](https://ddia.vonng.com/glossary)
 * [后记](https://ddia.vonng.com/colophon)
 

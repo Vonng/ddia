@@ -152,10 +152,10 @@ problems:
  schema). JSON distinguishes strings and numbers, but it doesn’t distinguish integers and
  floating-point numbers, and it doesn’t specify a precision.
 
- This is a problem when dealing with large numbers; for example, integers greater than 253 cannot
+ This is a problem when dealing with large numbers; for example, integers greater than 2<sup>53</sup> cannot
  be exactly represented in an IEEE 754 double-precision floating-point number, so such numbers become
  inaccurate when parsed in a language that uses floating-point numbers, such as JavaScript [^7].
- An example of numbers larger than 253 occurs on X (formerly Twitter), which uses a 64-bit number to
+ An example of numbers larger than 2<sup>53</sup> occurs on X (formerly Twitter), which uses a 64-bit number to
  identify each post. The JSON returned by the API includes post IDs twice, once as a JSON number and
  once as a decimal string, to work around the fact that the numbers are not correctly parsed by
  JavaScript applications [^8].
@@ -324,6 +324,9 @@ top bit of each byte used to indicate whether there are still more bytes to come
 between –64 and 63 are encoded in one byte, numbers between –8192 and 8191 are encoded in two bytes,
 etc. Bigger numbers use more bytes.
 
+> [!NOTE] Editorial note: signed integer encoding
+> These signed ranges describe ZigZag encoding for `sint32` and `sint64`, not the `int64` in this example. For `int64`, nonnegative values 0–127 use one payload byte and 128–16383 use two; negative values always use ten payload bytes, excluding the field tag. See the [Protocol Buffers encoding documentation](https://protobuf.dev/programming-guides/encoding/#signed-integers).
+
 Protocol Buffers doesn’t have an explicit list or array datatype. Instead, the `repeated` modifier
 on the `interests` field indicates that the field contains a list of values, rather than a single
 value. In the binary encoding, the list elements are represented simply as repeated occurrences of
@@ -474,6 +477,9 @@ case in Avro: if you want to allow a field to be null, you have to use a *union 
 You can only use `null` as a default value if it is the first branch of the union. This is a little
 more verbose than having everything nullable by default, but it helps prevent bugs by being explicit
 about what can and cannot be null [^18].
+
+> [!NOTE] Editorial note: Avro version difference
+> The first-branch restriction appears in the [Avro 1.11.3 specification](https://avro.apache.org/docs/1.11.3/specification/#unions). The [Avro 1.12.0 specification](https://avro.apache.org/docs/1.12.0/specification/#records), cited in this chapter, instead uses the first union branch that matches the default value; it need not be the first branch in the union. Under 1.12.0, a `null` default therefore needs a matching `null` branch. Listing it first, as in this example, remains valid.
 
 Changing the datatype of a field is possible, provided that Avro can convert the type. Changing the
 name of a field is possible but a little tricky: the reader’s schema can contain aliases for field
@@ -833,7 +839,7 @@ A network request is very different from a local function call:
  of data and mutable objects.
 * The client and the service may be implemented in different programming languages, so the RPC
  framework must translate datatypes from one language into another. This can end up ugly, since not
- all languages have the same types—recall JavaScript’s problems with numbers greater than 253,
+ all languages have the same types—recall JavaScript’s problems with numbers greater than 2<sup>53</sup>,
  for example (see [“JSON, XML, and Binary Variants”](/en/ch5#sec_encoding_json)).
  This problem doesn’t exist in a single process written in a single language.
 

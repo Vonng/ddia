@@ -28,13 +28,19 @@ convert_to_epub() {
 
 	local meta_file=${INPUT_DIR}/metadata.yaml
 	local css_file=${INPUT_DIR}/js/epub.css
+	local math_option=--mathml
+	local pandoc_help
+	pandoc_help=$(pandoc --help)
+	if [[ "$pandoc_help" == *--math-method* ]]; then
+		math_option=--math-method=mathml
+	fi
 
 	pandoc -o "$output_book" --metadata-file="$meta_file" \
 		--toc-depth=3 \
 		--top-level-division=chapter \
 		--split-level=1 \
 		--css="$css_file" \
-		--mathml \
+		"$math_option" \
 		--resource-path="$INPUT_DIR" \
 		--wrap=preserve \
 		"${book_inputs[@]}"

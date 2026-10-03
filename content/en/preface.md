@@ -109,8 +109,8 @@ To comment or ask technical questions about this book, send email to *bookquesti
 For more information about our books, courses, conferences, and news, see our website at *http://www.oreilly.com*.
 
 * Find us on Facebook: [http://facebook.com/oreilly](http://facebook.com/oreilly)
-* Follow us on Twitter: [http://twitter.com/oreillymedia](#http://twitter.com/oreillymedia)
-* Watch us on YouTube: [http://www.youtube.com/oreillymedia](#http://www.youtube.com/oreillymedia)
+* Follow us on Twitter: [http://twitter.com/oreillymedia](http://twitter.com/oreillymedia)
+* Watch us on YouTube: [http://www.youtube.com/oreillymedia](http://www.youtube.com/oreillymedia)
 
 
 
