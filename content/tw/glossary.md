@@ -58,7 +58,7 @@ breadcrumbs: false
 
 ### 反正規化（denormalize）
 
-在已正規化資料集中引入一定冗餘（常見形式為快取或索引）以換取更快讀取。反正規化值可看作預計算結果，類似物化檢視。參見“[正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)”。
+在已正規化資料集中引入一定冗餘（常見形式為快取或索引）以換取更快讀取。反正規化值可看作預計算結果，類似物化檢視。參見“[正規化、反正規化與聯結](/tw/ch3#sec_datamodels_normalization)”。
 
 <a id="派生資料derived-data"></a>
 
@@ -122,9 +122,11 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 在事務語境下，併發事務相互干擾的程度。*Serializable* 最強，也常用更弱隔離級別。參見“[隔離性](/tw/ch8#sec_transactions_acid_isolation)”。
 
-### 連線（join）
+<a id="聯結join"></a>
 
-把具有關聯關係的記錄拼在一起。常見於一個記錄引用另一個記錄（外來鍵、文件引用、圖邊）時，查詢需要取到被引用物件。參見“[正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)”和“[JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)”。
+### 聯結（join） {#連線join}
+
+把具有關聯關係的記錄拼在一起。常見於一個記錄引用另一個記錄（外來鍵、文件引用、圖邊）時，查詢需要取到被引用物件。參見“[正規化、反正規化與聯結](/tw/ch3#sec_datamodels_normalization)”和“[JOIN 與 GROUP BY](/tw/ch11#sec_batch_join)”。
 
 ### 領導者（leader）
 
@@ -156,7 +158,7 @@ Extract-Transform-Load（提取-轉換-載入）：從源資料庫抽取資料�
 
 ### 正規化（normalized）
 
-資料結構中儘量避免冗餘與重複。正規化資料庫裡某資料變化時通常只改一處，不需多處同步。參見“[正規化、反正規化與連線](/tw/ch3#sec_datamodels_normalization)”。
+資料結構中儘量避免冗餘與重複。正規化資料庫裡某資料變化時通常只改一處，不需多處同步。參見“[正規化、反正規化與聯結](/tw/ch3#sec_datamodels_normalization)”。
 
 ### OLAP
 

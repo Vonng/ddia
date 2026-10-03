@@ -351,7 +351,7 @@ Spanner 正是以這種方式實現跨資料中心的快照隔離 [^68] [^69]。
 while (true) {
     request = getIncomingRequest();
 
-    // 確保租約至少還剩 10 秒
+    // 确保租约至少还剩 10 秒
     if (lease.expiryTimeMillis - System.currentTimeMillis() < 10000) {
         lease = lease.renew();
     }

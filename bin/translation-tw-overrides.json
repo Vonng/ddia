@@ -1,0 +1,3449 @@
+{
+  "edition": "v2",
+  "description": "Reviewed context-specific TW repairs. Match source fragments, never line numbers; identifiers/URLs/code remain literal. Missing or changed replacement counts fail generation.",
+  "rules": [
+    {
+      "id": "ch1-001",
+      "file": "ch1.md",
+      "match": "尽管人们一直尝试为 SQL 数据模型加入机器学习算子 [^12]，也在关系模型的基础上构建高效的机器学习系统 [^13]，许多数据科学家仍不愿在数据仓库这样的关系数据库中工作。他们往往更喜欢 pandas、scikit-learn 等 Python 数据分析库，R 等统计分析语言，以及 Spark 等分布式分析框架 [^14]。我们将在[“数据框、矩阵与数组”](/ch3#sec_datamodels_dataframes)中进一步讨论这些工具。",
+      "review_records": [
+        "A-TW-operator"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch1-002",
+      "file": "ch1.md",
+      "match": ":   记录系统也称 *权威数据源*（*source of truth*），保存某类数据的权威或 *规范*（*canonical*）版本。新数据到来时，例如用户输入，首先写入这里。每项事实只表示一次，通常采用 *规范化*（*normalized*）表示（参见[“规范化、反规范化与连接”](/ch3#sec_datamodels_normalization)）。如果其他系统与记录系统的数据不一致，那么按照定义，应以记录系统中的值为准。",
+      "review_records": [
+        "A-TW-join"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch1-003",
+      "file": "ch1.md",
+      "match": "作为本地磁盘的替代方案，云服务还提供虚拟磁盘存储，可以从一个实例卸载，再挂载到另一个实例上，例如 Amazon EBS、Azure 托管磁盘和 Google Cloud 持久磁盘。这种虚拟磁盘并不是真正的物理磁盘，而是由另一组机器提供的云服务，用来模拟磁盘的行为——也就是 *块设备*（*block device*），其中每个块通常为 4 KiB。这项技术让传统的磁盘软件可以在云中运行，但块设备模拟会引入额外开销；如果系统从一开始便针对云设计，这些开销本来可以避免 [^25]。它还使应用对网络异常极为敏感，因为虚拟块设备上的每次 I/O 实际上都是一次网络调用 [^28]。",
+      "review_records": [
+        "A-TW-disk-detach"
+      ],
+      "replacements": [
+        {
+          "before": "可以從一個例項解除安裝，再掛載到另一個例項上",
+          "after": "可以從一個例項分離，再掛載到另一個例項上",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch1-004",
+      "file": "ch1.md",
+      "match": ":   一些国家制定了数据驻留法律，要求有关本国管辖范围内人员的数据，必须在该国境内存储和处理 [^41]。这类规定的适用范围不尽相同：有些只针对医疗或金融数据，有些则更加宽泛。因此，如果一项服务的用户分布在多个这样的司法管辖区，就不得不把用户数据分散到多个地点的服务器上。",
+      "review_records": [
+        "A-TW-country-storage"
+      ],
+      "replacements": [
+        {
+          "before": "必須在該國境記憶體儲和處理",
+          "after": "必須在該國境內儲存和處理",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch1-005",
+      "file": "ch1.md",
+      "match": "云计算并非构建大规模计算系统的唯一方式，另一条路线是 *高性能计算*（HPC），也称为 *超级计算*（*supercomputing*）。尽管二者有所重叠，但与云计算和企业数据中心系统相比，HPC 的侧重点通常不同，采用的技术也不一样。差异包括：",
+      "review_records": [
+        "B-TW-datacenter-system"
+      ],
+      "replacements": [
+        {
+          "before": "企業資料中心繫統",
+          "after": "企業資料中心系統",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch1-006",
+      "file": "ch1.md",
+      "match": "接着，我们把出现时间较晚的云服务，与此前长期主导数据系统架构的自托管软件范式作了比较。哪种方式成本效益更高，很大程度上取决于具体情况；但不可否认的是，云原生方法正在深刻改变数据系统的架构，例如将存储与计算分离。",
+      "review_records": [
+        "A-TW-paradigm"
+      ],
+      "replacements": [
+        {
+          "before": "自託管軟體正規化",
+          "after": "自託管軟體典範",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch1-007",
+      "file": "ch1.md",
+      "match": "在商业数据处理的早期，每次写入数据库通常都对应一笔 *商业交易*：完成一笔销售、向供应商下订单、发放员工工资，等等。后来，数据库的应用扩展到不涉及金钱往来的领域，*事务*（*transaction*）这个名称却沿用下来，用来指构成一个逻辑单元的一组读写操作。",
+      "review_records": [
+        "A-TW-extension-ch1-73"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch2-008",
+      "file": "ch2.md",
+      "match": "假设这个社交网络需要支持的主要读操作是 *首页时间线（home timeline）*，用来展示你所关注的人最近发布的帖子（为简单起见，我们忽略广告、来自未关注用户的推荐帖，以及其他扩展功能）。可以用下面这条 SQL 查询来获取某位用户的首页时间线：",
+      "review_records": [
+        "A-TW-extension-ch2-45"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴充",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch2-009",
+      "file": "ch2.md",
+      "match": "如果应用大受欢迎，因而需要处理不断增长的负载，你会逐渐知道性能瓶颈在哪里，也就清楚系统需要沿着哪些维度扩展。到那时，再开始认真考虑可伸缩性技术也不迟。",
+      "review_records": [
+        "A-TW-extension-ch2-283"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch2-010",
+      "file": "ch2.md",
+      "match": ": 便于工程师将来修改系统，在需求变化时调整和扩展系统，以适应事先没有预料到的使用场景。",
+      "review_records": [
+        "A-TW-extension-ch2-341"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-011",
+      "file": "ch3.md",
+      "match": "> 本章中的许多查询语言（如 SQL、Cypher、SPARQL 或 Datalog）都是 *声明式*（*declarative*）的。在声明式查询语言中，你只需指定所需数据的模式——结果必须符合哪些条件，以及数据应如何转换（例如排序、分组和聚合）——而不必说明 *如何* 实现这一目标。数据库系统的查询优化器决定使用哪些索引和连接算法，以及以何种顺序执行查询的各个部分。",
+      "review_records": [
+        "A-TW-join-ch3-34"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-012",
+      "file": "ch3.md",
+      "match": "* 使用 ORM 很容易在无意中写出低效查询，例如触发 *N+1 查询问题*（*N+1 query problem*）[^7]。假设你要在页面上显示用户评论列表：先用一条查询取回 *N* 条评论，每条都含有作者 ID；为了显示作者姓名，还要用这个 ID 查询用户表。手写 SQL 时，你大概会直接在查询中连接用户表，让每条评论连同作者姓名一起返回；使用 ORM 时，却可能对 *N* 条评论逐条查询用户表，最终一共执行 *N*+1 条数据库查询。这比在数据库内完成连接要慢得多。为避免这个问题，你可能必须明确要求 ORM 在获取评论的同时一并取回作者信息。",
+      "review_records": [
+        "A-TW-join-ch3-72"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-013",
+      "file": "ch3.md",
+      "match": "与 {{< xref fig=\"3-1\" page=\"/ch3\" anchor=\"fig_obama_relational\" >}}图 3-1{{< /xref >}} 的多表模式相比，JSON 表示具有更好的 *局部性*（*locality*；参见 [“读写的数据局部性”](/ch3#sec_datamodels_document_locality)）。在关系模型的例子中，要取回一份个人资料，要么执行多次查询（按 `user_id` 分别查询每张表），要么在 `users` 表及其下属表之间进行繁琐的多路连接 [^8]。而在 JSON 表示中，所有相关信息都集中在一处，查询既简单又快捷。",
+      "review_records": [
+        "A-TW-join-ch3-117"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-014",
+      "file": "ch3.md",
+      "match": "### 规范化、反规范化与连接 {#sec_datamodels_normalization}",
+      "review_records": [
+        "A-TW-join-ch3-128"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-015",
+      "file": "ch3.md",
+      "match": "规范化表示也有代价：每次显示含有 ID 的记录时，都要多做一次查找，把 ID 解析成人能读懂的信息。在关系数据模型中，这项工作通过 *连接*（*join*）完成，例如：",
+      "review_records": [
+        "A-TW-join-ch3-144"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-016",
+      "file": "ch3.md",
+      "match": "文档数据库既能存储规范化数据，也能存储反规范化数据，但人们往往把它与反规范化联系在一起。一方面，JSON 数据模型很容易加入额外的反规范化字段；另一方面，许多文档数据库对连接支持较弱，采用规范化表示很不方便。有些文档数据库完全不支持连接，只能在应用代码中自行完成：先取回含有 ID 的文档，再发起第二次查询，用 ID 找到另一个文档。MongoDB 也可以通过聚合管道中的 `$lookup` 算子执行连接：",
+      "review_records": [
+        "A-TW-join-ch3-153",
+        "A-TW-operator-ch3-153"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        },
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 4
+    },
+    {
+      "id": "ch3-017",
+      "file": "ch3.md",
+      "match": "一般来说，规范化数据写入较快（因为只有一个副本），查询却较慢（因为需要连接）；反规范化数据通常读取较快（连接更少），写入代价却更高（要更新更多副本，也占用更多磁盘空间）。把反规范化看作一种衍生数据或许很有帮助（参见 [“记录系统与衍生数据”](/ch1#sec_introduction_derived)），因为你必须建立相应流程来更新那些冗余的数据副本。",
+      "review_records": [
+        "A-TW-join-ch3-176"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-018",
+      "file": "ch3.md",
+      "match": "规范化往往更适合读写都要迅速完成的 OLTP 系统；分析系统通常更适合反规范化数据，因为它们会批量更新，首要关心的是只读查询的性能。此外，中小规模系统通常也更适合规范化数据模型：既不必费心维持多个副本的一致，执行连接的成本也还可以接受。不过到了超大规模，连接的代价就可能成为问题。",
+      "review_records": [
+        "A-TW-join-ch3-180"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-019",
+      "file": "ch3.md",
+      "match": "在 [“案例研究：社交网络首页时间线”](/ch2#sec_introduction_twitter) 中，我们比较了规范化表示（{{< xref fig=\"2-1\" page=\"/ch2\" anchor=\"fig_twitter_relational\" >}}图 2-1{{< /xref >}}）和反规范化表示（预计算并物化的时间线）。在那个例子里，连接 `posts` 与 `follows` 的成本太高，于是物化时间线充当了连接结果的缓存；把新帖子扇出到关注者的时间线，正是维持这种反规范化表示一致的手段。",
+      "review_records": [
+        "A-TW-join-ch3-184"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-020",
+      "file": "ch3.md",
+      "match": "因此，每次读取时间线时，服务仍要做两次连接：按帖子 ID 取回正文，以及点赞数、回复数等统计信息；再按发帖用户 ID 取回其用户名、头像和其他资料。这个把 ID 补全为人类可读信息的过程称为 *补全 ID*（hydrating IDs），本质上就是在应用代码中完成连接 [^11]。",
+      "review_records": [
+        "A-TW-join-ch3-197"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-021",
+      "file": "ch3.md",
+      "match": "这个例子说明，读取数据时需要执行连接，并不像有些说法所称的那样，会妨碍我们构建高性能、可伸缩的服务。补全帖子 ID 和用户 ID 其实相当容易伸缩：这项工作很适合并行执行，而且成本既不取决于你关注了多少账户，也不取决于有多少人关注你。",
+      "review_records": [
+        "A-TW-join-ch3-201"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-022",
+      "file": "ch3.md",
+      "match": "如果进一步把组织和学校建模为实体，让简历通过 ID 引用它们，就会出现 *多对多*（*many-to-many*）关系：一个人曾在多个组织任职，一个组织也有多名现任或前任员工。在关系模型中，这类关系通常用 *关联表*（*associative table*，也称 *连接表*，*join table*）表示，如 {{< xref fig=\"3-3\" page=\"/ch3\" anchor=\"fig_datamodels_m2m_rel\" >}}图 3-3{{< /xref >}} 所示：每个职位把一个用户 ID 与一个组织 ID 关联起来。",
+      "review_records": [
+        "A-TW-join-ch3-209"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-023",
+      "file": "ch3.md",
+      "match": "例如，{{< xref fig=\"3-5\" page=\"/ch3\" anchor=\"fig_dwh_schema\" >}}图 3-5{{< /xref >}} 中的一个维度是售出的产品。`dim_product` 表中的每一行代表一种待售产品，包括库存单位（SKU）、产品描述、品牌名称、类别、脂肪含量、包装尺寸等。`fact_sales` 表的每一行都用外键表明该笔交易售出了哪种产品。查询往往要连接多个维度表。",
+      "review_records": [
+        "A-TW-join-ch3-250"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-024",
+      "file": "ch3.md",
+      "match": "有些数据仓库模式更进一步，完全省去维度表，把维度信息放进事实表的反规范化列中——实质上就是预先计算事实表与维度表的连接。这种方法称为 *一张大表*（OBT）；它虽然占用更多存储空间，有时却能让查询更快 [^13]。",
+      "review_records": [
+        "A-TW-join-ch3-262"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-025",
+      "file": "ch3.md",
+      "match": "支持文档数据模型的主要论据是模式灵活性、因局部性而拥有更好的性能，以及对于某些应用程序而言，它更接近应用程序使用的对象模型。关系模型则以更好地支持连接、多对一和多对多关系作为回应。下面逐一详细考察这些论点。",
+      "review_records": [
+        "A-TW-join-ch3-268"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-026",
+      "file": "ch3.md",
+      "match": "XML 数据库通常使用 XQuery 和 XPath；它们支持包括跨文档连接在内的复杂查询，还能把结果格式化为 XML [^28]。JSON Pointer [^29] 和 JSONPath [^30] 则为 JSON 提供了与 XPath 相当的功能。",
+      "review_records": [
+        "A-TW-join-ch3-324"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-027",
+      "file": "ch3.md",
+      "match": "MongoDB 的聚合管道就是一种面向 JSON 文档集合的查询语言；我们在 [“规范化、反规范化与连接”](/ch3#sec_datamodels_normalization) 中已经见过它用于连接的 `$lookup` 算子。",
+      "review_records": [
+        "A-TW-join-ch3-326",
+        "A-TW-operator-ch3-326"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        },
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch3-028",
+      "file": "ch3.md",
+      "match": "文档数据库和关系数据库最初采用截然不同的数据管理方法，但随着时间推移，两者变得越来越相似 [^31]。关系数据库增加了对 JSON 类型和查询算子的支持，也能够为文档内部的属性建立索引；MongoDB、Couchbase、RethinkDB 等文档数据库，则增加了连接、二级索引和声明式查询语言。",
+      "review_records": [
+        "A-TW-join-ch3-359",
+        "A-TW-operator-ch3-359"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        },
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-029",
+      "file": "ch3.md",
+      "match": "边表就像我们在 [“多对一与多对多关系”](/ch3#sec_datamodels_many_to_many) 看到的多对多关联表（连接表），只不过经过了泛化，可以在同一张表中存储许多不同类型的关系。标签和属性也可以建立索引，以便高效查找具有某种属性的顶点或边。",
+      "review_records": [
+        "A-TW-join-ch3-450"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-030",
+      "file": "ch3.md",
+      "match": "> 图模型有一项局限：一条边只能关联两个顶点，而关系模型中的连接表可以在一行中保存多个外键引用，从而表示三元甚至更高元的关系。在图中，可以为连接表的每一行另建一个顶点，再用边把它与其他顶点相连；也可以使用 *超图*（*hypergraph*）来表示这类关系。",
+      "review_records": [
+        "A-TW-join-ch3-454"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-031",
+      "file": "ch3.md",
+      "match": "答案是肯定的，但有些困难。图查询每遍历一条边，实际上都相当于与 `edges` 表连接一次。在关系数据库中，通常事先就知道查询需要哪些连接；而在图查询中，找到目标顶点之前可能要遍历数量不定的边，也就是说，连接次数无法预先确定。",
+      "review_records": [
+        "A-TW-join-ch3-509"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch3-032",
+      "file": "ch3.md",
+      "match": "❻：最后，通过连接让“出生在美国的人”与“居住在欧洲的人”两个集合取交集。",
+      "review_records": [
+        "A-TW-join-ch3-573"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-033",
+      "file": "ch3.md",
+      "match": "{{< xref eg=\"3-11\" page=\"/ch3\" anchor=\"fig_datalog_triples\" >}}示例 3-11{{< /xref >}} 展示了如何用 Datalog 写出 {{< xref fig=\"3-6\" page=\"/ch3\" anchor=\"fig_datamodels_graph\" >}}图 3-6{{< /xref >}} 左侧的数据。图中的边（`within`、`born_in` 和 `lives_in`）表示为两列的连接表。例如，Lucy 的 ID 是 100，爱达荷州的 ID 是 3，因此“Lucy 出生在爱达荷州”这项关系表示为 `born_in(100, 3)`。",
+      "review_records": [
+        "A-TW-join-ch3-719"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-034",
+      "file": "ch3.md",
+      "match": "服务器端数据库可以用更加规范化的形式存储数据，并在处理查询时执行必要的连接。例如，服务器可以把消息正文与发送者的用户 ID、被回复消息的 ID 存在一起；收到上述查询时，再解析这些 ID，找出它们引用的记录。不过，客户端只能要求服务器执行 GraphQL 模式中明确开放的连接。",
+      "review_records": [
+        "A-TW-join-ch3-842"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-035",
+      "file": "ch3.md",
+      "match": "乍看之下，数据框很像关系数据库中的表，也像电子表格。它支持一系列类似关系运算符的批量操作：例如，对所有行应用某个函数，按条件筛选行，按某些列分组并聚合其他列，以及按某个键连接两个数据框中的行（关系数据库中的 *连接*，在数据框中通常称为 *合并*，*merge*）。",
+      "review_records": [
+        "A-TW-join-ch3-895"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-036",
+      "file": "ch3.md",
+      "match": "因此，人们为每种数据模型开发了各式各样的专用数据库，提供针对该模型优化的查询语言和存储引擎。另一方面，数据库也在不断加入对其他数据模型的支持，向相邻领域扩展：例如，关系数据库通过 JSON 列支持文档数据，文档数据库加入类似关系模型的连接，而 SQL 对图数据的支持也在逐步改善。",
+      "review_records": [
+        "A-TW-join-ch3-926",
+        "A-TW-extension-ch3-926"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        },
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-037",
+      "file": "ch3.md",
+      "match": "> 这种关系有时称为 *一对少*（*one-to-few*），而非 *一对多*，因为一份简历通常只有少数几个职位 [^9] [^10]。如果相关项目确实可能多到惊人——例如名人的社交媒体帖子可能收到成千上万条评论——把它们全部嵌进同一个文档就太过笨重，此时更适合采用 {{< xref fig=\"3-1\" page=\"/ch3\" anchor=\"fig_obama_relational\" >}}图 3-1{{< /xref >}} 所示的关系方法。",
+      "review_records": [
+        "A-TW-item-ch3-125"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-038",
+      "file": "ch3.md",
+      "match": "文档模型有一定的局限性：例如，不能直接引用文档中的嵌套项目，而是需要说“用户 251 的职位列表中的第二项”。如果确实需要引用嵌套项目，关系模型更合适，因为任何项目都能通过自身 ID 被直接引用。",
+      "review_records": [
+        "A-TW-item-ch3-272"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch3-039",
+      "file": "ch3.md",
+      "match": "有些应用允许用户自行安排项目顺序。例如，在待办事项清单或问题跟踪器中，用户可以拖放任务来重新排序。文档模型很适合这类应用，只需把项目（或项目 ID）按顺序存入 JSON 数组即可。关系数据库没有表示这种可重新排序列表的标准方式，只能借助各种技巧：按整数列排序（在中间插入时需要重新编号）、用 ID 构成链表，或者使用分数索引（fractional indexing）[^14] [^15] [^16]。",
+      "review_records": [
+        "A-TW-item-ch3-274"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch3-040",
+      "file": "ch3.md",
+      "match": "如果集合中的项目因为某种原因并不都具有相同结构（即数据是异构的），读时模式更具优势。例如：",
+      "review_records": [
+        "A-TW-item-ch3-305"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-041",
+      "file": "ch3.md",
+      "match": "可以想象，这个图还能够扩展出关于 Lucy、Alain 或其他人的许多事实。例如，可以用它表示食物过敏：为每种过敏原增加一个顶点，用人与过敏原之间的边表示过敏，再把过敏原连接到一组说明哪些食物含有哪些物质的顶点。这样就能写一条查询，找出每个人可以安全食用的东西。图在可演化性方面很有优势：随着应用程序不断增加功能，可以轻松扩展图来适应数据结构的变化。",
+      "review_records": [
+        "A-TW-extension-ch3-459"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch3-042",
+      "file": "ch3.md",
+      "match": "Oracle 为递归查询提供了另一套 SQL 扩展，称为 *层次查询*（*hierarchical query*）[^41]。",
+      "review_records": [
+        "A-TW-extension-ch3-577"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch3-043",
+      "file": "ch3.md",
+      "match": "数据框通常不是通过 SQL 之类的声明式查询来操作，而是通过一系列命令逐步修改其结构和内容。这恰好符合数据科学家的典型工作流程：一点点地“整理”数据，直至它变成一种适合回答当前问题的形式。这些操作通常在数据科学家私有的数据集副本上进行，而且往往就在本机上；不过最终结果也可能会分享给其他用户。",
+      "review_records": [
+        "B-TW-scientist-private"
+      ],
+      "replacements": [
+        {
+          "before": "資料科學傢俬有",
+          "after": "資料科學家私有",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch5-044",
+      "file": "ch5.md",
+      "match": "当数据需要在系统间交换或写入存储时，JSON 模式已经成为广泛采用的数据建模方式。它出现在许多地方：作为 OpenAPI Web 服务规范的一部分用于 Web 服务（参见[“Web 服务”](/ch5#sec_web_services)）；用于 Confluent Schema Registry、Red Hat Apicurio Registry 等模式注册表；也用于数据库，例如 PostgreSQL 的 pg\\_jsonschema 验证扩展，以及 MongoDB 的 `$jsonSchema` 验证语法。",
+      "review_records": [
+        "A-TW-registry-ch5-95"
+      ],
+      "replacements": [
+        {
+          "before": "模式登錄檔",
+          "after": "模式註冊中心",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch5-045",
+      "file": "ch5.md",
+      "match": "其中一些格式扩展了数据类型集合，例如区分整数和浮点数，或者支持二进制字符串；除此之外，它们仍然沿用 JSON/XML 的数据模型。尤其是，它们没有规定模式，所以必须把所有对象字段名都写进编码后的数据。也就是说，对 {{< xref eg=\"5-2\" page=\"/ch5\" anchor=\"fig_encoding_json\" >}}示例 5-2{{< /xref >}} 中的 JSON 文档进行二进制编码时，某处仍须包含 `userName`、`favoriteNumber` 和 `interests` 这些字符串。",
+      "review_records": [
+        "A-TW-extension-ch5-125"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch5-046",
+      "file": "ch5.md",
+      "match": "* *服务发现系统*（*service discovery system*）不使用 DNS，而是通过集中式注册表跟踪哪些服务端点可用。新服务实例启动时，会向发现系统注册自己，声明正在监听的主机和端口，以及分片归属信息（参见 [第 7 章](/ch7#ch_sharding)）、数据中心位置等相关元数据。随后，服务定期向发现系统发送心跳，表示自己仍然可用。",
+      "review_records": [
+        "A-TW-registry-ch5-455"
+      ],
+      "replacements": [
+        {
+          "before": "集中式登錄檔",
+          "after": "集中式註冊中心",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch5-047",
+      "file": "ch5.md",
+      "match": "消息代理通常不强制使用特定数据模型：消息只是附带少量元数据的字节序列，因此可以采用任何编码格式。常见做法是使用 Protocol Buffers、Avro 或 JSON，并在消息代理旁部署模式注册表，用来保存所有有效的模式版本并检查兼容性 [^19] [^21]。也可以使用 AsyncAPI——面向消息传递、与 OpenAPI 对应的规范——来规定消息模式。",
+      "review_records": [
+        "A-TW-registry-ch5-558"
+      ],
+      "replacements": [
+        {
+          "before": "模式登錄檔",
+          "after": "模式註冊中心",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch5-048",
+      "file": "ch5.md",
+      "match": "Akka、Orleans [^51] 和 Erlang/OTP 等 *分布式 actor 框架*（*distributed actor framework*），用这种编程模型把应用程序扩展到多个节点。无论发送者和接收者位于同一节点还是不同节点，都使用同一种消息传递机制。如果双方位于不同节点，消息会被透明地编码成字节序列，通过网络发送，再由另一端解码。",
+      "review_records": [
+        "A-TW-extension-ch5-568"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch6-049",
+      "file": "ch6.md",
+      "match": "> 以对象存储实现复制的系统也必须面对一些权衡。尤其是，对象存储的读写延迟远高于本地磁盘或 EBS 之类的虚拟块设备。许多云服务商还按 API 调用次数收费，迫使系统把读写合并成批次以降低成本，而批处理又会进一步增加延迟。此外，许多对象存储没有标准的文件系统接口，未集成对象存储的系统便无法直接利用它。*用户空间文件系统*（FUSE）等接口允许运维人员把对象存储桶挂载成文件系统，应用程序不必知道数据实际位于对象存储中。然而，许多面向对象存储的 FUSE 接口并不支持非顺序写入、符号链接等 POSIX 功能，而系统可能依赖这些功能。",
+      "review_records": [
+        "B-TW-OBJECT-STORE"
+      ],
+      "replacements": [
+        {
+          "before": "物件導向儲存",
+          "after": "用於物件儲存",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch6-050",
+      "file": "ch6.md",
+      "match": "一种解决办法是确保存在因果关系的写入落在同一个分片，但有些应用程序无法高效做到这一点。还有一些算法会显式跟踪因果依赖，我们会在 [“先发生”关系与并发](/ch6#sec_replication_happens_before) 中再次讨论。",
+      "review_records": [
+        "B-TW-ENSURE-CAUSAL"
+      ],
+      "replacements": [
+        {
+          "before": "確儲存在",
+          "after": "確保存在",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch7-051",
+      "file": "ch7.md",
+      "match": "因此，分片通常很适合键值数据，因为可以直接按键分片；关系数据则比较棘手，因为你可能需要通过二级索引（secondary index）搜索，或连接散落在不同分片中的记录。我们将在 [“分片与二级索引”](/ch7#sec_sharding_secondary_indexes) 中进一步讨论这个问题。",
+      "review_records": [
+        "B-TW-RELATIONAL-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch7-052",
+      "file": "ch7.md",
+      "match": "* 如果日后需要支持跨租户关联数据的功能，那么跨多个分片连接数据会使这些功能更难实现。",
+      "review_records": [
+        "B-TW-RELATIONAL-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch7-053",
+      "file": "ch7.md",
+      "match": "以上请求路由主要关注如何为单个键找到对应分片，这最适用于分片的 OLTP 数据库。分析型数据库通常也会分片，但其查询执行方式截然不同：查询一般不是在单个分片中执行，而是要并行聚合并连接来自许多分片的数据。我们将在 [“JOIN 与 GROUP BY”](/ch11#sec_batch_join) 中讨论这类并行查询执行技术。",
+      "review_records": [
+        "B-TW-RELATIONAL-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-054",
+      "file": "ch8.md",
+      "match": "* 在文档数据模型中，需要一同更新的字段通常位于同一份文档内，而文档被视为单个对象，因此更新一份文档无须多对象事务。不过，缺乏连接功能的文档数据库也鼓励反规范化（参见[“何时使用哪种模型”](/ch3#sec_datamodels_document_summary)）。当反规范化的信息需要更新时——例如{{< xref fig=\"8-2\" page=\"/ch8\" anchor=\"fig_transactions_read_uncommitted\" >}}图 8-2{{< /xref >}}中的情形——就必须一次更新多份文档。事务在这里很有用，可以防止反规范化数据彼此失去同步。",
+      "review_records": [
+        "B-TW-RELATIONAL-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-055",
+      "file": "ch8.md",
+      "match": "不过，邮件数量很多时，这条查询可能太慢，于是你决定把未读邮件数另存到一个单独的字段中（这是一种反规范化，参见[“规范化、反规范化与连接”](/ch3#sec_datamodels_normalization)）。这样，每当新邮件到达时，就必须递增未读计数器；每当邮件被标为已读时，也必须递减该计数器。",
+      "review_records": [
+        "B-TW-RELATIONAL-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch6-056",
+      "file": "ch6.md",
+      "match": "单主复制模型可以自然地扩展为允许多个节点接受写入。复制仍以同样方式进行：每个处理写入的节点都必须把数据变更转发给其他所有节点。我们把这种配置称为 *多主复制*（*multi-leader replication*），也称 *主动/主动复制*（*active/active*）或 *双向复制*（*bidirectional replication*）。在这种配置中，每个领导者同时也是其他领导者的追随者。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-057",
+      "file": "ch8.md",
+      "match": "围绕 NoSQL 分布式数据库的炒作催生了一种流行观点：事务从根本上无法伸缩，任何大规模系统若想保持良好性能和高可用性，都必须放弃事务。近来事实已经证明这种观点是错误的。CockroachDB[^5]、TiDB[^6]、Spanner[^7]、FoundationDB[^8] 和 YugabyteDB 等所谓的“NewSQL”数据库表明，事务系统同样可以扩展到很大的数据量和很高的吞吐量。这些系统将分片与共识协议（[第 10 章](/ch10#ch_consistency)）结合起来，从而在大规模场景下提供强 ACID 保证。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-058",
+      "file": "ch8.md",
+      "match": "> 历史上，持久性意味着写入归档磁带；后来，它指写入磁盘或 SSD；近来，这个概念又被扩展到复制。哪种实现更好？",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-059",
+      "file": "ch8.md",
+      "match": "要扩展到多个 CPU 核和多个节点，可以像 VoltDB 那样对数据分片（参见[第 7 章](/ch7#ch_sharding)）。如果能让每个事务只读写单个分片内的数据，那么每个分片都可以拥有自己的事务处理线程，彼此独立运行。此时可以为每个 CPU 核分配一个分片，使事务吞吐量随 CPU 核数线性增长[^59]。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-060",
+      "file": "ch8.md",
+      "match": "* 跨分片事务虽然可行，其吞吐量却很难扩展。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-061",
+      "file": "ch8.md",
+      "match": "与串行执行相比，可串行化快照隔离不受单个 CPU 核吞吐量的限制。例如，FoundationDB 把可串行化冲突检测分散到多台机器上，因而可以扩展到很高的吞吐量。即使数据分片存放在多台机器上，事务仍可读写多个分片，同时保证可串行化隔离。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-062",
+      "file": "ch8.md",
+      "match": "*X/Open XA*（*eXtended Architecture*，即扩展架构的缩写）是跨异构技术实现两阶段提交的标准[^73]。它于 1991 年发布，如今已得到广泛实现：许多传统关系型数据库（包括 PostgreSQL、MySQL、Db2、SQL Server 和 Oracle）和消息代理（包括 ActiveMQ、HornetQ、MSMQ 和 IBM MQ）都支持 XA。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-063",
+      "file": "ch8.md",
+      "match": "不过，数据库内部的分布式事务仍有助于扩展这类模式。例如，消息 ID 可以存放在一个分片上，消息处理所更新的业务数据放在其他分片上，再由内部事务保证跨分片提交的原子性。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch10-064",
+      "file": "ch10.md",
+      "match": "答案是：大多数共识系统都提供共享日志，也就是全序广播。Raft、视图戳复制和 Zab 直接提供共享日志；Paxos 提供的是单值共识，但实践中，采用 Paxos 的系统大多使用名为 Multi-Paxos 的扩展，它同样提供共享日志。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch10-065",
+      "file": "ch10.md",
+      "match": "大多数共识算法的标准形式都假定节点集合固定不变：节点可以下线后重新上线，但哪些节点有权投票，在集群创建时便已确定。实践中，却经常需要在系统配置中添加新节点或移除旧节点。共识算法因此扩展出了 *重新配置*（reconfiguration）功能。向系统增加新地区，或把系统从一个位置迁往另一个位置时，这项功能尤其有用：可以先加入新节点，再移除旧节点。",
+      "review_records": [
+        "B-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch8-066",
+      "file": "ch8.md",
+      "match": ": 允许用户消费金钱或积分的服务，必须确保用户的支出不超过余额。一种实现方式是先在用户账户中插入暂定支出项，再列出账户中的所有项目，检查合计余额是否仍为正数。发生写偏差时，两个支出项可能被并发插入，合在一起使余额变成负数，两个事务却都没有察觉对方。",
+      "review_records": [
+        "B-TW-ACCOUNT-ITEMS"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch4-067",
+      "file": "ch4.md",
+      "match": "> 本章讨论的存储与检索方法，既适用于嵌入式数据库，也适用于客户端—服务器数据库。在 [第 6 章](/ch6#ch_replication) 和 [第 7 章](/ch7#ch_sharding) 中，我们将讨论如何把数据库扩展到多台机器。",
+      "review_records": [
+        "B4-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch4-068",
+      "file": "ch4.md",
+      "match": "*面向列*（*column-oriented*，或 *列式*，*columnar*）存储背后的想法很简单：不要把同一行中的所有值放在一起，而要把同一 *列* 中的所有值放在一起 [^56]。每列分别存储后，查询只需读取和解析自己用到的列，能省下大量工作。{{< xref fig=\"4-7\" page=\"/ch4\" anchor=\"fig_column_store\" >}}图 4-7{{< /xref >}} 用 {{< xref fig=\"3-5\" page=\"/ch3\" anchor=\"fig_dwh_schema\" >}}图 3-5{{< /xref >}} 中事实表的扩展版本展示了这一原理。",
+      "review_records": [
+        "B4-TW-EXTENSION"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch4-069",
+      "file": "ch4.md",
+      "match": "复杂的分析型 SQL 查询会被分解成一个 *查询计划*（*query plan*），其中包含多个称为 *算子*（*operator*）的执行阶段；这些算子可能分布到多台机器上并行执行。查询规划器可以决定选用哪些算子、以什么顺序执行，以及每个算子在哪里运行，从而完成大量优化。",
+      "review_records": [
+        "B4-TW-OPERAND"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 4
+        }
+      ],
+      "expected_replacements": 4
+    },
+    {
+      "id": "ch4-070",
+      "file": "ch4.md",
+      "match": "在每个算子内部，查询引擎都要对列中的值执行各种操作，例如找出值属于某个集合的所有行（或许是连接的一部分），或者判断值是否大于 15。查询引擎还要同时查看同一行的多个列，例如找出产品是香蕉、门店又恰好是目标门店的所有销售记录。",
+      "review_records": [
+        "B4-TW-OPERAND",
+        "B4-TW-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch4-071",
+      "file": "ch4.md",
+      "match": "数据仓库查询需要扫描数百万行，因此不仅要关注从磁盘读取的数据量，还要关注执行复杂算子所需的 CPU 时间。最简单的算子就像编程语言解释器：遍历每一行时，查看表示查询的数据结构，弄清要对哪些列做什么比较或计算。遗憾的是，这种方式对许多分析场景来说太慢。实践中出现了两种高效执行查询的方法 [^77]：",
+      "review_records": [
+        "B4-TW-OPERAND",
+        "B4-TW-REPRESENTING"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 2
+        },
+        {
+          "before": "檢視錶示",
+          "after": "檢視表示",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch4-072",
+      "file": "ch4.md",
+      "match": ": 查询仍然采用解释执行，而非编译执行；但它不再逐行迭代，而是成批处理一列中的许多值，从而提高速度。数据库内置一组固定的预定义算子，向算子传入参数，就会得到一批结果 [^50] [^75]。",
+      "review_records": [
+        "B4-TW-OPERAND"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch4-073",
+      "file": "ch4.md",
+      "match": "例如，把 `product_sk` 列和“香蕉”的 ID 传给相等比较算子，会得到一张位图：输入列的每个值对应一位，是香蕉则为 1。再把 `store_sk` 列和目标门店的 ID 传给同一个算子，得到另一张位图。最后把两张位图传给“按位与”算子，如 {{< xref fig=\"4-9\" page=\"/ch4\" anchor=\"fig_bitmap_and\" >}}图 4-9{{< /xref >}} 所示。结果位图中，特定门店售出的每一笔香蕉都对应一个 1。",
+      "review_records": [
+        "B4-TW-OPERAND"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch4-074",
+      "file": "ch4.md",
+      "match": "为了理解文档的语义，也就是它表达的含义，语义搜索索引会使用嵌入模型，把文档转换成由浮点数组成的向量，称为 *向量嵌入*（*vector embedding*）。这个向量表示多维空间中的一个点，每个浮点数表示文档在某一维坐标轴上的位置。如果输入文档的语义相似，嵌入模型就会生成在多维空间中彼此接近的向量。",
+      "review_records": [
+        "B4-TW-FLOAT-VALUES"
+      ],
+      "replacements": [
+        {
+          "before": "浮點陣列成",
+          "after": "浮點數組成",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-075",
+      "file": "ch11.md",
+      "match": "为了直观地理解批处理，本章先从单台机器上的标准 Unix 工具入手，再研究如何把数据处理扩展到分布式系统中的多台机器。我们将看到，分布式批处理框架与操作系统很相似，同样拥有调度器和文件系统。随后，我们会考察编写批处理作业时使用的几种处理模型，最后讨论常见的批处理用例。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-076",
+      "file": "ch11.md",
+      "match": "GNU Coreutils（Linux）中的 `sort` 工具会把无法装入内存的数据自动溢写到磁盘，还会自动利用多个 CPU 核并行排序 [^9]。这意味着前面的简单 Unix 命令链可以轻松扩展到大型数据集，而不会耗尽内存。此时的瓶颈很可能是从磁盘读取输入文件的速度。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-077",
+      "file": "ch11.md",
+      "match": "> 有些调度决策需要由应用专用的调度器来完成，以便考虑特定需求，例如在查询量达到某个阈值时自动扩展只读副本。中心调度器与应用专用调度器共同决定任务的最佳执行方式。YARN 把这种子调度器称为 *ApplicationMaster*，Kubernetes 则称为 *operator*。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-078",
+      "file": "ch11.md",
+      "match": "我们考察了几种批处理模型，首先是 MapReduce 及其经典的 map 和 reduce 函数，随后转向 Spark、Flink 等数据流引擎；它们的数据流 API 更易使用，性能也更好。为了理解批处理作业如何扩展，我们还介绍了混洗（shuffle）算法——这项基础操作使分组、连接和聚合成为可能。",
+      "review_records": [
+        "CH-C-EXPAND",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-079",
+      "file": "ch12.md",
+      "match": "在生产者与消费者之间建立 Unix 管道或 TCP 连接等直接通信信道，是实现消息传递系统的一种简单方法。不过，大多数消息传递系统都扩展了这个基本模型。Unix 管道和 TCP 恰好连接一个发送者与一个接收者，而消息传递系统允许多个生产者节点向同一主题发送消息，也允许多个消费者节点接收一个主题中的消息。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-080",
+      "file": "ch12.md",
+      "match": "为了把吞吐量扩展到单块磁盘的能力之上，可以对日志进行 *分片*（即 [第 7 章](/ch7#ch_sharding) 所说的分片）。不同分片可以托管在不同机器上，每个分片都是一份独立于其他分片读写的日志。一个主题可以定义为一组承载相同类型消息的分片。{{< xref fig=\"12-3\" page=\"/ch12\" anchor=\"fig_stream_kafka_partitions\" >}}图 12-3{{< /xref >}} 展示了这种方法。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-081",
+      "file": "ch13.md",
+      "match": "对于规模足够小的系统，构建全序事件日志完全可行（采用单主复制的数据库如此流行，便证明了这一点：它们构建的正是这样的日志）。不过，随着系统扩展到更大、更复杂的工作负载，局限便开始显现：",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-082",
+      "file": "ch13.md",
+      "match": "批处理带有很强的函数式风格（即使代码并不是用函数式编程语言编写的）：它鼓励使用确定性的 *纯函数*（*pure function*），其输出只取决于输入，除了明确的输出之外没有其他 *副作用*（*side effect*）；输入被视为不可变，输出则只能追加。流处理与之类似，不过它扩展了算子，使其能够维护受管理且容错的状态。",
+      "review_records": [
+        "CH-C-EXPAND",
+        "CH-C-OPERATOR",
+        "CH-C-FUNCTIONAL"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        },
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "函式式",
+          "after": "函數式",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch13-083",
+      "file": "ch13.md",
+      "match": "React 与 Elm 等用于开发有状态客户端和用户界面的工具 [^33]，已经能够在底层状态发生变化时更新渲染出的用户界面。把这种编程模型进一步扩展，让服务器也能把状态变更事件推入客户端事件管道，是一件非常自然的事。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-084",
+      "file": "ch13.md",
+      "match": "唯一性检查可以根据必须唯一的值进行分片，从而横向扩展。例如，如果要像 {{< xref page=\"/ch13\" anchor=\"fig_future_request_id\" >}}例 13-2{{< /xref >}} 那样按请求 ID 保证唯一性，就可以确保所有具有相同请求 ID 的请求都路由到同一个分片；如果用户名必须唯一，则可以按用户名的哈希值分片。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-085",
+      "file": "ch13.md",
+      "match": "这一算法与我们在 [第 10 章](/ch10#ch_consistency) 中见过的、使用共享日志实现共识的构造相同。只要增加分片数量，就能轻松扩展到很高的请求吞吐量，因为每个分片都可以独立处理。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch14-086",
+      "file": "ch14.md",
+      "match": "如此大规模地把隐私权从个人转移给企业，在历史上前所未有 [^30]。监视从来都有，但过去代价高昂、依赖人工，既不能自动化，也无法大规模扩展。信任关系也一直存在，例如病人与医生、被告与律师之间的关系；但在这些情形下，数据的使用受到严格的伦理、法律与监管约束。互联网服务却让人们可以在未经有效同意的情况下积累海量敏感信息，又在用户不了解私密数据去向的情况下，大规模加以利用。",
+      "review_records": [
+        "CH-C-EXPAND"
+      ],
+      "replacements": [
+        {
+          "before": "擴充套件",
+          "after": "擴展",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-087",
+      "file": "ch11.md",
+      "match": "这些系统显式建模了数据流经多个处理阶段的过程，因此称为 *数据流引擎*（*dataflow engine*）。与 MapReduce 一样，它们提供底层 API，通过反复调用用户定义的函数，每次处理一条记录；同时也提供 *连接*（*join*）和 *分组*（*grouping*）等高层算子。它们通过对输入分片来并行执行工作，并把一项任务的输出复制到另一项任务，作为后者的输入；如果两项任务运行在不同机器上，复制就通过网络完成。与 MapReduce 不同，算子不必严格交替扮演 map 和 reduce 的角色，而可以以更加灵活的方式组合。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 2
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch11-088",
+      "file": "ch11.md",
+      "match": "- 如果一连串算子都不改变数据集的分片方式（例如 map 或 filter），它们就可以合并成一项任务，从而减少复制数据的开销。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-089",
+      "file": "ch11.md",
+      "match": "- 算子之间的中间状态通常只需保存在内存中，或写入本地磁盘；这样所需的 I/O 少于写入分布式文件系统或对象存储，因为后者还要把数据复制到多台机器上，并在每个副本所在机器上写入磁盘。MapReduce 已经对 mapper 的输出采用了这种优化，数据流引擎则把这个思想推广到了所有中间状态。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-090",
+      "file": "ch11.md",
+      "match": "- 算子可以在输入准备就绪后立即开始执行，无需等前一阶段全部结束，下一阶段才能开始。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-091",
+      "file": "ch11.md",
+      "match": "- 现有进程可以重复用于运行新的算子，从而减少启动开销；相比之下，MapReduce 会为每项任务启动一个新的 JVM。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-092",
+      "file": "ch11.md",
+      "match": "高级查询语言不仅提高了使用系统的人所能达到的生产率，也能从机器层面提高作业执行效率。正如[“云数据仓库”](/ch4#sec_cloud_data_warehouses)所述，查询引擎负责把 SQL 查询转换成在集群中执行的批处理作业。从查询转换到语法树、再转换成物理算子的过程，让引擎有机会优化查询。Hive、Trino、Spark 和 Flink 等查询引擎都提供基于代价的查询优化器，可以分析连接输入的特征，自动决定哪一种算法最适合眼前的任务。优化器甚至可以改变连接的顺序，以尽量减少中间状态 [^19] [^26] [^27] [^28]。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch11-093",
+      "file": "ch11.md",
+      "match": "SQL 是最流行的通用批处理查询语言，不过其他语言仍用于一些专门场景。Apache Pig 是一种以关系算子为基础的语言，允许用户逐步描述数据管道，而不是把所有逻辑写成一个庞大的 SQL 查询。数据框（见下一节）具有类似特征，Morel 则是受 Pig 影响的一种较新语言。还有一些用户采用 jq、JMESPath 或 JsonPath 等 JSON 查询语言。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-094",
+      "file": "ch11.md",
+      "match": "随着数据科学家和统计学家开始使用分布式批处理框架进行机器学习，他们发现现有的处理模型用起来很麻烦，因为他们习惯的是 R 和 pandas 中的数据框（*DataFrame*）模型（参见[“数据框、矩阵与数组”](/ch3#sec_datamodels_dataframes)）。数据框与关系数据库中的表相似：它由许多行组成，同一列中的所有值都具有相同类型。用户不必编写一条庞大的 SQL 查询，而是调用与关系算子对应的函数，执行过滤、连接、排序、分组等操作。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch11-095",
+      "file": "ch11.md",
+      "match": "批处理环境还配有稳健的工作流调度器，能够轻松安排、编排和调试 ETL 数据管道作业。发生故障时，调度器通常会重试作业，以缓解可能出现的暂时性问题。作业若反复失败，就会被标记为失败，开发者可以很容易地看到数据管道中的哪项作业停止了工作。Airflow 等调度器甚至内置了 MySQL、PostgreSQL、Snowflake、Spark 和 Flink 等数十种流行系统的数据源、数据接收端及查询算子。调度器与数据处理系统的紧密集成简化了数据集成。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-096",
+      "file": "ch12.md",
+      "match": "本章余下部分将讨论第三种选择：处理流并产生其他衍生流。执行这种流处理的代码称为 *算子*（operator）或 *作业*（job）。它与 [第 11 章](/ch11#ch_batch) 中讨论的 Unix 进程和 MapReduce 作业关系密切，数据流模式也很相似：流处理器以只读方式消费输入流，再以仅追加方式把输出写到另一个位置。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-097",
+      "file": "ch12.md",
+      "match": "> *增量视图维护*（incremental view maintenance，IVM）是解决上述问题的一种更通用方法。IVM 技术把 SQL 等关系语言转换成能够执行增量计算的算子。IVM 算法不再处理整个数据集，而只重新计算和更新发生变化的数据[^38]、[^59]、[^60]。这样，视图计算的效率大幅提升，更新也可以更频繁地运行，显著改善数据新鲜度。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-098",
+      "file": "ch12.md",
+      "match": "Apache Flink 采用一种变体：定期生成滚动的状态检查点（*checkpoint*），并将其写入持久存储[^75]、[^76]。如果流算子崩溃，可以从最近的检查点重新启动，并丢弃从上一个检查点到崩溃之间产生的所有输出。检查点由消息流中的屏障（*barrier*）触发，类似于微批次之间的边界，但不会强制规定窗口大小。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-099",
+      "file": "ch12.md",
+      "match": "为了在发生故障时营造恰好一次处理的效果，必须确保处理事件产生的所有输出和副作用，*当且仅当* 处理成功时才生效。这些影响包括：发给下游算子或外部消息传递系统的消息（包括电子邮件或推送通知）、数据库写入、算子状态的变化，以及对输入消息的确认应答（包括推进基于日志的消息代理中的消费者偏移量）。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-100",
+      "file": "ch12.md",
+      "match": "例如，Flink 定期捕获算子状态快照，将其写入分布式文件系统等持久存储[^75]、[^76]；Kafka Streams 则把状态变化发送到一个启用了日志压实的专用 Kafka 主题，以类似变更数据捕获的方式复制状态[^83]。VoltDB 会在多个节点上冗余处理每条输入消息，以此复制状态（参阅 [“实际串行执行”](/ch8#sec_transactions_serial)）。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-101",
+      "file": "ch12.md",
+      "match": ":   两股输入流都由活动事件组成，连接算子会在某个时间窗口内寻找彼此相关的事件。例如，它可以匹配同一用户在 30 分钟内执行的两个操作。如果想寻找同一股流中的相关事件，连接的两侧实际上也可以是同一股流，这称为 *自连接*（self-join）。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 4
+    },
+    {
+      "id": "ch12-102",
+      "file": "ch12.md",
+      "match": ":   一股输入流由活动事件组成，另一股则是数据库变更日志。变更日志用来让数据库的本地副本保持最新。对于每个活动事件，连接算子查询数据库，并输出经过扩充的活动事件。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch13-103",
+      "file": "ch13.md",
+      "match": "稳定的消息顺序和容错的消息处理要求相当严格，但它们的开销比分布式事务小得多，运维上也更加稳健。现代流处理器可以大规模提供这些顺序与可靠性保证，并允许应用代码作为流算子运行。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-104",
+      "file": "ch13.md",
+      "match": "这类应用代码可以执行任意处理，补足数据库内置衍生函数通常不具备的能力。就像用管道串联起来的 Unix 工具一样，流算子（stream operator）也可以组合起来，围绕数据流构建大型系统。每个算子都以状态变更流作为输入，并产生其他状态变更流作为输出。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch13-105",
+      "file": "ch13.md",
+      "match": "把流算子组合成数据流系统，与微服务方法有许多相似之处 [^27]、[^28]。不过，两者底层的通信机制截然不同：前者使用单向异步消息流，后者使用同步的请求/响应交互。",
+      "review_records": [
+        "CH-C-OPERATOR"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-106",
+      "file": "ch13.md",
+      "match": "当读写都表示为事件，并路由到同一个流算子处理时，我们实际上是在读取查询流与数据库之间执行流表连接（stream-table join）。读事件需要发送到保存相应数据的数据库分片，就像批处理器和流处理器执行连接时，需要按同一个键对输入进行协同分区一样。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch13-107",
+      "file": "ch13.md",
+      "match": "处理请求与执行连接之间的这种对应关系，是一个非常基础的概念 [^36]。一次性读取请求穿过连接算子后，算子立刻将它忘掉；订阅请求则是一项持久连接，与连接另一侧过去和未来的事件不断匹配。",
+      "review_records": [
+        "CH-C-OPERATOR",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 2
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 4
+        }
+      ],
+      "expected_replacements": 6
+    },
+    {
+      "id": "ch11-108",
+      "file": "ch11.md",
+      "match": "- 批处理框架通常会并行运行许多任务。如果所有任务都以批处理应有的速率同时写入同一个输出数据库，数据库很容易不堪重负，查询性能也可能随之下降，继而给系统其他部分带来运行故障 [^44]。",
+      "review_records": [
+        "CH-C-MANYTASKS"
+      ],
+      "replacements": [
+        {
+          "before": "許多工",
+          "after": "許多任務",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-109",
+      "file": "ch12.md",
+      "match": "相同或相关的数据分散在不同位置，就必须彼此保持同步：数据库中的某个项目更新后，缓存、搜索索引和数据仓库也要随之更新。数据仓库通常通过 ETL 流程完成同步（参阅 [“数据仓库”](/ch1#sec_introduction_dwh)）：先取得数据库的完整副本，转换数据，再批量加载进数据仓库——换言之，这是一个批处理过程。同样，我们在 [“批处理用例”](/ch11#sec_batch_output) 中看到，搜索索引、推荐系统以及其他衍生数据系统也可以通过批处理来创建。",
+      "review_records": [
+        "CH-C-ITEM"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-110",
+      "file": "ch12.md",
+      "match": "然而，双写存在一些严重问题，其中之一就是 {{< xref fig=\"12-4\" page=\"/ch12\" anchor=\"fig_stream_write_order\" >}}图 12-4{{< /xref >}} 所示的竞态条件。在这个例子中，两个客户端并发更新项目 X：客户端 1 想把值设为 A，客户端 2 想把值设为 B。两个客户端都先把新值写入数据库，再写入搜索索引。由于时序不巧，请求交错执行：数据库先收到客户端 1 将值设为 A 的写入，再收到客户端 2 将值设为 B 的写入，因此数据库中的最终值为 B；搜索索引却先收到客户端 2 的写入，再收到客户端 1 的写入，因此最终值为 A。虽然没有发生任何错误，两个系统却永久地不一致了。",
+      "review_records": [
+        "CH-C-ITEM"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-111",
+      "file": "ch12.md",
+      "match": "例如，构建新的全文索引需要整个数据库的完整副本——只应用最近的变更日志还不够，因为其中缺少最近没有更新过的项目。因此，如果没有完整的历史日志，就需要从一个一致的快照开始，正如 [“设置新的副本”](/ch6#sec_replication_new_replica) 中所讨论的那样。",
+      "review_records": [
+        "CH-C-ITEM"
+      ],
+      "replacements": [
+        {
+          "before": "專案",
+          "after": "項目",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-112",
+      "file": "ch12.md",
+      "match": "流—表连接其实与流—流连接很相似。最大的区别在于，对表的变更日志流执行连接时，使用的是一个回溯至“时间开端”的窗口（概念上是无限窗口），其中记录的新版本会覆盖旧版本；对另一股输入流，连接可能根本不维护窗口。",
+      "review_records": [
+        "CH-C-TABLE",
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "對錶",
+          "after": "對表",
+          "expected_count": 1
+        },
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 4
+        }
+      ],
+      "expected_replacements": 5
+    },
+    {
+      "id": "ch13-113",
+      "file": "ch13.md",
+      "match": "> *如果一件事物以另一件事物为目的，那么它的终极目的就不可能只是保存自身。因此，船长不会把保全受托的船只当作终极目的，因为船只另有其目的，也就是航行。*",
+      "review_records": [
+        "CH-C-PRESERVATION"
+      ],
+      "replacements": [
+        {
+          "before": "儲存自身",
+          "after": "保存自身",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-114",
+      "file": "ch13.md",
+      "match": "接下来，我们讨论了如何保证所有这些处理在发生故障时仍然正确。通过异步处理事件、使用端到端请求标识符使操作幂等，并异步检查约束，就能以可伸缩的方式实现强完整性保证。客户端可以等待检查通过，也可以不等待便继续执行，但要承担约束遭到违反、事后必须道歉的风险。这种方法比使用分布式事务的传统方法更可伸缩、更稳健，也更符合许多业务流程的实际运作方式。",
+      "review_records": [
+        "CH-C-CHECKPASS"
+      ],
+      "replacements": [
+        {
+          "before": "檢查透過",
+          "after": "檢查通過",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-115",
+      "file": "ch11.md",
+      "match": "实际上，使用原始 MapReduce API 实现复杂的处理作业非常困难而且费力——例如，作业使用的任何连接算法都必须从头实现 [^20]。与较新的批处理器相比，MapReduce 的速度也很慢。其中一个原因是，基于文件的 I/O 无法形成作业流水线：上游作业完成之前，下游作业不能开始处理它的输出。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-116",
+      "file": "ch11.md",
+      "match": "这些数据流 API 通常使用关系模型风格的构件来表达计算：按照某个字段的值连接数据集，按键对元组分组，根据某项条件过滤数据，以及通过计数、求和等函数聚合元组。这些操作在内部通过下一节讨论的混洗算法实现。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-117",
+      "file": "ch11.md",
+      "match": "- 工作流中的所有连接和数据依赖都经过显式声明，因此调度器可以总览全局，了解各处需要哪些数据，并据此优化数据局部性。例如，它可以尝试把消费某项数据的任务放在产生该数据的任务所在机器上，这样便能通过共享内存缓冲区交换数据，无需通过网络复制。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-118",
+      "file": "ch11.md",
+      "match": "混洗是批处理器的一项基础算法，连接与聚合都要使用它。MapReduce、Spark、Flink、Daft、Dataflow 和 BigQuery [^24] 都实现了可伸缩的高性能混洗算法，以处理大型数据集。下面以 Hadoop MapReduce 中的混洗为例 [^25]，不过本节的概念也适用于其他系统。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-119",
+      "file": "ch11.md",
+      "match": "下面来看有序数据如何简化分布式连接与聚合。为便于说明，我们仍以 MapReduce 为例，不过这些概念适用于大多数批处理系统。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-120",
+      "file": "ch11.md",
+      "match": "{{< xref fig=\"11-2\" page=\"/ch11\" anchor=\"fig_batch_join_example\" >}}图 11-2{{< /xref >}} 展示了批处理作业中一个典型的连接示例。左侧是一份事件日志，记录已登录用户在网站上的操作，这些记录称为 *活动事件*（*activity event*），也叫 *点击流数据*（*clickstream data*）；右侧则是用户数据库。这个例子可以看作星型模式的一部分（参见[“星型与雪花型：分析模式”](/ch3#sec_datamodels_analytics)）：事件日志是事实表，用户数据库则是其中一张维度表。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-121",
+      "file": "ch11.md",
+      "match": "{{< fig num=\"11-2\" id=\"fig_batch_join_example\" src=\"/fig/ddia_1102.png\" caption=\"用户活动日志与用户画像数据库的连接。\" class=\"ddia-figure ddia-figure--wide\" width=\"2880\" height=\"1238\" />}}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-122",
+      "file": "ch11.md",
+      "match": "如果想结合用户数据库中的信息来分析活动事件——例如利用用户资料中的出生日期，了解某些页面更受年轻用户还是年长用户欢迎——就需要连接这两张表。假设两张表都大到必须分片，该如何计算这种连接？",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch11-123",
+      "file": "ch11.md",
+      "match": "{{< fig num=\"11-3\" id=\"fig_batch_join_reduce\" src=\"/fig/ddia_1103.png\" caption=\"基于用户 ID 的排序合并连接。若输入数据集由多个文件分片组成，可并行启动多个 mapper 处理。\" class=\"ddia-figure ddia-figure--wide\" width=\"2880\" height=\"1308\" />}}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch11-124",
+      "file": "ch11.md",
+      "match": "这样，reducer 就能轻松完成实际的连接逻辑。第一个值应当是出生日期，reducer 先把它保存在局部变量中，再遍历具有相同用户 ID 的活动事件，输出每个浏览过的 URL 以及浏览者的出生日期。reducer 会一次处理某个用户 ID 的全部记录，所以任何时刻只需在内存中保存一条用户记录，也完全不必发出网络请求。这种算法称为 *排序合并连接*（sort-merge join），因为 mapper 的输出按键排序，而 reducer 随后会合并连接两侧的有序记录列表。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch11-125",
+      "file": "ch11.md",
+      "match": "推荐引擎、排序系统等机器学习应用也大量使用图处理（参见[“图数据模型”](/ch3#sec_datamodels_graph)）。许多图算法可以表述为：每次沿一条边遍历，将一个顶点与相邻顶点连接起来以传播某些信息，并不断重复，直到满足某项条件——例如没有更多的边可以继续遍历，或者某项指标已经收敛。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-126",
+      "file": "ch12.md",
+      "match": "传统的数据库与模式设计方法建立在一个谬误之上：数据必须按将来查询它时所采用的形式写入。如果能把针对写入优化的事件日志转换成针对读取优化的应用状态，规范化与反规范化之争（参阅 [“规范化、反规范化与连接”](/ch3#sec_datamodels_normalization)）就基本失去了意义。完全可以在读取优化视图中对数据做反规范化，因为转换过程提供了让视图与事件日志保持一致的机制。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-127",
+      "file": "ch12.md",
+      "match": "流与批处理作业有一个关键区别：流永远不会结束。这个区别会带来许多后果。正如本章开头所说，对无界数据集进行排序没有意义，因此不能使用排序合并连接（参阅 [“JOIN 与 GROUP BY”](/ch11#sec_batch_join)）。容错机制也必须改变：一个只运行了几分钟的批处理作业发生任务故障时，大可从头重启该任务；但一个流作业已经运行了几年，崩溃后再从头开始，通常不可行。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-128",
+      "file": "ch12.md",
+      "match": "窗口操作通常需要维护临时状态。有些情况下，无论窗口多大、发生多少事件，状态的大小都是固定的：例如，计数操作不论窗口大小和事件数量如何，都只需要一个计数器。另一方面，滑动窗口以及下一节讨论的流连接，都必须缓冲事件，直到窗口结束。因此，窗口很大或流吞吐量很高时，流处理器可能需要保存大量临时状态。无论这些状态保存在内存还是磁盘上，都必须确保运行流处理任务的机器有足够容量来容纳它们。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-129",
+      "file": "ch12.md",
+      "match": "### 流连接 {#sec_stream_joins}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-130",
+      "file": "ch12.md",
+      "match": "在 [“JOIN 与 GROUP BY”](/ch11#sec_batch_join) 中，我们讨论过批处理作业如何按键连接数据集，以及这种连接为何是数据流水线的重要组成部分。流处理把数据流水线推广到对无界数据集的增量处理，因此也同样需要对流执行连接。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch12-131",
+      "file": "ch12.md",
+      "match": "不过，流中随时可能出现新事件，使流连接比批处理作业中的连接更具挑战。为了看清这个问题，我们把连接分成三类：*流—流连接*（*stream-stream join*）、*流—表连接*（*stream-table join*）和 *表—表连接*（*table-table join*）。下面各用一个例子来说明。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 6
+        }
+      ],
+      "expected_replacements": 6
+    },
+    {
+      "id": "ch12-132",
+      "file": "ch12.md",
+      "match": "#### 流流连接（窗口连接） {#id440}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-133",
+      "file": "ch12.md",
+      "match": "如果用户放弃搜索，点击也许永远不会发生；即使发生，搜索与点击之间的间隔也可能相差悬殊：通常只有几秒，但也可能长达数天或数周——例如用户搜索之后忘记了这个浏览器标签页，过了很久才回来点击某个结果。网络延迟不一，甚至可能让点击事件先于搜索事件到达。你可以为连接选择适当的窗口，例如只连接相隔不超过一小时的搜索与点击。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-134",
+      "file": "ch12.md",
+      "match": "请注意，把搜索详情嵌入点击事件并不等同于连接两类事件：这样只能了解用户点击搜索结果的情况，却无法了解用户没有点击任何结果的搜索。衡量搜索质量需要准确的点击率，因此搜索事件和点击事件缺一不可。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-135",
+      "file": "ch12.md",
+      "match": "为了实现这类连接，流处理器需要维护 *状态*（*state*），例如按会话 ID 索引过去一小时内的所有事件。每当搜索事件或点击事件到来，就把它加入相应索引，同时检查另一个索引，看看相同会话 ID 的另一事件是否已经到达。找到匹配时，发出一个事件，说明哪项搜索结果被点击；如果搜索事件过期时仍未看到匹配的点击事件，则发出一个事件，说明哪些搜索结果没有被点击。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-136",
+      "file": "ch12.md",
+      "match": "#### 流表连接（流扩充） {#sec_stream_table_joins}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-137",
+      "file": "ch12.md",
+      "match": "在 [“JOIN 与 GROUP BY”](/ch11#sec_batch_join)（{{< xref fig=\"11-2\" page=\"/ch11\" anchor=\"fig_batch_join_example\" >}}图 11-2{{< /xref >}}）中，我们见过批处理作业连接两个数据集的例子：一组用户活动事件和一个用户档案数据库。很自然地，可以把用户活动事件视为一股流，在流处理器中持续执行同样的连接：输入是包含用户 ID 的活动事件流，输出则是活动事件流，其中的用户 ID 已经补充了相应的用户档案信息。这个过程有时称为用数据库中的信息 *扩充*（enrich）活动事件。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-138",
+      "file": "ch12.md",
+      "match": "执行这项连接时，流处理器要逐一查看活动事件，在数据库中查找事件里的用户 ID，再把档案信息加入活动事件。数据库查找可以通过查询远程数据库来实现；不过，正如 [“JOIN 与 GROUP BY”](/ch11#sec_batch_join) 中所讨论的，这类远程查询很可能速度缓慢，还可能使数据库过载[^58]。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-139",
+      "file": "ch12.md",
+      "match": "另一种做法是把数据库副本载入流处理器，在本地查询，免去网络往返。由于数据库的本地副本可能是内存散列表（如果足够小），也可能是本地磁盘上的索引，因此这项技术称为 *散列连接*（*hash join*）。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-140",
+      "file": "ch12.md",
+      "match": "它与批处理作业的区别在于：批处理作业把数据库某个时间点的快照用作输入；流处理器却长期运行，而数据库内容很可能随时间变化，所以流处理器中的本地副本必须持续更新。变更数据捕获可以解决这个问题：除了活动事件流，流处理器还可以订阅用户档案数据库的变更日志。每当创建或修改档案时，流处理器就更新本地副本。这样，我们实际上得到了两股流之间的连接：活动事件与档案更新。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-141",
+      "file": "ch12.md",
+      "match": "#### 表表连接（维护物化视图） {#id326}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-142",
+      "file": "ch12.md",
+      "match": "也可以换个角度来看：这项流处理维护着一个连接两张表（帖子和关注关系）的查询物化视图，大致如下：",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-143",
+      "file": "ch12.md",
+      "match": "流之间的连接直接对应查询中的表连接。时间线实际上就是查询结果的缓存，每当底层表发生变化时都会更新。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-144",
+      "file": "ch12.md",
+      "match": "> 如果像 {{< xref fig=\"12-7\" page=\"/ch12\" anchor=\"fig_stream_integral\" >}}图 12-7{{< /xref >}} 那样，把流视为表的导数，再把连接视为两个表的乘积 *u·v*，就会出现一个有趣的结果：物化连接的变更流遵循乘积法则 (*u·v*)′ = *u*′*v* + *uv*′。换句话说，帖子的任何变化都要与当前关注者连接，而关注者的任何变化都要与当前帖子连接[^37]。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 4
+        }
+      ],
+      "expected_replacements": 4
+    },
+    {
+      "id": "ch12-145",
+      "file": "ch12.md",
+      "match": "#### 连接的时间依赖性 {#sec_stream_join_time}",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-146",
+      "file": "ch12.md",
+      "match": "这里介绍的三类连接（流—流、流—表和表—表）有许多共同点：流处理器都要根据连接的一侧维护某种状态（搜索和点击事件、用户档案或关注者列表），再在连接另一侧的消息到来时查询该状态。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch12-147",
+      "file": "ch12.md",
+      "match": "这就带来一个问题：如果不同流上的事件发生时间相近，应该按什么顺序处理？在流—表连接的例子中，如果用户更新了档案，哪些活动事件应该与旧档案连接（在档案更新前处理），哪些应该与新档案连接（在档案更新后处理）？换句话说，如果状态随时间变化，而你要与这个状态连接，究竟应该使用哪个时间点的状态？",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 4
+        }
+      ],
+      "expected_replacements": 4
+    },
+    {
+      "id": "ch12-148",
+      "file": "ch12.md",
+      "match": "这种时间依赖会出现在许多地方。例如，销售商品时要为发票采用正确的税率；税率取决于国家或州、产品类型和销售日期，因为税率会不时变化。把销售记录与税率表连接时，通常需要采用销售发生时的税率；如果正在重新处理历史数据，它可能与当前税率不同。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-149",
+      "file": "ch12.md",
+      "match": "如果不同流之间的事件顺序不确定，连接也会变得不确定[^70]。这意味着，即使针对同一输入重新运行同一个作业，也不一定得到相同结果：再次运行时，各输入流上的事件可能以不同方式交错。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-150",
+      "file": "ch12.md",
+      "match": "在数据仓库中，这个问题称为 *缓慢变化维度*（slowly changing dimension，SCD），通常为所连接记录的每个具体版本赋予唯一标识符来解决。例如，每次税率变化时，都给新税率分配一个新标识符；发票则包含销售时所用税率的标识符[^71]、[^72]。这样连接就具有确定性，但也无法再做日志压实，因为必须保留表中记录的所有版本。另一种方法是反规范化数据，把适用税率直接放入每个销售事件中。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch12-151",
+      "file": "ch12.md",
+      "match": "任何需要状态的流处理过程——例如计数器、平均值、直方图等窗口聚合，以及连接所用的表和索引——都必须确保发生故障后能够恢复状态。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-152",
+      "file": "ch12.md",
+      "match": "以流的形式维护状态、重播消息的能力，也是各种流处理框架实现流连接和容错技术的基础。我们讨论了流处理的几种用途，包括搜索事件模式（复合事件处理）、计算窗口聚合（流分析），以及让衍生数据系统保持最新（物化视图）。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-153",
+      "file": "ch12.md",
+      "match": "我们区分了流处理过程中可能出现的三类连接：",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-154",
+      "file": "ch12.md",
+      "match": "流—流连接",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-155",
+      "file": "ch12.md",
+      "match": "流—表连接",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-156",
+      "file": "ch12.md",
+      "match": "表—表连接",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch12-157",
+      "file": "ch12.md",
+      "match": ":   两股输入流都是数据库变更日志。这种情况下，任意一侧的每次变化都与另一侧的最新状态连接。结果是两张表连接所得物化视图的变更流。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch13-158",
+      "file": "ch13.md",
+      "match": "在这个例子中，通知实际上是消息与好友列表之间的连接，因此它涉及我们之前讨论过的连接时序问题（参见 [“连接的时间依赖性”](/ch12#sec_stream_join_time)）。遗憾的是，这个问题似乎没有简单的答案 [^2]、[^3]。一些可能的起点包括：",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "expected_replacements": 3
+    },
+    {
+      "id": "ch13-159",
+      "file": "ch13.md",
+      "match": "*数据集成*（*data integration*）的目标，是确保数据以正确的形式出现在所有正确的位置。为此，需要消费输入，进行转换、连接、过滤、聚合、模型训练与评估，最终再写入适当的输出。批处理器和流处理器正是实现这一目标的工具。批处理与流处理的输出是衍生数据集，例如搜索索引、物化视图、向用户展示的推荐结果、聚合指标，等等。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-160",
+      "file": "ch13.md",
+      "match": "哪种方法更好？当然要看你想要什么。Unix 的“简单”，在于它只是硬件资源外面一层相当薄的包装；关系数据库的“简单”，则在于一条简短的声明式查询就能借助大量强大的基础设施（查询优化、索引、连接方法、并发控制、复制等），而查询作者无需了解实现细节。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-161",
+      "file": "ch13.md",
+      "match": "数据流方法不仅更快，而且面对另一项服务发生故障时也更稳健。最快、最可靠的网络请求，就是根本不发出网络请求！RPC 不复存在，取而代之的是购买事件与汇率更新事件之间的流连接。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-162",
+      "file": "ch13.md",
+      "match": "这种连接依赖于时间：如果日后重新处理购买事件，汇率早已改变。若想重建原始输出，就必须获得当初购买时的历史汇率。无论是查询服务还是订阅汇率更新流，都需要处理这种时间依赖性（参见 [“连接的时间依赖性”](/ch12#sec_stream_join_time)）。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "ch13-163",
+      "file": "ch13.md",
+      "match": "订阅变更流，而不是等到需要时才查询当前状态，使我们更接近电子表格式的计算模型：某项数据一旦变化，所有依赖它的衍生数据都能迅速更新。时间依赖连接等方面仍有许多悬而未决的问题，但围绕数据流理念构建应用，是一个很有前景、值得探索的方向。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-164",
+      "file": "ch13.md",
+      "match": "在许多情况下，数据存储与流处理系统彼此分离。但别忘了，流处理器也需要维护状态，才能执行聚合与连接。这种状态通常隐藏在流处理器内部，不过有些框架也允许外部客户端查询它 [^34]，从而让流处理器本身变成一种简单的数据库。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-165",
+      "file": "ch13.md",
+      "match": "对于只涉及单个分片的查询，通过流发送查询并收集响应或许有些小题大做。不过，这个想法开启了一种可能：利用流处理器已经具备的消息路由、分片与连接基础设施，分布式执行需要组合多个分片数据的复杂查询。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-166",
+      "file": "ch13.md",
+      "match": "这种模式的另一个例子是欺诈防范：为了评估某项购买事件是否可能存在欺诈，可以检查用户 IP 地址、电子邮件地址、账单地址、送货地址等各自的信誉评分。每个信誉数据库本身都经过分片，因此，为某项购买事件收集这些评分，需要依次连接多个采用不同分片方式的数据集 [^38]。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-167",
+      "file": "ch13.md",
+      "match": "数据仓库查询引擎内部的查询执行图，也具有类似特征。如果需要执行这种多分片连接，使用原生提供该功能的数据库，很可能比借助流处理器自行实现更简单。不过，把查询视为流，仍为构建逼近传统现成方案能力极限的大规模应用提供了一种选择。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch14-168",
+      "file": "ch14.md",
+      "match": "- 在 [第 12 章](/ch12#ch_stream) 中，我们把批处理推广为流处理，并讨论了底层消息代理、变更数据捕获、容错，以及流连接等处理模式。",
+      "review_records": [
+        "CH-C-JOIN"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "glossary-169",
+      "file": "glossary.md",
+      "match": "在已规范化数据集中引入一定冗余（常见形式为缓存或索引）以换取更快读取。反规范化值可看作预计算结果，类似物化视图。参见“[规范化、反规范化与连接](/ch3#sec_datamodels_normalization)”。",
+      "review_records": [
+        "SH-09"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "glossary-170",
+      "file": "glossary.md",
+      "match": "### 连接（join）",
+      "review_records": [
+        "SH-09"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "glossary-171",
+      "file": "glossary.md",
+      "match": "把具有关联关系的记录拼在一起。常见于一个记录引用另一个记录（外键、文档引用、图边）时，查询需要取到被引用对象。参见“[规范化、反规范化与连接](/ch3#sec_datamodels_normalization)”和“[JOIN 与 GROUP BY](/ch11#sec_batch_join)”。",
+      "review_records": [
+        "SH-09"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "glossary-172",
+      "file": "glossary.md",
+      "match": "数据结构中尽量避免冗余与重复。规范化数据库里某数据变化时通常只改一处，不需多处同步。参见“[规范化、反规范化与连接](/ch3#sec_datamodels_normalization)”。",
+      "review_records": [
+        "SH-09"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "ch13-173",
+      "file": "ch13.md",
+      "match": "输入和输出定义明确的确定性函数，不仅有利于容错，也能简化对组织内部数据流的推理 [^5]。无论衍生数据是搜索索引、统计模型还是缓存，都可以把它看成数据管道：从一项事物衍生出另一项事物，让一个系统的状态变更经过函数式应用代码，再把相应效果施加到衍生系统上。这样思考大有裨益。",
+      "review_records": [
+        "CH-C-FUNCTIONAL"
+      ],
+      "replacements": [
+        {
+          "before": "函式式",
+          "after": "函數式",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-001",
+      "file": "indexes.md",
+      "match": "  - 用于算子状态, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n403-main"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-002",
+      "file": "indexes.md",
+      "match": "  - 在流连接中, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n404-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-003",
+      "file": "indexes.md",
+      "match": "  - 模式注册表, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n570-main",
+        "index-n1612-main"
+      ],
+      "replacements": [
+        {
+          "before": "模式登錄檔",
+          "after": "模式註冊中心",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-004",
+      "file": "indexes.md",
+      "match": "  - 连接支持, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n686-main",
+        "index-n1949-main",
+        "index-n2560-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 3
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 3
+    },
+    {
+      "id": "indexes-005",
+      "file": "indexes.md",
+      "match": "  - 连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n899-main",
+        "index-n2898-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-007",
+      "file": "indexes.md",
+      "match": "- 连接表, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1565-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-008",
+      "file": "indexes.md",
+      "match": "- 连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1566-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-009",
+      "file": "indexes.md",
+      "match": "  - 排序合并连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1573-main",
+        "index-n1846-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-010",
+      "file": "indexes.md",
+      "match": "  - 流连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1574-main",
+        "index-n3014-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-011",
+      "file": "indexes.md",
+      "match": "    - 流流连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1575-main",
+        "index-n3015-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-012",
+      "file": "indexes.md",
+      "match": "    - 流表连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1576-main",
+        "index-n3016-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-013",
+      "file": "indexes.md",
+      "match": "    - 表表连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1577-main",
+        "index-n3017-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-014",
+      "file": "indexes.md",
+      "match": "    - 用于流算子的状态, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1783-main"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-015",
+      "file": "indexes.md",
+      "match": "- merge（DataFrame 算子）, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1886-main"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-016",
+      "file": "indexes.md",
+      "match": "  - 连接（\\$lookup 算子）, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1950-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        },
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-017",
+      "file": "indexes.md",
+      "match": "- 算子, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n2129-main"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-018",
+      "file": "indexes.md",
+      "match": "  - 算子, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n2317-main"
+      ],
+      "replacements": [
+        {
+          "before": "運算元",
+          "after": "運算子",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-019",
+      "file": "indexes.md",
+      "match": "- 自连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n2680-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-020",
+      "file": "indexes.md",
+      "match": "  - 由流处理器在流-流连接中维护, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n2944-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-021",
+      "file": "indexes.md",
+      "match": "- 表表连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n3071-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-022",
+      "file": "indexes.md",
+      "match": "  - 流连接的时间依赖性, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n3140-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-023",
+      "file": "indexes.md",
+      "match": "  - 窗口内的流连接, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n3365-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-024",
+      "file": "indexes.md",
+      "match": "    - 连接的开销, ",
+      "scope": "fragment",
+      "review_records": [
+        "index-n3406-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "position": "line_start",
+      "expected_replacements": 1
+    },
+    {
+      "id": "indexes-025",
+      "file": "indexes.md",
+      "match": "[流表连接（流扩充）](/ch12#sec_stream_table_joins)",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1349-reference",
+        "index-n1576-reference",
+        "index-n1744-reference",
+        "index-n2990-reference",
+        "index-n3016-reference",
+        "index-n3363-reference"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 8
+        }
+      ],
+      "expected_replacements": 8
+    },
+    {
+      "id": "indexes-026",
+      "file": "indexes.md",
+      "match": "[规范化、反规范化与连接](/ch3#sec_datamodels_normalization)",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1569-reference",
+        "index-n1571-reference",
+        "index-n1950-reference",
+        "index-n2054-reference",
+        "index-n2323-reference",
+        "index-n2326-reference",
+        "index-n2898-reference"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 9
+        }
+      ],
+      "expected_replacements": 9
+    },
+    {
+      "id": "indexes-027",
+      "file": "indexes.md",
+      "match": "[流连接](/ch12#sec_stream_joins)",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1574-reference",
+        "index-n3014-reference"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 2
+        }
+      ],
+      "expected_replacements": 2
+    },
+    {
+      "id": "indexes-028",
+      "file": "indexes.md",
+      "match": "[连接的时间依赖性](/ch12#sec_stream_join_time)",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1574-reference",
+        "index-n1578-reference",
+        "index-n2622-reference",
+        "index-n2811-reference",
+        "index-n3014-reference",
+        "index-n3018-reference",
+        "index-n3140-reference"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 9
+        }
+      ],
+      "expected_replacements": 9
+    },
+    {
+      "id": "indexes-029",
+      "file": "indexes.md",
+      "match": "[流流连接（窗口连接）](/ch12#id440)",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1575-reference",
+        "index-n2944-reference",
+        "index-n3015-reference",
+        "index-n3365-reference"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 8
+        }
+      ],
+      "expected_replacements": 8
+    },
+    {
+      "id": "indexes-030",
+      "file": "indexes.md",
+      "match": "[表表连接（维护物化视图）](/ch12#id326)",
+      "scope": "fragment",
+      "review_records": [
+        "index-n1577-reference",
+        "index-n1860-reference",
+        "index-n3017-reference",
+        "index-n3071-reference",
+        "index-n3405-reference"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 5
+        }
+      ],
+      "expected_replacements": 5
+    },
+    {
+      "id": "indexes-hash-join",
+      "file": "indexes.md",
+      "match": "- 哈希连接",
+      "scope": "fragment",
+      "position": "whole_line",
+      "review_records": [
+        "index-n1348-main"
+      ],
+      "replacements": [
+        {
+          "before": "連線",
+          "after": "聯結",
+          "expected_count": 1
+        }
+      ],
+      "expected_replacements": 1
+    }
+  ]
+}

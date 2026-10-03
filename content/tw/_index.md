@@ -13,7 +13,7 @@ cascade:
 breadcrumbs: false
 ---
 
-- **作者**：[Martin Kleppmann](https://martin.kleppmann.com)
+- **作者**：[Martin Kleppmann](https://martin.kleppmann.com) 與 [Chris Riccomini](https://cnr.sh/)
 - **譯者**：[馮若航 / Vonng](https://vonng.com) 與 DDIA 中文翻譯貢獻者
 - **原作**：[Designing Data-Intensive Applications, Second Edition](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/)
 
@@ -27,13 +27,13 @@ breadcrumbs: false
 
 ## 閱讀本書
 
-- 從[序言](/preface/)瞭解全書目標與結構。
-- 開啟[完整目錄](/toc/)按章、節或圖表定位內容。
-- 從[第一章](/ch1/)開始順序閱讀，並使用每頁末尾的上一章 / 下一章導航。
+- 從[序言](/tw/preface/)瞭解全書目標與結構。
+- 開啟[完整目錄](/tw/toc/)按章、節或圖表定位內容。
+- 從[第一章](/tw/ch1/)開始順序閱讀，並使用每頁末尾的上一章 / 下一章導航。
 - 使用頂部版本與語言選單，在第二版、第一版及簡繁中文之間切換。
 
 ## 出版與授權說明
 
 本譯文僅供學習研究參考，不追求任何經濟利益，不得公開傳播發行或用於商業用途。譯者保留譯文署名權，其他權利以原作者與出版社的主張為準。有能力閱讀英文的讀者請購買正版支援作者與出版社。
 
-翻譯校訂與完整貢獻記錄見[貢獻者頁面](/contrib/)；發現內容或排版問題，可前往 [GitHub](https://github.com/Vonng/ddia/issues) 提交反饋。
+翻譯校訂與完整貢獻記錄見[貢獻者頁面](/tw/contrib/)；發現內容或排版問題，可前往 [GitHub](https://github.com/Vonng/ddia/issues) 提交反饋。

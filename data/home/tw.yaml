@@ -11,7 +11,7 @@ hero:
   title: 設計**資料密集型**應用
   title_size: 4.45rem
   lead: 從資料模型、儲存引擎到分散式系統與衍生資料，建立設計現代資料系統所需的完整思維框架。
-  note: 第二版翻譯持續維護中，歡迎校訂與回饋。
+  note: 原著由 Martin Kleppmann 與 Chris Riccomini 合著；第二版翻譯持續維護中，歡迎校訂與回饋。
   image:
     light: title.jpg
     dark: title.jpg

@@ -13,7 +13,7 @@ cascade:
 breadcrumbs: false
 ---
 
-- **作者**：[Martin Kleppmann](https://martin.kleppmann.com)
+- **作者**：[Martin Kleppmann](https://martin.kleppmann.com) 与 [Chris Riccomini](https://cnr.sh/)
 - **译者**：[冯若航 / Vonng](https://vonng.com) 与 DDIA 中文翻译贡献者
 - **原作**：[Designing Data-Intensive Applications, Second Edition](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/)
 

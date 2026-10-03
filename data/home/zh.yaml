@@ -11,7 +11,7 @@ hero:
   eyebrow: DDIA · 第二版中文翻译
   title: 设计**数据密集型**应用
   title_size: 4.45rem
-  lead: 从数据模型、存储引擎到分布式系统与派生数据，建立设计现代数据系统所需的完整思维框架。
+  lead: 从数据模型、存储引擎到分布式系统与衍生数据，建立设计现代数据系统所需的完整思维框架。
   image:
     light: title.jpg
     dark: title.jpg
@@ -49,6 +49,14 @@ people:
       desc: 英国剑桥大学分布式系统研究员、演讲者、博主与开源贡献者，也是一位软件工程师和企业家；曾在 LinkedIn 与 Rapportive 负责数据基础设施。
       url: https://martin.kleppmann.com
       external: true
+    - role_label: 作者
+      title: Chris Riccomini
+      meta: '[个人主页](https://cnr.sh/) · [GitHub](https://github.com/criccomini)'
+      image: 'https://github.com/criccomini.png?size=320'
+      alt: Chris Riccomini
+      desc: 软件工程师、创业投资人和作者，曾在 PayPal、LinkedIn 与 WePay 工作；运营 Materialized View Capital，也是 Apache Samza 与 SlateDB 的共同创造者。
+      url: https://cnr.sh/
+      external: true
     - role_label: 译者
       title: 冯若航 / Vonng
       meta: '[个人主页](https://vonng.com) · [GitHub](https://github.com/Vonng) · [Pigsty](https://pgsty.com) · [开源贡献](https://committers.top/china) · [老冯云数](https://mp.weixin.qq.com/s/p4Ys10ZdEDAuqNAiRmcnIQ)'
@@ -81,8 +89,8 @@ preface:
 chapters:
   type: cards
   eyebrow: 章节目录
-  title: 从数据系统基础，到分布式与派生数据
-  desc: 十四章沿着数据的生命周期展开：先建立系统基础，再穿过分布式难题，最终抵达派生数据与技术责任。
+  title: 从数据系统基础，到分布式与衍生数据
+  desc: 十四章沿着数据的生命周期展开：先建立系统基础，再穿过分布式难题，最终抵达衍生数据与技术责任。
   class: ddia-chapters
   columns: 3
   items:
@@ -103,7 +111,7 @@ chapters:
         9. [分布式系统的麻烦](ch9/)
         10. [一致性与共识](ch10/)
     - meta: 第三部分 · 第 11–14 章
-      title: '[派生数据](part-iii/)'
+      title: '[衍生数据](part-iii/)'
       desc: |
         11. [批处理](ch11/)
         12. [流处理](ch12/)
@@ -124,7 +132,7 @@ legal:
     - icon: fa-solid fa-scale-balanced
       label: 权利归属
       title: 原作权利优先
-      body: 译者保留此版本译文的署名权；原作、书名及出版内容的其他权利，以原作者 Martin Kleppmann 与 O'Reilly 出版社的主张为准。建议购买原版实体书支持作者。
+      body: 译者保留此版本译文的署名权；原作、书名及出版内容的其他权利，以原作者 Martin Kleppmann、Chris Riccomini 与 O'Reilly 出版社的主张为准。建议购买原版实体书支持作者。
     - icon: fa-brands fa-creative-commons
       label: 仓库许可
       title: CC BY 4.0
