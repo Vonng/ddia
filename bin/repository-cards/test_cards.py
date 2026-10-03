@@ -133,9 +133,10 @@ class ContributorTests(unittest.TestCase):
             def issues(self, _repo):
                 return [issue('alice'), issue('Bob', 'open'), issue('Bob', 'merged'),
                         issue('Carol', 'open'), issue('Copilot'), issue('ghost'), issue('robot', user_type='Bot'),
-                        {**issue('Unrelated'), 'number': 396}]
+                        {**issue('Unrelated'), 'number': 396},
+                        {**issue('Promotional'), 'number': 421}]
         curated = {'repositories': ['Vonng/ddia'], 'bots': ['Copilot'],
-                   'excludedIssues': [396],
+                   'excludedIssues': [396, 421],
                    'people': [person('Alice', featured=True), person('Reporter'), person('Copilot')]}
         result = update.collect_people(API(), curated)
         self.assertEqual({p['handle'] for p in result}, {'Alice', 'Bob', 'Carol', 'Reporter'})
@@ -179,7 +180,7 @@ class ContributorTests(unittest.TestCase):
             self.assertEqual((out / 'history.json').read_text(), original)
             self.assertEqual((out / 'contributors-light.svg').read_text(), 'previous image')
 
-    def test_roster_sync_keeps_credit_and_updates_every_source_table(self):
+    def test_roster_sync_keeps_credit_and_preserves_first_edition_by_default(self):
         records = [
             {'number': 1, 'user': {'login': 'Alice', 'type': 'User'}, 'title': r'<img> [label] | column \[math\] {{% shortcode %}}',
              'html_url': 'https://github.com/Vonng/ddia/issues/1', 'state': 'closed'},
@@ -189,12 +190,14 @@ class ContributorTests(unittest.TestCase):
              'html_url': 'https://github.com/Vonng/ddia/issues/116', 'state': 'closed'},
             {'number': 396, 'user': {'login': 'Alice', 'type': 'User'}, 'title': 'Excluded unrelated report',
              'html_url': 'https://github.com/Vonng/ddia/issues/396', 'state': 'closed'},
+            {'number': 421, 'user': {'login': 'Alice', 'type': 'User'}, 'title': 'Excluded promotion',
+             'html_url': 'https://github.com/Vonng/ddia/issues/421', 'state': 'closed'},
         ]
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / 'data').mkdir()
             roster = root / 'data/contributors.yaml'
-            roster.write_text('excluded_issues: [396]\nitems:\n  - github: "Alice"\n    role: 校订\n    featured: true\n')
+            roster.write_text('excluded_issues: [396, 421]\nitems:\n  - github: "Alice"\n    role: 校订\n    featured: true\n')
             old_table = '\n| ISSUE & Pull Requests | Author | Title |\n|---|---|---|\n| 1 | Alice | Old title |\n\nRetained footer\n'
             readme = root / 'README.md'
             readme.write_text('<details>\n<summary>1 位贡献者</summary>\nOld names\n</details>\n' + old_table)
@@ -203,9 +206,14 @@ class ContributorTests(unittest.TestCase):
                 page = root / 'content' / language / 'contrib.md'
                 page.parent.mkdir(parents=True)
                 page.write_text('Retained introduction\n' + old_table)
-                pages.append(page)
+                if language == 'zh':
+                    pages.append(page)
+            first_edition = root / 'content/v1/contrib.md'
+            original_first_edition = first_edition.read_bytes()
             people = [person('Alice'), person('Bob')]
             update.sync_roster(root, people, records, '2026-09-20')
+            self.assertEqual(first_edition.read_bytes(), original_first_edition)
+            self.assertEqual(yaml.safe_load(roster.read_text())['excluded_issues'], [396, 421])
             self.assertEqual(yaml.safe_load(roster.read_text())['items'], [
                 {'github': 'Alice', 'role': '校订', 'featured': True}, {'github': 'Bob'}])
             self.assertIn('<summary>2 位贡献者</summary>', readme.read_text())
@@ -216,10 +224,16 @@ class ContributorTests(unittest.TestCase):
                 self.assertIn('&#92;&#91;math&#92;&#93;', page.read_text())
                 self.assertNotIn('{{%', page.read_text())
                 self.assertNotIn('Issue #396', page.read_text())
+                self.assertNotIn('Issue #421', page.read_text())
                 self.assertIn('已删除账户', page.read_text())
                 self.assertIn('Retained footer', page.read_text())
             before = [path.read_text() for path in [roster, *pages]]
             update.sync_roster(root, people, records, '2026-09-20')
+            self.assertEqual(before, [path.read_text() for path in [roster, *pages]])
+            self.assertEqual(first_edition.read_bytes(), original_first_edition)
+            update.sync_roster(root, people, records, '2026-09-20', edition='all')
+            self.assertIn('[PR #2]', first_edition.read_text())
+            self.assertIn('Retained footer', first_edition.read_text())
             self.assertEqual(before, [path.read_text() for path in [roster, *pages]])
 
 

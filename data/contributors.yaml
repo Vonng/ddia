@@ -1,5 +1,6 @@
 excluded_issues:
 - 396
+- 421
 items:
   - github: "Vonng"
     name: 冯若航

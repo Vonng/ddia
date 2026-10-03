@@ -44,10 +44,11 @@ YinGang [@yingang](https://github.com/yingang) 對本書進行了全文校訂，
 完整記錄：[Issues](https://github.com/Vonng/ddia/issues) · [Pull Requests](https://github.com/Vonng/ddia/pulls)。
 
 <!-- CONTRIBUTIONS:START -->
-截至 2026-09-19（UTC），共收錄 212 位貢獻者。以下記錄保留實際狀態，未合併的提議同樣計入貢獻。
+截至 2026-10-03（UTC），共收錄 212 位貢獻者。以下記錄保留實際狀態，未合併的提議同樣計入貢獻。
 
 | Issue / PR | 貢獻者 | 標題 | 狀態 |
 |---|---|---|---|
+| [PR #422](https://github.com/Vonng/ddia/pull/422) | [@JYu1999](https://github.com/JYu1999) | fix(ch2): 修正清單符號後缺少空格 | 已合併 |
 | [Issue #420](https://github.com/Vonng/ddia/issues/420) | [@Ice-pumpkin](https://github.com/Ice-pumpkin) | 图 10-2 的描述错误 | 已關閉 |
 | [PR #419](https://github.com/Vonng/ddia/pull/419) | [@JYu1999](https://github.com/JYu1999) | fix(tw): scalability 譯名由「可伸縮」改為「可擴展」 | 未合併 |
 | [PR #418](https://github.com/Vonng/ddia/pull/418) | [@JYu1999](https://github.com/JYu1999) | fix(tw): 修正雲端相關詞彙中誤留簡體「云」的問題 | 已合併 |

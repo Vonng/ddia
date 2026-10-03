@@ -10,9 +10,9 @@ The README and the website's homepage contributor section reference these same p
 
 `data/contributors.yaml` is the reviewed roster shared with the website. Every human issue or PR author counts, including open and unmerged work. Existing credit is retained, bots are excluded, and merged work is ordered before proposals and reports. Gold rings preserve the major contributions already acknowledged in the book.
 
-The deleted-account placeholder `ghost` is not counted as an identifiable contributor; its issue remains in the activity table. The roster's `excluded_issues` excludes unrelated content: #396 is an off-topic “AI pipeline” message, not feedback on the book.
+The deleted-account placeholder `ghost` is not counted as an identifiable contributor; its issue remains in the activity table. The roster's `excluded_issues` excludes unrelated content: #396 is an off-topic “AI pipeline” message, and #421 is a promotional invitation sent for platform reward points. Neither is feedback on the book.
 
-The daily workflow discovers new authors for the images. To synchronize the website roster, README names, and both editions' contribution tables as well, use an authenticated GitHub token:
+The daily workflow discovers new authors for the images. To synchronize the website roster, README names, and second-edition contribution table as well, use an authenticated GitHub token:
 
 ```sh
 uv run --with PyYAML==6.0.3 -- python bin/repository-cards/update.py \
@@ -20,6 +20,8 @@ uv run --with PyYAML==6.0.3 -- python bin/repository-cards/update.py \
 make translate
 make check
 ```
+
+The default `--edition v2` preserves first-edition manuscripts. Use `--edition all` explicitly to refresh both Simplified Chinese contribution tables; the corresponding Traditional Chinese pages must then be regenerated for both editions.
 
 Set `GH_TOKEN` in the environment. Keep the output checkout's existing `history.json` and `contributors.json` when updating; they preserve history and provide cached avatars. Review and commit the source changes after synchronization.
 

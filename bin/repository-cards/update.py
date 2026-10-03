@@ -264,8 +264,9 @@ def bootstrap_history(api, metadata, day):
     return result
 
 
-def sync_roster(source_root, people, records, day):
-    """Update the shared roster, README names, and both source contribution tables."""
+def sync_roster(source_root, people, records, day, edition='v2'):
+    """Update shared credit and the selected edition's contribution table."""
+    languages = {'v2': ('zh',), 'v1': ('v1',), 'all': ('zh', 'v1')}[edition]
     path = source_root / 'data/contributors.yaml'
     data = yaml.safe_load(path.read_text())
     entries = {item['github'].lower(): item for item in data['items']}
@@ -315,7 +316,7 @@ def sync_roster(source_root, people, records, day):
         table.append(f'| [{kind} #{record["number"]}]({record["html_url"]}) | {author} | {title} | {status} |')
     table.append('<!-- CONTRIBUTIONS:END -->')
     block = '\n'.join(table)
-    pages = [readme, *(source_root / 'content' / language / 'contrib.md' for language in ('zh', 'v1'))]
+    pages = [readme, *(source_root / 'content' / language / 'contrib.md' for language in languages)]
     for path in pages:
         text = path.read_text()
         pattern = r'<!-- CONTRIBUTIONS:START -->.*?<!-- CONTRIBUTIONS:END -->' if '<!-- CONTRIBUTIONS:START -->' in text else r'^\| ISSUE & Pull Requests[^\n]*(?:\n\|[^\n]*)+'
@@ -326,7 +327,7 @@ def sync_roster(source_root, people, records, day):
     print(f'Synchronized {len(items)} contributors; run make translate to refresh Traditional Chinese.', flush=True)
 
 
-def refresh(output, api, source_root, sync=False):
+def refresh(output, api, source_root, sync=False, edition='v2'):
     day = datetime.now(timezone.utc).date().isoformat()
     metadata = api.get('repos/' + REPOSITORY)
     if metadata['full_name'].lower() != REPOSITORY.lower():
@@ -336,7 +337,7 @@ def refresh(output, api, source_root, sync=False):
     records = list(api.issues(REPOSITORY))
     people = collect_people(api, curated, records)
     if sync:
-        sync_roster(source_root, people, records, day)
+        sync_roster(source_root, people, records, day, edition)
         source = (source_root / 'data/contributors.yaml').read_bytes()
         curated = curated_snapshot(yaml.safe_load(source), hashlib.sha256(source).hexdigest())
         people = collect_people(api, curated, records)
@@ -386,11 +387,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--sync-roster', action='store_true', help='also refresh the shared roster, README names, and contribution tables')
+    parser.add_argument('--edition', choices=('v2', 'v1', 'all'), default='v2',
+                        help='contribution tables to synchronize (default: v2; requires --sync-roster)')
     args = parser.parse_args()
     configured = os.environ.get('GITHUB_REPOSITORY', REPOSITORY)
     if configured.lower() != REPOSITORY.lower():
         raise SystemExit('This workflow is scoped to Vonng/ddia')
-    refresh(args.output, GitHub(os.environ.get('GH_TOKEN', '')), Path(__file__).resolve().parents[2], args.sync_roster)
+    refresh(args.output, GitHub(os.environ.get('GH_TOKEN', '')), Path(__file__).resolve().parents[2], args.sync_roster, args.edition)
 
 
 if __name__ == '__main__':

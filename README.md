@@ -159,10 +159,11 @@
 <summary><a href="https://github.com/Vonng/ddia/pulls">Pull Requests</a> & <a href="https://github.com/Vonng/ddia/issues">Issues</a></summary>
 
 <!-- CONTRIBUTIONS:START -->
-截至 2026-09-19（UTC），共收录 212 位贡献者。以下记录保留实际状态，未合并的提议同样计入贡献。
+截至 2026-10-03（UTC），共收录 212 位贡献者。以下记录保留实际状态，未合并的提议同样计入贡献。
 
 | Issue / PR | 贡献者 | 标题 | 状态 |
 |---|---|---|---|
+| [PR #422](https://github.com/Vonng/ddia/pull/422) | [@JYu1999](https://github.com/JYu1999) | fix(ch2): 修正清單符號後缺少空格 | 已合并 |
 | [Issue #420](https://github.com/Vonng/ddia/issues/420) | [@Ice-pumpkin](https://github.com/Ice-pumpkin) | 图 10-2 的描述错误 | 已关闭 |
 | [PR #419](https://github.com/Vonng/ddia/pull/419) | [@JYu1999](https://github.com/JYu1999) | fix(tw): scalability 譯名由「可伸縮」改為「可擴展」 | 未合并 |
 | [PR #418](https://github.com/Vonng/ddia/pull/418) | [@JYu1999](https://github.com/JYu1999) | fix(tw): 修正雲端相關詞彙中誤留簡體「云」的問題 | 已合并 |
