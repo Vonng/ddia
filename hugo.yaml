@@ -380,6 +380,7 @@ params:
     quick_links: [read, contribute]
     # Dark palette plus the theme menu (shorthand for { enable, show_menu }).
     dark_mode: true
+    preset_menu: [paper, slate, ink, terminal]
     sidebar_icon_policy: groups
     sidebar_menu_compact: true
     sidebar_menu_foldable: true
