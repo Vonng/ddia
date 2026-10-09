@@ -1,0 +1,34 @@
+name: Build EPUB
+on:
+  workflow_dispatch: # 手动触发按钮，在 Actions 页面可见
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y pandoc make
+          # 安装 go
+          curl -OL https://go.dev/dl/go1.27.2.linux-amd64.tar.gz
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf go1.27.2.linux-amd64.tar.gz
+          echo "export PATH=$PATH:/usr/local/go/bin" >> $GITHUB_ENV
+
+      - name: Go mod download
+        run: go mod download
+
+      - name: Build EPUB
+        run: make epub
+
+      - name: Upload EPUB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ddia-epub
+          path: output/ddia.epub
