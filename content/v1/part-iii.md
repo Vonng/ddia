@@ -41,9 +41,9 @@ breadcrumbs: false
 ## 索引
 
 * [第十章：批处理](/v1/ch10)
-  * [使用Unix工具的批处理](/v1/ch10#使用Unix工具的批处理)
-  * [MapReduce和分布式文件系统](/v1/ch10#MapReduce和分布式文件系统)
-  * [MapReduce之后](/v1/ch10#MapReduce之后)
+  * [使用Unix工具的批处理](/v1/ch10#使用unix工具的批处理)
+  * [MapReduce和分布式文件系统](/v1/ch10#mapreduce和分布式文件系统)
+  * [MapReduce之后](/v1/ch10#mapreduce之后)
   * [本章小结](/v1/ch10#本章小结)
 * [第十一章：流处理](/v1/ch11)
   * [传递事件流](/v1/ch11#传递事件流)

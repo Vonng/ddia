@@ -325,16 +325,20 @@
     border-radius: 0.85rem;
   }
 
-  .td-book-figure.ddia-figure--panorama > :is(.td-image-zoom__trigger, .td-book-figure__link) {
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    touch-action: pan-x;
-  }
+  // Static Print figures fit the document; only interactive scrollers retain
+  // the wide panorama canvas on narrow screens. Paper always uses the print scale.
+  @media screen {
+    .td-book-figure.ddia-figure--panorama > :is(.td-image-zoom__trigger, .td-book-figure__link) {
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      touch-action: pan-x;
+    }
 
-  .td-book-figure.ddia-figure--panorama .td-book-figure__image {
-    width: 50rem;
-    min-width: 50rem;
-    max-width: none;
+    .td-book-figure.ddia-figure--panorama > :is(.td-image-zoom__trigger, .td-book-figure__link) .td-book-figure__image {
+      width: 50rem;
+      min-width: 50rem;
+      max-width: none;
+    }
   }
 
 }
@@ -380,6 +384,7 @@
 
   .td-book-figure.ddia-figure .td-book-figure__image {
     width: auto;
+    min-width: 0;
     max-width: 100%;
     max-height: 70vh;
   }

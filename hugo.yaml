@@ -377,6 +377,7 @@ params:
       loading: lazy
 
   ui:
+    preset: paper
     quick_links: [read, contribute]
     # Dark palette plus the theme menu (shorthand for { enable, show_menu }).
     dark_mode: true

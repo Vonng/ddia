@@ -1,5 +1,12 @@
-OINK_MODULE := github.com/pgsty/oink
-OINK_LOCAL := $(HOME)/pgsty/oink
+HUGO ?= hugo
+OINK_LOCAL ?= $(HOME)/pgsty/oink
+PORT ?= 1313
+
+# Keep local development independent of module workspaces and vendored pins.
+export GOWORK := off
+export HUGO_MODULE_WORKSPACE := off
+PINNED_HUGO = env -u HUGO_MODULE_REPLACEMENTS $(HUGO)
+LOCAL_HUGO = HUGO_MODULE_REPLACEMENTS="github.com/pgsty/oink -> $(abspath $(OINK_LOCAL))" $(HUGO) --ignoreVendorPaths=github.com/pgsty/oink
 
 default: dev
 
@@ -7,30 +14,28 @@ default: dev
 # current working state, not the version go.mod pins, so a theme change is
 # visible here without a tag. Drafts, future and expired pages are all shown,
 # and nothing is written to public/ -- the same shape as oink.pgsty.com's own
-# `make dev`. Every other target keeps the pinned module.
+# `make dev`. Release targets keep the pinned module; check-local uses this checkout.
 d:dev
-dev:
-	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" \
-		hugo server --renderToMemory -DFE
+dev: theme-local
+	$(LOCAL_HUGO) server --renderToMemory -DFE --bind 127.0.0.1 --port "$(PORT)" --noBuildLock
 
 serve:
-	hugo serve --environment production --minify --disableFastRender --disableLiveReload
+	$(PINNED_HUGO) serve --environment production --minify --disableFastRender --disableLiveReload
 
 b:build
 build:
-	hugo build
+	$(PINNED_HUGO) build
 
 check: translation-check
 	GOWORK=off go mod verify
-	GOWORK=off hugo --cleanDestinationDir \
+	$(PINNED_HUGO) --cleanDestinationDir \
 		--printPathWarnings --printI18nWarnings --panicOnWarning
-	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --second-edition
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all
 
-check-local: translation-check
-	HUGO_MODULE_REPLACEMENTS="$(OINK_MODULE) -> $(OINK_LOCAL)" \
-		hugo --cleanDestinationDir \
+check-local: theme-local translation-check
+	$(LOCAL_HUGO) --cleanDestinationDir \
 		--printPathWarnings --printI18nWarnings --panicOnWarning
-	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --second-edition
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all
 
 .PHONY: default d dev serve b build check check-local
 
@@ -57,7 +62,7 @@ translation-tests:
 	PYTHONDONTWRITEBYTECODE=1 uv run --with opencc-python-reimplemented==0.1.7 -- python -m unittest discover -s bin/tests -p 'test_*.py' -v
 
 rendered-check:
-	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --second-edition
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all
 
 epub:
 	bin/epub
@@ -66,3 +71,9 @@ epub-check: epub
 	bin/check-epub.py
 
 .PHONY: translate translate-check figures figures-check translation-check translation-tests rendered-check epub epub-check
+
+# Fail explicitly if a local theme was requested but is unavailable.
+theme-local:
+	@test -f "$(OINK_LOCAL)/hugo.yaml" || { echo "Set OINK_LOCAL to an OINK checkout (default: ~/pgsty/oink)." >&2; exit 1; }
+
+.PHONY: theme-local
