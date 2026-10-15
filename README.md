@@ -10,13 +10,22 @@
 
 **校订**： [@yingang](https://github.com/yingang) ｜ [**繁體中文**](content/tw/_index.md) by [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](https://ddia.vonng.com/contrib/)
 
-**阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [Hugo](https://gohugo.io/documentation/) / [OINK 1.2.0](https://oink.pgsty.com/) 主题自行构建。在线版支持稳定图表编号与交叉引用、顺序阅读、整书打印、Markdown / `llms.txt` 输出和 EPUB 导出。
+**阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [Hugo](https://gohugo.io/documentation/) / [OINK 1.3.0](https://oink.pgsty.com/) 主题自行构建。在线版支持稳定图表编号与交叉引用、顺序阅读、整书打印、Markdown / `llms.txt` 输出和 EPUB 导出。
 
 > [!NOTE] 
 > [**DDIA 第二版**](https://ddia.vonng.com) 十四章译文均已上线并持续校订，欢迎阅览并提出宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
 
 
 ---------
+
+## 本地开发
+
+`make dev` 使用 `~/pgsty/oink` 的当前工作树，要求 Hugo Extended 0.166.0。
+可用 `make dev OINK_LOCAL=/path/to/oink PORT=1314` 指定主题目录和端口。
+开发入口禁用 Go/Hugo workspace，并绕过 OINK 的 vendor 副本；`make build`、
+`make check` 和已有的生产预览入口使用 `go.mod` 中固定的版本。
+
+`make check-local` 对当前主题执行严格检查。
 
 ## 译序
 
