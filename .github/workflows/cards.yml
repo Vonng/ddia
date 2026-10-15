@@ -1,0 +1,38 @@
+name: Cards
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - cards/**
+      - static/cards/**
+      - content/zh/ch*.md
+      - Makefile
+      - .github/workflows/cards.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - cards/**
+      - static/cards/**
+      - content/zh/ch*.md
+      - Makefile
+      - .github/workflows/cards.yml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 校验卡片内容（id 唯一 / 段落完整 / 自测格式 / 原文关联锚点存在），
+      # 并确认 static/cards/index.html 与 cards/src 渲染结果一致（无产物漂移）。
+      - name: Check study cards
+        run: make cards-check

@@ -76,28 +76,39 @@ flowchart TB
 - **自测**：每张卡至少 2 题；判断题答案只允许「对」或「错」；单选题用 `*` 标记且只能一个
 - 正文以具体场景开头，避免直接给结论；揭示里给反直觉洞察
 
-## 构建
+## 构建与校验
+
+仓库根目录提供了 Makefile 目标（推荐用这两个）：
 
 ```bash
-# 1) 默认：产物为 cards/index.html，链接按 /ddia 前缀（用于独立 Pages 部署）
-python3 cards/build.py
+make cards         # 由 cards/src/*.md 重新生成 static/cards/index.html
+make cards-check   # 校验卡片内容，并确认产物与源一致（无漂移）
+```
 
-# 2) 随本站（Hugo）发布：产物写进 static/，链接为站点根路径
+`make check` 已包含 `cards-check`，CI（`.github/workflows/cards.yml`）也会在
+卡片、章节或 Makefile 变更时执行校验。产物漂移检查的含义是：
+只要改了 `cards/src/` 却忘了重新生成，校验就会失败并提示运行 `make cards`。
+
+也可以直接调用脚本：
+
+```bash
+# 本站（Hugo）发布形态：产物写进 static/，链接为站点根路径
 CARDS_OUT=static/cards/index.html SITE_BASE= python3 cards/build.py
 # 图标同级放置：static/cards/icon-192.png、static/cards/icon-512.png
+
+# 独立部署形态：产物为 cards/index.html，链接按 /ddia 前缀
+python3 cards/build.py
+
+# 仅校验
+python3 cards/check.py
 ```
 
 Hugo 会把 `static/` 原样复制到站点根，因此产物可通过 `/cards/` 访问，
 卡片内的「原文关联」直接指向本站的 `/chN/#anchor` 页面。
 
-## 校验
-
-```bash
-python3 cards/check.py
-```
-
-校验 frontmatter 字段、段落完整性、id 唯一、自测格式、mermaid 配对、
-原文关联锚点是否存在、文件名与 id 是否一致。退出码非 0 表示存在问题并逐条列出。
+`check.py` 校验 frontmatter 字段、段落完整性、id 唯一（重复会导致浏览器端
+已读/收藏状态串卡）、自测格式、mermaid 配对、原文关联锚点是否存在、
+文件名与 id 是否一致。退出码非 0 时逐条列出问题。
 
 ## 许可与归属
 
