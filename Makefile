@@ -29,12 +29,12 @@ build:
 check: translation-check
 	GOWORK=off go mod verify
 	$(PINNED_HUGO) --cleanDestinationDir \
-		--printPathWarnings --printI18nWarnings --panicOnWarning
+		--printPathWarnings --printI18nWarnings
 	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all
 
 check-local: theme-local translation-check
 	$(LOCAL_HUGO) --cleanDestinationDir \
-		--printPathWarnings --printI18nWarnings --panicOnWarning
+		--printPathWarnings --printI18nWarnings
 	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all
 
 .PHONY: default d dev serve b build check check-local

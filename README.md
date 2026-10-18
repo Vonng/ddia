@@ -10,9 +10,9 @@
 
 **校订**： [@yingang](https://github.com/yingang) ｜ [**繁體中文**](content/tw/_index.md) by [@afunTW](https://github.com/afunTW) ｜ [完整贡献者列表](https://ddia.vonng.com/contrib/)
 
-**阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [Hugo](https://gohugo.io/documentation/) / [OINK 1.3.0](https://oink.pgsty.com/) 主题自行构建。在线版支持稳定图表编号与交叉引用、顺序阅读、整书打印、Markdown / `llms.txt` 输出和 EPUB 导出。
+**阅读**：访问 [https://ddia.vonng.com](https://ddia.vonng.com) 阅读本书在线版本，或使用 [Hugo](https://gohugo.io/documentation/) / [OINK 1.3.2](https://oink.pgsty.com/) 主题自行构建。在线版支持稳定图表编号与交叉引用、顺序阅读、整书打印、Markdown / `llms.txt` 输出和 EPUB 导出。
 
-> [!NOTE] 
+> [!NOTE]
 > [**DDIA 第二版**](https://ddia.vonng.com) 十四章译文均已上线并持续校订，欢迎阅览并提出宝贵意见！[点击此处阅览第一版](https://ddia.vonng.com/v1)。
 
 
@@ -20,7 +20,8 @@
 
 ## 本地开发
 
-`make dev` 使用 `~/pgsty/oink` 的当前工作树，要求 Hugo Extended 0.166.0。
+`make dev` 使用 `~/pgsty/oink` 的当前工作树，要求 Hugo Extended 0.168.0。
+
 可用 `make dev OINK_LOCAL=/path/to/oink PORT=1314` 指定主题目录和端口。
 开发入口禁用 Go/Hugo workspace，并绕过 OINK 的 vendor 副本；`make build`、
 `make check` 和已有的生产预览入口使用 `go.mod` 中固定的版本。
@@ -29,8 +30,8 @@
 
 ## 译序
 
-> 不懂数据库的全栈工程师不是好架构师 
-> 
+> 不懂数据库的全栈工程师不是好架构师
+>
 > —— 冯若航 / Vonng
 
 现今，尤其是在互联网领域，大多数应用都属于数据密集型应用。本书从底层数据结构到顶层架构设计，将数据系统设计中的精髓娓娓道来。其中的宝贵经验无论是对架构师、DBA、还是后端工程师、甚至产品经理都会有帮助。
@@ -108,7 +109,7 @@
 0. 全文校订 by [@yingang](https://github.com/Vonng/ddia/commits?author=yingang)
 1. [序言初翻修正](https://github.com/Vonng/ddia/commit/afb5edab55c62ed23474149f229677e3b42dfc2c) by [@seagullbird](https://github.com/Vonng/ddia/commits?author=seagullbird)
 2. [第一章语法标点校正](https://github.com/Vonng/ddia/commit/973b12cd8f8fcdf4852f1eb1649ddd9d187e3644) by [@nevertiree](https://github.com/Vonng/ddia/commits?author=nevertiree)
-3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex) 
+3. [第六章部分校正](https://github.com/Vonng/ddia/commit/d4eb0852c0ec1e93c8aacc496c80b915bb1e6d48) 与[第十章的初翻](https://github.com/Vonng/ddia/commit/9de8dbd1bfe6fbb03b3bf6c1a1aa2291aed2490e) by [@MuAlex](https://github.com/Vonng/ddia/commits?author=MuAlex)
 4. 第一部分前言，ch2 校正 by [@jiajiadebug](https://github.com/Vonng/ddia/commits?author=jiajiadebug)
 5. 词汇表、后记关于野猪的部分 by [@cg-zhou](https://github.com/Vonng/ddia/commits?author=cg-zhou)
 6. 繁體中文版本与转换脚本 by [@afunTW](https://github.com/afunTW)
