@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-toc
 title: 目录
 linkTitle: 目录
 description: DDIA 第二版完整目录：十四章，涵盖数据系统基础、分布式数据与衍生数据。

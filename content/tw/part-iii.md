@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-part-iii
 title: 衍生資料
 book_kind: part
 book_number: III

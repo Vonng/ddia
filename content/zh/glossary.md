@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-glossary
 title: 术语表
 book_kind: glossary
 weight: 500

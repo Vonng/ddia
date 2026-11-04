@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch7
 title: 事务
 linkTitle: 事务
 book_kind: chapter

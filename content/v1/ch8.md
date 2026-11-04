@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch8
 title: 分布式系统的麻烦
 linkTitle: 分布式系统的麻烦
 book_kind: chapter

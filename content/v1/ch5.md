@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch5
 title: 复制
 linkTitle: 复制
 book_kind: chapter

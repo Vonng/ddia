@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch2
 title: 定义非功能性需求
 book_kind: chapter
 book_number: "2"

@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch6
 title: 分割槽
 linkTitle: 分割槽
 book_kind: chapter

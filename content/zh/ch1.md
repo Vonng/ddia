@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch1
 title: 数据系统架构中的权衡
 book_kind: chapter
 book_number: "1"

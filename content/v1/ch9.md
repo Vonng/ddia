@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch9
 title: 一致性与共识
 linkTitle: 一致性与共识
 book_kind: chapter

@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-part-ii
 title: 分散式資料
 book_kind: part
 book_number: II

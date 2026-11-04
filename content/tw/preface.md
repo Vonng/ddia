@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-preface
 title: 序言
 book_kind: preface
 weight: 50

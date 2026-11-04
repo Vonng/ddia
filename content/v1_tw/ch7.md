@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch7
 title: 事務
 linkTitle: 事務
 book_kind: chapter

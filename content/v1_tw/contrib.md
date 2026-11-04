@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-contrib
 title: 貢獻者
 book_kind: backmatter
 search_exclude: true
@@ -452,4 +453,5 @@ Yin Gang [@yingang](https://github.com/yingang) 對本書進行了全文校訂�
 | [Issue #3](https://github.com/Vonng/ddia/issues/3) | [@mawenqi](https://github.com/mawenqi) | 表3-1標題行的OLTP和OLAP位置反了 | 已關閉 |
 | [PR #2](https://github.com/Vonng/ddia/pull/2) | [@seagullbird](https://github.com/seagullbird) | 序言初翻 | 已合併 |
 | [Issue #1](https://github.com/Vonng/ddia/issues/1) | [@smallyard](https://github.com/smallyard) | 加油，期待你的完成 | 已關閉 |
+{.wide .expand}
 <!-- CONTRIBUTIONS:END -->

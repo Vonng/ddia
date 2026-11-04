@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch1
 title: 可靠性、可伸縮性和可維護性
 linkTitle: 可靠性、可伸縮性和可維護性
 book_kind: chapter

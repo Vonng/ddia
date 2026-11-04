@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-indexes
 title: 索引
 book_kind: index
 search_exclude: true

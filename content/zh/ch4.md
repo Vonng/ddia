@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch4
 title: 存储与检索
 book_kind: chapter
 book_number: "4"

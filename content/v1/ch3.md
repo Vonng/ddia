@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch3
 title: 存储与检索
 linkTitle: 存储与检索
 book_kind: chapter

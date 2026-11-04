@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch9
 title: 分布式系统的麻烦
 book_kind: chapter
 book_number: "9"

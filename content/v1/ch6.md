@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch6
 title: 分区
 linkTitle: 分区
 book_kind: chapter

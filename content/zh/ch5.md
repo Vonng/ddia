@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch5
 title: 编码与演化
 book_kind: chapter
 book_number: "5"

@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-toc
 title: 目錄
 linkTitle: 目錄
 description: DDIA 第一版完整目錄：十二章，涵蓋資料系統基礎、分散式資料與派生資料。

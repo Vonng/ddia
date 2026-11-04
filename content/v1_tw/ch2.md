@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch2
 title: 資料模型與查詢語言
 linkTitle: 資料模型與查詢語言
 book_kind: chapter

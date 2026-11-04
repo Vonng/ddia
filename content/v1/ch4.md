@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch4
 title: 编码与演化
 linkTitle: 编码与演化
 book_kind: chapter

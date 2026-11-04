@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch8
 title: 事務
 book_kind: chapter
 book_number: "8"
@@ -1020,7 +1021,7 @@ XA 最嚴重的幾個問題可以這樣解決：
 | 讀已提交 | ✓ 防止 | ✗ 可能 | ✗ 可能 | ✗ 可能  | ✗ 可能 |
 | 快照隔離 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ? 視情況 | ✗ 可能 |
 | 可序列化 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ✓ 防止  | ✓ 防止 |
-{#ch_transactions_isolation_levels num="8-1" caption="各種隔離級別下可能發生的異常彙總。"}
+{#ch_transactions_isolation_levels num="8-1" caption="各種隔離級別下可能發生的異常彙總。" .wide .expand}
 
 髒讀
 : 一個客戶端在另一個客戶端的寫入提交前就讀到了這些資料。讀已提交及更強的隔離級別可以防止髒讀。

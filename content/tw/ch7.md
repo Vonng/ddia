@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch7
 title: 分片
 book_kind: chapter
 book_number: "7"

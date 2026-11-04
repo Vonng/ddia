@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch8
 title: 事务
 book_kind: chapter
 book_number: "8"
@@ -1020,7 +1021,7 @@ XA 最严重的几个问题可以这样解决：
 | 读已提交 | ✓ 防止 | ✗ 可能 | ✗ 可能 | ✗ 可能  | ✗ 可能 |
 | 快照隔离 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ? 视情况 | ✗ 可能 |
 | 可串行化 | ✓ 防止 | ✓ 防止 | ✓ 防止 | ✓ 防止  | ✓ 防止 |
-{#ch_transactions_isolation_levels num="8-1" caption="各种隔离级别下可能发生的异常汇总。"}
+{#ch_transactions_isolation_levels num="8-1" caption="各种隔离级别下可能发生的异常汇总。" .wide .expand}
 
 脏读
 : 一个客户端在另一个客户端的写入提交前就读到了这些数据。读已提交及更强的隔离级别可以防止脏读。

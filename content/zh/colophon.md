@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-colophon
 title: 后记
 book_kind: colophon
 weight: 600

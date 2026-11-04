@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch1
 title: 資料系統架構中的權衡
 book_kind: chapter
 book_number: "1"

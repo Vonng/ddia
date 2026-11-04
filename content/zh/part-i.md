@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-part-i
 title: 数据系统基础
 book_kind: part
 book_number: I

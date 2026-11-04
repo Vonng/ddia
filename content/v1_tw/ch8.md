@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-ch8
 title: 分散式系統的麻煩
 linkTitle: 分散式系統的麻煩
 book_kind: chapter

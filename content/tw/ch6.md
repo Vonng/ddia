@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v2-ch6
 title: 複製
 book_kind: chapter
 book_number: "6"

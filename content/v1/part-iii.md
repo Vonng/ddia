@@ -1,4 +1,5 @@
 ---
+translationKey: ddia-v1-part-iii
 title: 衍生数据
 book_kind: part
 book_number: III
