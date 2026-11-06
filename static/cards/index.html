@@ -1,0 +1,4290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DDIA 权衡卡 · 原型</title>
+<link rel="manifest" href='data:application/manifest+json,{"name":"DDIA 权衡卡","short_name":"DDIA卡","start_url":".","display":"standalone","background_color":"%2310141b","theme_color":"%2310141b","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"}]}' />
+<meta name="theme-color" content="#10141b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DDIA卡">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+(function(){
+  function load(src, cb){
+    var s = document.createElement('script');
+    s.src = src; s.onload = cb;
+    s.onerror = function(){ document.body.classList.add('no-mermaid'); };
+    document.head.appendChild(s);
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    if (document.querySelector('pre.mermaid')) {
+      load('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js', function(){
+        if (window.mermaid) {
+          mermaid.initialize({ startOnLoad:false, theme:'neutral',
+            flowchart:{ useMaxWidth:true, htmlLabels:true },
+            themeVariables:{ fontSize:'13px' } });
+          try { mermaid.run({ querySelector:'pre.mermaid' }); } catch(e){}
+        }
+      });
+    }
+  });
+})();
+</script>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#ffffff; --ink:#1c2330; --sub:#5b6472;
+  --line:#e4e7ec; --accent:#2563eb; --ok:#16a34a; --bad:#dc2626;
+  --star:#f59e0b;
+  --dilemma:#2563eb; --simulation:#0d9488; --incident:#dc2626;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#10141b; --card:#171d27; --ink:#e7ebf2; --sub:#9aa4b2;
+    --line:#2a3140; --accent:#60a5fa; --ok:#4ade80; --bad:#f87171; --star:#fbbf24;
+    --dilemma:#60a5fa; --simulation:#2dd4bf; --incident:#f87171; }
+}
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--bg); color:var(--ink);
+  font:15px/1.75 -apple-system,"PingFang SC","Noto Sans SC",sans-serif; }
+.wrap{ max-width:640px; margin:0 auto; padding:12px 14px 120px; }
+
+/* ---- top bar with progress ---- */
+.topbar{ position:sticky; top:0; z-index:5; background:var(--bg);
+  padding:10px 0 8px; border-bottom:1px solid var(--line); }
+.topbar h1{ font-size:17px; margin:0; display:flex; justify-content:space-between; align-items:baseline;}
+.topbar .progress-num{ font-size:13px; color:var(--accent); font-weight:700; }
+.progress-bar{ height:4px; background:var(--line); border-radius:99px; margin-top:7px; overflow:hidden; }
+.progress-fill{ height:100%; width:0%; background:var(--accent); border-radius:99px; transition:width .4s; }
+.filter-row{ display:flex; gap:8px; margin-top:9px; flex-wrap:wrap; }
+.chip{ font-size:12.5px; padding:4px 12px; border-radius:99px; border:1px solid var(--line);
+  background:var(--card); color:var(--sub); cursor:pointer; user-select:none; }
+.chip.on{ border-color:var(--accent); color:var(--accent); font-weight:700; }
+
+details.tocbox{ border:1px solid var(--line); border-radius:10px;
+  background:var(--card); margin:10px 0 18px; }
+details.tocbox summary{ padding:10px 14px; cursor:pointer; font-weight:600; font-size:14px;
+  list-style:none; display:flex; align-items:center; gap:8px; }
+details.tocbox summary::-webkit-details-marker{ display:none; }
+details.tocbox summary::before{ content:"▼"; font-size:10px; color:var(--sub);
+  transition:transform .25s ease; display:inline-block; }
+details.tocbox[open] summary::before{ transform:rotate(0deg); }
+details.tocbox:not([open]) summary::before{ transform:rotate(-90deg); }
+.toc-search{ padding:10px 14px 4px; }
+.toc-search input{ width:100%; font-size:15px; padding:9px 12px; border-radius:9px;
+  border:1px solid var(--line); background:var(--bg); color:var(--ink); outline:none;
+  font-family:inherit; }
+.toc-search input:focus{ border-color:var(--accent); }
+.toc-group{ margin-top:6px; }
+.toc-group-h{ display:flex; align-items:center; gap:6px;
+  padding:9px 14px 5px; font-size:12.5px; font-weight:700; color:var(--sub);
+  cursor:pointer; user-select:none; }
+.toc-arrow{ flex:0 0 auto; display:inline-block; font-size:10px; color:var(--sub);
+  transition:transform .25s ease; transform-origin:center; }
+.toc-group.closed .toc-arrow{ transform:rotate(-90deg); }
+.toc-group-h .g-cnt{ font-weight:600; font-size:11.5px; color:var(--sub); }
+.toc-group.closed .toc-item{ display:none; }
+.toc-item{ display:flex; align-items:center; gap:8px; padding:7px 14px;
+  border-top:1px solid var(--line); color:var(--ink); text-decoration:none; font-size:13.5px; line-height:1.5; }
+.toc-item mark{ background:color-mix(in srgb, var(--star) 45%, transparent);
+  color:inherit; border-radius:3px; padding:0 1px; }
+.toc-item.read .toc-title{ color:var(--sub); }
+.toc-item.read .toc-mark-read{ background:var(--ok); color:#fff; }
+.toc-mark-read{ flex:0 0 auto; font-size:10px; font-weight:700; padding:1px 7px;
+  border-radius:99px; border:1px solid var(--ok); color:var(--ok); visibility:hidden; }
+.toc-mark-read,.toc-mark-wrong{ visibility:hidden; }
+.toc-item.read .toc-mark-read{ visibility:visible; background:var(--ok); color:#fff; }
+.toc-item.quizwrong .toc-mark-wrong{ visibility:visible; background:var(--bad); color:#fff; }
+.toc-mark-wrong{ flex:0 0 auto; font-size:10px; font-weight:700; padding:1px 7px;
+  border-radius:99px; border:1px solid var(--bad); color:var(--bad); }
+.toc-dot{ flex:0 0 8px; width:8px; height:8px; border-radius:50%; }
+.toc-dot.t-dilemma{ background:var(--dilemma); }
+.toc-dot.t-simulation{ background:var(--simulation); }
+.toc-dot.t-incident{ background:var(--incident); }
+.toc-star{ flex:0 0 16px; text-align:center; color:var(--star); font-size:14px; }
+.toc-star.empty{ visibility:hidden; }
+.toc-title{ flex:1; min-width:0; }
+.toc-sec{ flex:none; font-size:11px; color:var(--sub); opacity:.85; white-space:nowrap; max-width:38%; overflow:hidden; text-overflow:ellipsis; }
+.toc-item.starred .toc-title{ font-weight:600; }
+
+/* ---- cards ---- */
+.card{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+  padding:18px 18px 14px; margin:18px 0; scroll-margin-top:130px; transition:border-color .3s; }
+.card.is-read{ border-color:color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.card.is-starred{ border-color:color-mix(in srgb, var(--star) 55%, var(--line)); }
+.card-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.head-right{ display:flex; align-items:center; gap:10px; }
+.badge{ font-size:12px; font-weight:700; padding:2px 9px; border-radius:99px; color:#fff; }
+.b-dilemma{ background:var(--dilemma); }
+.b-simulation{ background:var(--simulation); }
+.b-incident{ background:var(--incident); }
+.star-btn{ background:none; border:none; font-size:20px; color:var(--sub); cursor:pointer;
+  padding:0 2px; line-height:1; }
+.card.is-starred .star-btn{ color:var(--star); }
+.read-dot{ width:9px; height:9px; border-radius:50%; background:var(--line); }
+.card.is-read .read-dot{ background:var(--ok); }
+.card-title{ font-size:18px; margin:10px 0 2px; line-height:1.45; }
+.hint{ font-size:12px; color:var(--sub); margin:0 0 6px; }
+.sec{ margin-top:14px; }
+.sec-label{ font-size:11.5px; font-weight:700; letter-spacing:.06em;
+  color:var(--sub); margin-bottom:4px; }
+.sec-scene{ border-left:3px solid var(--line); padding-left:12px; }
+.sec-question{ background:color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius:10px; padding:12px 14px; font-weight:500; }
+.sec-reveal{ border-top:1px dashed var(--line); padding-top:10px; }
+.takeaway{ margin-top:6px; padding:12px 14px; border-radius:10px;
+  background:color-mix(in srgb, var(--dilemma) 12%, transparent);
+  font-weight:600; line-height:1.7; }
+blockquote{ margin:0 0 6px; padding-left:12px; border-left:3px solid var(--line); color:var(--sub); }
+ul,ol{ margin:4px 0; padding-left:20px; }
+li{ margin:5px 0; }
+code{ font-size:.9em; background:var(--line); border-radius:4px; padding:1px 5px;
+  font-family:ui-monospace,Menlo,monospace; }
+pre.code{ background:var(--bg); border:1px solid var(--line); border-radius:8px;
+  padding:10px 12px; overflow-x:auto; font-size:12.5px; line-height:1.6; }
+pre.code code{ background:none; padding:0; }
+.mermaid-wrap{ margin:10px 0; padding:8px; border:1px solid var(--line);
+  border-radius:10px; overflow-x:auto; text-align:center; }
+pre.mermaid{ margin:0; display:flex; justify-content:center; }
+.no-mermaid pre.mermaid{ white-space:pre-wrap; font-size:11px; color:var(--sub);
+  text-align:left; font-family:ui-monospace,monospace; }
+
+/* ---- quiz ---- */
+.sec-quiz{ border-top:1px solid var(--line); padding-top:12px; }
+.quiz{ margin:12px 0; padding:12px 14px; border:1px solid var(--line); border-radius:10px; }
+.quiz-stem{ font-weight:600; margin-bottom:8px; line-height:1.6; }
+.quiz-opts{ display:flex; gap:8px; flex-wrap:wrap; }
+.quiz-opt{ flex:1 1 auto; min-width:72px; font-size:14px; padding:8px 12px;
+  border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink);
+  cursor:pointer; transition:all .15s; font-family:inherit; line-height:1.5; text-align:left;}
+.quiz-opt:active{ transform:scale(.97); }
+.quiz.answered .quiz-opt{ cursor:default; opacity:.65; }
+.quiz.answered .quiz-opt.picked{ opacity:1; }
+.quiz.answered .quiz-opt.correct{ border-color:var(--ok); color:var(--ok); font-weight:700; opacity:1; }
+.quiz.answered .quiz-opt.wrong{ border-color:var(--bad); color:var(--bad); font-weight:700; opacity:1; }
+.quiz-fb{ display:none; margin-top:8px; font-size:13.5px; font-weight:600; }
+.quiz.answered .quiz-fb{ display:block; }
+.quiz.right .quiz-fb{ color:var(--ok); }
+.quiz.wrongq .quiz-fb{ color:var(--bad); }
+
+/* ---- footer buttons ---- */
+.card-foot{ margin-top:16px; padding-top:12px; border-top:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:center; }
+.card-src{ font-size:13.5px; display:block; }
+.card-src .sec-label{ margin-bottom:6px; }
+.ref-link{ display:block; padding:8px 12px; margin:6px 0; border:1px solid var(--line);
+  border-radius:9px; color:var(--accent); text-decoration:none; font-weight:600;
+  font-size:13.5px; background:var(--bg); }
+.ref-link:active{ opacity:.6; }
+.mark-read-btn{ font-size:13.5px; font-weight:600; padding:8px 16px; border-radius:99px;
+  border:1.5px solid var(--accent); background:transparent; color:var(--accent); cursor:pointer;
+  font-family:inherit; }
+.card.is-read .mark-read-btn{ border-color:var(--ok); color:var(--ok); }
+
+/* ---- bottom nav ---- */
+.bottom-nav{ position:fixed; bottom:0; left:0; right:0; z-index:6;
+  background:color-mix(in srgb, var(--card) 92%, transparent);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  border-top:1px solid var(--line); display:flex; }
+.bottom-nav button{ flex:1; background:none; border:none; padding:12px 4px 20px;
+  font-size:12.5px; color:var(--sub); cursor:pointer; font-family:inherit; }
+.bottom-nav button.on{ color:var(--accent); font-weight:700; }
+.bottom-nav button .cnt{ display:block; font-size:15px; font-weight:800; }
+.hidden{ display:none !important; }
+.footnote{ text-align:center; color:var(--sub); font-size:12px; margin-top:30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1>DDIA 权衡卡 · 原型 <span style="display:flex;gap:10px;align-items:baseline"><span class="progress-num" id="prog-num">0/51</span><button class="chip" id="top-toc-btn">📋 目录</button></span></h1>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="filter-row" id="filters">
+      <button class="chip on" data-filter="all">全部</button>
+      <button class="chip" data-filter="unread">未学</button>
+      <button class="chip" data-filter="starred">★ 收藏</button>
+      <button class="chip" data-filter="quiz-wrong">答错过</button>
+    </div>
+  </div>
+  <details class="tocbox">
+    <summary>📋 卡片目录</summary>
+    <div class="toc-search"><input id="toc-search" type="search" placeholder="🔍 搜索卡片标题、章节、关键词…" autocomplete="off"></div>
+<div class="toc-group" data-group="§1"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第1章 数据系统架构中的权衡</span><span class="g-cnt">1 张</span></div>
+<a class="toc-item t-dilemma" href="#P-1.1-01" data-cid="P-1.1-01" data-text="P-1.1-01 单节点够用吗？还是必须上分布式 §1.1 数据系统架构中的权衡 分布式与单节点系统"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-1.1-01"></span><span class="toc-title">单节点够用吗？还是必须上分布式</span><span class="toc-sec">分布式与单节点系统</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§2"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第2章 定义非功能性需求</span><span class="g-cnt">2 张</span></div>
+<a class="toc-item t-dilemma" href="#P-2.1-01" data-cid="P-2.1-01" data-text="P-2.1-01 &quot;可用性 99.9%&quot; 到底承诺了什么？ §2 定义非功能性需求 描述性能"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-2.1-01"></span><span class="toc-title">&quot;可用性 99.9%&quot; 到底承诺了什么？</span><span class="toc-sec">描述性能</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-2.1-01" data-cid="S-2.1-01" data-text="S-2.1-01 推特时间线：为什么&quot;查&quot;比&quot;写&quot;更难扛？ §2 定义非功能性需求 案例研究：社交网络首页时间线"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-2.1-01"></span><span class="toc-title">推特时间线：为什么&quot;查&quot;比&quot;写&quot;更难扛？</span><span class="toc-sec">案例研究：社交网络首页时间线</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§3"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第3章 数据模型与查询语言</span><span class="g-cnt">3 张</span></div>
+<a class="toc-item t-dilemma" href="#P-3.1-01" data-cid="P-3.1-01" data-text="P-3.1-01 用户档案：关系表还是文档 JSON？ §3.1 数据模型与查询语言 关系模型与文档模型"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-3.1-01"></span><span class="toc-title">用户档案：关系表还是文档 JSON？</span><span class="toc-sec">关系模型与文档模型</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-3.2-01" data-cid="P-3.2-01" data-text="P-3.2-01 社交关系查询：SQL 三层嵌套还是图查询？ §3.2 数据模型与查询语言 图数据模型"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-3.2-01"></span><span class="toc-title">社交关系查询：SQL 三层嵌套还是图查询？</span><span class="toc-sec">图数据模型</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-3.3-01" data-cid="P-3.3-01" data-text="P-3.3-01 订单表反规范化：冗余一列省一个 JOIN，值不值？ §3.3 数据模型与查询语言 规范化、反规范化与连接"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-3.3-01"></span><span class="toc-title">订单表反规范化：冗余一列省一个 JOIN，值不值？</span><span class="toc-sec">规范化、反规范化与连接</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§4"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第4章 存储与检索</span><span class="g-cnt">5 张</span></div>
+<a class="toc-item t-dilemma" href="#P-4.1-01" data-cid="P-4.1-01" data-text="P-4.1-01 记录最近订单，用什么存储引擎？ §4.1 存储与检索 OLTP 系统的存储与索引"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-4.1-01"></span><span class="toc-title">记录最近订单，用什么存储引擎？</span><span class="toc-sec">OLTP 系统的存储与索引</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-4.1-02" data-cid="P-4.1-02" data-text="P-4.1-02 B 树还是 LSM 树：你的写入占多少？ §4.1 存储与检索 日志结构存储"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-4.1-02"></span><span class="toc-title">B 树还是 LSM 树：你的写入占多少？</span><span class="toc-sec">日志结构存储</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-4.1-01" data-cid="S-4.1-01" data-text="S-4.1-01 一次写入在 LSM 树里的完整旅程 §4.1 存储与检索 日志结构存储"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-4.1-01"></span><span class="toc-title">一次写入在 LSM 树里的完整旅程</span><span class="toc-sec">日志结构存储</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-4.2-01" data-cid="P-4.2-01" data-text="P-4.2-01 列存为什么聚合快？代价是什么？ §4.2 存储与检索 列式存储"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-4.2-01"></span><span class="toc-title">列存为什么聚合快？代价是什么？</span><span class="toc-sec">列式存储</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-4.3-01" data-cid="P-4.3-01" data-text="P-4.3-01 语义搜索：&quot;关闭账户&quot;要能搜到&quot;取消订阅&quot; §4.3 存储与检索 全文检索"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-4.3-01"></span><span class="toc-title">语义搜索：&quot;关闭账户&quot;要能搜到&quot;取消订阅&quot;</span><span class="toc-sec">全文检索</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§5"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第5章 编码与演化</span><span class="g-cnt">2 张</span></div>
+<a class="toc-item t-dilemma" href="#P-5.1-02" data-cid="P-5.1-02" data-text="P-5.1-02 REST 还是 RPC：内部服务间怎么通信？ §5.2 编码与演化 流经服务的数据流：REST 与 RPC"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-5.1-02"></span><span class="toc-title">REST 还是 RPC：内部服务间怎么通信？</span><span class="toc-sec">流经服务的数据流：REST 与 RPC</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-5.2-01" data-cid="P-5.2-01" data-text="P-5.2-01 服务升级期间，新旧版本并存怎么办？ §5.2 编码与演化 数据流的模式"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-5.2-01"></span><span class="toc-title">服务升级期间，新旧版本并存怎么办？</span><span class="toc-sec">数据流的模式</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§6"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第6章 复制</span><span class="g-cnt">10 张</span></div>
+<a class="toc-item t-incident" href="#I-6.1-01" data-cid="I-6.1-01" data-text="I-6.1-01 事故档案：MongoDB 旧主库&quot;复活&quot;导致数据回退 §6.1 复制：领导者与追随者 处理节点故障"><span class="toc-dot t-incident"></span><span class="toc-star" data-star="I-6.1-01"></span><span class="toc-title">事故档案：MongoDB 旧主库&quot;复活&quot;导致数据回退</span><span class="toc-sec">处理节点故障</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-6.1-01" data-cid="P-6.1-01" data-text="P-6.1-01 你的从库挂了，怎么恢复？ §6.1 复制：领导者与追随者 设置新的副本"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-6.1-01"></span><span class="toc-title">你的从库挂了，怎么恢复？</span><span class="toc-sec">设置新的副本</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-6.1-02" data-cid="P-6.1-02" data-text="P-6.1-02 同步复制到几个副本？ §6.1 复制：领导者与追随者 同步复制与异步复制"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-6.1-02"></span><span class="toc-title">同步复制到几个副本？</span><span class="toc-sec">同步复制与异步复制</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-6.1-01" data-cid="S-6.1-01" data-text="S-6.1-01 主库在确认前崩溃，这笔写入算数吗？ §6.1 复制：领导者与追随者 处理节点故障"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-6.1-01"></span><span class="toc-title">主库在确认前崩溃，这笔写入算数吗？</span><span class="toc-sec">处理节点故障</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-6.2-01" data-cid="P-6.2-01" data-text="P-6.2-01 用户改了自己的头像，刷新却还是旧的 §6.2 复制：复制滞后问题 读己之写"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-6.2-01"></span><span class="toc-title">用户改了自己的头像，刷新却还是旧的</span><span class="toc-sec">读己之写</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-6.2-02" data-cid="P-6.2-02" data-text="P-6.2-02 一条评论的回复出现在了评论前面 §6.2 复制：复制滞后问题 一致前缀读"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-6.2-02"></span><span class="toc-title">一条评论的回复出现在了评论前面</span><span class="toc-sec">一致前缀读</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-6.2-01" data-cid="S-6.2-01" data-text="S-6.2-01 跟踪一条数据在复制滞后期内的真实状态 §6.2 复制：复制滞后问题 复制延迟的问题"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-6.2-01"></span><span class="toc-title">跟踪一条数据在复制滞后期内的真实状态</span><span class="toc-sec">复制延迟的问题</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-6.3-01" data-cid="P-6.3-01" data-text="P-6.3-01 两个数据中心都能写，冲突来了怎么办？ §6.3 复制：多主复制 处理写入冲突"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-6.3-01"></span><span class="toc-title">两个数据中心都能写，冲突来了怎么办？</span><span class="toc-sec">处理写入冲突</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-incident" href="#I-6.4-01" data-cid="I-6.4-01" data-text="I-6.4-01 事故档案：Riak 集群&quot;幽灵 resurrect&quot;，被删除的数据回来了 §6.4 复制：无主复制 无主复制"><span class="toc-dot t-incident"></span><span class="toc-star" data-star="I-6.4-01"></span><span class="toc-title">事故档案：Riak 集群&quot;幽灵 resurrect&quot;，被删除的数据回来了</span><span class="toc-sec">无主复制</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-6.4-01" data-cid="P-6.4-01" data-text="P-6.4-01 不选主库了，写入确认几份才安全？ §6.4 复制：无主复制 仲裁一致性的局限"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-6.4-01"></span><span class="toc-title">不选主库了，写入确认几份才安全？</span><span class="toc-sec">仲裁一致性的局限</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§7"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第7章 分片</span><span class="g-cnt">4 张</span></div>
+<a class="toc-item t-dilemma" href="#P-7.1-01" data-cid="P-7.1-01" data-text="P-7.1-01 用户表按什么键分片？热点与查询的拉锯 §7.1 分片 分片的利与弊"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-7.1-01"></span><span class="toc-title">用户表按什么键分片？热点与查询的拉锯</span><span class="toc-sec">分片的利与弊</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-7.1-01" data-cid="S-7.1-01" data-text="S-7.1-01 推演：二级索引在分片集群里的两种命运 §7.1 分片 分片与二级索引"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-7.1-01"></span><span class="toc-title">推演：二级索引在分片集群里的两种命运</span><span class="toc-sec">分片与二级索引</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-7.2-01" data-cid="P-7.2-01" data-text="P-7.2-01 扩容要迁移数据：哈希取模为什么是灾难？ §7.2 分片 哈希取模节点数"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-7.2-01"></span><span class="toc-title">扩容要迁移数据：哈希取模为什么是灾难？</span><span class="toc-sec">哈希取模节点数</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-7.3-01" data-cid="P-7.3-01" data-text="P-7.3-01 请求该发给哪个分片？路由的三种放置 §7.3 分片 请求路由"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-7.3-01"></span><span class="toc-title">请求该发给哪个分片？路由的三种放置</span><span class="toc-sec">请求路由</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§8"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第8章 事务</span><span class="g-cnt">6 张</span></div>
+<a class="toc-item t-incident" href="#I-8.2-01" data-cid="I-8.2-01" data-text="I-8.2-01 事故档案：MySQL RR 下的丢失更新导致库存超卖 §8 事务 快照隔离与可重复读"><span class="toc-dot t-incident"></span><span class="toc-star" data-star="I-8.2-01"></span><span class="toc-title">事故档案：MySQL RR 下的丢失更新导致库存超卖</span><span class="toc-sec">快照隔离与可重复读</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-8.2-01" data-cid="P-8.2-01" data-text="P-8.2-01 你要为这三种业务各选哪个隔离级别？ §8 事务（四种隔离级别总览） 弱隔离级别"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-8.2-01"></span><span class="toc-title">你要为这三种业务各选哪个隔离级别？</span><span class="toc-sec">弱隔离级别</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-8.3-01" data-cid="P-8.3-01" data-text="P-8.3-01 值班医生系统：两个都撤销了自己的班 §8 事务 写偏差与幻读"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-8.3-01"></span><span class="toc-title">值班医生系统：两个都撤销了自己的班</span><span class="toc-sec">写偏差与幻读</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-8.3-02" data-cid="P-8.3-02" data-text="P-8.3-02 可串行化真的可以&quot;免费&quot;拿到吗？ §8 事务 可串行化"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-8.3-02"></span><span class="toc-title">可串行化真的可以&quot;免费&quot;拿到吗？</span><span class="toc-sec">可串行化</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-8.2-01" data-cid="S-8.2-01" data-text="S-8.2-01 四种隔离级别下，这笔并发读取各看到什么？ §8 事务 读已提交"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-8.2-01"></span><span class="toc-title">四种隔离级别下，这笔并发读取各看到什么？</span><span class="toc-sec">读已提交</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-8.4-01" data-cid="P-8.4-01" data-text="P-8.4-01 两阶段提交卡在&quot;中间态&quot;：协调者挂了怎么办？ §8.4 事务 两阶段提交（2PC）"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-8.4-01"></span><span class="toc-title">两阶段提交卡在&quot;中间态&quot;：协调者挂了怎么办？</span><span class="toc-sec">两阶段提交（2PC）</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§9"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第9章 分布式系统的麻烦</span><span class="g-cnt">4 张</span></div>
+<a class="toc-item t-dilemma" href="#P-9.1-01" data-cid="P-9.1-01" data-text="P-9.1-01 超时该设多长？设错了两边都输 §9.1 分布式 实践中的网络故障"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-9.1-01"></span><span class="toc-title">超时该设多长？设错了两边都输</span><span class="toc-sec">实践中的网络故障</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-9.1-02" data-cid="P-9.1-02" data-text="P-9.1-02 单机 → 分布式：什么直觉失效了？ §9.1 分布式 故障与部分失效"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-9.1-02"></span><span class="toc-title">单机 → 分布式：什么直觉失效了？</span><span class="toc-sec">故障与部分失效</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-9.2-01" data-cid="P-9.2-01" data-text="P-9.2-01 用本地时钟判断&quot;谁先发生&quot;，翻车了 §9.2 分布式 对同步时钟的依赖"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-9.2-01"></span><span class="toc-title">用本地时钟判断&quot;谁先发生&quot;，翻车了</span><span class="toc-sec">对同步时钟的依赖</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-9.3-01" data-cid="S-9.3-01" data-text="S-9.3-01 推演：进程暂停如何偷走你的锁 §9.3 分布式 进程暂停"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-9.3-01"></span><span class="toc-title">推演：进程暂停如何偷走你的锁</span><span class="toc-sec">进程暂停</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§10"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第10章 一致性与共识</span><span class="g-cnt">3 张</span></div>
+<a class="toc-item t-dilemma" href="#P-10.1-01" data-cid="P-10.1-01" data-text="P-10.1-01 抢库存要线性一致吗？先分清哪些操作真的需要 §10.1 一致性与共识 线性一致性"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-10.1-01"></span><span class="toc-title">抢库存要线性一致吗？先分清哪些操作真的需要</span><span class="toc-sec">线性一致性</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-10.2-01" data-cid="S-10.2-01" data-text="S-10.2-01 推演：Lamport 时钟怎么给并发事件排序 §10.2 一致性与共识 逻辑时钟"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-10.2-01"></span><span class="toc-title">推演：Lamport 时钟怎么给并发事件排序</span><span class="toc-sec">逻辑时钟</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-10.3-01" data-cid="P-10.3-01" data-text="P-10.3-01 两个节点都说自己是主：脑裂怎么办？ §10.3 一致性与共识 从单主复制到共识"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-10.3-01"></span><span class="toc-title">两个节点都说自己是主：脑裂怎么办？</span><span class="toc-sec">从单主复制到共识</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§11"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第11章 批处理</span><span class="g-cnt">4 张</span></div>
+<a class="toc-item t-dilemma" href="#P-11.1-01" data-cid="P-11.1-01" data-text="P-11.1-01 日志分析：Unix 管道 vs 分布式 MapReduce §11.1 批处理 使用 Unix 工具的批处理"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-11.1-01"></span><span class="toc-title">日志分析：Unix 管道 vs 分布式 MapReduce</span><span class="toc-sec">使用 Unix 工具的批处理</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-11.1-02" data-cid="P-11.1-02" data-text="P-11.1-02 从 Hadoop 到数据流引擎：为什么大家都在抛弃 MapReduce？ §11.1 批处理 数据流引擎"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-11.1-02"></span><span class="toc-title">从 Hadoop 到数据流引擎：为什么大家都在抛弃 MapReduce？</span><span class="toc-sec">数据流引擎</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-11.2-01" data-cid="P-11.2-01" data-text="P-11.2-01 每次重跑结果都不同：批处理也会&quot;不确定&quot; §11.2 批处理 批处理用例"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-11.2-01"></span><span class="toc-title">每次重跑结果都不同：批处理也会&quot;不确定&quot;</span><span class="toc-sec">批处理用例</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-11.3-01" data-cid="S-11.3-01" data-text="S-11.3-01 推演：一次 JOIN 在 MapReduce 里怎么变成 shuffle §11.3 批处理 MapReduce"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-11.3-01"></span><span class="toc-title">推演：一次 JOIN 在 MapReduce 里怎么变成 shuffle</span><span class="toc-sec">MapReduce</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§12"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第12章 流处理</span><span class="g-cnt">4 张</span></div>
+<a class="toc-item t-dilemma" href="#P-12.1-01" data-cid="P-12.1-01" data-text="P-12.1-01 消息队列 vs 事件日志：谁记住发生了什么？ §12.1 流处理 传递事件流"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-12.1-01"></span><span class="toc-title">消息队列 vs 事件日志：谁记住发生了什么？</span><span class="toc-sec">传递事件流</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-12.2-01" data-cid="P-12.2-01" data-text="P-12.2-01 变更数据捕获：为什么不要双写 §12.2 流处理 变更数据捕获"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-12.2-01"></span><span class="toc-title">变更数据捕获：为什么不要双写</span><span class="toc-sec">变更数据捕获</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-12.3-01" data-cid="P-12.3-01" data-text="P-12.3-01 事件时间 vs 处理时间：迟到的事件算哪个窗口？ §12.3 流处理 时间推理"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-12.3-01"></span><span class="toc-title">事件时间 vs 处理时间：迟到的事件算哪个窗口？</span><span class="toc-sec">时间推理</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-12.4-01" data-cid="S-12.4-01" data-text="S-12.4-01 推演：流处理如何做到&quot;恰好一次&quot;效果 §12.4 流处理 容错"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-12.4-01"></span><span class="toc-title">推演：流处理如何做到&quot;恰好一次&quot;效果</span><span class="toc-sec">容错</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+<div class="toc-group" data-group="§13"><div class="toc-group-h"><span class="toc-arrow">▼</span><span>第13章 流式系统的哲学</span><span class="g-cnt">3 张</span></div>
+<a class="toc-item t-dilemma" href="#P-13.1-01" data-cid="P-13.1-01" data-text="P-13.1-01 全公司一个&quot;数据湖&quot;通吃，还是要拆成一堆专用工具？ §13.1 数据的未来 数据集成"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-13.1-01"></span><span class="toc-title">全公司一个&quot;数据湖&quot;通吃，还是要拆成一堆专用工具？</span><span class="toc-sec">数据集成</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-dilemma" href="#P-13.2-01" data-cid="P-13.2-01" data-text="P-13.2-01 数据库自己保证不了正确性：端到端原则 §13.2 数据的未来 追求正确性"><span class="toc-dot t-dilemma"></span><span class="toc-star" data-star="P-13.2-01"></span><span class="toc-title">数据库自己保证不了正确性：端到端原则</span><span class="toc-sec">追求正确性</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+<a class="toc-item t-simulation" href="#S-13.3-01" data-cid="S-13.3-01" data-text="S-13.3-01 推演：及时性与完整性，你只能优先一个 §13.3 数据的未来 及时性与完整性"><span class="toc-dot t-simulation"></span><span class="toc-star" data-star="S-13.3-01"></span><span class="toc-title">推演：及时性与完整性，你只能优先一个</span><span class="toc-sec">及时性与完整性</span><span class="toc-mark-wrong">答错</span><span class="toc-mark-read">已学</span></a>
+</div>
+  </details>
+<section class="card" id="I-6.1-01" data-cid="I-6.1-01">
+<header class="card-head">
+<span class="badge b-incident">🔥 事故档案</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">事故档案：MongoDB 旧主库&quot;复活&quot;导致数据回退</h2>
+<p class="hint">真实事故叙事，记忆钩子</p>
+<div class="sec ">
+<div class="sec-label">背景（2016 年前后，MongoDB 社区多起类似报告）</div>
+<p>副本集中主库 M1 因网络分区被集群判死，选举 M2 为新主库。</p>
+<p>分区恢复后 M1 重新上线，它仍带着自己未同步给 M2 的若干写入。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">事故经过</div>
+<ol>
+<li>分区期间，应用持续向 M2 写入，一切正常。</li>
+<li>分区恢复，M1 以旧主库身份重新入群。</li>
+<li>早期版本的 MongoDB 在主从切换（rollbacks）处理上不完善：</li>
+</ol>
+<p>M1 上未被复制出去的写入被回退（甚至有报告称出现数据回退到旧状态）。</p>
+<ol>
+<li>应用层没有幂等保护，部分在分区期间的&quot;成功&quot;写入实际上丢失，</li>
+</ol>
+<p>且无任何报错——数据就是静默地变回了旧值。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">根因</div>
+<ul>
+<li>异步复制下，旧主库崩溃前未复制的写入天然处于&quot;不确定区&quot;。</li>
+<li>修复机制（把旧主库未同步写入回退到文件）在早期版本中</li>
+</ul>
+<p>可能造成应用可见的数据回退，而非仅回退到一致快照。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">如果当时你负责，怎么避免？</div>
+<ol>
+<li><strong>幂等键</strong>：所有关键写入带唯一请求 ID，重试安全。</li>
+<li><strong>写确认策略</strong>：关键集合用 w:majority，宁可牺牲写入可用性。</li>
+<li><strong>升级版本 + 开启回退文件监控</strong>：即便用旧版本，也要监控</li>
+</ol>
+<p>rollback 目录并在回退发生时告警、人工合并。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">与权衡卡的连接</div>
+<p>这正是 P-5.1-02（同步复制到几个副本？）和 S-5.1-01（主库崩溃推演）</p>
+<p>的真实版本：半同步/多数派确认不是理论洁癖，是为了把</p>
+<p>&quot;静默丢数据&quot;变成&quot;显式失败&quot;。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="I-6.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">防止&quot;主从切换后重试导致重复写入&quot;的关键手段是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 加大超时时间</button>
+<button class="quiz-opt" data-val="1">B. 写入幂等（唯一请求 ID）</button>
+<button class="quiz-opt" data-val="2">C. 增加从库数量</button>
+<button class="quiz-opt" data-val="3">D. 升级硬件</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="I-6.1-01-q1" data-kind="judge" data-correct="true">
+<div class="quiz-stem">异步复制下，旧主库崩溃前未复制的写入处于&quot;不确定区&quot;，可能在新主库上消失。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_failover">§6.1 处理节点故障 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_sync_async">§6.1 同步复制与异步复制 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="I-6.4-01" data-cid="I-6.4-01">
+<header class="card-head">
+<span class="badge b-incident">🔥 事故档案</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">事故档案：Riak 集群&quot;幽灵 resurrect&quot;，被删除的数据回来了</h2>
+<p class="hint">真实事故叙事，记忆钩子</p>
+<div class="sec ">
+<div class="sec-label">背景</div>
+<p>Riak（Dynamo 风格无主复制）的一个生产集群。某键被用户明确删除，</p>
+<p>删除操作以 tombstone（墓碑）标记写入多个副本。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">事故经过</div>
+<ol>
+<li>删除时部分副本收到了 tombstone，另一些副本因节点临时不可达没有收到。</li>
+<li>集群后期做了节点替换/读修复，从&quot;还有旧值&quot;的副本把旧值</li>
+</ol>
+<p>重新传播给了其他副本。</p>
+<ol>
+<li>结果：用户看到<strong>已删除的数据重新出现</strong>。且因为删除用的是</li>
+</ol>
+<p>LWW 语义，tombstone 与复活值之间的&quot;最后写入者&quot;判定</p>
+<p>在时钟偏移下可能判错。</p>
+<ol>
+<li>类似问题在多个 Dynamo 风格系统中反复出现（Riak、Cassandra</li>
+</ol>
+<p>的墓碑与 GC grace 机制都是为此设计的补丁）。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">根因</div>
+<ul>
+<li>无主复制中&quot;删除&quot;不是一个能靠多数派一次写就全局生效的操作，</li>
+</ul>
+<p>它依赖墓碑在<strong>足够长的时间窗口（GC grace）内</strong>传播到所有副本。</p>
+<ul>
+<li>任何在此窗口外的副本复活（长时间宕机后回归、备份恢复），</li>
+</ul>
+<p>都可能把旧值当作&quot;新值&quot;重新扩散。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">如果当时你负责，怎么避免？</div>
+<ol>
+<li>理解所用系统的墓碑/GC grace 配置，确保 grace 期大于</li>
+</ol>
+<p>最长预期节点离线时间。</p>
+<ol>
+<li>对&quot;必须真的消失&quot;的数据（合规删除），不依赖应用层删除——</li>
+</ol>
+<p>用离线压实或专门的合规工具。</p>
+<ol>
+<li>节点长期离线后回归时，不要直接信任其本地数据，</li>
+</ol>
+<p>走全量重建。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">与权衡卡的连接</div>
+<p>这是 P-5.4-01（法定人数）揭示部分&quot;反熵是异步的&quot;的极端后果：</p>
+<p>w + r &gt; n 在墓碑没传播完的窗口内完全失效。</p>
+<p>&quot;handling failures&quot; 一节、Cassandra GC grace 文档</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="I-6.4-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">Dynamo 风格系统中，&quot;已删除数据复活&quot;的根本原因是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 磁盘损坏</button>
+<button class="quiz-opt" data-val="1">B. 墓碑未在足够长的时间内传播到所有副本，离线副本回归后旧值重新扩散</button>
+<button class="quiz-opt" data-val="2">C. 客户端缓存</button>
+<button class="quiz-opt" data-val="3">D. 备份文件损坏</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="I-6.4-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">节点长时间离线后回归，直接信任其本地数据继续提供服务是安全的。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_leaderless">§6.4 无主复制 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_lag">§6.2 复制延迟的问题 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="I-8.2-01" data-cid="I-8.2-01">
+<header class="card-head">
+<span class="badge b-incident">🔥 事故档案</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">事故档案：MySQL RR 下的丢失更新导致库存超卖</h2>
+<p class="hint">真实事故叙事，记忆钩子</p>
+<div class="sec ">
+<div class="sec-label">背景</div>
+<p>电商系统，MySQL InnoDB，默认隔离级别 REPEATABLE READ。</p>
+<p>库存表一行记录商品剩余数量，秒杀流程：</p>
+<pre class="code"><code>-- 事务 A 与事务 B 并发执行，均为 RR 级别
+SELECT stock FROM items WHERE id = 1;   -- 两个事务都读到 1
+-- 应用层判断 stock &gt; 0，允许下单
+UPDATE items SET stock = stock - 1 WHERE id = 1;  -- 各扣 1
+</code></pre>
+</div>
+<div class="sec ">
+<div class="sec-label">事故经过</div>
+<ol>
+<li>剩余库存 1，两名用户同时下单。</li>
+<li>事务 A 和 B 的 <code>SELECT</code> 都读到 stock=1（各自快照），</li>
+</ol>
+<p>应用层判断都通过。</p>
+<ol>
+<li>两个 UPDATE 都执行成功（UPDATE 是当前读，各自把 1 改成 0——</li>
+</ol>
+<p>实际上后提交的把先提交的结果覆盖）。</p>
+<ol>
+<li>最终：卖出 2 件，库存只减了 1。<strong>一件不存在商品的订单生效了。</strong></li>
+</ol>
+</div>
+<div class="sec ">
+<div class="sec-label">根因</div>
+<ul>
+<li>开发者以为&quot;RR 隔离级别 = 事务安全&quot;，实际上 RR（快照隔离）</li>
+</ul>
+<p><strong>不防止丢失更新</strong>：两个事务基于同一个快照做&quot;读-改-写&quot;，</p>
+<p>后写的覆盖先写的。</p>
+<ul>
+<li>UPDATE 语句用的是当前读，两个 UPDATE 都成功——</li>
+</ul>
+<p>数据库层面没有违反 RR 的承诺，违反的是**业务不变量</p>
+<p>（库存不为负）**，而它从未被数据库表达出来。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">如果当时你负责，怎么避免？</div>
+<ol>
+<li><strong>原子更新</strong>：`UPDATE items SET stock = stock - 1</li>
+</ol>
+<p>WHERE id = 1 AND stock &gt; 0`，检查影响行数。最简单可靠。</p>
+<ol>
+<li><strong>显式锁</strong>：事务开头 <code>SELECT ... FOR UPDATE</code>，</li>
+</ol>
+<p>让第二个事务等待。</p>
+<ol>
+<li><strong>乐观锁</strong>：<code>UPDATE ... WHERE id = 1 AND stock = 1</code>（带上读到的版本），</li>
+</ol>
+<p>失败则重试。</p>
+<ol>
+<li>结构性思考：这个 bug 属于&quot;丢失更新&quot;异常，</li>
+</ol>
+<p>本质是应用层拿着快照数据做了决策。</p>
+</div>
+<div class="sec ">
+<div class="sec-label">与权衡卡的连接</div>
+<p>这是 P-7.2-01（隔离级别选型）中&quot;秒杀扣库存&quot;陷阱的真实版本：</p>
+<p><strong>快照隔离的安全感是错觉</strong>，它保证你读到的历史一致，</p>
+<p>不保证你基于它做的决策不冲突。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="I-8.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">防止 RR 下&quot;读-判断-写&quot;导致超卖，最简单可靠的 SQL 写法是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. SELECT 后在应用层判断</button>
+<button class="quiz-opt" data-val="1">B. UPDATE ... SET stock = stock - 1 WHERE stock > 0 并检查影响行数</button>
+<button class="quiz-opt" data-val="2">C. 提高隔离级别到串行化</button>
+<button class="quiz-opt" data-val="3">D. 加大事务超时</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="I-8.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">RR 隔离级别保证了事务的完全安全。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch8/#sec_transactions_snapshot_isolation">§8.2 快照隔离与可重复读 →</a>
+<a class="ref-link" href="/ch8/#sec_transactions_write_skew">§8.2 写偏差与幻读 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-1.1-01" data-cid="P-1.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">单节点够用吗？还是必须上分布式</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>新业务，预估 3 年数据量 200GB，峰值 QPS 2000，团队 4 人。</p>
+<p>架构评审有人主张&quot;一步到位上分布式&quot;：分片、多副本、消息队列全上齐。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>现在该上分布式吗？判断依据是什么？上了会付出什么代价？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>单节点与分布式的权衡：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    S["单节点<br>一台机器扛全部"] --> S1["优点：无网络分区问题<br>事务简单、运维轻"]
+    S --> S2["上限：受单机磁盘/内存/CPU 限制<br>故障即全停"]
+    D["分布式"] --> D1["优点：容量与吞吐可水平扩展<br>单机故障不再全局停摆"]
+    D --> D2["代价：网络分区、时钟不一致<br>部分失效成为常态"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>判断依据是&quot;单节点上限&quot;是否真的成为瓶颈</strong>，而不是&quot;分布式更高级&quot;。</li>
+</ul>
+<p>200GB / 2000 QPS 远在单机（现代服务器能轻松装下、能扛上万 QPS）范围内，</p>
+<p>此时上分布式买不到任何东西，只买到问题。</p>
+<ul>
+<li><strong>分布式的代价不是&quot;多一点运维&quot;，是一整类新故障模式</strong>：</li>
+</ul>
+<p>网络分区、部分失效、时钟不可信、跨节点一致性。</p>
+<p>第 9 章整章都在讲&quot;这些不确定性无法被消除&quot;。</p>
+<p>在不需要扩展时引入它们，是用确定的复杂度换不存在的收益。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：DDIA 第 1 章把&quot;分布式 vs 单节点&quot;直接列为一种架构权衡，</li>
+</ul>
+<p>与&quot;云服务 vs 自托管&quot;&quot;分析型 vs 事务型&quot;并列——</p>
+<p>说明<strong>&quot;要不要分布式&quot;是一个有正确答案的技术判断，不是品味问题</strong>。</p>
+<p>正解通常是：单节点能做到就用单节点（配合良好的备份与快速恢复），</p>
+<p>规模真的压过来时再拆，而且要按负载类型（读/写/容量）分别判断拆什么。</p>
+<ul>
+<li><strong>配套判断</strong>：可以先把无状态的 API 层横向扩，把存储留在单节点，</li>
+</ul>
+<p>这样能扩展最常见的瓶颈（并发连接）而不引入分布式存储的一致性问题。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-1.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">判断是否需要分布式存储的首要依据是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 团队规模</button>
+<button class="quiz-opt" data-val="1">B. 单节点在容量/吞吐上是否已成为真实瓶颈</button>
+<button class="quiz-opt" data-val="2">C. 竞品是否用了</button>
+<button class="quiz-opt" data-val="3">D. 数据是否重要</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-1.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">引入分布式后，网络分区与部分失效问题可以通过工程手段彻底消除。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch1/#sec_introduction_distributed">§1.3 分布式与单节点系统 →</a>
+<a class="ref-link" href="/ch1/#sec_introduction_cloud">§1.2 云服务与自托管 →</a>
+<a class="ref-link" href="/ch1/#sec_introduction_analytics">§1.1 分析型与事务型系统 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-10.1-01" data-cid="P-10.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">抢库存要线性一致吗？先分清哪些操作真的需要</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>电商系统分布式集群，这些操作哪些要求线性一致（看起来像只有一份数据）？</p>
+<p>① 秒杀扣减库存（不能超卖）</p>
+<p>② 用户改自己的昵称后立刻刷新页面要看到新昵称</p>
+<p>③ 朋友圈点赞数展示</p>
+<p>④ 分布式锁的获取与释放</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>逐一判断：哪些必须线性一致？哪些可以放宽？放宽的收益是什么？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>一致性需求分层：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    OPS["四类操作"] --> MUST["必须线性一致<br>① 扣库存（约束）<br>④ 锁（正确性依赖）"]
+    OPS --> RYW["读己之写够用<br>② 昵称"]
+    OPS --> FINAL["最终一致即可<br>③ 点赞数"]
+    FINAL --> GAIN["放宽的收益：可用性↑<br>延迟↓，分区时仍可读写"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>判断标准：操作结果是否参与&quot;正确性约束&quot;或被其他正确性依赖</strong>。</li>
+</ul>
+<p>扣库存违反就是资损（超卖）；锁不线性一致等于没锁。</p>
+<p>而昵称只要&quot;自己看得到自己改的&quot;（读己之写），</p>
+<p>点赞数偏差几个根本无人在意（最终一致）。</p>
+<ul>
+<li><strong>放宽的收益真实且巨大</strong>：线性一致要求读写都经过最新的数据副本，</li>
+</ul>
+<p>主节点挂了要等切换（不可用）；最终一致在分区时各副本仍可独立读写。</p>
+<p>CAP 定理说的就是这个：<strong>网络分区时，线性一致与可用性二选一</strong>。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：大部分系统 99% 的读不天然需要线性一致，</li>
+</ul>
+<p>真正需要的是少数关键路径。<strong>把一致性当成本来付费，只为必要操作付费</strong>，</p>
+<p>是分布式系统设计的第一堂经济学。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-10.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">以下哪个操作最不能放宽一致性？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 朋友圈点赞数</button>
+<button class="quiz-opt" data-val="1">B. 秒杀扣库存</button>
+<button class="quiz-opt" data-val="2">C. 推荐列表</button>
+<button class="quiz-opt" data-val="3">D. 浏览计数</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-10.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">网络分区发生时，系统可以同时保证线性一致和完全可用。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch10/#sec_consistency_linearizability">§10.1 线性一致性 →</a>
+<a class="ref-link" href="/ch10/#sec_consistency_linearizability_usage">§10.1 依赖线性一致性 →</a>
+<a class="ref-link" href="/ch10/#the-cap-theorem">§10.1 CAP 定理 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-10.3-01" data-cid="P-10.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">两个节点都说自己是主：脑裂怎么办？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>主从复制集群。网络分区：主 M1 与多数派失联，但还能响应部分客户端。</p>
+<p>监控判定 M1 超时，选举出 M2。短暂窗口内 M1 和 M2 都在接受写入。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>这个窗口的写入会有什么后果？共识协议（如 Raft）靠什么杜绝它？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>脑裂窗口与共识的防护：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    P["网络分区"] --> W["M1、M2 同时接受写<br>（脑裂窗口）"]
+    W --> R1["普通主从：两边都持久化<br>分区恢复后丢一边或冲突"]
+    W --> R2["共识协议：多数派投票<br>M1 无多数派 → 写入不被承认"]
+    R2 --> F["恢复后全局唯一主 + 统一日志"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>普通主从的窗口不是 bug 而是设计空白</strong>：M1 不知道自己已被罢免</li>
+</ul>
+<p>（它的&quot;失联&quot;可能只是监控侧的误判），继续接受写入。</p>
+<p>分区恢复后，两份互相矛盾的&quot;真相&quot;必须丢一边。</p>
+<ul>
+<li><strong>共识协议的两道锁（你可能没想到的第二道）</strong>：</li>
+</ul>
+<p>① <strong>任期 + 多数派</strong>：M2 需要 2/3 节点投票才能上任，M1 拿不到多数派，</p>
+<p>它的写入永远无法被提交（commit 需要多数派确认）；</p>
+<p>② <strong>更高的任期号</strong>：分区恢复后 M1 看到比自己新的任期号，立刻退位。</p>
+<p>注意：即使 M1 暂时还没收到新任期消息，它的写入也因缺多数派确认而无效——</p>
+<p><strong>正确性不依赖&quot;罢免消息及时送达&quot;</strong>，这是与 fencing token 思想同源的防线。</p>
+<ul>
+<li><strong>代价</strong>：共识要求多数派在线，2 节点集群容不了 1 节点故障</li>
+</ul>
+<p>（2/2 投不出多数派）。所以共识集群用 3 或 5 个节点。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-10.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">共识协议中，旧主在分区的少数派一侧的写入为什么会失效？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 被防火墙拦截</button>
+<button class="quiz-opt" data-val="1">B. 无法获得多数派确认，不会被提交</button>
+<button class="quiz-opt" data-val="2">C. 时间戳过期</button>
+<button class="quiz-opt" data-val="3">D. 磁盘故障</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-10.3-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">3 节点的共识集群可以容忍 2 个节点同时故障。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch10/#from-single-leader-replication-to-consensus">§10.3 从单主复制到共识 →</a>
+<a class="ref-link" href="/ch10/#subtleties-of-consensus">§10.3 共识的微妙之处 →</a>
+<a class="ref-link" href="/ch10/#pros-and-cons-of-consensus">§10.3 共识的利弊 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-11.1-01" data-cid="P-11.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">日志分析：Unix 管道 vs 分布式 MapReduce</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>每天 500GB 访问日志，要统计&quot;每个 URL 的访问次数，取 Top 100&quot;。</p>
+<ul>
+<li>方案 A：<code>cat access.log | awk &#x27;{print $7}&#x27; | sort | uniq -c | sort -rn | head -100</code></li>
+<li>方案 B：Hadoop MapReduce 集群</li>
+<li>方案 C：单台大内存机器 + DuckDB 读 Parquet</li>
+</ul>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>三个方案的适用边界在哪？Unix 管道为什么&quot;看起来不专业&quot;却常常是正解？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>批处理的伸缩阶梯：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    U["Unix 管道<br>GB 级：几秒"] --> M["单机多核 + 列存<br>(DuckDB/Polars)<br>100GB 级：分钟"]
+    M --> D["分布式 MapReduce/Spark<br>TB-PB 级<br>受限于机器数"]
+    D --> C["瓶颈往往不是 CPU<br>而是磁盘/网络混洗"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>Unix 管道的四个优秀特质（DDIA 反复强调）</strong>：</li>
+</ul>
+<p>① 输入是不可变文件，输出是只追加，不用原地更新；</p>
+<p>② 每一步靠<strong>约定分隔符</strong>（行、制表符）解耦，工具可自由替换；</p>
+<p>③ 失败只需重跑（无副作用，幂等）；</p>
+<p>④ 排序作为万能的&quot;中介&quot;（sort 后 uniq -c 自然聚合）。</p>
+<p>分布式批处理几乎是把这四点照搬到集群上——<strong>MapReduce 的 shuffle 就是 sort</strong>。</p>
+<ul>
+<li><strong>50GB 以下不要上集群（你可能没想到的）</strong>：单机 SSD + 列存格式</li>
+</ul>
+<p>往往比 10 节点的洗牌快，因为分布式的大部分时间花在网络混洗和调度上。</p>
+<p>规模没到就先别付分布式的复杂度税。</p>
+<ul>
+<li><strong>真正的分界线不是数据量，是&quot;能否单机装下中间结果&quot;</strong>：</li>
+</ul>
+<p>排序/聚合需要中间结果落地，超出单机磁盘时才需要分布式。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-11.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">分布式批处理中最昂贵、最需要优化的环节通常是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. CPU 计算</button>
+<button class="quiz-opt" data-val="1">B. 跨节点数据混洗（shuffle）</button>
+<button class="quiz-opt" data-val="2">C. 磁盘写入</button>
+<button class="quiz-opt" data-val="3">D. 日志采集</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-11.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">数据量只要超过 10GB 就应该上分布式集群。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch11/#sec_batch_unix">§11.1 使用 Unix 工具的批处理 →</a>
+<a class="ref-link" href="/ch11/#sec_batch_distributed">§11.2 分布式系统中的批处理 →</a>
+<a class="ref-link" href="/ch11/#sec_shuffle">§11.3 混洗数据 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-11.1-02" data-cid="P-11.1-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">从 Hadoop 到数据流引擎：为什么大家都在抛弃 MapReduce？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>团队用 MapReduce 做 10 步的 ETL 工作流。问题：</p>
+<ol>
+<li>每步都要读写 HDFS，10 步 = 10 轮完整落盘</li>
+<li>中间结果只是给下一步用，却要复制 3 份（HDFS 副本）</li>
+<li>某步失败要重跑整步</li>
+</ol>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>数据流引擎（Spark/Flink/Tez）做了什么改变来消除这些开销？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>MapReduce vs 数据流引擎的执行模型：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph MR["MapReduce"]
+        M1["map→落盘"] --> M2["reduce→落盘"] --> M3["下一作业→再读"]
+    end
+    subgraph DF["数据流引擎"]
+        D1["算子 DAG<br>中间结果留在内存/本地盘"] --> D2["一次作业完成多步"]
+        D2 --> D3["整体调度：局部失败只重算受影响分区"]
+    end
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>核心变化是把&quot;作业&quot;变成&quot;算子图（DAG）&quot;</strong>：</li>
+</ul>
+<p>整个工作流表达为一个 DAG，引擎统一调度，</p>
+<p>中间结果<strong>不落 HDFS</strong>，而是待在内存或用本地磁盘溢出文件。</p>
+<p>避免每步物化到分布式文件系统（省掉了写副本 + 下次读的两次代价）。</p>
+<ul>
+<li><strong>调度粒度变细</strong>：MapReduce 以&quot;整个作业&quot;为失败单位，</li>
+</ul>
+<p>数据流引擎以&quot;分区/算子&quot;为单位，局部失败只重算受影响的分区。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：数据流引擎仍然会落盘——只是<strong>有选择的落盘</strong>，</li>
+</ul>
+<p>在 shuffle 边界和 checkpoint 处落，而不是每一步都落。</p>
+<p>落盘的目的是<strong>容错</strong>（血统 lineage 重算也需要重放点）。</p>
+<p>本质权衡没变：<strong>容错成本 vs 恢复速度</strong>——</p>
+<p>多落盘 = 恢复快但慢；少落盘 = 快但失败后要重算更多。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-11.1-02-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">数据流引擎相比 MapReduce 的主要优化是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 更强的 CPU</button>
+<button class="quiz-opt" data-val="1">B. 中间结果不物化到 HDFS，算子组成 DAG 统一调度</button>
+<button class="quiz-opt" data-val="2">C. 不需要 shuffle</button>
+<button class="quiz-opt" data-val="3">D. 不用容错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-11.1-02-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">Spark 这类引擎完全不落盘，所有中间数据都在内存。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch11/#sec_batch_dataflow">§11.3 数据流引擎 →</a>
+<a class="ref-link" href="/ch11/#sec_batch_mapreduce">§11.3 MapReduce →</a>
+<a class="ref-link" href="/ch11/#sec_shuffle">§11.3 混洗数据 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-11.2-01" data-cid="P-11.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">每次重跑结果都不同：批处理也会&quot;不确定&quot;</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>每日报表任务：读事件日志 → 按用户聚合 → 写结果表。</p>
+<p>某天线上排查发现：同一天的数据<strong>重跑两次，结果不一样</strong>（差几千条）。</p>
+<p>代码里没有任何随机数。也没有 SQL 的 LIMIT 之类。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>不引入随机性，重跑结果为什么会不同？批处理的&quot;确定性&quot;边界在哪？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>不确定来源的分类：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    N["重跑结果不同"] --> R1["任务内部随机<br>(如抽样、UUID)"]
+    N --> R2["读到外部可变状态<br>（重跑时源数据已变）"]
+    N --> R3["操作顺序不确定<br>（并发/哈希遍历顺序）"]
+    N --> R4["非幂等写入<br>（重跑=重复累加）"]
+    R1 --> F["修法：确定性 + 幂等"]
+    R2 --> F
+    R3 --> F
+    R4 --> F
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>批处理&quot;可重跑&quot;的前提是确定性与幂等</strong>，而不是&quot;批处理本身天然可重跑&quot;。</li>
+</ul>
+<p>常见真实原因：</p>
+<p>① <strong>读到会变的源数据</strong>：任务跑的时候上游还在写入，重跑时窗口内的数据变了；</p>
+<p>② <strong>非幂等输出</strong>：结果表用 <code>INSERT</code> 追加而不是按分区覆盖，</p>
+<p>重跑就把同一批数据算了两遍（最典型的&quot;差几千条&quot;）；</p>
+<p>③ <strong>聚合顺序/并发导致的浮点或 tie-break 差异</strong>。</p>
+<ul>
+<li><strong>工程正解（你可能没想到的）</strong>：</li>
+</ul>
+<p>输出按<strong>分区原子覆盖</strong>（同一天的结果目录整体替换，而不是追加），</p>
+<p>所有写入设计成<strong>幂等</strong>（相同输入重复执行结果不变）。</p>
+<p>Flink/Spark 的 checkpoint、Hive 的 <code>INSERT OVERWRITE PARTITION</code> 都是这个思想。</p>
+<ul>
+<li><strong>引申</strong>：这就是&quot;恰好一次处理&quot;的真相——分布式系统里没有真正的&quot;恰好一次&quot;</li>
+</ul>
+<p>执行，只有<strong>幂等 + 原子提交</strong>模拟出的效果等价。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-11.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">批处理任务重跑导致结果翻倍，最可能的原因是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. CPU 不稳定</button>
+<button class="quiz-opt" data-val="1">B. 输出用追加写入而非分区原子覆盖（非幂等）</button>
+<button class="quiz-opt" data-val="2">C. 数据量变大</button>
+<button class="quiz-opt" data-val="3">D. 磁盘故障</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-11.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">批处理任务天然可重跑，无需担心重复执行的影响。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch11/#sec_batch_output">§11.4 批处理用例 →</a>
+<a class="ref-link" href="/ch11/#sec_batch_workflows">§11.2 工作流调度 →</a>
+<a class="ref-link" href="/ch11/#sec_batch_serving_derived">§11.4 对外提供衍生数据 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-12.1-01" data-cid="P-12.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">消息队列 vs 事件日志：谁记住发生了什么？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>订单系统要广播&quot;订单已创建&quot;事件给 5 个下游（风控、库存、通知、分析、对账）。</p>
+<p>候选：</p>
+<ul>
+<li>方案 A：RabbitMQ（传统消息队列，消息被消费后删除）</li>
+<li>方案 B：Kafka（分区日志，消息保留可重放）</li>
+</ul>
+<p>新需求来了：下游新增了对账服务，<strong>它需要处理过去 30 天的全部事件</strong>。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>两种方案在这个新需求下的差异有多大？根本区别是什么？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两种传递模型的核心差异：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    A["消息队列<br>消息消费即删除"] --> A1["新消费者只能看未来<br>过去的数据已不存在"]
+    B["分区日志<br>追加写入 + 按 offset 消费<br>保留期/压缩策略控制"] --> B1["消费者可倒回到 offset=0<br>重放全部历史"]
+    A1 --> R["新需求下 A 无法满足"]
+    B1 --> R2["B 天然支持：加个 consumer group"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>根本区别在&quot;谁控制消费进度&quot;</strong>：消息队列里 Broker 负责删除</li>
+</ul>
+<p>（消息一旦被确认就消失）；日志里<strong>消费者自己维护 offset</strong>，</p>
+<p>Broker 只管保留（按时间或大小）。</p>
+<p>这一个差异带来了巨大的能力差。</p>
+<ul>
+<li><strong>日志模型的能力</strong>：新增消费者可以<strong>从头重放</strong>；</li>
+</ul>
+<p>消费者挂掉重启不影响别人（各自的 offset）；</p>
+<p>同一个日志可以派生多个独立视图（派生数据思想的基础）。</p>
+<ul>
+<li><strong>代价（你可能没想到的）</strong>：</li>
+</ul>
+<p>① 日志保留期 = 你必须为&quot;可重放&quot;付存储成本，</p>
+<p>无限保留不现实，要靠<strong>日志压缩</strong>（key 相同只留最新）来控；</p>
+<p>② offset 的管理责任转移给了消费者——</p>
+<p>提交 offset 的时机决定&quot;至少一次&quot;还是&quot;最多一次&quot;语义；</p>
+<p>③ 消息队列的&quot;消费即删&quot;反过来是优点：无需管理保留策略和磁盘水位。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-12.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">日志模型能给新消费者重放历史，根本原因是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 消息更大</button>
+<button class="quiz-opt" data-val="1">B. 消息按 offset 保留，消费进度由消费者维护</button>
+<button class="quiz-opt" data-val="2">C. Broker 更强</button>
+<button class="quiz-opt" data-val="3">D. 用了 SSD</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-12.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">事件日志可以无限保留所有历史消息而无需额外考虑。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch12/#sec_stream_transmit">§12.1 传递事件流 →</a>
+<a class="ref-link" href="/ch12/#sec_stream_logs_vs_messaging">§12.1 日志与传统消息传递的比较 →</a>
+<a class="ref-link" href="/ch12/#sec_stream_log_offsets">§12.1 消费者偏移量 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-12.2-01" data-cid="P-12.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">变更数据捕获：为什么不要双写</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>服务要把订单数据同步到搜索索引和缓存。团队方案：</p>
+<p><strong>在业务代码里同时写数据库、写 ES、写 Redis</strong>（双写/三写）。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>这个方案会在什么情况下不一致？CDC（变更数据捕获）如何根治？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>双写 vs CDC：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    W["业务代码"] --> D["写主库 ✓"]
+    W --> E["写 ES ✗ 失败/超时"]
+    W --> R["写 Redis ✗ 顺序错乱"]
+    D --> CDC["CDC：读数据库日志<br>（binlog/WAL）"]
+    CDC -->|统一有序| ES2["搜索索引"]
+    CDC -->|统一有序| RD["缓存"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>双写的三个致命问题</strong>：</li>
+</ul>
+<p>① <strong>无原子性</strong>：主库写成功、ES 写失败 → 数据不一致，且没有自动修复；</p>
+<p>② <strong>顺序无保证</strong>：并发请求下 ES 的写入顺序可能与主库提交顺序不同，</p>
+<p>后写的旧值可能覆盖新值；</p>
+<p>③ <strong>逻辑分叉</strong>：每个下游都要在业务代码里维护，</p>
+<p>新增下游 = 改业务代码 = 高耦合。</p>
+<ul>
+<li><strong>CDC 的做法</strong>：把数据库的复制日志（binlog/WAL）</li>
+</ul>
+<p>当成事件流读取——<strong>因为日志本身就是按提交顺序排列的</strong>，</p>
+<p>CDC 天然继承了主库的顺序与一致性。业务代码只写主库。</p>
+<ul>
+<li><strong>你可能没想到的（真正的本质）</strong>：</li>
+</ul>
+<p>CDC 让&quot;数据库&quot;和&quot;下游派生视图&quot;变成<strong>同一份数据的不同视图</strong>，</p>
+<p>而这正是 DDIA 全书的主线论点——**派生数据必须由单一事实来源</p>
+<p>的唯一有序日志驱动**。多写就是在制造多个互相矛盾的&quot;事实来源&quot;。</p>
+<p>这也是为什么端到端一致性（end-to-end argument）指向&quot;从事件日志派生一切&quot;。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-12.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">双写导致数据不一致的根本原因是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 网络慢</button>
+<button class="quiz-opt" data-val="1">B. 缺少跨系统的原子性与顺序保证</button>
+<button class="quiz-opt" data-val="2">C. 磁盘故障</button>
+<button class="quiz-opt" data-val="3">D. 编程语言问题</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-12.2-01-q1" data-kind="judge" data-correct="true">
+<div class="quiz-stem">CDC 从数据库复制日志读取变更，因此天然继承了提交顺序。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch12/#sec_stream_cdc">§12.2 变更数据捕获 →</a>
+<a class="ref-link" href="/ch12/#sec_stream_sync">§12.2 保持系统同步 →</a>
+<a class="ref-link" href="/ch12/#sec_stream_deriving_views">§12.2 从同一事件日志中派生多个视图 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-12.3-01" data-cid="P-12.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">事件时间 vs 处理时间：迟到的事件算哪个窗口？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>统计&quot;每分钟下单量&quot;。某事件发生在 10:00:05，</p>
+<p>但由于客户端离线，10:12 才上传到服务端。</p>
+<p>流处理作业用<strong>处理时间</strong>做窗口聚合。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>这条事件会被算进哪个窗口？结果会有什么问题？换成事件时间呢？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两种时间的差异：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    E["事件时间 10:00:05<br>（真实发生）"] --> Q["迟到 12 分钟"]
+    Q --> P["处理时间窗口<br>→ 计入 10:12 窗口 ✗"]
+    Q --> ET["事件时间窗口<br>→ 计入 10:00 窗口 ✓<br>但窗口要等水位线"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>处理时间的结果不稳定且不可重放</strong>：同一条数据在不同时间到达，</li>
+</ul>
+<p>会落入不同窗口，导致<strong>同一份数据重跑结果不同</strong>；</p>
+<p>离线补传、网络抖动、消费滞后都会让&quot;每分钟下单量&quot;波动失真。</p>
+<ul>
+<li><strong>事件时间给出稳定答案</strong>，但代价是：</li>
+</ul>
+<p>① 必须<strong>等</strong>——得知道&quot;10:00 的事件都到齐了&quot;才能关闭窗口，</p>
+<p>这个判断靠<strong>水位线（watermark）</strong>，本质上又是一个&quot;用启发式猜测代替事实&quot;</p>
+<p>（和 ch9 的超时、ch6 的时钟问题同源）；</p>
+<p>② 水位线设太紧 → 迟到数据被丢弃；设太松 → 结果延迟很久才出；</p>
+<p>③ 通常给一个<strong>允许迟到窗口</strong>，超时的事件走&quot;侧输出&quot;再人工处理。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：这就是&quot;流处理为什么难&quot;的核心——</li>
+</ul>
+<p>批处理里&quot;输入固定&quot;这个前提消失了，</p>
+<p>你必须在<strong>结果延迟</strong>与<strong>结果完整性</strong>之间做选择，</p>
+<p>而且要显式地做出选择（水位线策略就是那个选择）。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-12.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">用处理时间做窗口聚合的最大问题是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 太慢</button>
+<button class="quiz-opt" data-val="1">B. 结果依赖到达时间，不可重放且不稳定</button>
+<button class="quiz-opt" data-val="2">C. 内存不足</button>
+<button class="quiz-opt" data-val="3">D. 无法并行</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-12.3-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">事件时间窗口靠什么判断&quot;这个窗口的数据到齐了&quot;？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 系统时钟</button>
+<button class="quiz-opt" data-val="1">B. 水位线（watermark）</button>
+<button class="quiz-opt" data-val="2">C. 分片数</button>
+<button class="quiz-opt" data-val="3">D. 消费者 offset</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch12/#sec_stream_time">§12.3 时间推理 →</a>
+<a class="ref-link" href="/ch12/#id322">§12.3 事件时间与处理时间 →</a>
+<a class="ref-link" href="/ch12/#id323">§12.3 处理滞留事件 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-13.1-01" data-cid="P-13.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">全公司一个&quot;数据湖&quot;通吃，还是要拆成一堆专用工具？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>公司现状：MySQL 存业务、ES 做搜索、Redis 做缓存、ClickHouse 做分析、</p>
+<p>Kafka 做事件。新架构师提议：<strong>全公司统一到一个&quot;数据湖/hub&quot;</strong>，</p>
+<p>消灭所有专用系统。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>&quot;统一&quot;的收益与代价各是什么？为什么 DDIA 的结论恰恰相反（unbundling）？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>统一 vs 解耦：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    subgraph U["统一数据平台"]
+        A["一个系统全包<br>读写/搜索/分析/事件"] --> A1["运维简单、单一模型"]
+        A1 --> A2["但每类负载的最优实现不同<br>必然在某些负载上很差"]
+    end
+    subgraph D["解耦（unbundling）"]
+        B["每个专用工具做自己最擅长的事"] --> B1["代价：数据在系统间流动<br>需要集成层"]
+        B1 --> B2["正解：围绕事件日志集成<br>而非两两点对点同步"]
+    end
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>没有一种存储对全部负载都最优</strong>——这是第 I 部分的结论</li>
+</ul>
+<p>（OLTP 行存 vs 列存 vs 倒排索引 vs 向量索引，物理布局需求互斥）。</p>
+<p>统一必然意味着在所有非最优负载上付代价。</p>
+<ul>
+<li><strong>解耦的代价是集成</strong>，而且是 N² 的点对点集成（5 个系统 = 20 条同步链路，</li>
+</ul>
+<p>每条都要处理顺序、重试、一致性问题）。这才是&quot;统一平台&quot;诱人的真正原因。</p>
+<ul>
+<li><strong>DDIA 的答案（你可能没想到的）</strong>：</li>
+</ul>
+<p>解耦本身没错，错的是用点对点同步来集成。</p>
+<p><strong>正确做法是围绕一条（或少数几条）有序事件日志做集成</strong>：</p>
+<p>每个系统订阅日志派生自己的视图，单向流动、无环、可重放。</p>
+<p>这样既保留了专用工具的各自最优，又把 N² 集成收敛成 N 条订阅。</p>
+<p>&quot;组合使用数据存储技术&quot;的核心约束就是<strong>派生关系必须是单向无环的</strong>。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-13.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">解耦多个专用数据系统后，真正需要解决的核心问题是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 硬件成本</button>
+<button class="quiz-opt" data-val="1">B. 系统间集成（数据流动、顺序与一致性）</button>
+<button class="quiz-opt" data-val="2">C. 团队人数</button>
+<button class="quiz-opt" data-val="3">D. 数据库版本</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-13.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">派生数据的方向允许出现环路，只要最终收敛即可。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch13/#sec_future_integration">§13.1 数据集成 →</a>
+<a class="ref-link" href="/ch13/#id442">§13.1 通过衍生数据组合专用工具 →</a>
+<a class="ref-link" href="/ch13/#id447">§13.2 组合使用数据存储技术 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-13.2-01" data-cid="P-13.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">数据库自己保证不了正确性：端到端原则</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>系统做得&quot;很安全&quot;：数据库有唯一约束和事务，</p>
+<p>消息队列有恰好一次投递，应用用乐观锁防并发。</p>
+<p>结果还是出了双重转账：用户点两次提交按钮，网关重试了一次，</p>
+<p>两次请求被负载均衡分到不同实例，各自读到相同余额、各自扣款成功。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>每一层都&quot;正确&quot;，为什么整体还是错的？谁该负责？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>各层保证与端到端保证的落差：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    N["网关重试<br>（不知道是重试）"] --> A1["实例1"]
+    N --> A2["实例2"]
+    A1 --> DB["数据库：事务/约束都正常"]
+    A2 --> DB
+    DB --> R["双重扣款"]
+    F["端到端唯一性：请求 ID 去重<br>（必须由应用提供）"] -.-> R
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>每个组件只对自己的边界负责</strong>，而错误是跨边界发生的。</li>
+</ul>
+<p>消重需要&quot;同一请求只执行一次&quot;这个<strong>端到端</strong>的属性，</p>
+<p>但数据库不知道两次调用是同一个业务请求——除非应用把</p>
+<p><strong>幂等键（请求 ID）</strong> 传进来并在同一事务里记录。</p>
+<ul>
+<li><strong>这就是端到端原则（end-to-end argument）</strong>：</li>
+</ul>
+<p>正确性属性必须在最外层（知道业务语义的那一层）强制，</p>
+<p>底层只能提供原语（事务、唯一约束），不能替应用做判断。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：这条原则反过来解释了为什么&quot;端到端一致性&quot;</li>
+</ul>
+<p>要在数据流层面做——**只有沿整条链路传递唯一标识，</p>
+<p>才能让最末端的写入具备去重能力**。所以 DDIA 第 13 章把</p>
+<p>&quot;数据的端到端原则&quot;和&quot;及时性与完整性&quot;放在一起讲：</p>
+<p>正确性不是某一层的属性，而是全链路的属性。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-13.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">数据库无法阻止双重扣款的根本原因是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 事务太弱</button>
+<button class="quiz-opt" data-val="1">B. 它不知道两次请求属于同一业务操作，去重必须由应用提供唯一 ID</button>
+<button class="quiz-opt" data-val="2">C. 锁不够</button>
+<button class="quiz-opt" data-val="3">D. 网络太慢</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-13.2-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">&quot;强制约束&quot;为什么需要端到端视角？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 为了性能</button>
+<button class="quiz-opt" data-val="1">B. 约束的正确性依赖业务语义，只有链路端点知道</button>
+<button class="quiz-opt" data-val="2">C. 为了兼容旧系统</button>
+<button class="quiz-opt" data-val="3">D. 为了减少存储</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch13/#sec_future_correctness">§13.3 追求正确性 →</a>
+<a class="ref-link" href="/ch13/#sec_future_end_to_end">§13.3 数据库的端到端原则 →</a>
+<a class="ref-link" href="/ch13/#sec_future_constraints">§13.3 强制约束 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-2.1-01" data-cid="P-2.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">&quot;可用性 99.9%&quot; 到底承诺了什么？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>产品要求&quot;系统可用性 99.9%&quot;。团队对这句话的理解产生了分歧：</p>
+<p>A 说全年停机不能超过 8.76 小时；B 说只要主流程能用就行；</p>
+<p>C 问&quot;部分用户失败算不算不可用&quot;。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>写 SLA 时必须明确哪几个问题？漏掉会怎样？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>一个可执行的 SLA 必须回答的四个问题：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    SLA["99.9% 的承诺"] --> Q1["什么算'不可用'？<br>（失败率？延迟超标？功能降级？）"]
+    SLA --> Q2["在哪儿测量？<br>（服务端？真实用户端？）"]
+    SLA --> Q3["对谁承诺？<br>（全体用户 P50？还是 P99？）"]
+    SLA --> Q4["怎么补偿？<br>（违约退款？仅通报？）"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>可用性是分位数游戏</strong>：服务端平均 99.9% 可用时，</li>
+</ul>
+<p>尾部用户体验可能糟糕得多（比如某机房用户 100% 失败）。</p>
+<p>严肃的 SLA 用请求成功率 + 延迟分位数（P99）定义，且<strong>在客户端测量</strong>——</p>
+<p>服务端看到的永远比用户实际经历的乐观。</p>
+<ul>
+<li><strong>容错的悖论（你可能没想到的）</strong>：向系统里添加冗余以提高可靠性，</li>
+</ul>
+<p>同时也引入了新的故障源（多副本一致性、故障检测误判、更复杂的切换逻辑）。</p>
+<p>缓解得当是净收益，设计草率反而降低可靠性。</p>
+<p>&quot;多加几台机器&quot;不自动等于&quot;更可靠&quot;。</p>
+<ul>
+<li><strong>工程含义</strong>：SLA 的每一句话都对应可测量的指标和自动告警，</li>
+</ul>
+<p>否则它只是营销文案。写 SLA 的过程就是设计监控体系的过程。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-2.1-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">服务端统计的可用性达到 99.9%，用户实际体验就一定是 99.9%。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-2.1-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">为提高可靠性引入冗余，可能带来什么副作用？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 必然提高可靠性</button>
+<button class="quiz-opt" data-val="1">B. 新增故障源（一致性/误判/切换复杂度），设计不当反而降低可靠性</button>
+<button class="quiz-opt" data-val="2">C. 只影响成本</button>
+<button class="quiz-opt" data-val="3">D. 无影响</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch2/#sec_introduction_percentiles">§2.2 描述性能 →</a>
+<a class="ref-link" href="/ch2/#sec_introduction_reliability">§2.3 可靠性与容错 →</a>
+<a class="ref-link" href="/ch1/#sec_introduction_analytics">§1.1 分析型与事务型系统 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-3.1-01" data-cid="P-3.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">用户档案：关系表还是文档 JSON？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>设计用户档案：基本信息（姓名、注册时间）+ 偏好设置（几十个键值对，</p>
+<p>不同用户字段差异大）+ 常用地址列表（一对多）+ 关注的人（多对多）。</p>
+<p>团队争论：A 说放 PostgreSQL 一个 jsonb 字段；B 说全部建关系表；</p>
+<p>C 说用 MongoDB。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>档案的四个部分，哪些适合文档模型，哪些必须关系化？判断依据是什么？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>判断标准：数据的关联形状决定模型选择：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    D["档案四部分"] --> A["基本信息<br>字段固定"]
+    D --> B["偏好设置<br>字段因人而异"]
+    D --> C["地址列表<br>一对多，总随用户一起读"]
+    D --> E["关注关系<br>多对多，要反查"]
+    B --> DOC["适合文档模型<br>模式灵活"]
+    C --> DOC
+    E --> REL["适合关系模型<br>要连接查询"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>判断依据不是&quot;技术潮流&quot;，是两个问题：</p>
+<ul>
+<li><strong>数据是否有统一模式</strong>：偏好设置字段因人而异，关系表要么几百列</li>
+</ul>
+<p>大量为空，要么频繁改表结构。文档模型天然适配。</p>
+<p>地址列表虽然是一对多，但<strong>总是随用户整体读取</strong>，</p>
+<p>内嵌进文档避免了连接，反而更合适。</p>
+<ul>
+<li><strong>是否需要从&quot;多&quot;的一方反查</strong>：关注关系是典型多对多，</li>
+</ul>
+<p>&quot;查某人被谁关注&quot;这种反向查询在文档内嵌里做不了，</p>
+<p>必须独立成关系表（或图数据库的边）。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：混合是最诚实的答案——</li>
+</ul>
+<p>PostgreSQL 一张表，基础字段做列，偏好和地址做 jsonb，</p>
+<p>关注关系独立成表。PostgreSQL 12+ 的 jsonb 索引让这种混合几乎没有惩罚。</p>
+<p>&quot;选 A 还是选 B&quot;经常是伪问题，按数据的关联形状逐部分决定。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-3.1-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">一对多的数据必须建独立的关系表，文档内嵌是错误做法。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-3.1-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">判断文档 vs 关系模型的核心依据是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 团队技术栈</button>
+<button class="quiz-opt" data-val="1">B. 数据的关联形状与是否需要反向连接查询</button>
+<button class="quiz-opt" data-val="2">C. 数据量大小</button>
+<button class="quiz-opt" data-val="3">D. 数据库License</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch3/#sec_datamodels_history">§3.1 关系模型与文档模型 →</a>
+<a class="ref-link" href="/ch3/#sec_datamodels_document_summary">§3.1 何时使用哪种模型 →</a>
+<a class="ref-link" href="/ch3/#sec_datamodels_normalization">§3.1 规范化、反规范化与连接 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-3.2-01" data-cid="P-3.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">社交关系查询：SQL 三层嵌套还是图查询？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>社交产品要实现：&quot;找到我关注的人<strong>所关注的</strong>、且我还没关注的人&quot;</p>
+<p>（二度人脉推荐）。</p>
+<p>数据：用户表 + 关注关系表（follower_id, followee_id），MySQL。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>SQL 写这个查询会有多复杂？如果产品还要&quot;最小间隔链路&quot;</p>
+<p>（我和某人的关注链条），SQL 还可行吗？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>二度人脉在两种模型中的表达：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    ME["我"] -->|关注| A["A"]
+    ME -->|关注| B["B"]
+    A -->|关注| C["C ← 推荐"]
+    B -->|关注| D["D ← 推荐"]
+    C -.->|"查 C、D 是否已被我关注（反查）"| ME
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>SQL 能写，但很痛苦</strong>：二度人脉 = 关注表自连接两次 + NOT IN 反查 +</li>
+</ul>
+<p>去重。三层嵌套后可读性崩塌。更大的问题是<strong>每加一层关系，查询复杂度翻倍</strong>：</p>
+<p>三度人脉的 SQL 已不适合人类维护。</p>
+<ul>
+<li><strong>图模型的本质优势</strong>：把&quot;关注&quot;表达为统一的边，</li>
+</ul>
+<p>任何深度的遍历都是同一个查询模式换个参数（Cypher 里 <code>*1..3</code> 就是最多三跳）。</p>
+<p>查询复杂度不随深度指数增长。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：如果只在 MySQL 上做，工程解法不是硬写 SQL，</li>
+</ul>
+<p>而是<strong>预计算</strong>：离线跑批生成二度人脉推荐表，线上只是点查。</p>
+<p>图查询引擎（Neo4j）适合关系探索型业务（风控图谱、知识图谱）；</p>
+<p>简单二度推荐用预计算表更便宜。模型选择要连同<strong>查询频率与深度</strong>一起考虑。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-3.2-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">图数据库的核心优势是查询语法更时髦。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-3.2-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">关系遍历深度不确定（如最短关注链路）时，最适合的模型是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 关系表自连接</button>
+<button class="quiz-opt" data-val="1">B. 图遍历查询</button>
+<button class="quiz-opt" data-val="2">C. 全表扫描</button>
+<button class="quiz-opt" data-val="3">D. 预计算所有链路</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch3/#sec_datamodels_graph">§3.2 图数据模型 →</a>
+<a class="ref-link" href="/ch3/#id57">§3.2 Cypher 查询语言 →</a>
+<a class="ref-link" href="/ch3/#id58">§3.2 SQL 中的图查询 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-3.3-01" data-cid="P-3.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">订单表反规范化：冗余一列省一个 JOIN，值不值？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>订单表 orders(user_id, ...)，页面要显示&quot;下单人昵称&quot;。</p>
+<p>昵称在 users 表里，且<strong>可修改</strong>。</p>
+<p>方案 A：查询时 JOIN users 取最新昵称。</p>
+<p>方案 B：下单时把昵称冗余存进 orders（反规范化）。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>方案 B 的好处和风险分别是什么？什么条件下选 B？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>规范化与反规范化的写读权衡：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    NORM["规范化（方案 A）"] --> NA["写：只存 user_id<br>改昵称一处生效"]
+    NORM --> NB["读：每次 JOIN<br>查询复杂、慢"]
+    DENORM["反规范化（方案 B）"] --> DA["读：单表点查<br>快且简单"]
+    DENORM --> DB["写：改昵称要更新所有历史订单<br>或接受历史快照不一致"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>方案 B 的本质是回答一个业务问题</strong>：&quot;订单页显示的昵称&quot;是</li>
+</ul>
+<p><strong>当前昵称</strong>还是<strong>下单时刻的昵称</strong>？</p>
+<p>如果是后者（电商惯例），方案 B 不但不是妥协，反而是<strong>正确的业务建模</strong>——</p>
+<p>下单那一刻的快照本来就不该随用户改名而变化。</p>
+<ul>
+<li><strong>如果业务要当前值</strong>：反规范化带来更新风暴（改昵称更新百万订单行），</li>
+</ul>
+<p>方案 A 正确；折中是冗余 user_id + JOIN，或应用层缓存。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：反规范化的真正风险不是存储空间，</li>
+</ul>
+<p>是<strong>写入路径增多后的一致性维护</strong>——多个写入点都改冗余列时，</p>
+<p>漏改一处就是数据不一致，而且这种不一致静默存在。</p>
+<p>反规范化的前提是：冗余列的更新路径收敛到唯一一处（或由事件流统一驱动）。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-3.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">电商订单页显示&quot;下单时昵称&quot;，正确的建模是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. JOIN users 取当前值</button>
+<button class="quiz-opt" data-val="1">B. 下单时快照冗余进订单表</button>
+<button class="quiz-opt" data-val="2">C. 每次改昵称回填所有订单</button>
+<button class="quiz-opt" data-val="3">D. 不显示昵称</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-3.3-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">反规范化的主要风险是存储空间占用翻倍。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch3/#sec_datamodels_normalization">§3.1 规范化、反规范化与连接 →</a>
+<a class="ref-link" href="/ch3/#sec_datamodels_many_to_many">§3.1 多对一与多对多关系 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-4.1-01" data-cid="P-4.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">记录最近订单，用什么存储引擎？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>电商系统，订单表两种访问模式并存：</p>
+<ol>
+<li><strong>下单页</strong>：根据订单 ID 查单个订单详情（点查），每天亿级次</li>
+<li><strong>运营报表</strong>：扫全表按用户聚合消费金额，每天跑几次</li>
+</ol>
+<p>约束：同一份数据，两种模式性能都要可接受。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>用行存（B 树）还是列存（LSM/列式）？还是两套系统？先给方案再看揭示。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两种访问模式与存储引擎的匹配：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    D["同一份订单数据"] --> P["点查：按订单 ID<br>每天亿级次"]
+    D --> A["聚合：全表扫描统计<br>每天几次"]
+    P --> OLTP["行存 / B 树或 LSM<br>按主键快速定位单行"]
+    A --> OLAP["列存<br>只读聚合需要的列"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>单引擎兼顾是陷阱</strong>：行存做全表聚合要读所有列的所有页，I/O 放大几十倍；</li>
+</ul>
+<p>列存做单行点查要读所有列段再拼行，延迟差几个数量级。都不是&quot;慢一点&quot;，是&quot;没法用&quot;。</p>
+<ul>
+<li><strong>主流答案：同一逻辑数据的两份物理表示</strong>。OLTP 库（B 树或 LSM）承接点查和写入，</li>
+</ul>
+<p>CDC/ETL 同步到列存数仓跑分析。这就是第 I 部分 OLTP/OLAP 分野的工程落地。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：选 B 树还是 LSM，取决于写入比例。订单表写多读也多，</li>
+</ul>
+<p>LSM 的顺序写优势明显；但读放大（要查多层 SSTable）需要布隆过滤器缓解。</p>
+<p>没有免费选项，只有匹配负载的选择。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-4.1-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">列存数据库做按主键的单行点查和行存一样快。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-4.1-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">订单表写入量很大、点查延迟要求高，选哪种引擎更匹配？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. B 树</button>
+<button class="quiz-opt" data-val="1">B. LSM 树（配布隆过滤器）</button>
+<button class="quiz-opt" data-val="2">C. 列存</button>
+<button class="quiz-opt" data-val="3">D. 纯内存哈希表</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch4/#sec_storage_oltp">§4.1 OLTP 系统的存储与索引 →</a>
+<a class="ref-link" href="/ch4/#sec_storage_analytics">§4.2 分析型数据存储 →</a>
+<a class="ref-link" href="/ch4/#sec_storage_btree_lsm_comparison">§4.1 比较 B 树与 LSM 树 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-4.1-02" data-cid="P-4.1-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">B 树还是 LSM 树：你的写入占多少？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你在为两个业务选存储引擎：</p>
+<ol>
+<li><strong>用户资料表</strong>：写少读多（改资料偶尔发生，读每秒 10 万次）</li>
+<li><strong>埋点日志表</strong>：持续高吞吐写入（每秒 50 万条），偶尔按时间范围查</li>
+</ol>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>两个业务各选 B 树还是 LSM？各自要付出的代价是什么？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两种引擎的核心操作对比：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph B["B 树"]
+        B1["原位更新<br>随机写（WAL + 页）"] --> B2["读稳定：树高固定<br>每次读 O(log n) 页"]
+    end
+    subgraph L["LSM 树"]
+        L1["内存 memtable<br>顺序写 SSTable"] --> L2["写吞吐高<br>但读要查多层 + 合并"]
+    end
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>用户资料表 → B 树</strong>：读多写少正是 B 树的主场。LSM 的读放大</li>
+</ul>
+<p>（多层 SSTable 逐层查）会拖累高频读，即使布隆过滤器也只是缓解。</p>
+<ul>
+<li><strong>埋点日志表 → LSM</strong>：顺序写吞吐远超 B 树的随机写（原位更新要写</li>
+</ul>
+<p>WAL + 数据页两处）。追加型写入几乎不产生写放大。</p>
+<ul>
+<li><strong>共同代价（你可能没想到的）</strong>：LSM 的后台合并（compaction）会和</li>
+</ul>
+<p>前台读写抢磁盘 I/O。写吞吐越高，合并越跟不上，出现&quot;写停滞&quot;（write stall）。</p>
+<p>埋点场景要监控合并延迟，否则高峰期写入会被反压。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-4.1-02-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">LSM 树的读性能通常优于 B 树。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-4.1-02-q1" data-kind="choice" data-correct="0">
+<div class="quiz-stem">LSM 树高吞吐写入的隐藏代价是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 后台合并抢占 I/O，可能造成写入反压</button>
+<button class="quiz-opt" data-val="1">B. 必须全部放内存</button>
+<button class="quiz-opt" data-val="2">C. 不支持范围查询</button>
+<button class="quiz-opt" data-val="3">D. 无法持久化</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch4/#sec_storage_log_structured">§4.1 日志结构存储 →</a>
+<a class="ref-link" href="/ch4/#sec_storage_b_trees">§4.1 B 树 →</a>
+<a class="ref-link" href="/ch4/#sec_storage_btree_lsm_comparison">§4.1 比较 B 树与 LSM 树 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-4.2-01" data-cid="P-4.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">列存为什么聚合快？代价是什么？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>数仓表 100 列、100 亿行。分析查询：</p>
+<p><code>SELECT user_city, AVG(amount) FROM orders WHERE dt = &#x27;2026-10-01&#x27; GROUP BY user_city</code></p>
+<p>只涉及 3 列。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>行存 vs 列存，这个查询的 I/O 量差多少倍？列存为这个优势付出了什么代价？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>列存的读取剪裁与写入代价：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    Q["查询只需 3 列"] --> R["行存：读全部 100 列的数据页<br>I/O ≈ 100 亿行 × 整行"]
+    Q --> C["列存：只读 3 个列段<br>I/O ≈ 1/33"]
+    C --> CP["列压缩（位图/游程编码）<br>排序后同值连续，压缩比可达 10 倍+"]
+    C --> COST["代价：写入需按列分段重组<br>单行更新极不友好"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>I/O 差距</strong>：行存必须把整行读进来才能取 3 列，I/O 放大约 33 倍；</li>
+</ul>
+<p>列存只读 3 个列段，加上压缩后实际可能只有几十分之一到百分之一。</p>
+<p>聚合查询是列存的主场。</p>
+<ul>
+<li><strong>压缩是二级优势</strong>：列内数据类型相同，排序后同值连续，</li>
+</ul>
+<p>游程编码 + 位图索引能把一列压到极小。</p>
+<p>压缩后的数据甚至可以直接在压缩态上做聚合（向量化执行），连解压都省了。</p>
+<ul>
+<li><strong>代价（你可能没想到的）</strong>：列存写一行 = 写 100 个列段，</li>
+</ul>
+<p>单行更新更是灾难。所以列存数仓普遍<strong>不追求单行实时写</strong>，</p>
+<p>而是批量导入 + 后台合并。这就是为什么 OLTP 库几乎不用列存——</p>
+<p>不是技术不行，是写入形状完全不符。</p>
+<ul>
+<li><strong>易混淆点</strong>：宽列数据库（Bigtable/HBase）名字里有&quot;列&quot;但其实是行存，</li>
+</ul>
+<p>同一行的值存放在一起。判断标准看<strong>同一列的值是否物理相邻</strong>。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-4.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">列存查询只涉及 3 列时，相比行存 I/O 优势的主要来源是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. CPU 更快</button>
+<button class="quiz-opt" data-val="1">B. 只读需要的列段且列压缩后更小</button>
+<button class="quiz-opt" data-val="2">C. 索引更多</button>
+<button class="quiz-opt" data-val="3">D. 数据更小</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-4.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">HBase 这类宽列数据库和列式存储是同一类东西。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch4/#sec_storage_column">§4.2 列式存储 →</a>
+<a class="ref-link" href="/ch4/#sec_storage_column_compression">§4.2 列压缩 →</a>
+<a class="ref-link" href="/ch4/#sec_storage_materialized_views">§4.2 物化视图与多维数据集 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-4.3-01" data-cid="P-4.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">语义搜索：&quot;关闭账户&quot;要能搜到&quot;取消订阅&quot;</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>帮助中心搜索。传统全文检索（倒排索引）下，用户搜&quot;终止合同&quot;</p>
+<p>搜不到标题为&quot;取消订阅&quot;的文章——词完全不同。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>倒排索引为什么做不到？语义搜索的思路和代价是什么？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>关键词检索与语义检索的机制差异：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    Q1["查询：终止合同"] --> T["倒排索引<br>按词项精确匹配"]
+    T --> MISS["词不同 → 搜不到"]
+    Q2["同一查询"] --> E["嵌入模型把查询/文档<br>编码为语义向量"]
+    E --> V["向量索引：近邻搜索<br>找语义相近的文档"]
+    V --> HIT["命中《取消订阅》"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>倒排索引的本质限制</strong>：它只能匹配&quot;出现过这个词&quot;的文档，</li>
+</ul>
+<p>同义改写、意图相近但用词不同，天然失明。</p>
+<ul>
+<li><strong>语义搜索</strong>：嵌入模型把文档和查询都编码成高维浮点向量，</li>
+</ul>
+<p>语义相近 → 向量距离近。检索变成&quot;找最近邻&quot;，</p>
+<p>由专门的向量索引（近似最近邻算法）支撑。</p>
+<ul>
+<li><strong>代价（你可能没想到的）</strong>：</li>
+<li>近似算法为了速度会<strong>牺牲召回的精确性</strong>——偶尔漏掉真正最近的；</li>
+<li>嵌入模型的质量决定了上限，且换模型 = 全量重新嵌入所有文档；</li>
+<li>向量检索通常不解释&quot;为什么像&quot;，调试体验远不如倒排索引的关键词命中。</li>
+<li><strong>工程正解常是混合</strong>：倒排索引保精确召回（型号、错误码），</li>
+</ul>
+<p>语义检索补意图匹配，两路合并。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-4.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">倒排索引搜不到&quot;取消订阅&quot;（查询为&quot;终止合同&quot;）的根本原因是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 索引太小</button>
+<button class="quiz-opt" data-val="1">B. 只匹配词项出现与否，不理解语义</button>
+<button class="quiz-opt" data-val="2">C. 分词错误</button>
+<button class="quiz-opt" data-val="3">D. 文档没被收录</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-4.3-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">向量近邻搜索总是返回数学上精确的最近邻。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch4/#sec_storage_full_text">§4.3 全文检索 →</a>
+<a class="ref-link" href="/ch4/#id92">§4.3 向量嵌入 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-5.1-02" data-cid="P-5.1-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">REST 还是 RPC：内部服务间怎么通信？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>微服务架构，订单服务要调用户服务。团队争论：</p>
+<p>A 说统一 REST + JSON；B 说用 gRPC（Protobuf）；</p>
+<p>C 说既然都在同一个公司，直接共享用户服务的数据库表结构代码。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>三种方案的核心差异是什么？&quot;共享代码/表结构&quot;为什么被普遍认为是坑？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>编码格式与服务边界的匹配：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    O["订单服务"] -->|REST + JSON<br>可读/调试友好/工具多| U["用户服务"]
+    O -->|gRPC + Protobuf<br>强模式/高性能/双向流| U
+    O -.->|共享表结构代码<br>边界消失，禁止| U
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>REST + JSON</strong>：无模式约束但生态和调试性最好。</li>
+</ul>
+<p>适合对外 API 和变化频繁的内部接口。</p>
+<ul>
+<li><strong>gRPC</strong>：Protobuf 强模式让&quot;接口变更破坏兼容&quot;在编译期暴露，</li>
+</ul>
+<p>多路复用和双向流性能好。适合内部高频调用。</p>
+<ul>
+<li><strong>共享数据库表结构（你可能没想到为什么它是坑）</strong>：</li>
+</ul>
+<p>它把数据编码格式和服务边界同时焊死——</p>
+<p>任何一方改表结构（哪怕加一列），所有使用方都要重新部署。</p>
+<p>这正是第 5 章核心论点的反面教材：**数据流经服务边界时，</p>
+<p>必须允许两侧独立演化，而独立演化的前提是&quot;模式化的、兼容的编码&quot;**。</p>
+<ul>
+<li><strong>选择依据不是新旧，而是</strong>：调用是否需要强模式约束和低延迟（gRPC），</li>
+</ul>
+<p>还是调试友好和普适接入（REST）。两者共存是常态。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-5.1-02-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">内部微服务间直接共享数据库表结构是最快且推荐的做法。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-5.1-02-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">gRPC 相比 REST+JSON 的核心优势是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. URL 好看</button>
+<button class="quiz-opt" data-val="1">B. 强模式约束 + 高性能多路复用</button>
+<button class="quiz-opt" data-val="2">C. 不需要网络</button>
+<button class="quiz-opt" data-val="3">D. 天然支持浏览器</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch5/#sec_encoding_dataflow_rpc">§5.2 流经服务的数据流：REST 与 RPC →</a>
+<a class="ref-link" href="/ch5/#sec_encoding_dataflow_msg">§5.2 事件驱动的架构 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-5.2-01" data-cid="P-5.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">服务升级期间，新旧版本并存怎么办？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你的服务有 50 个实例，滚动发布新版本。发布要 30 分钟，</p>
+<p>期间新旧实例并存。消息队列里还有昨天发出、还没消费的旧格式消息。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>新代码要能读旧格式，旧代码可能还要读新格式——</p>
+<p>这分别叫什么兼容性？哪些编码格式能做到？先想再看。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>滚动发布期的双向兼容要求：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph 发布窗口 30 分钟
+        OLD["旧实例 v1.0"] --- Q["队列/数据库<br>新旧数据共存"] --- NEW["新实例 v1.1"]
+    end
+    NEW -->|向后兼容：读旧数据| Q
+    OLD -->|向前兼容：读新数据| Q
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>向后兼容</strong>（新代码读旧数据）：必须满足，容易做到——</li>
+</ul>
+<p>新代码知道旧格式长什么样。</p>
+<ul>
+<li><strong>向前兼容</strong>（旧代码读新数据）：容易被忽略！旧实例还在跑，</li>
+</ul>
+<p>它收到新版本写入的数据不能崩。这要求<strong>旧代码遇到未知字段要跳过而不是报错</strong>。</p>
+<ul>
+<li><strong>格式的能力排序</strong>：</li>
+<li>语言内置序列化（Java Serialization）：危险，仅限本语言且安全漏洞多</li>
+<li>JSON：可读性好，但整数精度、二进制支持弱，无正式模式</li>
+<li>Protocol Buffers / Avro：有显式模式 + 演化规则</li>
+</ul>
+<p>（新增字段必须给默认值或 optional；字段编号不可复用），</p>
+<p>是跨服务数据流的工程正解。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：Avro 用&quot;写入者模式与读取者模式分离&quot;解决兼容：</li>
+</ul>
+<p>数据不带字段名（只有编号），读方持有自己的模式定义，</p>
+<p>两侧模式在读取时对齐。这让演化规则可以非常灵活——</p>
+<p>但代价是<strong>你必须保存好历史所有版本的模式</strong>（通常放 Schema Registry）。</p>
+<p>丢掉旧模式文件，旧数据就再也读不出来了。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-5.2-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">滚动发布期间，旧代码读新数据的能力（向前兼容）可以不要求。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-5.2-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">Avro 读取旧数据不依赖字段名而依赖什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 字段顺序</button>
+<button class="quiz-opt" data-val="1">B. 字段编号与两侧模式对齐</button>
+<button class="quiz-opt" data-val="2">C. JSON key</button>
+<button class="quiz-opt" data-val="3">D. 固定偏移量</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch5/#sec_encoding_dataflow">§5.2 数据流的模式 →</a>
+<a class="ref-link" href="/ch5/#sec_encoding_avro">§5.1 Avro →</a>
+<a class="ref-link" href="/ch5/#the-writers-schema-and-the-readers-schema">§5.1 写入者模式与读取者模式 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-6.1-01" data-cid="P-6.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">你的从库挂了，怎么恢复？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>单主复制，两个异步从库。其中一个从库所在机器突然断电重启，</p>
+<p>它本地落后主库约 2 分钟的写入。</p>
+<p>约束：不允许停机；主库流量很大，不能让从库长时间脱队。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>重启后的从库怎么追上主库？请先在心里给出你的方案，再往下看。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>最直觉的答案&quot;重放主库日志&quot;有个隐藏前提：主库日志不能丢。</p>
+<p>于是真正的权衡是——</p>
+<ul>
+<li><strong>从主库快照 + 日志恢复</strong>（标准做法）：</li>
+</ul>
+<p>从库取主库某个时间点的快照，再请求快照点之后的所有变更日志重放。</p>
+<p>代价：快照必须与日志位点精确对齐，主库要保留足够长的日志，</p>
+<p>否则从库要整体重新全量复制。</p>
+<ul>
+<li><strong>你可能没想到的第三种</strong>：干脆不做增量追赶，直接把这台从库</li>
+</ul>
+<p>踢出集群，用新机器全量重建。流量大时这反而更快、更不易出错，</p>
+<p>很多大型运维体系就是这么做的——追赶逻辑的复杂度不值得省那点拷贝。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两条追赶路径：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    F["从库断电重启<br>落后主库 2 分钟"] --> A["路径A：快照 + 日志追赶"]
+    F --> B["路径B：踢出集群，全量重建"]
+    A --> A1["前提：主库日志未丢<br>且快照与位点精确对齐"]
+    A1 --> A2["否则只能退回全量复制"]
+    B --> B1["放弃追赶逻辑<br>拷贝大但流程简单"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">追赶机制的正确性取决于&quot;日志不丢&quot;这个前提，运维上常用&quot;全量重建&quot;回避它。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-6.1-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">从库断电重启后，只要主库日志还在，就一定能通过重放日志追上主库。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-6.1-01-q1" data-kind="choice" data-correct="0">
+<div class="quiz-stem">从库追赶的&quot;快照+日志&quot;方案中，最容易出现问题的环节是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 主库日志保留时间不够，快照位点之前的日志已被清理</button>
+<button class="quiz-opt" data-val="1">B. 从库磁盘太小</button>
+<button class="quiz-opt" data-val="2">C. 网络带宽不足</button>
+<button class="quiz-opt" data-val="3">D. 快照文件太大</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_new_replica">§6.1 设置新的副本 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-6.1-02" data-cid="P-6.1-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">同步复制到几个副本？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你要为一个支付系统设计复制：1 主 + 2 从。</p>
+<p>老板要求&quot;任何已确认的写入都不能因为单机故障而丢失&quot;。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>从库的复制你选全异步、全同步，还是半同步？各自的代价是什么？</p>
+<p>请先选一个并说出理由。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>全异步</strong>：主库确认写入不等从库，主库一崩，还没复制出去的写入全部丢失。</li>
+</ul>
+<p>直接违反需求，排除。</p>
+<ul>
+<li><strong>全同步（2 个从库都确认）</strong>：任一从库故障，主库就无法写入任何东西。</li>
+</ul>
+<p>你为了防一台机器挂，让自己系统在三台机器任一挂掉时整体不可写。</p>
+<ul>
+<li><strong>半同步</strong>：主库只需等<strong>一个</strong>从库确认。一台从库挂，写入继续且数据不丢；</li>
+</ul>
+<p>但如果那个同步从库挂了而你不处理，系统会退化成全异步而不自知。</p>
+<p>所以半同步需要故障检测：同步从库失联后要主动把另一个从库提升为同步。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>半同步复制的写入确认路径（以及退化点）：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    C[客户端] -->|写入 X| L[主库]
+    L -->|同步等确认| S1["从库 S1（同步）"]
+    L -.->|异步| S2["从库 S2（异步）"]
+    S1 -->|ack| L -->|确认| C
+    L -. "S1 失联且未切换：<br>退化为全异步，<br>数据不丢的承诺失效" .-> S1
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">半同步是&quot;数据不丢&quot;和&quot;可用性&quot;之间的实际平衡点，但它引入了新问题：退化检测。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-6.1-02-q0" data-kind="choice" data-correct="0">
+<div class="quiz-stem">半同步复制中，同步从库失联而系统未做切换，会发生什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 写入静默退化为全异步，数据不丢的承诺失效</button>
+<button class="quiz-opt" data-val="1">B. 写入直接报错</button>
+<button class="quiz-opt" data-val="2">C. 从库自动升级为主库</button>
+<button class="quiz-opt" data-val="3">D. 数据立即丢失</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-6.1-02-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">全同步复制（所有从库确认）比半同步更安全，因此是生产系统推荐的默认选择。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_sync_async">§6.1 同步复制与异步复制 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-6.2-01" data-cid="P-6.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">用户改了自己的头像，刷新却还是旧的</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你的社交 App 是单主复制 + 多个只读从库，读请求全部走从库以分担压力。</p>
+<p>用户投诉：我刚改了头像，刷新页面还是旧头像，但别人看我的新头像没问题。</p>
+<p>约束：不能把所有读都打到主库，那会打爆。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>怎么改读路由策略？哪些请求必须走主库，哪些可以走从库？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>这是<strong>读己之写</strong>（read-your-writes）问题。朴素方案和它们的坑：</p>
+<ul>
+<li><strong>&quot;改完之后 N 秒内读主库&quot;</strong>：最常用。坑在于 N 不好定：跨机房复制时</li>
+</ul>
+<p>滞后可能到分钟级；而且&quot;改&quot;不一定发生在你记得的地方</p>
+<p>（改头像是一个入口，用户可能从另一个设备改）。</p>
+<ul>
+<li><strong>按&quot;用户是否最近改过&quot;路由</strong>：记录每个用户最近写入的时间戳，</li>
+</ul>
+<p>读时对比从库复制位点，位点不够就换主库读或等待。</p>
+<p>精确，但每个请求多一次元数据查询。</p>
+<ul>
+<li><strong>你可能没想到的维度</strong>：跨设备场景。用户在手机上改、在电脑上看，</li>
+</ul>
+<p>电脑端的请求拿不到手机端的&quot;我改过&quot;状态。</p>
+<p>解法是把最后写入时间戳记在<strong>账户级别</strong>甚至放在客户端请求里带上。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>读路由策略：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    W["用户写主库<br>（改头像）"] --> T["记录该用户的最后写入时间戳"]
+    R["用户刷新页面"] --> Q{"从库复制位点<br>是否已追上？"}
+    Q -->|已追上| S["读从库<br>（省主库压力）"]
+    Q -->|没追上| M["读主库"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">&quot;读己之写&quot;的难点不在路由，在&quot;如何知道这次读是&#x27;自己刚写过的&#x27;&quot;，尤其跨设备。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-6.2-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">&quot;改完之后 N 秒内读主库&quot;是精确可靠的读己之写方案。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-6.2-01-q1" data-kind="choice" data-correct="0">
+<div class="quiz-stem">用户在手机上改了资料，在电脑上看不到更新，最可能的原因是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 电脑端请求走了滞后的从库，且"我改过"标记没跨设备同步</button>
+<button class="quiz-opt" data-val="1">B. 电脑网络故障</button>
+<button class="quiz-opt" data-val="2">C. 主库宕机</button>
+<button class="quiz-opt" data-val="3">D. 数据库索引失效</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_ryw">§6.2 读己之写 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-6.2-02" data-cid="P-6.2-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">一条评论的回复出现在了评论前面</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>还是那个多从库的社交 App。某条热门帖子里，用户 A 的提问出现在</p>
+<p>列表顶部，但下面 B 的回复因为走了滞后更严重的从库，排序反而靠后，</p>
+<p>看起来像&quot;回复先于提问发生&quot;。</p>
+<p>约束：评论量大，不可能每条评论都保证全局精确顺序。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>这个&quot;因果倒置&quot;要不要修？修的话修到什么粒度？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>这是<strong>单调读</strong>之上的更深问题：<strong>一致前缀读</strong>（consistent prefix read）。</p>
+<p>关键认知：不是所有读都需要它——</p>
+<ul>
+<li><strong>不用修的场景</strong>：互相没有因果关系的两条数据（两条独立动态），</li>
+</ul>
+<p>顺序错无所谓。用户对这种错序几乎无感。</p>
+<ul>
+<li><strong>该修的判定</strong>：只要存在&quot;后者引用前者&quot;的因果关系（回复引用提问，</li>
+</ul>
+<p>转发引用原帖），倒序就是可感知的荒谬。</p>
+<ul>
+<li><strong>修法</strong>：让因果相关的写入带上依赖信息，读取时把整条因果链路由到</li>
+</ul>
+<p>同一个从库，或校验链完整后才显示。分区（分片）数据库里这很贵，</p>
+<p>因为不同分片间没有全局顺序。</p>
+<ul>
+<li><strong>你可能没想到的答案</strong>：很多产品直接在 UI 上规避——热门帖子</li>
+</ul>
+<p>按楼层号排序而不是时间戳排序，楼层号由主库统一分配。</p>
+<p>用产品手段绕开分布式难题，是工程里被低估的选项。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>因果倒置的成因与修法：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    P["提问 A"] -->|因果依赖| C["回复 B"]
+    P --> RS1["从库1（滞后小）"]
+    C --> RS2["从库2（滞后大）"]
+    RS1 --> V["读到的顺序：B 在 A 前<br>因果倒置"]
+    RS2 --> V
+    FIX["修法：因果相关数据路由到同一从库<br>或校验因果链完整后再显示"] -.-> V
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">因果倒置只需要在&quot;存在引用关系&quot;的数据上修，且常常可以用产品手段绕开。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-6.2-02-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">为了保证正确性，所有评论列表都必须实现一致前缀读。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-6.2-02-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">以下哪种数据倒序最需要修复？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 两条互不相关的动态顺序颠倒</button>
+<button class="quiz-opt" data-val="1">B. 用户对自己帖子的回复出现在原帖之前</button>
+<button class="quiz-opt" data-val="2">C. 广告和帖子的顺序变化</button>
+<button class="quiz-opt" data-val="3">D. 点赞数显示略有延迟</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_consistent_prefix">§6.2 一致前缀读 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_monotonic_reads">§6.2 单调读 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-6.3-01" data-cid="P-6.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">两个数据中心都能写，冲突来了怎么办？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你的协作编辑类产品在美东和欧洲各有一个数据中心，都接受写入、</p>
+<p>异步互相同步（多主复制）。两个用户几乎同时把<strong>同一个文档的标题</strong></p>
+<p>改成了不同的值。</p>
+<p>约束：不能让任何一端的用户等待另一端数据中心确认。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>这个冲突必须在哪一刻被解决？请给出你认为的解决时机，再往下看。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>冲突解决的时机选择比方法选择更根本：</p>
+<ul>
+<li><strong>写时检测（主库层面同步解决）</strong>：等价于把多主退化成需要协调的写入，</li>
+</ul>
+<p>违反&quot;不等待另一端&quot;的约束，排除。</p>
+<ul>
+<li><strong>读时/异步解决</strong>：冲突先共存，之后收敛。这是多主的实际选择。</li>
+</ul>
+<p>剩下的问题才是&quot;怎么收敛&quot;：</p>
+<ul>
+<li><strong>LWW（最后写入者胜）</strong>：最简单，但&quot;最后&quot;由时钟决定，</li>
+</ul>
+<p>时钟偏移会静默丢弃某一方的写入。标题这种字段也许可接受，</p>
+<p>购物车删条目绝不可接受。</p>
+<ul>
+<li><strong>保留所有值 + 应用层合并</strong>：让用户看到两个版本并选择。</li>
+</ul>
+<p>对协作类产品这反而是体验最好的。</p>
+<ul>
+<li><strong>CRDT</strong>：为特定数据结构（计数器、集合、序列）设计的可自动合并</li>
+</ul>
+<p>表示。编辑器场景的行业主流就是 CRDT 或 OT 算法，</p>
+<p>而不是数据库层的通用冲突解决。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>冲突解决的时机与手段：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    U1["美东：标题=A"] --> S["异步复制"]
+    U2["欧洲：标题=B"] --> S
+    S --> W{"写时检测？<br>需跨机房协调 → 违反不等待约束"}
+    S --> R{"读时/异步解决"}
+    R --> LWW["LWW：时钟决定胜负<br>可能静默丢写入"]
+    R --> MERGE["保留多值 + 应用层合并"]
+    R --> CRDT["CRDT：自动收敛"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">多主冲突解决的第一问是&quot;何时解决&quot;（必然是异步），第二问才是&quot;怎么收敛&quot;；且通用方案（LWW）往往不如领域专用方案（CRDT）。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-6.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">多主复制中，冲突解决的时机只能是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 写入时同步解决</button>
+<button class="quiz-opt" data-val="1">B. 读时或异步解决</button>
+<button class="quiz-opt" data-val="2">C. 定时批量解决</button>
+<button class="quiz-opt" data-val="3">D. 由用户手动解决</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-6.3-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">LWW 是大多数场景下最可靠的冲突解决方式。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_write_conflicts">§6.3 处理写入冲突 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_crdts">§6.3 CRDT 与操作变换 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-6.4-01" data-cid="P-6.4-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">不选主库了，写入确认几份才安全？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你用无主复制（Dynamo 风格）：5 个副本，客户端直接写多个副本，</p>
+<p>没有主库。有个后台任务会修复滞后副本（读修复 + 反熵）。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>写确认数 w 和读副本数 r 怎么定？为什么这样定能（或不能）保证读到最新值？</p>
+<p>请先写出你选的数字和推理。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>核心不等式 <strong>w + r &gt; n</strong>（本例 n=5，比如 w=2, r=4 或 w=3, r=3）：</p>
+<p>读写集合必有交集，至少有一个副本持有新值。</p>
+<p>但这是全卡最重要的陷阱——<strong>交集只是&quot;必要条件&quot;而非&quot;充分保证&quot;</strong>：</p>
+<ul>
+<li><strong>并发写没有全序</strong>：两个客户端并发写同一个键，两个集合都会收到</li>
+</ul>
+<p>自己的版本，交集副本拿到的&quot;新值&quot;取决于到达顺序。需要 LWW 或</p>
+<p>版本向量兜底。</p>
+<ul>
+<li><strong>写与读并发</strong>：读开始后才完成的写，照样读不到。</li>
+<li><strong>w + r &gt; n 不保证单调读</strong>：两次连续读可能碰到不同的副本集合，</li>
+</ul>
+<p>第一次读到新值、第二次反而读到旧值。</p>
+<ul>
+<li><strong>反熵是异步的</strong>：一个副本上被丢弃的旧值（LWW 败者）在修复前一直存在，</li>
+</ul>
+<p>如果你恰好像限读它，等式失效。</p>
+<p>所以书中说 w + r &gt; n 只能达到<strong>法定人数可读</strong>（quorum readable），</p>
+<p>不是强一致。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>w + r &gt; n 的交集保证，以及它为什么不是充分条件：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    subgraph N5["n=5 副本"]
+        W2["写入集合 w=3<br>（n1 n2 n3 收到新值）"] --- R2["读取集合 r=3<br>（本轮读到 n3 n4 n5）"]
+    end
+    W2 --- X["交集 n3<br>至少一个副本有新值 ✓"]
+    X --> BUT["但这不保证：<br>· 并发写的到达顺序<br>· 两次读的副本集合不同<br>· 反熵修复前的旧值残留"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">w + r &gt; n 保证&quot;读到某个足够新的副本&quot;，不保证&quot;读到全局最新、也不保证两次读一致&quot;。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-6.4-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">只要配置满足 w + r &gt; n，读到的就一定是全局最新的值。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-6.4-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">n=5 时，以下哪组配置满足法定人数条件？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. w=2, r=3</button>
+<button class="quiz-opt" data-val="1">B. w=3, r=3</button>
+<button class="quiz-opt" data-val="2">C. w=1, r=4</button>
+<button class="quiz-opt" data-val="3">D. w=2, r=2</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_quorum_limitations">§6.4 仲裁一致性的局限 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_concurrent">§6.4 检测并发写入 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-7.1-01" data-cid="P-7.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">用户表按什么键分片？热点与查询的拉锯</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>用户表 10 亿行，单库撑不住了。候选分片键：</p>
+<ul>
+<li>方案 A：按 user_id 哈希</li>
+<li>方案 B：按注册时间范围（每月一个分片）</li>
+<li>方案 C：按 user_id 范围</li>
+</ul>
+<p>业务查询：① 按 user_id 点查（最高频）；② 后台要扫全表做数据分析；</p>
+<p>③ 注册高峰集中在几分钟（新用户大量涌入）。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>三种方案各在哪个查询上翻车？最终选哪个？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>分片键选择的三难困境：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    K["分片键选择"] --> H["哈希：user_id"]
+    K --> R["范围：user_id"]
+    K --> T["范围：时间"]
+    H --> H1["点查均匀 ✓<br>范围扫全分片 ✗"]
+    R --> R1["点查+范围 ✓<br>新用户全落最新分片：热点 ✗"]
+    T --> T1["写入天然按时间散开 ✓<br>但按 user_id 点查要打全部分片 ✗"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>方案 A 是默认正解</strong>：哈希让点查（最高频负载）均匀分布，</li>
+</ul>
+<p>均匀本身就是对热点最好的防御。</p>
+<ul>
+<li><strong>方案 B 的翻车点</strong>：时间范围分片下，注册高峰 = 单分片写入风暴；</li>
+</ul>
+<p>且历史分片冷（没流量）最新分片烫（全部写入），扩容也救不了。</p>
+<ul>
+<li><strong>方案 C 的翻车点</strong>：user_id 顺序写入时同样有&quot;最新分片热点&quot;问题；</li>
+</ul>
+<p>但如果 ID 是随机的，方案 C 兼得点查与范围查——<strong>键的随机性决定范围分片是否可行</strong>。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：查询 ②（全表分析）在任何分片方案下都是&quot;散射-聚合&quot;，</li>
+</ul>
+<p>分片不解决分析负载。正解还是 Part I 的老结论：同步一份到列存数仓。</p>
+<p>分片是为 OLTP 点查/写入发明的，别指望它兼顾一切。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-7.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">按 user_id 范围分片最大的风险是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 范围查询慢</button>
+<button class="quiz-opt" data-val="1">B. 顺序 ID 导致最新分片写入热点</button>
+<button class="quiz-opt" data-val="2">C. 无法点查</button>
+<button class="quiz-opt" data-val="3">D. 存储浪费</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-7.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">选好分片键后，全表分析查询的伸缩问题也随之解决。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch7/#sec_sharding_reasons">§7.1 分片的利与弊 →</a>
+<a class="ref-link" href="/ch7/#sec_sharding_key_range">§7.2 按键的范围分片 →</a>
+<a class="ref-link" href="/ch7/#sec_sharding_hash">§7.2 按键的哈希分片 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-7.2-01" data-cid="P-7.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">扩容要迁移数据：哈希取模为什么是灾难？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>10 节点集群，分片规则 <code>hash(key) % 10</code>。业务增长要扩到 11 节点。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>扩容瞬间会发生什么？固定的分片数（如 1000 个逻辑分片）怎么解决这个问题？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>取模扩容 vs 固定分片数的迁移量对比：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph M["hash % 10 → 11"]
+        A["几乎每个键都要搬家<br>迁移量 ≈ 全部数据"] --> B["同时缓存全失效"]
+    end
+    subgraph F["固定 1000 逻辑分片"]
+        C["每个节点先管 ~100 个分片"] --> D["扩容：只是分片重新分配<br>迁移量 ≈ 1/N"]
+    end
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>取模的灾难</strong>：模数从 10 变 11，绝大多数键的落点都变了——</li>
+</ul>
+<p>一次性迁移几乎全部数据，同时所有应用层缓存集体失效，等于重建集群。</p>
+<ul>
+<li><strong>固定逻辑分片数（正解）</strong>：一开始就切好远多于节点数的分片</li>
+</ul>
+<p>（如 Cassandra 的 vnode、Kafka 的 partition）。</p>
+<p>扩容 = 把一些分片从繁忙节点搬到新节点，迁移量只有 1/N，</p>
+<p>且可以逐个分片慢慢搬，不停服。</p>
+<ul>
+<li><strong>你可能没想到的</strong>：分片数要<strong>预先留足余量</strong>且之后很难再改——</li>
+</ul>
+<p>逻辑分片数本身就是新的&quot;模数&quot;。1000 是常见起点：</p>
+<p>足够细到能在异构节点间做负载均衡，又不会让元数据管理失控。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-7.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem"><code>hash % N</code> 扩容（N 变化）的根本问题是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 哈希函数要换</button>
+<button class="quiz-opt" data-val="1">B. 几乎全部键落点改变，需迁移几乎全部数据</button>
+<button class="quiz-opt" data-val="2">C. 磁盘不够</button>
+<button class="quiz-opt" data-val="3">D. 无法点查</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-7.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">逻辑分片数可以在业务增长后随时按需调整。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch7/#hash-modulo-number-of-nodes">§7.2 哈希取模节点数 →</a>
+<a class="ref-link" href="/ch7/#fixed-number-of-shards">§7.2 固定数量的分片 →</a>
+<a class="ref-link" href="/ch7/#sec_sharding_operations">§7.2 运维：自动/手动再平衡 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-7.3-01" data-cid="P-7.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">请求该发给哪个分片？路由的三种放置</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>客户端要读写某个 user_id。谁来告诉它该找哪个分片？</p>
+<ul>
+<li>方案 A：客户端自己维护 分片→节点 映射</li>
+<li>方案 B：随便发给任意节点，节点帮你转发</li>
+<li>方案 C：经过独立的路由层（协调者/代理）</li>
+</ul>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>三种方案的优劣与失效模式？为什么很多系统选择&quot;请求随便发给谁&quot;？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>路由决策的三种拓扑：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    C["客户端"] --> A["方案A：直连<br>需同步路由表（gossip）"]
+    C --> B["方案B：任意节点转发<br>节点多一跳，实现最简单"]
+    C --> D["方案C：独立路由层<br>多一组件，可统一限流/鉴权"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>这是复杂性放到哪的问题</strong>：A 把复杂性放客户端（要 gossip 协议同步元数据）；</li>
+</ul>
+<p>B 放服务端节点（每个节点都要懂全部路由）；C 放独立组件（多一个要维护和扩容的东西）。</p>
+<ul>
+<li><strong>你可能没想到的——B 的流行原因</strong>：方案 B 里任何节点都能处理任何请求</li>
+</ul>
+<p>（自己不知道就转发或返回正确节点地址），客户端零路由知识，</p>
+<p>节点故障时客户端完全无感。Cassandra、Riak 都是这个思路。</p>
+<ul>
+<li><strong>真实风险点在元数据一致性</strong>：无论哪种方案，&quot;节点 ↔ 分片&quot;映射变化时</li>
+</ul>
+<p>（再平衡、故障切换），路由信息短暂的过期是常态。</p>
+<p>系统设计要假设客户端会拿到稍旧的 routing table——</p>
+<p>这又是第 9 章&quot;你对分布式系统的知识总是过期的&quot;的预演。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-7.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">&quot;请求发给任意节点，由节点转发&quot;方案的主要优势是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 延迟最低</button>
+<button class="quiz-opt" data-val="1">B. 客户端零路由知识，实现最简单</button>
+<button class="quiz-opt" data-val="2">C. 不需要分片</button>
+<button class="quiz-opt" data-val="3">D. 天然强一致</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-7.3-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">使用独立路由层后，路由元数据过期的问题就消失了。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch7/#sec_sharding_routing">§7.3 请求路由 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-8.2-01" data-cid="P-8.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">你要为这三种业务各选哪个隔离级别？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>同一个数据库实例上跑三种业务：</p>
+<ol>
+<li><strong>报表统计</strong>：凌晨跑一次全表聚合，算用户的总消费额</li>
+<li><strong>秒杀扣库存</strong>：高并发下 <code>SELECT 剩余库存</code> 然后 <code>UPDATE 库存 - 1</code></li>
+<li><strong>余额查询页面</strong>：用户随时打开，看一眼自己的余额</li>
+</ol>
+<p>约束：性能要尽可能好，不为不需要的保证付钱。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>三种业务各选哪个隔离级别：读未提交（RU）/ 读已提交（RC）/</p>
+<p>可重复读（RR）/ 可串行化（S）？请先给三个答案和理由。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>报表统计 → RC（甚至 RR）</strong>：它读的是快照，不涉及并发写冲突，</li>
+</ul>
+<p>关键是别读到&quot;写了一半的事务&quot;（脏读）。RU 省不了多少性能</p>
+<p>还会看到未提交数据，没有任何理由选它。</p>
+<p>这就是为什么 <strong>RU 在实践中几乎没人用</strong>——它唯一&quot;优势&quot;是省一点</p>
+<p>读检查开销，代价是正确性。</p>
+<ul>
+<li><strong>秒杀扣库存 → 看起来 RR 就够，其实是陷阱</strong>：RR 防止你两次</li>
+</ul>
+<p><code>SELECT</code> 读到不同库存，但**它不防止两个事务同时读到&quot;剩 1 个&quot;</p>
+<p>然后都扣减成功**——卖超了。这是丢失更新（lost update），</p>
+<p>需要 <code>SELECT ... FOR UPDATE</code>（显式加锁）或原子</p>
+<p><code>UPDATE ... SET stock = stock - 1 WHERE stock &gt; 0</code> 绕过。</p>
+<p>换 S 级别也能防，但高并发下代价大；工程主流是 RC/RR + 原子写。</p>
+<ul>
+<li><strong>余额查询 → RC 足矣</strong>：单行读，RC 保证不读脏数据就够了。</li>
+</ul>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>各隔离级别防哪些异常（●防护 / ○不防）：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph M["防护矩阵"]
+        A["RU<br>脏读 ○"] --> B["RC<br>脏读 ●<br>不可重复读 ○"]
+        B --> C["RR（快照隔离）<br>不可重复读 ●<br>丢失更新 ○ / 写偏差 ○"]
+        C --> D["可串行化<br>全部异常 ●"]
+    end
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">隔离级别的选择不是&quot;越高越好&quot;，而是&quot;哪些异常你可能遇到&quot;；而最常见的坑是：RR 挡不住丢失更新。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-8.2-01-q0" data-kind="choice" data-correct="2">
+<div class="quiz-stem">以下哪个异常是 RR（快照隔离）无法防止的？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 脏读</button>
+<button class="quiz-opt" data-val="1">B. 不可重复读</button>
+<button class="quiz-opt" data-val="2">C. 丢失更新</button>
+<button class="quiz-opt" data-val="3">D. 读到未提交数据</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-8.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">隔离级别越高越好，生产系统应默认使用可串行化。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch8/#sec_transactions_isolation_levels">§8.2 弱隔离级别 →</a>
+<a class="ref-link" href="/ch8/#sec_transactions_snapshot_isolation">§8.2 快照隔离与可重复读 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-8.3-01" data-cid="P-8.3-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">值班医生系统：两个都撤销了自己的班</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>医院值班系统。规则：<strong>同一时段必须至少有一名医生在值班</strong>。</p>
+<p>医生可以先查询自己是否值班，不是的话可提交&quot;请假&quot;事务。</p>
+<p>现在：Alice 和 Bob 都在值班。两人几乎同时各自打开页面，</p>
+<p>都看到&quot;对方在值班&quot;，于是都提交了请假事务。</p>
+<p>两个事务都成功。时段内没有任何医生值班。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>这个场景在 RC 和 RR 隔离级别下分别会被阻止吗？</p>
+<p>如果不被阻止，你用什么手段阻止？请先想，再看揭示。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>RC 和 RR 都不会阻止它</strong>。这是<strong>写偏差（write skew）</strong>：</p>
+<p>两个事务读了同一批数据（&quot;谁在值班&quot;），基于读到的结果写了</p>
+<p><strong>不同的行</strong>（Alice 请假、Bob 请假）。互不修改对方的行，</p>
+<p>快照隔离（RR）管不到它。</p>
+<p>为什么快照隔离挡不住？因为它承诺的是&quot;每个事务的读来自一致快照&quot;</p>
+<p>——两个事务各自看快照都没问题，合起来却违反了业务不变量</p>
+<p>（&quot;至少一人值班&quot;）。</p>
+<p><strong>可选的解法</strong>：</p>
+<ul>
+<li><strong><code>SELECT ... FOR UPDATE</code> 显式锁定</strong>&quot;值班中的所有医生&quot;这些行，</li>
+</ul>
+<p>强制两个事务串行化。最直接，但要求你<strong>知道该锁哪些行</strong>。</p>
+<ul>
+<li><strong>物化冲突（materializing conflicts）</strong>：把&quot;值班时段&quot;本身</li>
+</ul>
+<p>变成数据库里的行（时_slots 表），请假 = 更新该行，</p>
+<p>冲突就落在同一行上了。丑但有效。</p>
+<ul>
+<li><strong>可串行化隔离（SSI）</strong>：数据库检测到两个事务读了互相影响的数据</li>
+</ul>
+<p>并发写，中止其中一个。代价是冲突率高时中止率也高。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>写偏差：读同一批、写不同行：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    A["Alice：查到两人值班"] --> WA["写：Alice 请假"]
+    B["Bob：查到两人值班"] --> WB["写：Bob 请假"]
+    WA --> R["两个事务都成功<br>时段的行各自被改"]
+    WB --> R
+    R --> BAD["业务不变量被破坏：<br>无人值班"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">写偏差 = &quot;我读到的别改，我改的你别读&quot;，快照隔离对它无能为力，这是升级到 SSI 的主要理由。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-8.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">写偏差（write skew）的特征是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 两个事务写同一行，后者覆盖前者</button>
+<button class="quiz-opt" data-val="1">B. 两个事务读同一批数据、写不同的行，合起来违反业务不变量</button>
+<button class="quiz-opt" data-val="2">C. 读到未提交数据</button>
+<button class="quiz-opt" data-val="3">D. 两次读结果不同</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-8.3-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">快照隔离（RR）能防止写偏差。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch8/#sec_transactions_write_skew">§8.2 写偏差与幻读 →</a>
+<a class="ref-link" href="/ch8/#sec_transactions_ssi">§8.3 可串行化快照隔离（SSI） →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-8.3-02" data-cid="P-8.3-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">可串行化真的可以&quot;免费&quot;拿到吗？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>你的团队在评审数据库选型。有人提议：&quot;直接全用可串行化（Serializable），</p>
+<p>正确性问题一劳永逸，不用再操心各种异常。&quot; 反对者说性能不可接受。</p>
+<p>约束：系统读写混合，冲突集中在 10% 的热点账户上，其余 90% 数据</p>
+<p>几乎无并发冲突。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>&quot;全用 Serializable&quot;的真实代价是什么？有没有办法只在对的地方付这个代价？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p>可串行化的三种实现，代价结构完全不同——这是选型的真正依据：</p>
+<ul>
+<li><strong>两阶段锁定（2PL，传统 S lock）</strong>：读也加锁、写也加锁。</li>
+</ul>
+<p>代价是<strong>所有</strong>并发被压低：读会阻塞写、写会阻塞读，</p>
+<p>90% 无冲突的数据也被殃及，还可能死锁需要重试。</p>
+<p>&quot;全用 S&quot;在 2PL 下确实很贵。</p>
+<ul>
+<li><strong>串行执行（单线程，如 VoltDB）</strong>：所有事务排队执行。</li>
+</ul>
+<p>极快的前提是<strong>每个事务很短、数据能放进内存</strong>。</p>
+<p>一个慢查询就拖垮整个系统吞吐。适合特定架构，不是通用答案。</p>
+<ul>
+<li><strong>SSI（可串行化快照隔离，PostgreSQL/CockroachDB 的选择）</strong>：</li>
+</ul>
+<p>乐观策略——先放行，提交时检测读写冲突再中止。</p>
+<p><strong>无冲突的事务（你的 90%）几乎零开销</strong>，</p>
+<p>冲突集中处中止率升高、需要应用层重试。</p>
+<p>所以反对者对了一半：2PL 时代&quot;全 S&quot;确实贵；</p>
+<p>SSI 时代&quot;全 S&quot;对低冲突负载是可负担的——但<strong>必须配套重试逻辑</strong>，</p>
+<p>应用要习惯&quot;事务可能被中止，请再来一次&quot;。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>三种实现的代价落点：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    S["可串行化"] --> P2["2PL（悲观）"]
+    S --> SE["串行执行"]
+    S --> SSI["SSI（乐观）"]
+    P2 --> P2c["代价：所有并发被压低<br>读写互阻，死锁重试<br>90% 无冲突数据被殃及"]
+    SE --> SEc["代价：一个慢事务拖垮全局<br>前提：短事务 + 内存数据"]
+    SSI --> SSIc["代价：只惩罚真冲突<br>但应用必须处理中止重试"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">可串行化的代价取决于它的实现：2PL 压低一切并发，单线程要求短事务，SSI 只惩罚真冲突但要求应用会重试。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-8.3-02-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">SSI 的主要代价是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 所有读写互相阻塞</button>
+<button class="quiz-opt" data-val="1">B. 冲突集中处中止率升高，应用必须实现重试</button>
+<button class="quiz-opt" data-val="2">C. 只支持内存数据</button>
+<button class="quiz-opt" data-val="3">D. 只支持单表</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-8.3-02-q1" data-kind="judge" data-correct="true">
+<div class="quiz-stem">SSI 下无冲突的事务几乎零额外开销。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch8/#sec_transactions_serializability">§8.3 可串行化 →</a>
+<a class="ref-link" href="/ch8/#sec_transactions_2pl">§8.3 两阶段锁定（2PL） →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-8.4-01" data-cid="P-8.4-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">两阶段提交卡在&quot;中间态&quot;：协调者挂了怎么办？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>跨两个数据库的订单+库存扣减，用 2PC 保证原子提交。</p>
+<p>流程：协调者问所有参与者&quot;能提交吗&quot;→ 参与者答&quot;能&quot;→ 协调者发&quot;提交&quot;。</p>
+<p>参与者答&quot;能&quot;之后、协调者发&quot;提交&quot;之前，协调者进程崩溃。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>此刻参与者处于什么状态？它能单方面提交或回滚吗？为什么 2PC 被叫作&quot;阻塞协议&quot;？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>2PC 的致命等待：</p>
+<div class="mermaid-wrap"><pre class="mermaid">sequenceDiagram
+    participant C as 协调者
+    participant P1 as 库DB
+    participant P2 as 库存DB
+    C->>P1: prepare? 
+    C->>P2: prepare?
+    P1-->>C: yes（锁住资源，in doubt）
+    P2-->>C: yes（锁住资源，in doubt）
+    Note over C: 💥 崩溃
+    Note over P1,P2: 卡死：不能提交<br>也不能回滚，锁全持有
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>参与者进入了 &quot;in doubt&quot; 悬置状态</strong>：它已经承诺&quot;能提交&quot;（承诺不可撤回，</li>
+</ul>
+<p>撤回会破坏原子性），但没等到最终指令。它**既不能提交（可能别的参与者收到的是回滚），</p>
+<p>也不能回滚（可能协调者已经决定提交）**——只能干等并持有全部锁。</p>
+<ul>
+<li><strong>这就是 2PC 的本质缺陷（你可能没想到的）</strong>：协调者用<strong>一条日志决定全局</strong>，</li>
+</ul>
+<p>但它自己是单点。协调者的故障窗口 = 全部参与者的阻塞窗口。</p>
+<p>三阶段提交（3PC）试图缓解，却引入了网络分区下的不一致风险，业界基本弃用。</p>
+<ul>
+<li><strong>出路是共识</strong>：把&quot;要不要提交&quot;交给共识协议裁决（Raft/Paxos 化的协调者，</li>
+</ul>
+<p>或直接用 Percolator/TiDB 这类基于共识的事务模型）。</p>
+<p>这正是第 8 章通向第 10 章的桥：<strong>原子提交问题的正解就是共识</strong>。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-8.4-01-q0" data-kind="choice" data-correct="2">
+<div class="quiz-stem">2PC 中参与者答复 yes 后协调者崩溃，参与者能做什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 立即提交</button>
+<button class="quiz-opt" data-val="1">B. 立即回滚</button>
+<button class="quiz-opt" data-val="2">C. 只能悬置等待，持有锁</button>
+<button class="quiz-opt" data-val="3">D. 忽略事务</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-8.4-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">3PC 解决了 2PC 的所有问题，是现代系统的主流选择。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch8/#sec_transactions_2pc">§8.4 两阶段提交（2PC） →</a>
+<a class="ref-link" href="/ch8/#coordinator-failure">§8.4 协调者失效 →</a>
+<a class="ref-link" href="/ch8/#sec_transactions_xa">§8.4 跨不同系统的分布式事务 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-9.1-01" data-cid="P-9.1-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">超时该设多长？设错了两边都输</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>服务 A 调服务 B。B 正常处理 50ms，但 GC 偶尔停顿 2s。</p>
+<p>你设超时 3s。</p>
+<p>某天 B 部署到了另一个机房，网络 p99 抖到 3.5s。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>超时 3s 现在会造成什么后果？设成 30s 又会怎样？有没有系统性的设法？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>超时设短 vs 设长的失败模式：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    T["超时选择"] --> S["太短（3s）"]
+    T --> L["太长（30s）"]
+    S --> S1["慢请求被误判失败<br>客户端重试 → 负载更高 → 更多超时<br>重试风暴"]
+    L --> L1["真故障要等 30s 才发现<br>用户挂着、线程占着<br>故障传导"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>超时不是配置，是判断&quot;对方是否还活着&quot;的唯一手段</strong>——</li>
+</ul>
+<p>而网络不提供任何&quot;还在处理中&quot;的确认。这就是第 9 章核心困境：</p>
+<p>超时 = 用猜测代替事实。</p>
+<ul>
+<li><strong>太短的重试风暴</strong>：B 只是慢，A 全部超时重试，B 的负载瞬间翻倍，</li>
+</ul>
+<p>慢变成瘫。<strong>正解是重试要带退避 + 抖动，且设重试预算</strong>（如最多 10% 请求可重试）。</p>
+<ul>
+<li><strong>太长的资源泄露</strong>：等待期间 A 的线程/连接被占用，</li>
+</ul>
+<p>上游也跟着等，一个慢节点拖垮整条调用链（级联失败）。</p>
+<ul>
+<li><strong>系统性设法（你可能没想到的）</strong>：不用固定超时，用<strong>尾延迟数据动态设</strong>：</li>
+</ul>
+<p>比如 p99.9 × 裕量，并且<strong>取消不再需要的请求</strong>（context 传播），</p>
+<p>让被你放弃的请求别再白耗 B 的资源。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-9.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">服务端只是变慢（没宕机）时，超时设太短最容易引发什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 数据丢失</button>
+<button class="quiz-opt" data-val="1">B. 重试风暴使负载翻倍，慢变瘫</button>
+<button class="quiz-opt" data-val="2">C. 磁盘满</button>
+<button class="quiz-opt" data-val="3">D. 无法部署</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-9.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">超时时间越长，系统整体可用性一定越好。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch9/#sec_distributed_network_faults">§9.2 实践中的网络故障 →</a>
+<a class="ref-link" href="/ch9/#network-congestion-and-queueing">§9.2 网络拥塞与排队 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-9.1-02" data-cid="P-9.1-02">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">单机 → 分布式：什么直觉失效了？</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>团队把单机服务拆成分布式集群后，连续踩坑：</p>
+<ol>
+<li>同一秒内两个节点都认为自己是主（各自本地判断&quot;主挂了&quot;）</li>
+<li>单元测试全绿，上线后偶发数据不一致</li>
+<li>&quot;这个操作是原子的&quot;在单机成立，集群里不成立</li>
+</ol>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>单机编程的哪些默认假设在分布式里失效？为什么不能&quot;把网络做成可靠&quot;来挽救？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>单机假设 → 分布式现实的对照：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    S["单机假设"] --> S1["共享内存，看到即最新"]
+    S --> S2["代码不跑 = 停了"]
+    S --> S3["时钟只有一个"]
+    D["分布式现实"] --> D1["知识总是过期的副本"]
+    D --> D2["慢 ≠ 死：无法区分<br>只能靠超时猜"]
+    D --> D3["每台钟各走各的"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>三大失效假设</strong>：</li>
+</ul>
+<p>① <strong>共享内存消失</strong>：每个节点只有本地视角，其他节点的状态全是&quot;最近听说的&quot;；</p>
+<p>② <strong>&quot;没响应 = 挂了&quot;不成立</strong>：网络丢了包 ≠ 对端死了。</p>
+<p>你给节点发消息，收到回复前它可能死了、可能活着、可能活一会儿再死——</p>
+<p><strong>这个不确定性无法靠协议消除</strong>，只能用超时做有误差的猜测；</p>
+<p>③ <strong>没有统一时钟</strong>：跨节点的&quot;先后&quot;不能靠时间戳。</p>
+<ul>
+<li><strong>为什么不能造可靠网络</strong>：网络故障源于光纤断、交换机重启、</li>
+</ul>
+<p>拥塞丢包、拓扑变化——这些是物理和运维现实，不是工程疏忽。</p>
+<p>即使做成&quot;同步网络&quot;（固定时延），也要付出容量锐减的代价，</p>
+<p>而且节点暂停（GC）依然能伪造&quot;网络慢&quot;。**正确的路径不是消灭不确定性，</p>
+<p>而是设计能在不确定性下仍然正确的算法**——这正是 ch9→ch10 的主线。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-9.1-02-q0" data-kind="choice" data-correct="2">
+<div class="quiz-stem">分布式系统中，节点无响应时你能确定什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 它一定挂了</button>
+<button class="quiz-opt" data-val="1">B. 它活着</button>
+<button class="quiz-opt" data-val="2">C. 无法区分"挂了"和"慢/网络分区"，只能超时猜测</button>
+<button class="quiz-opt" data-val="3">D. 网络一定断了</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-9.1-02-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">把网络做成足够可靠，单机编程模型就能直接搬到分布式。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch9/#sec_distributed_partial_failure">§9.1 故障与部分失效 →</a>
+<a class="ref-link" href="/ch9/#sec_distributed_networks">§9.2 不可靠的网络 →</a>
+<a class="ref-link" href="/ch9/#can-we-not-simply-make-network-delays-predictable">§9.2 我们不能简单地让网络延迟可预测吗？ →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="P-9.2-01" data-cid="P-9.2-01">
+<header class="card-head">
+<span class="badge b-dilemma">🧭 困境卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">用本地时钟判断&quot;谁先发生&quot;，翻车了</h2>
+<p class="hint">先自己想方案，再揭示代价</p>
+<div class="sec sec-scene">
+<p>双机房写入同一购物车（多主），用<strong>服务器本地时间戳</strong>做冲突解决：</p>
+<p>时间戳新者胜（LWW，最后写入者胜）。</p>
+<p>机房 A 的时钟快了 5 分钟（NTP 漂移未修正）。</p>
+<p>用户操作：13:00 在机房 B 删除了购物车里的商品 X；</p>
+<p>13:01 在机房 A 又把 X 加回（其实是想改数量）。</p>
+</div>
+<div class="sec sec-question">
+<div class="sec-label">停下来，先想你的答案</div>
+<p>LWW 会怎么裁决？最终用户看到什么？这个结果错在哪？</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>LWW 被时钟误差劫持：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    B["机房B 13:01(本地)<br>删除 X"] --> M{"LWW：比时间戳"}
+    A["机房A 13:06(本地，快5分)<br>加回 X"] --> M
+    M --> W["A 胜：X 保留"]
+    W --> BAD["用户的删除操作凭空消失"]
+</pre></div>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<ul>
+<li><strong>裁决被时钟误差劫持</strong>：A 的时钟快 5 分钟，13:01 的操作拿到 13:06 的假时间戳，</li>
+</ul>
+<p>毫无悬念地赢了 13:01 的真实删除。用户视角：<strong>我的删除凭空消失</strong>。</p>
+<ul>
+<li><strong>更根本的问题（你可能没想到的）</strong>：即使时钟完美，LWW 也在<strong>故意丢弃并发写入</strong>——</li>
+</ul>
+<p>两个&quot;同时&quot;的写只留一个。时间戳排序本质是给并发操作强行编造一个假的全序。</p>
+<p>更糟：LWW 下一个先写入的数据，可能被后同步到的旧值覆盖后<strong>永久丢失</strong>，</p>
+<p>且无人察觉（写后写违反）。</p>
+<ul>
+<li><strong>工程正解方向</strong>：不要用墙上时钟做因果判断——</li>
+</ul>
+<p>用逻辑时钟（Lamport 时钟、版本向量）保留&quot;谁影响谁&quot;的信息，</p>
+<p>检测到真冲突时交给应用合并（或 CRDT 自动合并）。墙上时钟只该用于测量经过时间。</p>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="P-9.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">LWW 冲突解决的根本缺陷是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 时间戳太长</button>
+<button class="quiz-opt" data-val="1">B. 依赖可能漂移的本地时钟，且故意丢弃并发写</button>
+<button class="quiz-opt" data-val="2">C. 存储开销</button>
+<button class="quiz-opt" data-val="3">D. 网络延迟</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="P-9.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">只要所有服务器 NTP 同步良好，LWW 就能安全保留所有写入。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch9/#sec_distributed_clocks_relying">§9.3 对同步时钟的依赖 →</a>
+<a class="ref-link" href="/ch9/#sec_distributed_lww">§9.3 用于事件排序的时间戳 →</a>
+<a class="ref-link" href="/ch9/#clock-readings-with-a-confidence-interval">§9.3 带置信区间的时钟读数 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-10.2-01" data-cid="S-10.2-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推演：Lamport 时钟怎么给并发事件排序</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：两个节点 A、B，各自维护计数器（Lamport 时钟），规则：</p>
+<p>本地事件计数器 +1；发消息携带计数器；收消息取 max(本地, 消息) + 1。</p>
+<p><strong>步骤 1</strong>：A 本地事件 a1。A 的时钟？</p>
+<p><strong>步骤 2</strong>：A 发消息 m1 给 B（时钟随行）。A、B 时钟各多少？</p>
+<p><strong>步骤 3</strong>：B 同时（并发地）做本地事件 b1，然后收到 m1。B 的时钟？</p>
+<p><strong>步骤 4</strong>：全系统需要给事件排序，b1 和 a1 谁先？这个&quot;先&quot;是什么意义上的先？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：a1 → A = 1。</p>
+<p><strong>步骤 2</strong>：m1 携带 A=1 到达。A 发送后 = 2（按实现，发消息也 +1）。</p>
+<p><strong>步骤 3</strong>：b1 是 B 的本地事件，B = 1。收到 m1：</p>
+<p>max(B本地=1, 消息携带=1) + 1 = 2。</p>
+<p><strong>步骤 4</strong>：<strong>Lamport 时钟保证：若 a → b（a 因果上先于 b），则 C(a) &lt; C(b)</strong>。</p>
+<p>但 b1 和 a1 是<strong>并发</strong>事件（互相不知道），时钟值相同并不区分先后——</p>
+<p>算法用<strong>打破平局规则</strong>（如节点 ID 排序）给它们一个确定的全序。</p>
+<p>关键认知：**这个&quot;先&quot;是人为约定的全序，不对应真实物理时间，</p>
+<p>但只要所有节点遵守同一规则，全序复制状态机就有了理论基础**——</p>
+<p>这正是共识协议（如 Raft 的 log index）排序请求的思想雏形。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>Lamport 时钟的因果传递：</p>
+<div class="mermaid-wrap"><pre class="mermaid">sequenceDiagram
+    participant A as A
+    participant B as B
+    Note over A: a1 → clock=1
+    A->>B: m1 (clock=1)
+    Note over B: b1 → clock=1 (并发)
+    Note over B: 收 m1 → clock=2
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-10.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">两个并发事件的 Lamport 时钟值相同（或需平局规则），说明什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 物理上同时发生</button>
+<button class="quiz-opt" data-val="1">B. 它们无因果关系，先后由约定规则确定</button>
+<button class="quiz-opt" data-val="2">C. 有 bug</button>
+<button class="quiz-opt" data-val="3">D. 时钟坏了</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-10.2-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">Lamport 时钟保证：C(a) &lt; C(b) 意味着 a 因果先于 b。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch10/#sec_consistency_timestamps">§10.2 逻辑时钟 →</a>
+<a class="ref-link" href="/ch10/#lamport-timestamps">§10.2 Lamport 时间戳 →</a>
+<a class="ref-link" href="/ch10/#lamporthybrid-logical-clocks-vs-vector-clocks">§10.2 Lamport/混合逻辑时钟 vs. 向量时钟 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-11.3-01" data-cid="S-11.3-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推演：一次 JOIN 在 MapReduce 里怎么变成 shuffle</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：电商事件日志表 events（10TB，按天分区）与用户表 users（100GB），</p>
+<p>要算&quot;每个城市的订单总额&quot;。用 MapReduce 实现。</p>
+<p><strong>步骤 1</strong>：这两张表怎么放入 mapper？大表小表待遇一样吗？</p>
+<p><strong>步骤 2</strong>：mapper 输出什么？key 是什么？</p>
+<p><strong>步骤 3</strong>：reducer 拿到数据前，中间发生了什么？</p>
+<p><strong>步骤 4</strong>：为什么说 shuffle 是 MapReduce 的性能命门？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：<strong>不对称</strong>。users 只有 100GB，可以整体加载进每个 mapper 的</p>
+<p>内存/本地（&quot;广播哈希连接&quot;）；events 10TB 按块分给各 mapper 流式处理。</p>
+<p>如果两张表都大（TB 级），就要靠 <strong>shuffle 端连接</strong>（相同 key 的记录</p>
+<p>被分到同一 reducer）——代价大得多。</p>
+<p><strong>步骤 2</strong>：mapper 读 events 记录，查本地 users 副本拿到 city，</p>
+<p>输出 <code>(city, amount)</code>；或输出 <code>(user_id, event)</code> 交给下游连接。</p>
+<p><strong>步骤 3</strong>：<strong>shuffle</strong>：所有 mapper 的输出按 key（city/user_id）分区，</p>
+<p>经网络重分布到对应 reducer。这一步要落盘、要排序、要跨网络传输——</p>
+<p><strong>是整个作业唯一强制全局同步的环节</strong>。</p>
+<p><strong>步骤 4</strong>：因为 shuffle 的代价由<strong>数据倾斜</strong>决定。</p>
+<p>如果某个 city 占了 30% 的数据（北京、上海），</p>
+<p>那一个 reducer 要处理 3TB，其他 reducer 早早完成——</p>
+<p><strong>木桶效应</strong>：作业时长由最慢的 reducer 决定。</p>
+<p>解决靠加盐打散热点 key、两阶段聚合。这也是批处理与流处理</p>
+<p>共同的核心难题：<strong>分布式的墙是数据倾斜，不是算力</strong>。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>MapReduce JOIN 的两条路径：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    U["users 100GB<br>（小表）"] --> BR["广播到每个 mapper<br>内存哈希表"]
+    E["events 10TB<br>（大表）"] --> M["mapper：流式读取 + 查表补 city"]
+    BR --> M
+    M --> SH["shuffle：按 city 分区<br>落盘+排序+网络传输"]
+    SH --> R["reducer 聚合"]
+    R --> OUT["每城市总额"]
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-11.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">MapReduce 作业里唯一需要全局同步的环节是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. map 阶段</button>
+<button class="quiz-opt" data-val="1">B. shuffle 阶段</button>
+<button class="quiz-opt" data-val="2">C. 输出写入</button>
+<button class="quiz-opt" data-val="3">D. 作业调度</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-11.3-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">某个 reducer 处理的数据远超其他 reducer，问题叫什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 背压</button>
+<button class="quiz-opt" data-val="1">B. 数据倾斜</button>
+<button class="quiz-opt" data-val="2">C. 写放大</button>
+<button class="quiz-opt" data-val="3">D. 脑裂</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch11/#sec_batch_mapreduce">§11.3 MapReduce →</a>
+<a class="ref-link" href="/ch11/#sec_batch_join">§11.3 JOIN 与 GROUP BY →</a>
+<a class="ref-link" href="/ch11/#sec_shuffle">§11.3 混洗数据 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-12.4-01" data-cid="S-12.4-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推演：流处理如何做到&quot;恰好一次&quot;效果</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：Kafka 消费者读事件 → 更新状态（累加计数）→ 写出结果。</p>
+<p>消费者可能随时崩溃重启。</p>
+<p><strong>步骤 1</strong>：如果消费者每处理一条就提交 offset，崩溃后会丢吗？还会重复吗？</p>
+<p><strong>步骤 2</strong>：如果先处理、后批量提交 offset，崩溃后有什么后果？</p>
+<p><strong>步骤 3</strong>：既然无法避免重复投递，怎么让重复不影响最终结果？</p>
+<p><strong>步骤 4</strong>：把状态也存在内部（RocksDB）而不是外部数据库，又带来什么新问题？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：<strong>可能丢</strong>。提交了 offset 但结果还没写完（或已写完但下游没收到），</p>
+<p>重启后从新 offset 开始，那条数据永远不会被再处理。</p>
+<p>→ &quot;最多一次&quot;（at-most-once），丢数据。</p>
+<p><strong>步骤 2</strong>：<strong>可能重复</strong>。处理完了但 offset 没提交，重启后重放，</p>
+<p>同一条数据被算两遍。→ &quot;至少一次&quot;（at-least-once），数据正确性受损。</p>
+<p><strong>步骤 3</strong>：<strong>幂等 / 可重放</strong>两条路：</p>
+<p>① <strong>幂等写入</strong>：结果表以事件 ID 为主键 upsert，重复处理结果不变；</p>
+<p>② <strong>事务性写入</strong>：把 offset 提交与结果写入放进<strong>同一个原子事务</strong></p>
+<p>（Kafka 事务、或 Flink 的 two-phase commit sink），</p>
+<p>要么都生效要么都不生效——**这就是&quot;恰好一次&quot;的全部秘密：它不是不重复投递，</p>
+<p>而是让重复投递不可见**。</p>
+<p><strong>步骤 4</strong>：状态在内部意味着状态本身也要容错：</p>
+<p>靠 <strong>checkpoint</strong>（定期把状态快照到持久存储）+</p>
+<p><strong>从 checkpoint 对应的 offset 重放</strong>输入日志来恢复。</p>
+<p>所以&quot;恰好一次&quot;需要一个<strong>可重放的输入日志</strong>作为前提——</p>
+<p>这就把流处理的容错和 12.1 的日志模型锁在了一起。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>恰好一次的两个支点：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    IN["可重放的输入日志<br>（Kafka offset）"] --> F["容错算法"]
+    F --> C["checkpoint：状态快照"]
+    F --> T["原子提交：offset + 结果同事务"]
+    C --> OK["恢复后从一致点重放"]
+    T --> OK
+    OK --> RES["效果 = 恰好一次<br>（而非真的只投递一次）"]
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-12.4-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">流处理&quot;恰好一次&quot;的实现本质是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 网络绝不丢包</button>
+<button class="quiz-opt" data-val="1">B. 重复投递 + 幂等/原子提交，使重复不可见</button>
+<button class="quiz-opt" data-val="2">C. 只投递一次</button>
+<button class="quiz-opt" data-val="3">D. 不用 checkpoint</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-12.4-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">先处理数据、后提交 offset，崩溃重启后果是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 丢数据</button>
+<button class="quiz-opt" data-val="1">B. 重复处理（至少一次）</button>
+<button class="quiz-opt" data-val="2">C. 无影响</button>
+<button class="quiz-opt" data-val="3">D. 状态损坏</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch12/#sec_stream_fault_tolerance">§12.3 容错 →</a>
+<a class="ref-link" href="/ch12/#sec_stream_idempotence">§12.3 幂等性 →</a>
+<a class="ref-link" href="/ch12/#sec_stream_atomic_commit">§12.3 再谈原子提交 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-13.3-01" data-cid="S-13.3-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推演：及时性与完整性，你只能优先一个</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：事件日志驱动的派生视图系统。</p>
+<p>需要判断一个交易是否欺诈，然后决定放行或拦截。</p>
+<p><strong>步骤 1</strong>：如果<strong>只追求及时性</strong>（收到事件立刻判定），</p>
+<p>上游某条关键事件还在路上会怎样？</p>
+<p><strong>步骤 2</strong>：如果<strong>只追求完整性</strong>（等所有相关事件到齐再判定），</p>
+<p>用户要等多久？业务能接受吗？</p>
+<p><strong>步骤 3</strong>：两个目标能同时满足吗？</p>
+<p><strong>步骤 4</strong>：工程上怎么落地这个权衡？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：可能做出<strong>错误判定</strong>——基于不完整的信息放行了一笔欺诈。</p>
+<p>及时性优先 = 接受错误（假阴性）。</p>
+<p><strong>步骤 2</strong>：可能等很久，甚至<strong>永远等不到</strong>（那个事件可能真的没发生，</p>
+<p>或者链路故障）。完整性优先 = 接受延迟（用户等待）。</p>
+<p><strong>步骤 3</strong>：<strong>不能</strong>。这是 DDIA 关于流处理的核心断言：</p>
+<p>及时性（低延迟）与完整性（不遗漏）在<strong>存在不可靠网络</strong>的前提下</p>
+<p>是互斥的——因为&quot;是否还有事件在路上&quot;这个问题，</p>
+<p>正如第 9 章所说，<strong>只能靠猜测（水位线/超时）</strong>。</p>
+<p><strong>步骤 4</strong>：落地方式是把两个目标<strong>变成显式策略</strong>：</p>
+<p>① 用<strong>水位线</strong>设定&quot;等到什么时候算齐&quot;，用<strong>允许迟到窗口</strong>兜住轻微迟到；</p>
+<p>② 迟到超过阈值的走<strong>侧输出</strong>，进入人工/离线修正流程；</p>
+<p>③ 对必须完整的关键指标（如对账），用<strong>批处理重算 + 与流结果比对</strong>（对表）；</p>
+<p>④ 关键决策（放行/拦截）应用<strong>保守策略</strong>（宁可延迟也不放错）。</p>
+<p>核心认知：**不要试图消灭这个权衡，而要把它变成一个明确的、</p>
+<p>可观测、可调整的产品决策**——含糊地&quot;两者都要&quot;才是最危险的状态。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>及时性与完整性的取舍：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    E["事件流"] --> P{"策略"}
+    P -->|及时性优先| F["立刻判定<br>可能基于不完整信息"]
+    P -->|完整性优先| C["等水位线到齐<br>延迟高、可能无限等"]
+    P -->|工程折中| H["水位线 + 允许迟到窗口<br>超时走侧输出/离线对账"]
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-13.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">及时性与完整性为什么无法同时最优？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 算力不足</button>
+<button class="quiz-opt" data-val="1">B. 因为"是否还有事件在路上"无法被确证，只能猜测</button>
+<button class="quiz-opt" data-val="2">C. 存储太贵</button>
+<button class="quiz-opt" data-val="3">D. 编程模型限制</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-13.3-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">对必须保证完整的关键指标，推荐的兜底做法是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 无限等待</button>
+<button class="quiz-opt" data-val="1">B. 批处理重算并与流结果对表</button>
+<button class="quiz-opt" data-val="2">C. 直接丢弃迟到事件</button>
+<button class="quiz-opt" data-val="3">D. 提高机器配置</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch13/#sec_future_integrity">§13.3 及时性与完整性 →</a>
+<a class="ref-link" href="/ch13/#sec_future_verification">§13.3 信任但验证 →</a>
+<a class="ref-link" href="/ch13/#sec_future_observing">§13.2 观察衍生状态 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-2.1-01" data-cid="S-2.1-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推特时间线：为什么&quot;查&quot;比&quot;写&quot;更难扛？</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：社交网络首页时间线。两种实现方案：</p>
+<ul>
+<li><strong>方案 A（拉）</strong>：发推只写入作者的发推表。用户打开首页时，</li>
+</ul>
+<p>查自己关注的所有人最近的推文，合并排序。</p>
+<ul>
+<li><strong>方案 B（推）</strong>：发推时立即写入<strong>每个粉丝</strong>的投递时间线缓存，</li>
+</ul>
+<p>打开首页只查自己的缓存。</p>
+<p><strong>步骤 1</strong>：某名人 3000 万粉丝发一条推，方案 B 会发生什么？</p>
+<p><strong>步骤 2</strong>：普通用户（平均 500 粉丝）发推，方案 B 的成本如何？</p>
+<p><strong>步骤 3</strong>：方案 A 中，一个关注了 2000 人的重度用户打开首页，</p>
+<p>代价是什么？</p>
+<p><strong>步骤 4</strong>：选择最终架构。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：一条推触发 <strong>3000 万次缓存写入</strong>（写放大），</p>
+<p>写入风暴，热点键把某个分片打爆。</p>
+<p><strong>步骤 2</strong>：几百次写入，轻松承受。多数用户的推文量占比极高，</p>
+<p>平均成本很低。</p>
+<p><strong>步骤 3</strong>：打开首页 = 查询 2000 人的最近推文并合并排序，</p>
+<p>每次打开都是一次重查询。重度用户高频打开，代价巨大。</p>
+<p><strong>步骤 4</strong>：<strong>混合方案（推特的实际演进路径）</strong>：</p>
+<p>普通用户发推 → 推模式写入粉丝投递缓存（享受低延迟读）；</p>
+<p>名用户发推 → 不做扇出，读时单独合并名人推文（读时混合）。</p>
+<p>核心认知：<strong>负载形状不均匀时，单一策略必然在最坏情况下崩溃</strong>，</p>
+<p>按&quot;扇出代价&quot;给用户分组处理是标准工程手法。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>混合架构：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    T["发推"] --> WHO{"作者粉丝量？"}
+    WHO -->|普通用户| FAN["推模式：扇出写入<br>粉丝投递缓存"]
+    WHO -->|名用户（3000万粉）| NOFAN["不扇出"]
+    V["用户打开首页"] --> CACHE["读投递缓存"]
+    V --> MERGE["合并：查询关注的名人<br>的最新推文"]
+    NOFAN --> MERGE
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-2.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">名人发推触发 3000 万次缓存写入，这个问题叫什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 读放大</button>
+<button class="quiz-opt" data-val="1">B. 写扇出热点</button>
+<button class="quiz-opt" data-val="2">C. 数据倾斜的读</button>
+<button class="quiz-opt" data-val="3">D. 合并风暴</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-2.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">推特最终采用纯推模式（发推时写所有粉丝缓存）解决了问题。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch2/#sec_introduction_twitter">§2.1 案例研究：社交网络首页时间线 →</a>
+<a class="ref-link" href="/ch2/#sec_introduction_percentiles">§2.2 描述性能 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-4.1-01" data-cid="S-4.1-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">一次写入在 LSM 树里的完整旅程</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec ">
+<div class="sec-label">推演序列（每步先预测再往下看）</div>
+<p><strong>系统</strong>：LSM 树存储引擎，memtable 容量阈值 4 条记录，L0/L1 两层 SSTable。</p>
+<p><strong>步骤 1</strong>：写入 <code>user:1 = &quot;小明&quot;</code>。这条数据现在在哪？磁盘上有变化吗？</p>
+<p><strong>步骤 2</strong>：继续写入 user:2、user:3、user:4，memtable 满了。</p>
+<p>接下来发生什么？</p>
+<p><strong>步骤 3</strong>：此时查询 <code>user:1</code>。查找顺序是怎样的？最坏要查几处？</p>
+<p><strong>步骤 4</strong>：继续写入 <code>user:1 = &quot;大明&quot;</code>（同键新值）。</p>
+<p>L0 已有旧值，现在查询 user:1 返回什么？靠什么保证？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：只写内存 memtable + 一条 WAL 日志（防崩溃丢数据）。</p>
+<p>磁盘上的 SSTable 没有任何变化——写入是纯内存操作，所以快。</p>
+<p><strong>步骤 2</strong>：memtable 整体刷盘为一个新的 SSTable 文件（不可变），</p>
+<p>新 memtable 清空。注意：是<strong>整段顺序写</strong>，没有随机 I/O——</p>
+<p>这是 LSM 写吞吐高的根源。</p>
+<p><strong>步骤 3</strong>：先查 memtable（没有）→ L0 最新 SSTable → L0 更旧的 → L1 …</p>
+<p>最坏情况：键不存在时要查遍所有层级，直到布隆过滤器告诉你&quot;肯定没有&quot;。</p>
+<p>所以 LSM 必须配布隆过滤器，否则空查询代价极高。</p>
+<p><strong>步骤 4</strong>：返回&quot;大明&quot;。<strong>靠&quot;新层级优先 + 层内按时间排序&quot;的规则</strong>：</p>
+<p>memtable &gt; L0 新文件 &gt; L0 旧文件 &gt; L1。旧值要等后台合并（compaction）</p>
+<p>时才被物理清理。合并期间同一键有多个版本共存，是正常状态而非 bug。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>写入与查询路径：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    W["写入"] --> MT["memtable<br>+ WAL"]
+    MT -->|满| F["顺序刷盘<br>新 SSTable"]
+    F --> L0["L0（可能同键多版本）"]
+    L0 -->|后台合并| L1["L1（去重后）"]
+    Q["查询 user:1"] --> MT --> L0 --> L1
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-4.1-01-q0" data-kind="judge" data-correct="false">
+<div class="quiz-stem">LSM 树写入时数据会立即写入磁盘上的 SSTable 文件。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-4.1-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">LSM 树查询一个不存在的键，代价靠什么控制？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 二分查找</button>
+<button class="quiz-opt" data-val="1">B. 布隆过滤器</button>
+<button class="quiz-opt" data-val="2">C. 更大的 memtable</button>
+<button class="quiz-opt" data-val="3">D. 更多层级</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-4.1-01-q2" data-kind="choice" data-correct="1">
+<div class="quiz-stem">同一个键在 L0 有旧值、memtable 有新值，查询返回什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 旧值（磁盘优先）</button>
+<button class="quiz-opt" data-val="1">B. 新值（层级新者优先）</button>
+<button class="quiz-opt" data-val="2">C. 随机</button>
+<button class="quiz-opt" data-val="3">D. 报冲突错误</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch4/#sec_storage_log_structured">§4.1 日志结构存储 →</a>
+<a class="ref-link" href="/ch4/#the-sstable-file-format">§4.1 SSTable 文件格式 →</a>
+<a class="ref-link" href="/ch4/#constructing-and-merging-sstables">§4.1 构建和合并 SSTable →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-6.1-01" data-cid="S-6.1-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">主库在确认前崩溃，这笔写入算数吗？</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列（每步先自己预测，再看下一步）</div>
+<p><strong>系统</strong>：主库 L，同步从库 S1，异步从库 S2。客户端发出写入 X = &quot;转账 100 元&quot;。</p>
+<p><strong>步骤 1</strong>：L 收到 X，写入本地日志，但尚未向任何从库转发。</p>
+<p>→ 此时 X 存在于哪些机器？</p>
+<p><strong>步骤 2</strong>：L 把 X 发给 S1（同步），S1 写入并确认。</p>
+<p>→ 此时 L 可以向客户端确认 X 了吗？</p>
+<p><strong>步骤 3</strong>：L 在向客户端发确认<strong>之前</strong>崩溃，同时 L 的磁盘损坏。</p>
+<p>S2 还没收到 X。客户端没有收到&quot;成功&quot;，但也没有收到&quot;失败&quot;。</p>
+<p><strong>步骤 4</strong>：集群选举 S1 为新主库并恢复服务。</p>
+<p>→ X 现在处于什么状态？客户端应该重试写入 X 吗？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：只有 L。X 是&quot;未确认&quot;状态。</p>
+<p><strong>步骤 2</strong>：可以。S1 已持久化 X，L 崩溃后 X 仍可存活。</p>
+<p><strong>步骤 3</strong>：关键点——<strong>&quot;不确定区&quot;（ambiguous write）</strong>。</p>
+<p>客户端超时后无法区分&quot;提交了&quot;和&quot;没提交&quot;。</p>
+<p>X 在 S1 上存在，但旧主库已无法说明它是否被确认过。</p>
+<p><strong>步骤 4</strong>：S1 上有 X，新主库恢复后 X 会<strong>出现</strong>。</p>
+<p>客户端重试 X 会导致重复转账（如果没有幂等键）；</p>
+<p>不重试则可能丢失这笔转账（如果 S1 的日志也被判无效）。</p>
+<p>两种选择都可能错，这正是分布式事务和幂等性在后续章节存在的理由。</p>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">客户端视角的&quot;不确定&quot;（超时无响应）和系统内部的复制状态互相纠缠，这是幂等写入被强制要求的最根本原因。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-6.1-01-q0" data-kind="choice" data-correct="2">
+<div class="quiz-stem">客户端写请求超时但没有收到成功或失败响应，这笔写入处于什么状态？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 一定失败了</button>
+<button class="quiz-opt" data-val="1">B. 一定成功了</button>
+<button class="quiz-opt" data-val="2">C. 不确定，需要幂等机制保证重试安全</button>
+<button class="quiz-opt" data-val="3">D. 由数据库自动撤销</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-6.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">只要主库在崩溃前把写入复制给了至少一个从库，客户端重试就一定是安全的。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_failover">§6.1 处理节点故障 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_sync_async">§6.1 同步复制与异步复制 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-6.2-01" data-cid="S-6.2-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">跟踪一条数据在复制滞后期内的真实状态</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：单主 L + 从库 A（滞后 200ms）+ 从库 B（滞后 5s，正在从网络抖动中恢复）。</p>
+<p>时间轴 T=0 起，事件如下：</p>
+<p><strong>步骤 1</strong>：T=0，用户 U 把昵称从&quot;小明&quot;改为&quot;大明&quot;（写入 L，异步复制）。</p>
+<p>L 立即向 U 确认成功。</p>
+<p><strong>步骤 2</strong>：T=100ms，U 的刷新请求被负载均衡到从库 A。</p>
+<p>→ U 看到的昵称是？（A 的滞后 200ms，此时刻 L 的 T=0 写入尚未到达 A）</p>
+<p><strong>步骤 3</strong>：T=250ms，L 的写入到达 A。U 再次刷新，这次被路由到从库 B。</p>
+<p>→ U 看到的昵称是？</p>
+<p><strong>步骤 4</strong>：T=2s，L 的写入仍未到达 B（网络抖动加剧）。</p>
+<p>运营同事在后台把 U 的昵称又改回了&quot;小明&quot;（写入 L）。</p>
+<p>U 的第三次刷新被路由到 A。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 2</strong>：<strong>旧值&quot;小明&quot;</strong>。写入已确认但还没复制到 A——这就是</p>
+<p>&quot;主库确认 ≠ 全局可见&quot;。</p>
+<p><strong>步骤 3</strong>：仍是&quot;小明&quot;，而且是<strong>从更新过的 A 跳回到落后的 B</strong>。</p>
+<p>U 会感觉自己改的东西&quot;变了回去&quot;，比单纯看不到更新更让人困惑。</p>
+<p>这就是<strong>单调读</strong>要解决的问题：同一个用户的连续读不应往回走。</p>
+<p><strong>步骤 4</strong>：A 上此刻是&quot;大明&quot;（第一次修改已到达），</p>
+<p>而全局的最新值其实是&quot;小明&quot;（第二次修改，尚未到 A）。</p>
+<p>U 看到了一个<strong>从未在全局存在过的状态序列</strong>：</p>
+<p>小明 → 大明，实际上全局历史是 小明 → 大明 → 小明。</p>
+<p>但 U 的体验是合理的，因为单调读只约束&quot;不回退&quot;，</p>
+<p>不承诺看到最终状态。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两个从库的复制滞后与用户请求路由：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph T["时间轴 T=0 到 2s"]
+        W["T=0<br>U 改名: 小明→大明<br>L 确认"] --> R1["T=100ms<br>刷新→A<br>看到: 小明"] --> R2["T=250ms<br>写入到达A<br>刷新→B<br>看到: 小明（回退感）"] --> R3["T=2s<br>运营改回小明<br>刷新→A<br>看到: 大明（过期）"]
+    end
+    L[主库 L] -. "200ms" .-> A[从库 A]
+    L -. "5s，网络抖动中" .-> B[从库 B]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">复制滞后下，用户可以经历&quot;全局从未发生过的状态序列&quot;；单调读只防回退，不保证最新。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-6.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">单调读一致性保证的是什么？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 用户总能读到全局最新值</button>
+<button class="quiz-opt" data-val="1">B. 同一用户的连续读不会看到"回退到过去"</button>
+<button class="quiz-opt" data-val="2">C. 所有用户看到相同顺序</button>
+<button class="quiz-opt" data-val="3">D. 从库滞后不超过 1 秒</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-6.2-01-q1" data-kind="judge" data-correct="true">
+<div class="quiz-stem">复制滞后下，用户可能看到全局从未存在过的状态组合。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch6/#sec_replication_lag">§6.2 复制延迟的问题 →</a>
+<a class="ref-link" href="/ch6/#sec_replication_monotonic_reads">§6.2 单调读 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-7.1-01" data-cid="S-7.1-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推演：二级索引在分片集群里的两种命运</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：4 分片集群，表 orders(order_id 分片键, region, status)。</p>
+<p>需求：按 region 查订单列表。两种二级索引方案：</p>
+<ul>
+<li><strong>方案 A（本地索引）</strong>：每个分片只对自己那份数据建 region 索引</li>
+<li><strong>方案 B（全局索引）</strong>：region 索引的数据本身按 region 值分片，覆盖所有分片的数据</li>
+</ul>
+<p><strong>步骤 1</strong>：方案 A 查 <code>region = &#x27;华东&#x27;</code>，请求怎么走？代价随什么增长？</p>
+<p><strong>步骤 2</strong>：方案 B 查同一条件，请求怎么走？</p>
+<p><strong>步骤 3</strong>：方案 B 写入一个订单（region=&#x27;华东&#x27;），发生了什么？</p>
+<p><strong>步骤 4</strong>：选择方案。</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：请求散射到<strong>全部 4 个分片</strong>，各查各的索引再合并（scatter-gather）。</p>
+<p>代价随分片数线性增长——分片越多，这种查询越慢，尾部延迟由最慢分片决定。</p>
+<p><strong>步骤 2</strong>：只读 region 索引所在的分片（&#x27;华东&#x27;只在一个索引分片上），</p>
+<p>一次点查搞定，与总分片数无关。</p>
+<p><strong>步骤 3</strong>：写入要<strong>跨两个分片</strong>：订单本体写入分片键所在分片，</p>
+<p>同时更新 region 索引分片。这两个写入无法用一个本地事务包裹</p>
+<p>（跨分片分布式事务，见第 8 章的代价）——所以全局索引普遍是<strong>异步更新</strong>，</p>
+<p>读索引可能看到稍旧的订单列表。</p>
+<p><strong>步骤 4</strong>：MongoDB 的选择：本地索引（查询必须 scattering）；</p>
+<p>DynamoDB/Couchbase 的选择：全局二级索引（写入放大 + 最终一致）。</p>
+<p><strong>规律：二级索引让&quot;读路径 shortest&quot;和&quot;写路径 single-shard&quot;不可兼得。</strong></p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>两种索引的请求路径：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart TB
+    Q["查询 region=华东"] --> A["本地索引：散射 4 分片<br>延迟 = 最慢分片"]
+    Q --> B["全局索引：只查索引分片<br>但写入要跨分片"]
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-7.1-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">本地二级索引查询的代价随什么增长？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 索引大小</button>
+<button class="quiz-opt" data-val="1">B. 分片数（scatter-gather）</button>
+<button class="quiz-opt" data-val="2">C. 节点内存</button>
+<button class="quiz-opt" data-val="3">D. 网络带宽</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-7.1-01-q1" data-kind="judge" data-correct="false">
+<div class="quiz-stem">全局二级索引的更新通常与主数据写入在同一分片事务内完成。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch7/#sec_sharding_secondary_indexes">§7.4 分片与二级索引 →</a>
+<a class="ref-link" href="/ch7/#id166">§7.4 本地二级索引 →</a>
+<a class="ref-link" href="/ch7/#id167">§7.4 全局二级索引 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-8.2-01" data-cid="S-8.2-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">四种隔离级别下，这笔并发读取各看到什么？</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>初始状态</strong>：账户 A 余额 100，账户 B 余额 100。</p>
+<p>两个事务并发执行：</p>
+<ul>
+<li><strong>T1（转账）</strong>：BEGIN → A 扣 10（A=90）→ ……尚在执行……</li>
+<li><strong>T2（统计）</strong>：BEGIN → 读 A → 读 B → COMMIT</li>
+</ul>
+<p><strong>时间轴</strong>：</p>
+<p>T1 执行了&quot;A 扣 10&quot;但<strong>尚未提交</strong>；T2 此刻读 A 和 B。</p>
+<p><strong>逐级推演</strong>（先自己回答再看揭示）：</p>
+<p>RU 下 T2 读到的 A、B 各是多少？</p>
+<p>RC 下呢？RR 下呢？</p>
+<p><strong>追加时间轴</strong>：T1 继续执行 B 加 10（B=110），T1 提交。</p>
+<p>假设 T2 是 RR 级别且<strong>在 T1 提交前就已开始</strong>，T2 此刻重读 A 和 B</p>
+<p>（再算一次总额），读到多少？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>RU</strong>：A=90，B=100。<strong>读到了未提交的扣减</strong>。</p>
+<p>如果 T1 之后回滚，T2 看到过一笔从未发生的扣款——脏读。</p>
+<p>总额 190，既不是转账前也不是转账后，哪个都不对。</p>
+<p><strong>RC</strong>：A=100，B=100。只读已提交数据，总额 200，一致。</p>
+<p>但注意：T1 提交后 T2 若<strong>再读一次</strong>，会看到 A=90——</p>
+<p>同一事务内两次读结果不同（不可重复读），RC 允许。</p>
+<p><strong>RR</strong>：A=100，B=100，且 T1 提交后重读仍是 100——</p>
+<p>快照固定在事务开始时刻。总额恒为 200。</p>
+<p><strong>追加推演（RR 重读）</strong>：A=90，B=100——<strong>注意 B 还是 100！</strong></p>
+<p>T1 对 B 的写入发生在 T2 快照之后，T2 看不到。</p>
+<p>这就是 MVCC 快照读的规则：整个事务只看&quot;开始时刻的快照 +</p>
+<p>自己写的&quot;。总额算出 190？不——A=90、B=100，总额 190，</p>
+<p>是一个<strong>全局从未存在过的状态</strong>（转账前是 200，转账后是 200）。</p>
+<p>对报表场景这通常可接受（近似值），</p>
+<p>对审计场景就是事故。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>推演的时间轴与各隔离级别的可见性：</p>
+<div class="mermaid-wrap"><pre class="mermaid">flowchart LR
+    subgraph TL["时间轴"]
+        T0["T2 BEGIN<br>（RR 快照建立）"] --> T1["T1: A=90（未提交）<br>T2 读 A,B"] --> T2["T1: B=110<br>T1 提交"] --> T3["T2 重读 A,B"]
+    end
+    T1 --> RU["RU: A=90, B=100<br>读到脏数据"]
+    T1 --> RC["RC: A=100, B=100<br>只读已提交"]
+    T1 --> RR["RR: A=100, B=100<br>快照固定"]
+    T3 --> R2["RR 重读: A=90, B=100<br>总额 190，全局从未存在过"]
+</pre></div>
+</div>
+<div class="sec sec-takeaway">
+<div class="sec-label">记住这一句</div>
+<div class="takeaway">RU 读脏数据、RC 允许不可重复读、RR 快照固定但可能看到&quot;全局从未存在过的组合&quot;，Serializable 才承诺&quot;结果等价于某种串行顺序&quot;。</div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-8.2-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">在 RR（快照隔离）下，事务内重读看到的是？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 最新已提交数据</button>
+<button class="quiz-opt" data-val="1">B. 事务开始时刻的快照 + 自己的写入</button>
+<button class="quiz-opt" data-val="2">C. 始终为空</button>
+<button class="quiz-opt" data-val="3">D. 任意已提交数据</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-8.2-01-q1" data-kind="judge" data-correct="true">
+<div class="quiz-stem">RC 级别下，同一事务内两次读取同一行可能得到不同结果。</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="true">对</button>
+<button class="quiz-opt" data-val="false">错</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch8/#sec_transactions_read_committed">§8.2 读已提交 →</a>
+<a class="ref-link" href="/ch8/#sec_transactions_snapshot_isolation">§8.2 快照隔离与可重复读 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+<section class="card" id="S-9.3-01" data-cid="S-9.3-01">
+<header class="card-head">
+<span class="badge b-simulation">⏱ 推演卡</span>
+<span class="head-right">
+<button class="star-btn" title="收藏">☆</button>
+<span class="read-dot" title="学习状态"></span>
+</span>
+</header>
+<h2 class="card-title">推演：进程暂停如何偷走你的锁</h2>
+<p class="hint">逐步推演系统行为，先预测再看答案</p>
+<div class="sec sec-question">
+<div class="sec-label">推演序列</div>
+<p><strong>系统</strong>：客户端 C1 获取分布式锁（租约 10s）操作存储节点 S，</p>
+<p>锁保护&quot;不能重复执行&quot;的任务 X。</p>
+<p><strong>步骤 1</strong>：C1 拿到锁，开始执行。它需要检查&quot;我还持有锁吗&quot;吗？</p>
+<p><strong>步骤 2</strong>：C1 执行到一半，发生一次 15s 的 GC stop-the-world 暂停。</p>
+<p>租约 10s 到期，锁服务把锁发给了 C2。C2 开始执行任务 X。</p>
+<p><strong>步骤 3</strong>：C1 从 GC 中醒来。它以为自己还持有锁（代码没检查），</p>
+<p>继续写存储。现在几个客户端在执行任务 X？</p>
+<p><strong>步骤 4</strong>：怎么防？</p>
+</div>
+<div class="sec sec-reveal">
+<div class="sec-label">揭示</div>
+<p><strong>步骤 1</strong>：不能用&quot;查一下锁还在不在&quot;来防——</p>
+<p>查完、GC 暂停、再用，中间照样可能失去锁。</p>
+<p><strong>租约是个时间窗承诺，不是持续状态。</strong></p>
+<p><strong>步骤 3</strong>：<strong>两个客户端同时执行任务 X</strong>。</p>
+<p>这就是&quot;进程暂停&quot;的恐怖之处：从 C1 的视角，它只是执行了几行代码之间的间隙；</p>
+<p>从全局看，15 秒过去了，世界已经变了。**GC 暂停、虚拟机挂起、</p>
+<p>NTP 跳变都可能在任意两条指令之间插入任意长的暂停**——</p>
+<p>单机编程里&quot;这段代码是原子的&quot;的直觉在分布式里全部失效。</p>
+<p><strong>步骤 4</strong>：<strong>栅栏令牌（fencing token）</strong>：锁服务每次发锁都发一个<strong>单调递增的编号</strong>。</p>
+<p>C1 拿的是 33，C2 拿的是 34。存储节点记录见过的最大编号，</p>
+<p>拒绝比它旧的（33 的写入被拒）。C1 醒来后继续写时自动被挡下——</p>
+<p>它不需要&quot;知道&quot;自己失去了锁，编号替它说了实话。</p>
+</div>
+<div class="sec sec-figure">
+<div class="sec-label">图</div>
+<p>栅栏令牌拒绝旧租约：</p>
+<div class="mermaid-wrap"><pre class="mermaid">sequenceDiagram
+    participant L as 锁服务
+    participant C1 as C1(租约33)
+    participant C2 as C2(租约34)
+    participant S as 存储
+    L->>C1: 锁 token=33
+    Note over C1: GC 暂停 15s
+    L->>C2: 锁 token=34
+    C2->>S: 写(token=34) ✓
+    C1->>S: 写(token=33) ✗ 拒绝
+</pre></div>
+</div>
+<div class="sec sec-quiz"><div class="sec-label">自测 · 巩固一下</div>
+<div class="quiz" data-qid="S-9.3-01-q0" data-kind="choice" data-correct="1">
+<div class="quiz-stem">进程暂停后&quot;先查一下锁还在不在&quot;为什么没用？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 查询太慢</button>
+<button class="quiz-opt" data-val="1">B. 查完到使用之间仍可能再次暂停并失去锁</button>
+<button class="quiz-opt" data-val="2">C. 锁服务不可靠</button>
+<button class="quiz-opt" data-val="3">D. 没有这个问题</button>
+</div><div class="quiz-fb"></div></div>
+<div class="quiz" data-qid="S-9.3-01-q1" data-kind="choice" data-correct="1">
+<div class="quiz-stem">栅栏令牌靠什么机制隔离僵尸客户端？</div>
+<div class="quiz-opts">
+<button class="quiz-opt" data-val="0">A. 更长的租约</button>
+<button class="quiz-opt" data-val="1">B. 单调递增编号，存储端拒绝旧编号</button>
+<button class="quiz-opt" data-val="2">C. 心跳检测</button>
+<button class="quiz-opt" data-val="3">D. 双重检查锁</button>
+</div><div class="quiz-fb"></div></div>
+</div>
+<footer class="card-foot card-src"><div class="sec-label">📖 进阶阅读 · 原书对应小节</div>
+<a class="ref-link" href="/ch9/#sec_distributed_clocks_pauses">§9.3 进程暂停 →</a>
+<a class="ref-link" href="/ch9/#sec_distributed_lock_fencing">§9.4 分布式锁和租约 →</a>
+<a class="ref-link" href="/ch9/#sec_distributed_fencing_tokens">§9.4 用栅栏机制隔离僵尸与延迟请求 →</a>
+</footer>
+<footer class="card-foot"><button class="mark-read-btn">✓ 标记为已学</button></footer>
+</section>
+  <div class="footnote">原型 · 状态保存在本机浏览器 · 清除浏览器数据会重置进度</div>
+</div>
+<nav class="bottom-nav">
+  <button id="nav-all" class="on">全部<span class="cnt">51</span></button>
+  <button id="nav-unread">未学<span class="cnt" id="cnt-unread">51</span></button>
+  <button id="nav-starred">收藏<span class="cnt" id="cnt-starred">0</span></button>
+  <button id="nav-toc">📋 目录</button>
+</nav>
+<script>
+(function(){
+  var LS = 'ddia-cards-v1';
+  var state = { read:{}, starred:{}, quizWrong:{} };
+  try { state = Object.assign(state, JSON.parse(localStorage.getItem(LS) || '{}')); } catch(e){}
+  function save(){ localStorage.setItem(LS, JSON.stringify(state)); }
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  var tocItems = {};
+  document.querySelectorAll('.toc-item').forEach(function(a){
+    tocItems[a.dataset.cid] = a;
+    a.addEventListener('click', function(){
+      document.querySelector('details.tocbox').open = false;
+    });
+  });
+
+  function refreshCard(el){
+    var cid = el.dataset.cid;
+    el.classList.toggle('is-read', !!state.read[cid]);
+    el.classList.toggle('is-starred', !!state.starred[cid]);
+    el.querySelector('.mark-read-btn').textContent = state.read[cid] ? '✓ 已学（点击取消）' : '✓ 标记为已学';
+    el.querySelector('.star-btn').textContent = state.starred[cid] ? '★' : '☆';
+    var t = tocItems[cid];
+    if (t) {
+      t.classList.toggle('read', !!state.read[cid]);
+      t.classList.toggle('starred', !!state.starred[cid]);
+      t.classList.toggle('quizwrong', !!state.quizWrong[cid]);
+      var s = t.querySelector('.toc-star');
+      s.textContent = '★';
+      s.classList.toggle('empty', !state.starred[cid]);
+    }
+  }
+  function refreshProgress(){
+    var total = cards.length;
+    var n = cards.filter(function(c){ return state.read[c.dataset.cid]; }).length;
+    var ns = cards.filter(function(c){ return state.starred[c.dataset.cid]; }).length;
+    document.getElementById('prog-num').textContent = n + '/' + total;
+    document.getElementById('prog-fill').style.width = (total ? 100*n/total : 0) + '%';
+    document.getElementById('cnt-unread').textContent = total - n;
+    document.getElementById('cnt-starred').textContent = ns;
+    document.getElementById('nav-all').querySelector('.cnt').textContent = total;
+  }
+  function applyFilter(mode){
+    cards.forEach(function(c){
+      var cid = c.dataset.cid, show = true;
+      if (mode === 'unread') show = !state.read[cid];
+      else if (mode === 'starred') show = !!state.starred[cid];
+      else if (mode === 'quiz-wrong') show = !!state.quizWrong[cid];
+      c.classList.toggle('hidden', !show);
+    });
+    document.querySelectorAll('#filters .chip').forEach(function(ch){
+      ch.classList.toggle('on', ch.dataset.filter === mode);
+    });
+    ['all','unread','starred'].forEach(function(id){
+      document.getElementById('nav-' + id).classList.toggle('on', id === mode);
+    });
+    window.scrollTo(0,0);
+  }
+
+  cards.forEach(function(c){
+    var cid = c.dataset.cid;
+    c.querySelector('.star-btn').addEventListener('click', function(){
+      state.starred[cid] = !state.starred[cid];
+      if (!state.starred[cid]) delete state.starred[cid];
+      save(); refreshCard(c); refreshProgress();
+    });
+    c.querySelector('.mark-read-btn').addEventListener('click', function(){
+      state.read[cid] = !state.read[cid];
+      if (!state.read[cid]) delete state.read[cid];
+      save(); refreshCard(c); refreshProgress();
+    });
+    // quiz interaction
+    c.querySelectorAll('.quiz').forEach(function(qz){
+      var correct = qz.dataset.correct;
+      var isJudge = qz.dataset.kind === 'judge';
+      qz.querySelectorAll('.quiz-opt').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          if (qz.classList.contains('answered')) return;
+          var picked = btn.dataset.val;
+          var ok = String(picked) === String(correct);
+          qz.classList.add('answered', ok ? 'right' : 'wrongq');
+          btn.classList.add('picked', ok ? 'correct' : 'wrong');
+          if (!ok) {
+            var cbtn = Array.prototype.find.call(qz.querySelectorAll('.quiz-opt'),
+              function(b){ return String(b.dataset.val) === String(correct); });
+            if (cbtn) cbtn.classList.add('correct');
+          }
+          var fb = qz.querySelector('.quiz-fb');
+          fb.textContent = ok ? '✓ 答对了' : '✗ 答错了，正确的已标出';
+          // record wrong for review filter
+          var hadWrong = state.quizWrong[cid];
+          if (!ok && !hadWrong) { state.quizWrong[cid] = true; save(); }
+          if (ok && hadWrong) {
+            // only clear if all quizzes in card answered correctly at least once
+            var allOk = Array.prototype.every.call(c.querySelectorAll('.quiz'), function(q2){
+              return q2 === qz ? ok : q2.classList.contains('right');
+            });
+            if (allOk) { delete state.quizWrong[cid]; save(); }
+          }
+          refreshCard(c);
+        });
+      });
+    });
+    refreshCard(c);
+  });
+
+  function openToc(){
+    var box = document.querySelector('details.tocbox');
+    box.open = true;
+    box.scrollIntoView({behavior:'smooth', block:'start'});
+    var inp = document.getElementById('toc-search');
+    if (inp && window.innerWidth < 700) setTimeout(function(){ inp.focus(); }, 350);
+  }
+  document.getElementById('nav-toc').addEventListener('click', openToc);
+  document.getElementById('top-toc-btn').addEventListener('click', openToc);
+
+  // ---- toc: search + group collapse ----
+  var searchInput = document.getElementById('toc-search');
+  var tocGroups = Array.prototype.slice.call(document.querySelectorAll('.toc-group'));
+  document.querySelectorAll('.toc-group-h').forEach(function(h){
+    h.addEventListener('click', function(){
+      h.parentElement.classList.toggle('closed');
+    });
+  });
+  if (searchInput) {
+    searchInput.addEventListener('input', function(){
+      var kw = searchInput.value.trim().toLowerCase();
+      tocGroups.forEach(function(g){
+        var any = false;
+        g.querySelectorAll('.toc-item').forEach(function(a){
+          var hit = !kw || a.dataset.text.toLowerCase().indexOf(kw) !== -1;
+          a.style.display = hit ? '' : 'none';
+          if (hit) any = true;
+        });
+        g.style.display = any ? '' : 'none';
+        if (kw) g.classList.remove('closed');  // search expands all groups
+      });
+    });
+  }
+
+  document.querySelectorAll('#filters .chip').forEach(function(ch){
+    ch.addEventListener('click', function(){ applyFilter(ch.dataset.filter); });
+  });
+  ['all','unread','starred'].forEach(function(id){
+    document.getElementById('nav-' + id).addEventListener('click', function(){ applyFilter(id); });
+  });
+
+  refreshProgress();
+})();
+</script>
+</body>
+</html>
