@@ -7,7 +7,6 @@ output/
 public/
 .hugo_build.lock
 .claude
-CLAUDE.md
 content/cn/
 zh.md
 en.md

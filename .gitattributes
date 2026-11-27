@@ -1,0 +1,2 @@
+# Fork keeps its own Vietnamese README on upstream merges (needs: git config merge.ours.driver true).
+README.md merge=ours

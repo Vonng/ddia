@@ -1,0 +1,27 @@
+# DDIA fat footer (data/footer/<lang>.yaml), bản tiếng Việt.
+brand:
+  name: DDIA tiếng Việt
+  # ponytail: explicit logo; OINK 1.6.0 re-resolves params.logo and doubles a sub-path baseURL.
+  logo: logo.png
+  tagline: '**D**esigning **D**ata-**I**ntensive **A**pplications'
+  slogan: Khung tư duy để thiết kế, hiện thực và đánh giá các hệ thống dữ liệu hiện đại
+columns:
+  - title: Đọc
+    links:
+      - { label: Mục lục chương, url: '/#chapters' }
+      - { label: Bắt đầu đọc, url: preface/ }
+      - { label: Mục lục đầy đủ, url: toc/ }
+      - { label: In toàn bộ sách, url: _print/ }
+  - title: "Đóng góp"
+    links:
+      - { label: "Người đóng góp", url: "contrib/" }
+      - { label: "Kho mã GitHub", url: "https://github.com/nguyendan07/ddia", external: true }
+      - { label: "Báo lỗi", url: "https://github.com/nguyendan07/ddia/issues", external: true }
+      - { label: "Gửi bản sửa", url: "https://github.com/nguyendan07/ddia/pulls", external: true }
+  - title: "Giới thiệu"
+    links:
+      - { label: "Martin Kleppmann", url: "https://martin.kleppmann.com", external: true }
+      - { label: "Chris Riccomini", url: "https://cnr.sh/", external: true }
+      - { label: "Bản dịch tiếng Trung (Vonng/ddia)", url: "https://github.com/Vonng/ddia", external: true }
+      - { label: "Bản gốc O'Reilly", url: "https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/", external: true }
+      - { label: "Giao diện Oink", url: "https://oink.pgsty.com", external: true }

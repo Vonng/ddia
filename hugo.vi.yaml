@@ -1,0 +1,94 @@
+# Vietnamese overlay on top of upstream hugo.yaml (Vonng/ddia).
+# Build with: hugo --config hugo.yaml,hugo.vi.yaml
+# ponytail: separate file so `git pull upstream main` never conflicts on hugo.yaml.
+
+baseURL: 'https://nguyendan07.github.io/ddia/'
+locale: 'vi-VN'
+title: 'Thiết kế các ứng dụng chuyên sâu về dữ liệu (Ấn bản thứ hai)'
+
+defaultContentLanguage: vi
+disableLanguages: [zh, tw, v1, v1_tw]
+
+# Upstream's Google Analytics and giscus belong to Vonng/ddia.
+services:
+  googleAnalytics:
+    id: ''
+
+languages:
+  vi:
+    label: Tiếng Việt
+    locale: vi-VN
+    contentDir: content/vi
+    weight: 0
+    title: Thiết kế các ứng dụng chuyên sâu về dữ liệu
+    params:
+      description: Bản dịch tiếng Việt DDIA ấn bản thứ hai — mô hình dữ liệu, lưu trữ, giao dịch, hệ phân tán, xử lý theo lô và xử lý luồng.
+      version: v2
+      # Single edition: no version menu (upstream's v1/v2 switcher).
+      comments:
+        giscus:
+          ariaLabel: Bình luận
+          errorMessage: Không tải được bình luận, vui lòng thử lại sau.
+      time_format_default: '2006-01-02'
+      ui:
+        command_palette:
+          commands:
+            - id: start_reading
+              title: Bắt đầu đọc từ chương 1
+              description: Mở chương 1 "Đánh đổi trong kiến trúc hệ thống dữ liệu"
+              url: /ch1/
+              icon: fa-solid fa-book-open
+              keywords: [bắt đầu, đọc, chương 1]
+            - id: browse_glossary
+              title: Xem bảng thuật ngữ
+              description: Tra cứu thuật ngữ hệ thống dữ liệu trong sách
+              url: /glossary/
+              icon: fa-solid fa-spell-check
+              keywords: [thuật ngữ, định nghĩa, glossary]
+            - id: print_book
+              title: In toàn bộ sách
+              description: Mở chế độ in toàn sách, có thể lưu thành PDF
+              url: /_print/
+              icon: fa-solid fa-print
+              keywords: [in, toàn sách, PDF, print]
+    menus:
+      main:
+        - identifier: read
+          name: Đọc
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-book-open }
+        - identifier: toc
+          parent: read
+          name: Mục lục
+          pageRef: /toc
+          weight: 10
+          params: { icon: fa-solid fa-list, description: Mười bốn chương trong ba phần }
+        - identifier: glossary
+          parent: read
+          name: Thuật ngữ
+          pageRef: /glossary
+          weight: 20
+          params: { icon: fa-solid fa-spell-check, description: Tra nhanh thuật ngữ cốt lõi }
+        - identifier: indexes
+          parent: read
+          name: Chỉ mục
+          pageRef: /indexes
+          weight: 30
+          params: { icon: fa-solid fa-arrow-down-a-z, description: Tìm nội dung theo chủ đề }
+        - identifier: contribute
+          name: Đóng góp
+          pageRef: /contrib
+          weight: 20
+          params: { icon: fa-solid fa-code-pull-request }
+
+params:
+  description: Bản dịch tiếng Việt DDIA — đọc mở về kiến trúc và thiết kế các ứng dụng chuyên sâu về dữ liệu.
+  github_repo: https://github.com/nguyendan07/ddia
+  github_project_repo: https://github.com/nguyendan07/ddia
+  copyright:
+    authors: 'Nhóm dịch tiếng Việt, dựa trên bản dịch tiếng Trung của Vonng và cộng sự'
+    from_year: 2026
+    to_year: present
+  comments:
+    enable: false

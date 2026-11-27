@@ -1,0 +1,156 @@
+# Trang chủ DDIA ấn bản 2 (tiếng Việt): thứ tự nội dung theo ngữ cảnh đọc, không phải liệt kê tính năng.
+# ponytail: bỏ mục contributors (dữ liệu data/contributors.yaml là của repo Vonng/ddia).
+sections:
+  - hero
+  - { type: cards, key: people, partial: landing/sections/ddia-people.html }
+  - { type: markdown, key: preface }
+  - { type: cards, key: chapters }
+  - { type: markdown, key: legal, partial: landing/sections/ddia-legal.html }
+
+hero:
+  eyebrow: DDIA · Bản dịch tiếng Việt ấn bản thứ hai
+  title: Thiết kế các ứng dụng **chuyên sâu về dữ liệu**
+  title_size: 4.45rem
+  lead: Từ mô hình dữ liệu, bộ máy lưu trữ đến hệ phân tán và dữ liệu dẫn xuất — xây dựng khung tư duy hoàn chỉnh để thiết kế các hệ thống dữ liệu hiện đại.
+  image:
+    light: title.jpg
+    dark: title.jpg
+    alt: Bìa sách gốc tiếng Anh "Designing Data-Intensive Applications" ấn bản thứ hai
+  actions:
+    - label: Xem mục lục
+      url: toc/
+      icon: fa-solid fa-list
+      style: primary
+    - label: Bắt đầu đọc
+      url: preface/
+      icon: fa-solid fa-book-open
+      style: ghost
+    - label: In toàn bộ sách
+      url: _print/
+      icon: fa-solid fa-print
+      style: ghost
+  detail:
+    label: Tham gia dịch và hiệu đính trên GitHub
+    url: https://github.com/nguyendan07/ddia
+    icon: fa-brands fa-github
+    external: true
+
+people:
+  type: cards
+  class: ddia-people
+  columns: 2
+  link_label: Truy cập trang
+  items:
+    - role_label: Tác giả
+      title: Martin Kleppmann
+      meta: '[Trang cá nhân](https://martin.kleppmann.com) · [Bản gốc tiếng Anh](https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html)'
+      image: 'https://github.com/ept.png?size=320'
+      alt: Martin Kleppmann
+      desc: Nhà nghiên cứu hệ phân tán tại Đại học Cambridge (Anh), diễn giả, blogger và người đóng góp mã nguồn mở; đồng thời là kỹ sư phần mềm và doanh nhân, từng phụ trách hạ tầng dữ liệu tại LinkedIn và Rapportive.
+      url: https://martin.kleppmann.com
+      external: true
+    - role_label: Tác giả
+      title: Chris Riccomini
+      meta: '[Trang cá nhân](https://cnr.sh/) · [GitHub](https://github.com/criccomini)'
+      image: 'https://github.com/criccomini.png?size=320'
+      alt: Chris Riccomini
+      desc: Kỹ sư phần mềm, nhà đầu tư khởi nghiệp và tác giả, từng làm việc tại PayPal, LinkedIn và WePay; điều hành Materialized View Capital, đồng sáng lập Apache Samza và SlateDB.
+      url: https://cnr.sh/
+      external: true
+    - role_label: Bản dịch tiếng Trung
+      title: 冯若航 / Vonng và cộng sự
+      meta: '[GitHub](https://github.com/Vonng) · [Vonng/ddia](https://github.com/Vonng/ddia)'
+      image: 'https://github.com/Vonng.png?size=320'
+      alt: Ảnh đại diện của 冯若航 (Vonng)
+      desc: Bản dịch tiếng Trung mã nguồn mở của DDIA do 冯若航 (Vonng) khởi xướng cùng nhiều người đóng góp — là nguồn tham chiếu và nền tảng kỹ thuật cho bản dịch tiếng Việt này.
+      url: https://github.com/Vonng/ddia
+      external: true
+    - role_label: Bản dịch tiếng Việt
+      title: Nhóm dịch tiếng Việt
+      meta: '[GitHub](https://github.com/nguyendan07/ddia) · [Đóng góp](contrib/)'
+      image: 'https://github.com/nguyendan07.png?size=320'
+      alt: Nhóm dịch tiếng Việt
+      desc: Những người tình nguyện dịch, hiệu đính và duy trì bản tiếng Việt. Mọi góp ý, báo lỗi hay đề xuất sửa bản dịch đều được chào đón trên GitHub.
+      url: https://github.com/nguyendan07/ddia
+      external: true
+
+preface:
+  type: markdown
+  eyebrow: Lời người dịch
+  title: Góp một viên gạch cho việc lan tỏa tri thức công nghệ
+  class: ddia-preface
+  body: |
+    > Kiến trúc sư full-stack mà không hiểu cơ sở dữ liệu thì chưa phải là kiến trúc sư giỏi.
+    >
+    > —— 冯若航 (Vonng), 2017, lời tựa bản dịch tiếng Trung DDIA
+
+    Ngày nay, nhất là trong lĩnh vực Internet, phần lớn ứng dụng đều là ứng dụng chuyên sâu về dữ liệu. Cuốn sách này trình bày tinh hoa của việc thiết kế hệ thống dữ liệu, từ các cấu trúc dữ liệu tầng thấp đến thiết kế kiến trúc tầng cao. Những kinh nghiệm quý giá trong sách hữu ích cho kiến trúc sư, DBA, kỹ sư backend, và cả quản lý sản phẩm.
+
+    Đây là cuốn sách kết hợp lý thuyết với thực tiễn: nhiều vấn đề được nêu trong sách là những gì người làm nghề đã từng gặp trong thực tế. Giá như được đọc sớm hơn, hẳn đã bớt được bao nhiêu đường vòng!
+
+    Đây cũng là cuốn sách giải thích sâu sắc mà dễ hiểu: kể lại nguồn gốc của các khái niệm thay vì phô diễn định nghĩa, giới thiệu quá trình phát triển của sự vật thay vì chất đống dữ kiện; biến những khái niệm phức tạp thành dễ hiểu mà vẫn chạm đến bản chất. Danh mục tài liệu tham khảo cuối mỗi chương có chất lượng rất cao, là chỉ mục tuyệt vời để tìm hiểu sâu từng chủ đề.
+
+    Sách cung cấp một khung khái niệm tốt để thiết kế, hiện thực và đánh giá các hệ thống dữ liệu. Đọc và hiểu sách rồi, bạn sẽ dễ dàng nhìn thấu phần lớn những lời "thổi phồng" công nghệ.
+
+    Bản tiếng Việt được dịch dựa trên [bản dịch tiếng Trung](https://github.com/Vonng/ddia) của 冯若航 (Vonng) và cộng sự, đối chiếu với nguyên tác tiếng Anh của Martin Kleppmann và Chris Riccomini. Mong rằng bản dịch này góp một phần nhỏ giúp tri thức về hệ thống dữ liệu đến gần hơn với bạn đọc Việt Nam.
+
+chapters:
+  type: cards
+  eyebrow: Mục lục chương
+  title: Từ nền tảng hệ thống dữ liệu đến hệ phân tán và dữ liệu dẫn xuất
+  desc: Mười bốn chương đi theo vòng đời của dữ liệu — xây dựng nền tảng hệ thống, vượt qua các bài toán phân tán, rồi đến với dữ liệu dẫn xuất và trách nhiệm của người làm công nghệ.
+  class: ddia-chapters
+  columns: 3
+  items:
+    - meta: Phần I · Chương 1–5
+      title: '[Nền tảng của hệ thống dữ liệu](part-i/)'
+      desc: |
+        1. [Đánh đổi trong kiến trúc hệ thống dữ liệu](ch1/)
+        2. [Định nghĩa yêu cầu phi chức năng](ch2/)
+        3. [Mô hình dữ liệu và ngôn ngữ truy vấn](ch3/)
+        4. [Lưu trữ và truy xuất](ch4/)
+        5. [Mã hóa và tiến hóa](ch5/)
+    - meta: Phần II · Chương 6–10
+      title: '[Dữ liệu phân tán](part-ii/)'
+      desc: |
+        6. [Sao chép](ch6/)
+        7. [Phân mảnh](ch7/)
+        8. [Giao dịch](ch8/)
+        9. [Những rắc rối của hệ phân tán](ch9/)
+        10. [Nhất quán và đồng thuận](ch10/)
+    - meta: Phần III · Chương 11–14
+      title: '[Dữ liệu dẫn xuất](part-iii/)'
+      desc: |
+        11. [Xử lý theo lô](ch11/)
+        12. [Xử lý luồng](ch12/)
+        13. [Triết lý của hệ thống xử lý luồng](ch13/)
+        14. [Làm điều đúng đắn](ch14/)
+
+legal:
+  type: markdown
+  partial: landing/sections/ddia-legal.html
+  eyebrow: Tuyên bố pháp lý
+  title: Tôn trọng nguyên tác và mọi đóng góp dịch thuật
+  desc: Trước khi đọc, trích dẫn hoặc tái sử dụng dự án, vui lòng tìm hiểu phạm vi giấy phép của bản dịch và kho mã.
+  notices:
+    - icon: fa-solid fa-book-open-reader
+      label: Mục đích sử dụng
+      title: Học tập và nghiên cứu
+      body: Bản dịch được thực hiện vì mục đích học tập và chia sẻ tri thức, không theo đuổi bất kỳ lợi ích kinh tế nào.
+    - icon: fa-solid fa-scale-balanced
+      label: Quyền sở hữu
+      title: Quyền của nguyên tác được ưu tiên
+      body: "Người dịch giữ quyền ghi danh đối với bản dịch này; các quyền khác đối với nguyên tác, tên sách và nội dung xuất bản thuộc về tác giả Martin Kleppmann, Chris Riccomini và nhà xuất bản O'Reilly. Bản tiếng Việt dựa trên [bản dịch tiếng Trung](https://github.com/Vonng/ddia) của 冯若航 (Vonng) và cộng sự. Hãy mua sách gốc để ủng hộ tác giả."
+    - icon: fa-brands fa-creative-commons
+      label: Giấy phép
+      title: CC BY 4.0
+      body: Bản dịch tiếng Việt được phát hành theo giấy phép [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/deed.vi), giống bản dịch tiếng Trung — được tự do chia sẻ và chuyển thể, kể cả cho mục đích thương mại, miễn là ghi công phù hợp. Giấy phép chỉ áp dụng cho nội dung mà người đóng góp có quyền cấp phép, không thay thế, mở rộng hay ngụ ý cấp quyền đối với nguyên tác tiếng Anh.
+  actions:
+    - label: Xem LICENSE của kho mã
+      url: https://github.com/nguyendan07/ddia/blob/main/LICENSE
+      icon: fa-solid fa-file-contract
+      external: true
+    - label: Mua hoặc đọc bản gốc tiếng Anh
+      url: https://learning.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/ch01.html
+      icon: fa-solid fa-arrow-up-right-from-square
+      external: true

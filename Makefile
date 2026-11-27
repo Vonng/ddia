@@ -77,3 +77,40 @@ theme-local:
 	@test -f "$(OINK_LOCAL)/hugo.yaml" || { echo "Set OINK_LOCAL to an OINK checkout (default: ~/pgsty/oink)." >&2; exit 1; }
 
 .PHONY: theme-local
+
+# ---------------------------------------------------------------------------
+# Vietnamese edition (fork nguyendan07/ddia). Appended block; upstream targets
+# above are untouched. hugo.vi.yaml overlays hugo.yaml.
+VI_HUGO = $(PINNED_HUGO) --config hugo.yaml,hugo.vi.yaml
+# Must match baseURL in hugo.vi.yaml; CI passes the GitHub Pages URL.
+BASE_URL ?= https://nguyendan07.github.io/ddia/
+VI_ORIGIN = $(shell echo '$(BASE_URL)' | sed -E 's#^(https?://[^/]+).*#\1#')
+VI_PATH = $(shell echo '$(BASE_URL)' | sed -E 's#^https?://[^/]+##')
+
+# Copy every untranslated zh page to content/vi as a draft; never overwrite.
+stubs:
+	@mkdir -p content/vi
+	@for f in content/zh/*.md; do \
+		t=content/vi/$${f##*/}; \
+		[ -e "$$t" ] && continue; \
+		sed '1a draft: true\nbook_status: draft' "$$f" > "$$t" && echo "created $$t"; \
+	done
+
+vi-dev:
+	$(VI_HUGO) server -D --baseURL / --renderToMemory --bind 127.0.0.1 --port "$(PORT)" --noBuildLock
+
+vi-build:
+	$(VI_HUGO) --minify --cleanDestinationDir --printPathWarnings --printI18nWarnings --baseURL "$(BASE_URL)"
+
+.PHONY: stubs vi-dev vi-build
+
+# Drafts included so every link between pages resolves; the site is mounted at
+# its real sub-path so links missing the base path fail. Deploys use vi-build.
+vi-check:
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-vi.py
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s bin/tests -p 'test_check_vi.py'
+	rm -rf tmp/site
+	$(VI_HUGO) -D --printPathWarnings --printI18nWarnings --baseURL "$(BASE_URL)" -d "tmp/site$(VI_PATH)"
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all --public tmp/site --origin "$(VI_ORIGIN)"
+
+.PHONY: vi-check

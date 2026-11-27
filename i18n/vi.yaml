@@ -1,0 +1,297 @@
+# Vietnamese UI strings: OINK theme keys + site keys (i18n/zh.yaml, i18n/v2.yaml).
+
+# Site keys
+backToTop: "Lên đầu trang"
+changeLanguage: "Đổi ngôn ngữ"
+changeTheme: "Đổi giao diện"
+copyright: '<a class="hx:flex hx:text-sm hx:items-center hx:gap-1 hx:text-current" target="_blank" rel="noopener noreferrer" title="Nhóm dịch tiếng Việt" href="https://github.com/nguyendan07/ddia"><span>© 2026 Nhóm dịch tiếng Việt</span></a>'
+dark: "Tối"
+editThisPage: "Sửa trang này trên GitHub →"
+lastUpdated: "Cập nhật lần cuối"
+light: "Sáng"
+noResultsFound: "Không có kết quả"
+onThisPage: "Trong trang này"
+tags: "Thẻ"
+readMore: "Xem thêm →"
+searchPlaceholder: "Tìm kiếm tài liệu..."
+previous: "Trang trước"
+next: "Trang sau"
+
+# Alert labels
+callout_caution: Thận trọng
+callout_important: Quan trọng
+callout_note: Ghi chú
+callout_tip: Mẹo
+callout_warning: Cảnh báo
+callout_success: Thành công
+callout_danger: Nguy hiểm
+callout_question: Câu hỏi
+callout_example: Ví dụ
+callout_quote: Trích dẫn
+callout_details: Chi tiết
+
+# UI strings. Buttons and similar.
+ui_pager_prev: Trang trước
+ui_pager_next: Trang sau
+ui_search: Tìm kiếm…
+ui_search_scope: Tìm trong
+ui_search_scope_all: Tất cả các mục
+ui_search_partial: 'Khớp một phần: {matched}/{total} từ khóa'
+ui_search_partial_results: Không có trang nào khớp mọi từ khóa; đang hiển thị kết quả khớp một phần
+ui_search_empty: Không tìm thấy kết quả
+ui_search_loading: Đang tải chỉ mục tìm kiếm…
+ui_search_body_load: 'Tìm trong nội dung trang ({size})'
+ui_search_body_loading: 'Đang tải nội dung trang…'
+ui_search_results: 'Tìm thấy {count} kết quả'
+ui_search_nav: Di chuyển
+ui_search_open: Mở
+ui_search_close: Đóng
+ui_palette_actions: Thao tác
+ui_palette_page_actions: Thao tác trên trang
+ui_palette_preferences: Tùy chọn
+ui_palette_commands: Lệnh
+ui_palette_quick_links: Liên kết nhanh
+ui_palette_no_commands: Không có lệnh phù hợp
+ui_palette_choose: Chọn một tùy chọn
+ui_palette_action_failed: Không thể hoàn tất thao tác
+ui_palette_pages: Trang
+ui_palette_index_unavailable: Chỉ mục trang không khả dụng; các thao tác vẫn hoạt động
+ui_sidebar_nav: Điều hướng mục
+ui_heading_self_link: Liên kết tới tiêu đề này
+ui_field_self_link: Liên kết tới trường này
+ui_preview_source: Markdown
+ui_preview_rendered: Bản hiển thị
+ui_main_nav: Điều hướng chính
+ui_home: Trang chủ
+ui_sidebar_expand: Mở rộng thanh bên
+ui_sidebar_collapse: Thu gọn thanh bên
+ui_drawer_open: Mở điều hướng
+ui_drawer_close: Đóng điều hướng
+ui_root_menu_label: Chọn mục
+ui_tags_title: Thẻ
+ui_tag_title: Thẻ
+ui_categories_title: Danh mục
+ui_category_title: Danh mục
+ui_modules_title: Mô-đun
+ui_module_title: Mô-đun
+ui_authors_title: Tác giả
+ui_author_title: Tác giả
+ui_taxonomy_pages:
+  one: '{{ . }} trang'
+  other: '{{ . }} trang'
+ui_taxonomies_title: 'Phân loại'
+ui_theme_toggle: Chuyển chủ đề màu
+ui_theme_auto: Theo hệ thống
+ui_theme_light: Sáng
+ui_theme_dark: Tối
+ui_appearance: Giao diện
+ui_appearance_style: Phong cách
+ui_appearance_mode: Chế độ màu
+ui_appearance_close: Đóng cài đặt giao diện
+ui_appearance_unsaved: Trình duyệt của bạn không lưu cài đặt, nên lựa chọn này chỉ có hiệu lực trên trang hiện tại.
+ui_preset_default: Mặc định
+ui_preset_paper: Giấy
+ui_preset_slate: Đá phiến
+ui_preset_ink: "Mực"
+ui_preset_terminal: "Terminal"
+ui_toc_hide: Ẩn mục lục
+ui_toc_show: Hiện mục lục
+ui_language_select: Chọn ngôn ngữ
+ui_language_switch: Đổi ngôn ngữ
+ui_skip_to_content: Bỏ qua để đến nội dung
+ui_page_actions: Thao tác
+ui_open_in_chatgpt: Mở trong ChatGPT
+ui_open_in_claude: Mở trong Claude
+ui_open_in_prompt: Hãy đọc %s để tôi có thể đặt câu hỏi về nội dung này.
+ui_copy_markdown: Sao chép Markdown
+ui_copy_success: Đã sao chép Markdown
+ui_copy_error: Không thể sao chép Markdown
+ui_share: Chia sẻ
+ui_share_email: Email
+ui_copy_link: Sao chép liên kết
+ui_copy_link_success: Đã sao chép liên kết
+ui_copy_link_error: Không thể sao chép liên kết
+ui_code_copy_label: Sao chép mã
+ui_code_copied: Đã sao chép
+ui_code_copy_error: Sao chép thất bại
+ui_code_show_all: Hiện tất cả {{ .Count }} dòng
+ui_code_collapse: Thu gọn mã
+ui_tabs_label: Thẻ
+ui_pricing_featured: Đề xuất
+ui_pricing_included: Bao gồm
+ui_pricing_excluded: Không bao gồm
+ui_marquee_pause: Tạm dừng chuyển động
+ui_kbd_with: với
+ui_keyboard_shortcuts: Phím tắt
+ui_shortcut_tree_move: Di chuyển trong thanh bên
+ui_shortcut_tree_toggle: Thu gọn hoặc mở rộng mục
+ui_shortcut_tree_open: Mở trang đang chọn
+ui_shortcut_heading_move: Tiêu đề trước hoặc sau
+ui_shortcut_page_move: Trang trước hoặc sau
+ui_shortcut_search: Tìm kiếm
+ui_shortcut_commands: Bảng lệnh
+ui_shortcut_reading_mode: Chế độ đọc
+ui_shortcut_language: Đổi ngôn ngữ
+ui_shortcut_theme: Đổi giao diện
+ui_shortcut_route: Chuyển vòng qua các trang cấp cao nhất
+ui_page_annotation: Thông tin trang
+ui_backlinks: Liên kết ngược
+ui_backlinks_more: "Hiện thêm {{ . }}"
+ui_field_required: bắt buộc
+ui_action_unavailable: không khả dụng
+ui_image_zoom_dialog: Xem trước hình ảnh
+ui_image_zoom_open: Mở xem trước hình ảnh
+ui_image_zoom_close: Đóng xem trước hình ảnh
+ui_diagram_expand: Phóng to sơ đồ
+ui_diagram_zoom_dialog: Xem trước sơ đồ
+ui_diagram_zoom_close: Đóng xem trước sơ đồ
+ui_diagram_zoom_in: Phóng to
+ui_diagram_zoom_out: Thu nhỏ
+ui_diagram_error: Không thể hiển thị sơ đồ
+ui_diagram_fit: Vừa cửa sổ
+ui_diagram_download: Tải SVG
+ui_diagram_download_started: Đã yêu cầu tải SVG
+ui_diagram_download_error: Không thể tải SVG
+ui_print_page: In trang này
+ui_sidebar_expand_section: Mở rộng mục
+ui_sidebar_collapse_section: Thu gọn mục
+ui_asciinema_timer: Thời gian phát
+ui_openapi_spec: Đặc tả OpenAPI
+ui_release_view: Xem bản phát hành
+ui_release_source: Mã nguồn
+ui_release_released: Phát hành
+ui_assets_file: Tệp
+ui_assets_checksum: Mã kiểm tra
+ui_assets_copy: Sao chép mã kiểm tra
+ui_assets_copied: Đã sao chép
+ui_assets_copy_all: Sao chép tất cả mã kiểm tra
+ui_assets_download: Tải tệp
+ui_download_channels: Kênh tải xuống
+ui_download_unpublished: Đang chờ phát hành
+
+ui_list_separator: ", "
+ui_blog_index_toggle: Đổi bố cục
+
+# Footer text
+footer_all_rights_reserved: Bảo lưu mọi quyền
+ui_footer_collapse: Ẩn liên kết chân trang
+ui_footer_expand: Hiện liên kết chân trang
+
+# Post (blog, article, etc.)
+post_last_mod: Sửa đổi lần cuối
+post_upstream: "{{ .work }}, {{ .copyright }}, theo giấy phép {{ .license }}. Xem {{ .notice }}."
+post_upstream_adapted: Phỏng theo {{ .work }}, {{ .copyright }}, theo giấy phép {{ .license }}. Xem {{ .notice }} và {{ .history }}.
+post_upstream_adapted_plain: Phỏng theo {{ .work }}, {{ .copyright }}, theo giấy phép {{ .license }}. Xem {{ .notice }}.
+post_upstream_notice: ghi công
+post_upstream_history: lịch sử thay đổi
+post_translated: Trang này là bản dịch; {{ .original }} có giá trị quyết định.
+post_translated_original: bản gốc
+post_edit_this: Sửa trang này
+post_view_markdown: Xem Markdown
+post_create_child_page: Tạo trang con
+post_create_issue: Báo lỗi tài liệu
+post_create_project_issue: Báo lỗi dự án
+post_meta_by_in: "Bởi {{ .Authors }} · Trong {{ .Section }}"
+post_meta_in: "Trong {{ .Section }}"
+post_reading_time: phút đọc
+post_less_than_a_minute_read: chưa tới một phút
+post_word_count: '{{ .Count }} từ'
+post_reading_minutes: '{{ .Minutes }} phút'
+post_read_original: "Đọc bản gốc"
+
+# Print support
+print_printable_section: Đây là chế độ xem in nhiều trang của mục này.
+print_click_to_print: Bấm vào đây để in
+print_show_regular: Quay lại chế độ xem thường của trang này
+print_entire_section: In toàn bộ mục
+
+# Feedback
+feedback_question: Trang này có hữu ích không?
+feedback_positive: Có
+feedback_negative: Không
+feedback_thanks: Cảm ơn bạn — phản hồi của bạn giúp chúng tôi cải thiện trang này.
+feedback_reason_prompt: Điều gì gây trở ngại? (không bắt buộc)
+feedback_reason_missing: Thiếu thông tin
+feedback_reason_outdated: Sai hoặc lỗi thời
+feedback_reason_failed: Các bước không hoạt động
+feedback_reason_unclear: Khó hiểu
+feedback_details: Thêm chi tiết trong phần bình luận
+feedback_change: Thay đổi câu trả lời
+
+# Table of contents
+toc_on_this_page: "Trong trang này"
+
+# Error pages
+error_404_title: Không tìm thấy trang
+error_404_body: >-
+  Xin lỗi, trang này không tồn tại. Hãy thử bắt đầu lại từ trang chủ.
+error_404_home: Về trang chủ
+
+# Version banner
+version_banner_archived: >-
+  Phiên bản {{ .Version }} của tài liệu không còn được duy trì tích cực.
+  Trang bạn đang xem là bản lưu trữ.
+version_banner_latest: Để xem tài liệu mới nhất, hãy truy cập {{ .Link }}.
+version_banner_latest_link: phiên bản mới nhất
+
+# Comments
+comments_title: "Bình luận"
+comments_error: "Không tải được bình luận."
+comments_noscript: Cần bật JavaScript để tải bình luận.
+comments_noscript_link: Xem thảo luận trên GitHub.
+
+# LLM page actions
+ui_open_in_prompt_label: Hỏi về trang này
+ui_view_history: Xem lịch sử chỉnh sửa
+ui_table_scroll: "Bảng có thể cuộn"
+ui_table_expand: "Mở rộng bảng"
+ui_table_reader: "Trình đọc bảng"
+ui_table_reader_scroll: "Nội dung bảng, cuộn ngang và dọc"
+ui_filetree_divider: "Thay đổi kích thước cột chú thích của cây tệp"
+book_figure: Hình
+book_table: Bảng
+book_equation: Công thức
+book_example: Ví dụ
+book_toc: Mục lục sách
+book_draft: Bản nháp
+book_draft_notice: Trang này đang được dịch; nội dung hiện vẫn là bản tiếng Trung.
+contributors_count: người đóng góp
+
+# Article series
+ui_series_title: Loạt bài
+ui_series_part: Phần {{ .Part }} / {{ .Total }}
+
+# Markdown output
+markdown_llms_index: "Chỉ mục LLMS:"
+markdown_section_pages: "Các trang trong mục:"
+markdown_backlinks: "Liên kết ngược:"
+
+# Expo icon tooltips and accessible names.
+ui_expo_layout: "Bố cục ảnh"
+ui_expo_wall: "Tường ảnh"
+ui_expo_cards: "Thẻ ảnh"
+ui_expo_seamless: "Tường ảnh liền mạch"
+ui_expo_size: "Kích thước ảnh"
+ui_expo_fit: "Kích thước gốc hoặc vừa khung"
+ui_expo_expand: "Mở rộng cho vừa"
+ui_expo_original: "Mở ảnh gốc"
+ui_expo_locate: "Định vị trong album"
+ui_expo_play: "Phát ảnh động"
+ui_expo_pause: "Tạm dừng ảnh động"
+ui_expo_prev: "Ảnh trước"
+ui_expo_next: "Ảnh sau"
+
+# Translation comparison reader
+ui_compare_view: 'Xem song song'
+ui_compare_sync: 'Cuộn đồng bộ'
+ui_compare_sync_approximate: 'Một số tiêu đề khác nhau giữa hai trang, nên vị trí giữa các tiêu đề tương ứng chỉ là ước tính.'
+ui_compare_sync_progress: 'Không có tiêu đề chung nào dùng được để căn hai trang, nên đồng bộ theo tiến độ đọc tổng thể.'
+ui_compare_sync_unavailable: 'Không thể đồng bộ vì các tiêu đề bị trùng lặp hoặc sai thứ tự.'
+ui_shortcut_compare: 'Mở chế độ xem song song'
+ui_compare_error: "Không thể tải trang này."
+ui_compare_loading: 'Đang tải…'
+ui_compare_retry: 'Thử lại'
+
+ui_pagination: Phân trang
+ui_breadcrumb: Đường dẫn
+ui_nav_more: "Điều hướng khác"
