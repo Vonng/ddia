@@ -109,8 +109,16 @@ vi-build:
 vi-check:
 	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-vi.py
 	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s bin/tests -p 'test_check_vi.py'
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/glossary-vi.py check
+	PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s bin/tests -p 'test_glossary_vi.py'
 	rm -rf tmp/site
 	$(VI_HUGO) -D --printPathWarnings --printI18nWarnings --baseURL "$(BASE_URL)" -d "tmp/site$(VI_PATH)"
 	PYTHONDONTWRITEBYTECODE=1 python3 bin/check-rendered-links.py --all --public tmp/site --origin "$(VI_ORIGIN)"
 
 .PHONY: vi-check
+
+# Cổng xuất bản: không còn thuật ngữ todo trong glossary sách và chương đã xuất bản.
+vi-release-check:
+	PYTHONDONTWRITEBYTECODE=1 python3 bin/glossary-vi.py check --release
+
+.PHONY: vi-release-check

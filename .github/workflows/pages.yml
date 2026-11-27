@@ -52,6 +52,10 @@ jobs:
       - name: Check translation structure and links
         run: make vi-check ${{ steps.pages.outputs.base_url && format('BASE_URL={0}/', steps.pages.outputs.base_url) || '' }}
 
+      - name: Glossary release gate
+        if: github.event_name != 'pull_request'
+        run: make vi-release-check
+
       - name: Build site (drafts excluded)
         run: make vi-build ${{ steps.pages.outputs.base_url && format('BASE_URL={0}/', steps.pages.outputs.base_url) || '' }}
 

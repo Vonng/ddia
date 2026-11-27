@@ -1,0 +1,2531 @@
+# Bảng thuật ngữ Anh–Việt dùng chung — nguồn sự thật duy nhất.
+# Định dạng và ràng buộc: specs/002-glossary-en-vi/contracts/glossary-file.md
+# Trường: en, vi, keep, ctx, note, abbr, def, status ("todo" | "ok").
+# Khởi tạo khung:  python3 bin/glossary-vi.py seed
+# Kiểm tra:        python3 bin/glossary-vi.py check [--release]
+
+[[term]]
+en = "asynchronous"
+vi = "bất đồng bộ"
+
+[[term]]
+en = "atomic"
+vi = "nguyên tử"
+ctx = "đồng thời"
+note = "Thao tác có vẻ diễn ra tại một thời điểm, không thấy trạng thái dở dang."
+
+[[term]]
+en = "atomic"
+vi = "nguyên tử"
+ctx = "giao dịch"
+note = "Nhóm thao tác ghi: hoặc tất cả commit, hoặc tất cả rollback."
+
+[[term]]
+en = "backpressure"
+vi = "backpressure"
+keep = true
+note = "Không có bản dịch Việt phổ biến; 'áp lực ngược' ít gặp trong tài liệu kỹ thuật."
+
+[[term]]
+en = "batch process"
+vi = "xử lý theo lô"
+
+[[term]]
+en = "bounded"
+vi = "có giới hạn"
+
+[[term]]
+en = "Byzantine fault"
+vi = "lỗi Byzantine"
+note = "Giữ tên riêng 'Byzantine' như trong tài liệu gốc; 'lỗi' dịch từ 'fault'."
+
+[[term]]
+en = "cache"
+vi = "cache"
+keep = true
+note = "Giới IT/DEV Việt Nam dùng nguyên từ gốc; 'bộ nhớ đệm' dài và ít được dùng khi nói."
+
+[[term]]
+en = "CAP theorem"
+vi = "định lý CAP"
+
+[[term]]
+en = "causality"
+vi = "quan hệ nhân quả"
+
+[[term]]
+en = "consensus"
+vi = "đồng thuận"
+
+[[term]]
+en = "data warehouse"
+vi = "kho dữ liệu"
+
+[[term]]
+en = "declarative"
+vi = "khai báo"
+
+[[term]]
+en = "denormalize"
+vi = "phi chuẩn hóa"
+
+[[term]]
+en = "derived data"
+vi = "dữ liệu dẫn xuất"
+
+[[term]]
+en = "deterministic"
+vi = "tất định"
+
+[[term]]
+en = "distributed"
+vi = "phân tán"
+
+[[term]]
+en = "durable"
+vi = "bền vững"
+
+[[term]]
+en = "ETL"
+vi = "ETL"
+keep = true
+abbr = "Extract–Transform–Load"
+note = "Từ viết tắt chuẩn, không dịch."
+
+[[term]]
+en = "failover"
+vi = "failover"
+keep = true
+note = "Thuật ngữ vận hành quen dùng nguyên gốc; 'chuyển đổi dự phòng' dài và ít được dùng."
+
+[[term]]
+en = "fault-tolerant"
+vi = "chịu lỗi"
+
+[[term]]
+en = "flow control"
+vi = "kiểm soát luồng"
+
+[[term]]
+en = "follower"
+vi = "follower"
+keep = true
+note = "Cặp với 'leader'; hai từ quen dùng nguyên gốc trong cộng đồng DB/hệ phân tán."
+
+[[term]]
+en = "full-text search"
+vi = "tìm kiếm toàn văn"
+
+[[term]]
+en = "graph"
+vi = "đồ thị"
+
+[[term]]
+en = "hash"
+vi = "hash"
+keep = true
+note = "Quen dùng nguyên gốc; 'băm' dễ gây nhầm khi dùng làm danh từ."
+
+[[term]]
+en = "idempotent"
+vi = "idempotent"
+keep = true
+note = "'Lũy đẳng' ít được dùng trong giới IT; giữ nguyên để dễ tra tài liệu."
+
+[[term]]
+en = "index"
+vi = "chỉ mục"
+
+[[term]]
+en = "isolation"
+vi = "cô lập"
+
+[[term]]
+en = "join"
+vi = "phép nối"
+
+[[term]]
+en = "leader"
+vi = "leader"
+keep = true
+note = "Cặp với 'follower'; quen dùng nguyên gốc."
+
+[[term]]
+en = "linearizable"
+vi = "linearizable"
+keep = true
+note = "Không có bản dịch phổ biến; giữ nguyên để tránh tự chế."
+
+[[term]]
+en = "locality"
+vi = "tính cục bộ"
+
+[[term]]
+en = "lock"
+vi = "khóa"
+
+[[term]]
+en = "log"
+vi = "nhật ký"
+
+[[term]]
+en = "materialize"
+vi = "vật chất hóa"
+
+[[term]]
+en = "node"
+vi = "nút"
+
+[[term]]
+en = "normalized"
+vi = "chuẩn hóa"
+
+[[term]]
+en = "OLAP"
+vi = "OLAP"
+keep = true
+abbr = "Online Analytical Processing"
+note = "Từ viết tắt chuẩn, không dịch."
+
+[[term]]
+en = "OLTP"
+vi = "OLTP"
+keep = true
+abbr = "Online Transaction Processing"
+note = "Từ viết tắt chuẩn, không dịch."
+
+[[term]]
+en = "sharding"
+vi = "sharding"
+keep = true
+note = "Quen dùng nguyên gốc cùng 'shard'; 'phân mảnh' dễ nhầm với partitioning."
+
+[[term]]
+en = "percentile"
+vi = "phân vị"
+
+[[term]]
+en = "primary key"
+vi = "khóa chính"
+
+[[term]]
+en = "quorum"
+vi = "quorum"
+keep = true
+note = "Không có bản dịch phổ biến ('số đại biểu' ít dùng); giữ nguyên."
+
+[[term]]
+en = "rebalance"
+vi = "cân bằng lại"
+
+[[term]]
+en = "replication"
+vi = "sao chép"
+
+[[term]]
+en = "schema"
+vi = "lược đồ"
+
+[[term]]
+en = "secondary index"
+vi = "chỉ mục phụ"
+
+[[term]]
+en = "serializable"
+vi = "khả tuần tự"
+
+[[term]]
+en = "shared-nothing"
+vi = "shared-nothing"
+keep = true
+note = "Tên kiến trúc, không có bản dịch phổ biến; giữ nguyên."
+
+[[term]]
+en = "skew"
+vi = "độ lệch"
+
+[[term]]
+en = "split brain"
+vi = "split brain"
+keep = true
+note = "Tên hiện tượng, không có bản dịch phổ biến; giữ nguyên."
+
+[[term]]
+en = "stored procedure"
+vi = "thủ tục lưu trữ"
+
+[[term]]
+en = "stream process"
+vi = "xử lý luồng"
+
+[[term]]
+en = "synchronous"
+vi = "đồng bộ"
+
+[[term]]
+en = "system of record"
+vi = "hệ thống ghi nhận gốc"
+
+[[term]]
+en = "timeout"
+vi = "timeout"
+keep = true
+note = "Quen dùng nguyên gốc trong giới IT/DEV; 'hết hạn chờ' ít được dùng."
+
+[[term]]
+en = "total order"
+vi = "thứ tự toàn phần"
+
+[[term]]
+en = "transaction"
+vi = "giao dịch"
+
+[[term]]
+en = "two-phase commit (2PC)"
+vi = "commit hai pha"
+abbr = "2PC"
+note = "Giữ 'commit' theo cách nói của giới DEV; 'pha' dịch từ 'phase'."
+
+[[term]]
+en = "two-phase locking (2PL)"
+vi = "khóa hai pha"
+abbr = "2PL"
+
+[[term]]
+en = "unbounded"
+vi = "không giới hạn"
+
+[[term]]
+en = "data-intensive"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "compute-intensive"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "enterprise software"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "backend development"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "frontend"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "backend"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data infrastructure"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "stateless"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "backend engineer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "business analyst"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data scientist"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "analytics"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "operational system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "analytical system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data engineer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "analytics engineer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "product analytics"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "real-time analytics"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data silo"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "feature"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "feature engineering"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data lake"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data pipeline"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sushi principle"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data lakehouse"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "reverse ETL"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data product"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "derived data system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "source of truth"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "canonical"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "redundant"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data integration"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "self-hosted"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "on-premises"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "cloud-native"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "object storage"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "block device"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "disaggregated"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multitenant"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "metered billing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "quota"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "distributed system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "observability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "tracing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "microservices"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "orchestration"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "supercomputing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "right to be forgotten"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data minimization"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "reliable"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "maximum throughput"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "queueing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "circuit breaker"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "token bucket"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "response time"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "service time"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "queueing delay"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "latency"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "network latency"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "network delay"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "outlier"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "mean"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "arithmetic mean"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "median"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sociotechnical system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "linear scalability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "design pattern"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "relational model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "document model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "graph data model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "event sourcing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "dataframe"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "algorithm"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "network model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hierarchical model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "impedance mismatch"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "N+1 query problem"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "one-to-many relationship"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "one-to-few"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "normalization"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "denormalized"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "many-to-one"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "many-to-many"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "star schema"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "snowflake schema"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "dimensional modeling"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "dimension table"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "shredding"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "migration"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "storage locality"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multi-table index cluster table"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "wide-column"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "column family"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "nonsimple domain"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "adjacency list"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "adjacency matrix"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "homogeneous"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "property graph"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "triple store"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "traverse"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hypergraph"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hierarchical query"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "N3"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Semantic Web"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "linked data"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "ontology"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fact"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "rule"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "event log"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "immutable"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "command"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sparse"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "one-hot encoding"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "array database"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "time-series data"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sequence-similarity search"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "ledger"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "storage engine"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "log-structured"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "key-value store"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "n"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "block"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sparse index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "memtable"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "segment"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "tombstone"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Bloom filter"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "false positive"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "embedded"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "root"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "leaf page"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "branching factor"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "balanced"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "torn page"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "journaling"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "random write"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sequential write"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "write amplification"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fragmented"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "clustered index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "heap file"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "covering index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "index with included columns"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "in-memory databases"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "drill-down"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "slicing and dicing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "row-oriented"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "striping"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "bitmap encoding"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "query plan"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "operator"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "materialized view"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "materialized aggregate"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "concatenated index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multidimensional index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "inverted index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "postings list"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "trie"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Levenshtein automaton"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "vector embedding"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multimodal"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "centroid"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "evolvability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "zero-copy"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "field tag"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "schema evolution"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "writer’s schema"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "reader’s schema"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "union type"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "client"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "server"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "service"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Web service"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "idempotence"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "service discovery"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "load balancing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hardware load balancer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "software load balancer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "service discovery system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "service mesh"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "workflow"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "task"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "activity"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "durable function"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "workflow engine"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "durable execution"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "exactly-once semantics"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "event-driven architecture"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "event"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "message"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "message broker"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "event broker"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "message queue"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "message-oriented middleware"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "queue"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "consumer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "topic"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "subscriber"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "actor model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "distributed actor framework"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "single-leader replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multi-leader replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "leaderless replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "synchronous replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "asynchronous replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "eventual consistency"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read-your-writes"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "monotonic reads"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "replica"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "leader-based replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "primary-backup"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "active/passive"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "replication log"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "change stream"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "semi-synchronous"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "binlog coordinates"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "conditional write"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "tiered storage"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "state machine replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "logical log"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read-scaling"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "replication lag"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read-after-write consistency"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read-your-writes consistency"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "consistent prefix reads"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "active/active"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "bidirectional replication"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "geographically distributed"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "geo-distributed"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "geo-replicated"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "replication topology"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "all-to-all"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "circular topology"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "star topology"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sync engine"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "offline-first"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "local-first software"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "reactive programming"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "concurrent writes"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "logical clock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "siblings"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "converge"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Dynamo-style"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "coordinator"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "anti-entropy process"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "quorum read"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "quorum write"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "request hedging"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "gray failure"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "happens before"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "concurrent"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "dotted version vector"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "vector clock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "scalability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "partition key"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "distributed transaction"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "cell-based architecture"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "cell"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fault isolation"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hot shard"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hot spot"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hot key"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "key"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "consistent hashing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "jump consistent hash"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "heat management"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "adaptive capacity"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "request routing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "config server"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "gossip protocol"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "local index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "document-partitioned index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "global index"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "term-partitioned"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "term"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "programming model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "concurrency control"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read committed"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "snapshot isolation"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "abortability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "constraint"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multi-object transaction"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "atomic increment"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "isolated increment"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "serializable increment"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "transaction isolation"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read uncommitted"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "cascading abort"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read skew"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "nonrepeatable read"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "lost update"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read-modify-write cycle"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "atomic write operation"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "exclusive lock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "explicit locking"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "compare-and-set"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "optimistic locking"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "write skew"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "phantom"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "materializing conflicts"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "shared mode"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "exclusive mode"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "multi-reader single-writer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "deadlock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "predicate lock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "pessimistic"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "mutual exclusion"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "optimistic"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "atomic commitment"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "participant"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "prepare"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "commit point"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "in doubt"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "uncertain"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "blocking"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "nonblocking"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "orphaned"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "heuristic decision"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "partial failure"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "nondeterministic"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "asynchronous packet network"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "connection"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "congestion control"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "network partition"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "netsplit"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "network congestion"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "saturation"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "noisy neighbor"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "circuit"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "bounded delay"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "bursty traffic"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "time-of-day clock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "monotonic clock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "epoch"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "slewing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "smearing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "physical clock"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "lease"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "live migration"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "steal time"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "thrashing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "preempt"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "deadline"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hard real-time"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "zombie"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fencing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fencing token"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "sequencer"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "epoch number"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "ballot number"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "term number"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "conditional header"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "request precondition"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Byzantine Generals Problem"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "Two Generals Problem"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "system model"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "limping node"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fail-slow"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "safety"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "liveness"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "model checker"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "fault injection"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "chaos engineering"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "linearizability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "recency guarantee"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "register"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "x"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "strict serializability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "single-value consensus"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "append-only log"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "total order broadcast"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "log entry"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "shared log"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "atomic broadcast"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "total order multicast"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "consensus number"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "coordination service"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "request"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "query"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "response"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "result"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "online system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "batch processing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "offline system"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "derived"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "time travel"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "human fault tolerance"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "minimizing irreversibility"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "stream processing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "distributed processing framework"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "distributed filesystem"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data node"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "erasure coding"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "starvation"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "record"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "dataflow engine"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "grouping"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "activity event"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "clickstream data"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "secondary sort"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "pre-aggregation query"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "model training"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "batch inference"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "publish/subscribe"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "dual write"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "source connector"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "window"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "event time"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "correction"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "stream-stream join"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "stream-table join"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "table-table join"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "state"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "hash join"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "scalable"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "maintainable"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "determinism"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "pure function"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "side effect"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "federated database"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "polystore"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "foreign data wrapper"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "loose coupling"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "write path"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "read path"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "end-to-end argument"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "consistency"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "exactly-once"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "effectively-once"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "compensating transaction"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "coordination-avoiding"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "auditing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "self-validating"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "self-auditing"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "data provenance"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "predictive analytics"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "algorithmic prison"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "anti-discrimination law"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "protected characteristic"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "responsibility"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "accountability"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "feedback loop"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "systems thinking"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "surveillance"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "consent"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "legitimate interest"
+vi = ""
+status = "todo"
+
+[[term]]
+en = "privacy"
+vi = ""
+status = "todo"

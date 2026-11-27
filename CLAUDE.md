@@ -34,6 +34,7 @@ make vi-build     # build xuất bản vào public/ (không nháp); BASE_URL=...
 make stubs        # tạo trang nháp vi cho trang zh còn thiếu (không ghi đè)
 python3 bin/check-vi.py ch1 glossary                                # kiểm vài trang
 python3 -m unittest discover -s bin/tests -p 'test_check_vi.py'     # test của checker
+python3 bin/glossary-vi.py seed|check [--release]                      # bảng thuật ngữ Anh–Việt; make vi-release-check = cổng xuất bản
 ```
 
 `vi-check` build **kèm nháp** và gắn site vào đúng đường dẫn con để mọi link giữa các trang được kiểm; trang in `_print` để nguyên link tới trang nháp (lỗi OINK, tự hết khi trang được xuất bản). CI: `.github/workflows/pages.yml` (PR: kiểm tra; `main`: kiểm tra + deploy GitHub Pages).
@@ -53,6 +54,8 @@ python3 -m unittest bin/tests/test_translation_checks.py   # một file test
 `make dev` cần OINK checkout tại `~/pgsty/oink` — không dùng được trên máy này. Không bật `--panicOnWarning` / `HUGO_PANICONWARNING`.
 
 ## Quy ước dịch
+
+- **Bảng thuật ngữ Anh–Việt** (nguồn sự thật duy nhất): `data/glossary/vi.toml`, render ở trang `/terms/` (`layouts/_shortcodes/terms.html`). Thêm/sửa term theo `specs/002-glossary-en-vi/contracts/glossary-file.md`; sửa bản dịch có sẵn thì sửa luôn các chương dùng bản cũ (`glossary-vi.py check` chặn nếu lệch ở lần xuất hiện đầu `*vi* (*en*)`). Trang `terms` còn `draft` đến khi `check --release` qua.
 
 - Dịch từ `content/zh/<slug>.md`, đối chiếu `content/en/<slug>.md` khi mơ hồ; mâu thuẫn thì theo bản tiếng Anh.
 - Trang vi khởi đầu là bản sao trang zh có `draft: true`; dịch tại chỗ, xóa `draft` khi xong. `check-vi.py` yêu cầu URL giống zh, trừ `_index` và `contrib` (link repo trỏ về fork).

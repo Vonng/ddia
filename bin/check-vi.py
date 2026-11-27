@@ -25,6 +25,8 @@ TRANSLATABLE = {'title', 'linkTitle', 'description', 'search_keywords'}
 VI_ONLY = {'draft', 'book_status'}
 # ponytail: repo/feedback links on these pages point at the fork, not Vonng/ddia.
 OWN_LINKS = {'_index', 'contrib'}
+# Pages that exist only in the Vietnamese edition (no zh counterpart).
+VI_ONLY_PAGES = {'terms'}
 FN_DEF = re.compile(r'^\[\^([^\]\s]+)\]:', re.M)
 FN_REF = re.compile(r'\[\^([^\]\s]+)\](?!:)')
 # Stop at CJK text and Markdown emphasis so the neighbouring language never leaks into a URL.
@@ -149,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.slugs:
         for slug in sorted(zh_pages.keys() - vi_pages.keys()):
             issue(f'content/zh/{slug}.md', 'missing-page', 'Vietnamese page', '(missing)')
-        for slug in sorted(vi_pages.keys() - zh_pages.keys()):
+        for slug in sorted(vi_pages.keys() - zh_pages.keys() - VI_ONLY_PAGES):
             issue(f'content/vi/{slug}.md', 'extra-page', '(no zh page)', 'Vietnamese page')
 
     vi_texts = {slug: p.read_text(encoding='utf-8') for slug, p in vi_pages.items()}

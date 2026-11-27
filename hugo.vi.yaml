@@ -70,6 +70,12 @@ languages:
           pageRef: /glossary
           weight: 20
           params: { icon: fa-solid fa-spell-check, description: Tra nhanh thuật ngữ cốt lõi }
+        - identifier: terms
+          parent: read
+          name: Thuật ngữ Anh–Việt
+          pageRef: /terms
+          weight: 25
+          params: { icon: fa-solid fa-language, description: Tra thuật ngữ hai chiều Anh–Việt }
         - identifier: indexes
           parent: read
           name: Chỉ mục

@@ -295,3 +295,11 @@ ui_compare_retry: 'Thử lại'
 ui_pagination: Phân trang
 ui_breadcrumb: Đường dẫn
 ui_nav_more: "Điều hướng khác"
+
+# Bảng thuật ngữ Anh–Việt (layouts/_shortcodes/terms.html)
+termsFilter: "Lọc thuật ngữ (tiếng Anh hoặc tiếng Việt)"
+termsEnVi: "Anh → Việt"
+termsViEn: "Việt → Anh"
+termsEnglish: "Tiếng Anh"
+termsVietnamese: "Tiếng Việt"
+termsNote: "Ghi chú"

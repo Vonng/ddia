@@ -1,0 +1,33 @@
+{{- /* Bảng thuật ngữ Anh–Việt từ data/glossary/vi.toml; hai chiều tra + ô lọc. Bỏ mục status = "todo". */ -}}
+{{- $rows := slice -}}
+{{- range hugo.Data.glossary.vi.term -}}
+  {{- if and .vi (ne .status "todo") -}}
+    {{- $rows = $rows | append (dict "en" .en "vi" .vi "ctx" .ctx "abbr" .abbr "def" .def "note" .note "keep" .keep "ken" (lower .en) "kvi" (lower .vi)) -}}
+  {{- end -}}
+{{- end -}}
+<input type="search" class="terms-filter" placeholder="{{ i18n "termsFilter" }}" aria-label="{{ i18n "termsFilter" }}" style="width:100%;padding:.5rem;margin:1rem 0;border:1px solid currentColor;border-radius:.375rem;background:transparent;color:inherit">
+{{ range slice (dict "title" (i18n "termsEnVi") "from" "en" "sort" "ken") (dict "title" (i18n "termsViEn") "from" "vi" "sort" "kvi") }}
+{{- $from := .from -}}
+<h2>{{ .title }}</h2>
+<table class="terms-table">
+  <thead><tr><th>{{ if eq $from "en" }}{{ i18n "termsEnglish" }}{{ else }}{{ i18n "termsVietnamese" }}{{ end }}</th><th>{{ if eq $from "en" }}{{ i18n "termsVietnamese" }}{{ else }}{{ i18n "termsEnglish" }}{{ end }}</th><th>{{ i18n "termsNote" }}</th></tr></thead>
+  <tbody>
+  {{- $list := $rows }}{{ if eq $from "vi" }}{{ $list = where $rows "keep" "ne" true }}{{ end }}
+  {{- range sort $list .sort }}
+    {{- $a := .en }}{{ $b := .vi }}{{ if eq $from "vi" }}{{ $a = .vi }}{{ $b = .en }}{{ end -}}
+    <tr><td>{{ $a }}{{ with .abbr }} <small>({{ . }})</small>{{ end }}</td><td>{{ $b }}{{ with .ctx }} <small>({{ . }})</small>{{ end }}</td><td>{{ with .def }}{{ . }}{{ end }}{{ with .note }} <small>{{ . }}</small>{{ end }}</td></tr>
+  {{- end }}
+  </tbody>
+</table>
+{{ end }}
+<p class="terms-none" hidden>{{ i18n "noResultsFound" }}</p>
+<script>
+document.querySelector('.terms-filter').addEventListener('input', function (e) {
+  var q = e.target.value.trim().toLowerCase(), shown = 0;
+  document.querySelectorAll('.terms-table tbody tr').forEach(function (tr) {
+    var hit = tr.textContent.toLowerCase().indexOf(q) >= 0;
+    tr.hidden = !hit; if (hit) shown++;
+  });
+  document.querySelector('.terms-none').hidden = shown > 0;
+});
+</script>
