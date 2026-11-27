@@ -1,6 +1,8 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 → 1.2.0 (MINOR: license constraint materially changed)
+- Version change: 1.2.0 → 1.3.0 (MINOR: Principle III gains a table-driven exception — terms flagged `show_en`
+  keep the English term beside the Vietnamese one at every occurrence)
+- Previous: 1.1.0 → 1.2.0 (MINOR: license constraint materially changed)
 - Modified sections: Ràng buộc kỹ thuật & bản quyền — license corrected from "CC Non-Commercial
   Share Alike 3.0" (stale value from upstream metadata.yaml) to CC BY 4.0 (upstream LICENSE and
   README); "không được dùng cho mục đích thương mại" removed (contradicts CC BY 4.0); added
@@ -37,7 +39,9 @@ Sync Impact Report
 ### III. Thuật ngữ nhất quán
 
 - Thuật ngữ kỹ thuật MUST được ghi `*thuật ngữ tiếng Việt* (*english term*)` ở lần xuất hiện đầu
-  tiên trong mỗi chương, sau đó chỉ dùng thuật ngữ tiếng Việt.
+  tiên trong mỗi chương, sau đó chỉ dùng thuật ngữ tiếng Việt. Ngoại lệ: mục trong bảng thuật ngữ có
+  `show_en = true` (ví dụ các thuật ngữ "chỉ mục") MUST luôn ghi kèm tiếng Anh ở mọi lần xuất hiện,
+  dạng `chỉ mục thưa (*sparse index*)`.
 - Mọi thuật ngữ MUST được tra/ghi vào một bảng thuật ngữ duy nhất của dự án; một term tiếng Anh
   chỉ có một bản dịch trừ khi bảng ghi rõ ngoại lệ theo ngữ cảnh.
 - Thuật ngữ không có bản dịch phổ biến (ví dụ tên sản phẩm, "B-tree", "SSTable") MUST giữ nguyên
@@ -104,4 +108,4 @@ file upstream là gánh nặng bảo trì.
 - Mỗi plan (`/speckit-plan`) MUST có mục Constitution Check đối chiếu năm nguyên tắc trên; mọi vi
   phạm MUST được ghi lý do trong mục Complexity Tracking.
 
-**Version**: 1.2.0 | **Ratified**: 2026-11-27 | **Last Amended**: 2026-11-27
+**Version**: 1.3.0 | **Ratified**: 2026-11-27 | **Last Amended**: 2026-11-27

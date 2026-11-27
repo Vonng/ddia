@@ -71,11 +71,23 @@ description: "Task list — Bảng thuật ngữ Anh–Việt dùng chung"
 - [X] T020 Chạy toàn bộ quickstart.md các bước 1–8, ghi kết quả; sửa tài liệu nếu bước nào lệch
 - [ ] T021 Nhờ ít nhất một người đọc IT/DEV rà ≥ 100 mục ngẫu nhiên (SC-005); ghi các mục bị đánh giá "không tự nhiên" và sửa; đo thêm thời gian tra một term của người dịch (SC-002, mục tiêu < 30 giây)
 
+## Phase 7: Bổ sung (sau Clarification 2026-11-27)
+
+- [X] T022 [US1] Mở rộng `seed` trong `bin/glossary-vi.py`: trích thêm cặp không in nghiêng `（english term）` (ASCII chữ cái, khoảng trắng, gạch nối; 3–40 ký tự) từ `content/zh/ch*.md`, chỉ nhận chữ thường nên tự bỏ viết tắt và tên riêng (thêm tay như SLO, Agile); không ghi đè mục có sẵn (FR-004; data-model.md `Mục thuật ngữ.en`, `Mục thuật ngữ.status`)
+- [X] T023 [US1] Thêm test cho T022 vào `bin/tests/test_glossary_vi.py` (dữ liệu zh giả có `（throughput）` không in nghiêng → có mục `todo`; chạy lại không trùng) và cập nhật `contracts/cli.md` mô tả `seed` trích cả hai dạng
+
+- [X] T024 Sửa constitution III thêm ngoại lệ `show_en` (v1.3.0, Sync Impact Report) và ghi `show_en` vào `data-model.md`/`spec.md` (FR-011)
+- [X] T025 [P] Trong `bin/glossary-vi.py` `check`: `show_en` phải là bool và không đi cùng `keep = true` (lỗi `show-en`); thêm test vào `bin/tests/test_glossary_vi.py`; đặt `show_en = true` cho `index`, `secondary index` trong `data/glossary/vi.toml`
+
+- [X] T026 [US3] Trong `bin/glossary-vi.py` `check`: với mỗi mục `show_en = true`, quét văn xuôi `content/vi/ch*.md` (bỏ code bằng `without_code`), khớp cụm tiếng Việt dài nhất trước (sắp xếp theo độ dài giảm dần, bỏ phần đã khớp); mỗi lần xuất hiện không kèm ` (*en*)` ngay sau → in cảnh báo `show-en`, không đổi mã thoát (FR-011; data-model.md `Mục thuật ngữ.show_en`)
+- [X] T027 [US3] Thêm test cho T026 vào `bin/tests/test_glossary_vi.py`: "chỉ mục thưa (*sparse index*)" và "chỉ mục (*index*)" không cảnh báo; "chỉ mục thưa" trơn cảnh báo một lần (không cảnh báo thêm cho "chỉ mục" bên trong); cập nhật `contracts/cli.md` thêm loại cảnh báo `show-en`
+
 ## Dependencies & Execution Order
 
 - Phase 1 → Phase 2 → các user story. T002 chặn T006; T001 chặn T010–T012.
 - T018a phụ thuộc T016 và T018.
 - US1 (MVP) không phụ thuộc US2/US3. US2 cần dữ liệu từ T007–T008 để thấy nội dung nhưng build được với bảng rỗng. US3 cần khung script từ T003; T015 cần `vi.toml` có mục để thử thật.
+- Phase 7: T023←T022, T025←T024, T026←T025, T027←T026.
 - Hoàn thiện bản dịch toàn bộ ~600 mục (ngoài 61 mục glossary) diễn ra dần theo từng chương, không chặn các task trên; `--release` (T016) là cổng trước xuất bản.
 
 ## Parallel Opportunities

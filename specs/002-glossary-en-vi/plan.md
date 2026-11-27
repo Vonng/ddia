@@ -32,7 +32,7 @@ Một file dữ liệu TOML (`data/glossary/vi.toml`) là nguồn sự thật du
 |---|---|
 | I. Trung thành nguồn | Đạt. Bảng chỉ ghi thuật ngữ, không thay đổi nội dung kỹ thuật. Bản dịch term do người dịch điền, không tự sinh. |
 | II. Tương đương cấu trúc 1:1 | Cần ghi nhận. `content/vi/terms.md` không có bản zh → `check-vi.py` hiện báo `extra-page`. Xử lý: thêm hằng `VI_ONLY_PAGES` trong `check-vi.py` (file phía vi, không phải upstream). Xem Complexity Tracking. |
-| III. Thuật ngữ nhất quán | Chính feature này hiện thực hóa nguyên tắc; ngoại lệ ngữ cảnh = mục có trường `ctx`. |
+| III. Thuật ngữ nhất quán | Chính feature này hiện thực hóa nguyên tắc; ngoại lệ ngữ cảnh = mục có trường `ctx`; ngoại lệ ghi kèm tiếng Anh = trường `show_en` (constitution v1.3.0). |
 | IV. Kiểm chứng tự động | Đạt. `check` chạy cục bộ và CI bằng cùng lệnh `make vi-check`; chỉ đọc. |
 | V. Tái dùng upstream, giữ đơn giản | Đạt. Không dependency, file mới có hậu tố `vi`, Makefile chỉ thêm cuối khối `vi-*`. Viết mới vì upstream không có bảng thuật ngữ Anh–Việt. |
 

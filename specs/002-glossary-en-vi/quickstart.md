@@ -6,6 +6,7 @@
 2. **Điền bản dịch** cho một vài mục (một mục `keep = true` có `note`, một term hai nghĩa có `ctx`).
 3. **Kiểm**: `python3 bin/glossary-vi.py check` → thoát 0. Cố ý thêm mục `en` trùng không `ctx` → thoát 1, nêu term và dòng (US3, SC-003).
 4. **Chương**: trong chương vi, viết `*nguyên tử* (*atomic*)` khớp bảng → qua; đổi thành bản dịch khác → `mismatch` (SC-004).
+4b. **Ghi kèm tiếng Anh**: trong chương thử, viết `chỉ mục thưa` (mục `show_en = true`) không kèm `(*sparse index*)` → `check` cảnh báo `show-en`; thêm `(*sparse index*)` (có hoặc không in nghiêng thuật ngữ Việt) → hết cảnh báo.
 5. **Đổi bản dịch** (thử ở chương đầu tiên dịch xong; trước đó test T017 phủ bằng dữ liệu giả) (FR-008): sửa `vi` của một mục đã dùng trong chương → `check` lỗi liệt kê chương; sửa chương → qua.
 6. **Trang site**: `make vi-dev`, mở `/terms/` → có hai bảng và ô lọc; tìm một term Anh và một từ Việt, mỗi lần < 10 giây (US2).
 7. **Tất cả**: `make vi-check` (đã gồm `check`, build kèm nháp dưới `/ddia/`, kiểm link render) → OK.

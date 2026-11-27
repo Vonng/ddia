@@ -85,7 +85,7 @@ Làm trước US2 vì workflow CI gọi `make vi-check`.
 
 - [X] T019 [US2] Chạy kịch bản S5 (`make vi-build BASE_URL=http://localhost:8000/ddia/` + `python3 -m http.server`): CSS, ảnh `fig`, ảnh `/map/…`, xref, mục lục tải đúng dưới `/ddia/`. Nếu link Markdown tuyệt đối (`](/map/…)`, `](/chN)`) vỡ: sửa bằng render hook trong `layouts/_markup/` (file mới, dùng `relURL`), không sửa nội dung (research R9)
 - [X] T020 [US2] Tạo `.github/workflows/pages.yml` theo `contracts/make-targets.md` › GitHub Actions: trigger `pull_request`/`push` → `main`/`workflow_dispatch`; job `build` (checkout, `actions/setup-go`, tải `hugo_0.170.1_linux-amd64.tar.gz`, `actions/configure-pages`, `make vi-check vi-build BASE_URL=${{ steps.pages.outputs.base_url }}/`, `actions/upload-pages-artifact` với `public/`); job `deploy` chỉ khi `github.ref == 'refs/heads/main'`, `needs: build`, `actions/deploy-pages`, environment `github-pages`; `permissions: contents: read, pages: write, id-token: write`; `concurrency: {group: pages, cancel-in-progress: false}`; pin action theo SHA như `.github/workflows/repository-cards.yml`
-- [ ] T021 [US2] Hướng dẫn chủ repo bật Settings › Pages › Source = GitHub Actions trên `nguyendan07/ddia`, rồi (khi được phép push) chạy kịch bản S6: push `main` → `build` + `deploy` xanh, `https://nguyendan07.github.io/ddia/` hiển thị; trang nháp trả 404
+- [X] T021 [US2] Hướng dẫn chủ repo bật Settings › Pages › Source = GitHub Actions trên `nguyendan07/ddia`, rồi (khi được phép push) chạy kịch bản S6: push `main` → `build` + `deploy` xanh, `https://nguyendan07.github.io/ddia/` hiển thị; trang nháp trả 404
 
 **Checkpoint**: Site công khai hoạt động
 

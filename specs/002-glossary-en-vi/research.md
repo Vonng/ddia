@@ -30,3 +30,8 @@ Không còn NEEDS CLARIFICATION. Các quyết định:
 
 ## 6. Chặn khi sửa bản dịch (FR-008)
 - **Decision**: không cần cơ chế riêng. Sửa `vi.toml` mà chương còn cặp dùng bản cũ → `check` lỗi → CI/`make vi-check` chặn. Quy trình ghi trong quickstart: đổi term → chạy `check` → sửa các chương được liệt kê.
+
+## 7. Ghi kèm tiếng Anh (`show_en`)
+- **Decision**: trường bool `show_en` trên mục thuật ngữ; mục có `show_en = true` luôn được ghi kèm `(*en*)` ở mọi lần xuất hiện (ngoại lệ của constitution III, v1.3.0). `check` cảnh báo `show-en` (không đổi mã thoát), khớp cụm dài nhất trước, chấp nhận cả dạng `*vi* (*en*)` lẫn `vi (*en*)`.
+- **Rationale**: người dịch muốn các thuật ngữ "chỉ mục" và "sao chép" luôn đi kèm tiếng Anh để dân IT/DEV đối chiếu tài liệu gốc.
+- **Alternatives**: chỉ ghi cả hai trong bảng (không ảnh hưởng văn bản); giữ nguyên tiếng Anh (mất bản dịch); kiểm lỗi chặn merge (báo động giả nặng với hàng trăm lần xuất hiện).

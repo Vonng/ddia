@@ -59,6 +59,22 @@ class GlossaryTest(unittest.TestCase):
         code, out = run('[[term]]\nen = "cache"\nvi = "cache"\nkeep = true\n')
         self.assertIn('missing-note', out)
 
+    def test_show_en_rules(self):
+        self.assertEqual(run(TABLE + '\n[[term]]\nen = "index"\nvi = "chỉ mục"\nshow_en = true\n')[0], 0)
+        code, out = run(TABLE + '\n[[term]]\nen = "index"\nvi = "chỉ mục"\nshow_en = "yes"\n')
+        self.assertIn('show-en', out)
+
+    def test_show_en_warning_longest_match(self):
+        table = TABLE + '\n[[term]]\nen = "index"\nvi = "chỉ mục"\nshow_en = true\n\n[[term]]\nen = "sparse index"\nvi = "chỉ mục thưa"\nshow_en = true\n'
+        ok = 'Ta có *chỉ mục thưa* và chỉ mục (*index*), chỉ mục thưa (*sparse index*).'
+        code, out = run(table, 'sao chép', extra='\n' + ok + '\n')
+        self.assertEqual(code, 0)
+        self.assertEqual(out.count('show-en'), 1, out)  # only the bare "chỉ mục thưa" counts, once
+        self.assertIn('"chỉ mục thưa" without (*sparse index*)', out)
+        # canonical first occurrence: italic Vietnamese term followed by (*english*)
+        code, out = run(table, 'sao chép', extra='\n*chỉ mục thưa* (*sparse index*) và *chỉ mục* (*index*).\n')
+        self.assertEqual(out.count('show-en'), 0, out)
+
     def test_chapter_mismatch(self):
         code, out = run(TABLE, 'nhân bản')
         self.assertEqual(code, 1)
@@ -80,6 +96,25 @@ class GlossaryTest(unittest.TestCase):
     def test_todo_in_draft_chapter_not_blocked(self):
         todo = TABLE + '\n[[term]]\nen = "lag"\nvi = ""\nstatus = "todo"\n'
         self.assertEqual(run(todo, 'sao chép', draft=True, release=True)[0], 0)
+
+
+class SeedTest(unittest.TestCase):
+    def test_seed_plain_and_italic_pairs_idempotent(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for sub in ('data/glossary', 'content/en', 'content/zh'):
+                (root / sub).mkdir(parents=True)
+            (root / 'data/glossary/vi.toml').write_text('', encoding='utf-8')
+            (root / 'content/en/glossary.md').write_text('### cache\n', encoding='utf-8')
+            (root / 'content/zh/ch1.md').write_text(
+                '---\ntitle: 一\n---\n\n*吞吐量*（*throughput*）、可用区（availability zone）、敏捷（Agile）、服务级别目标（SLO）。\n',
+                encoding='utf-8')
+            with redirect_stdout(io.StringIO()):
+                gv.seed(root)
+                gv.seed(root)
+            ens = [t['en'] for t in gv.load_table(root)]
+            self.assertEqual(sorted(ens), ['availability zone', 'cache', 'throughput'])
+            self.assertTrue(all(t['status'] == 'todo' for t in gv.load_table(root)))
 
 
 if __name__ == '__main__':

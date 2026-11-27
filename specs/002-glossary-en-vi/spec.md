@@ -17,6 +17,9 @@
 - Q: Đổi bản dịch đã có có bắt buộc sửa mọi chương đã dịch không? → A: Có, trong cùng thay đổi; kiểm tra tự động chặn nếu còn chương dùng bản dịch cũ.
 - Q: Mức kiểm tra tự động độ nhất quán giữa chương và bảng? → A: Kiểm tra bảng (trùng, thiếu trường, nhiều bản dịch không ngữ cảnh) và các cặp `*thuật ngữ* (*english term*)` ở lần đầu trong chương phải khớp bảng; không quét toàn văn.
 - Q: Khởi tạo bảng thế nào để phủ đủ term? → A: Tự động trích danh sách term (glossary sách và term in nghiêng `(*english term*)`) làm khung; bản dịch do người dịch điền hoặc duyệt, không sinh bản dịch tự động.
+- Q: Term zh ghi kèm tiếng Anh nhưng không in nghiêng (ví dụ `（throughput）`) có bắt buộc bảng phải phủ không? → A: Có; `seed` cũng trích dạng `（english term）` không in nghiêng (lọc tên riêng và viết tắt đã biết), và chúng nằm trong phạm vi FR-004. Bản vi dùng `*thuật ngữ* (*english term*)` cho cả hai loại nên `check` không đổi.
+- Q: Các thuật ngữ "chỉ mục" ghi cả Anh và Việt thế nào? → A: Ghi kèm tiếng Anh ở mọi lần xuất hiện (`chỉ mục thưa (*sparse index*)`); bảng có trường `show_en`; ngoại lệ của constitution III; `check` không ép buộc, người dịch chịu trách nhiệm.
+- Q: `check` có nên phát hiện chỗ thiếu tiếng Anh kèm theo với mục `show_en` không? → A: Có, ở mức cảnh báo `show-en` (không đổi mã thoát); quét văn xuôi chương vi, khớp cụm dài nhất trước.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -80,13 +83,14 @@ Người bảo trì chạy lệnh kiểm tra (cục bộ và CI) để phát hi�
 - **FR-001**: Dự án MUST có đúng một bảng thuật ngữ Anh–Việt dùng chung cho mọi chương.
 - **FR-002**: Mỗi mục MUST gồm: term tiếng Anh, bản dịch tiếng Việt (hoặc đánh dấu "giữ nguyên tiếng Anh"), và ngữ cảnh khi term nhiều nghĩa.
 - **FR-003**: Mỗi term tiếng Anh MUST có đúng một bản dịch, trừ term nhiều nghĩa có ngữ cảnh ghi rõ.
-- **FR-004**: Bảng MUST bao phủ tối thiểu mọi term trong `content/en/glossary.md` và các term được in nghiêng kèm `(*english term*)` ở lần đầu trong các chương. Khung danh sách term MUST được trích tự động từ các nguồn này; bản dịch tiếng Việt MUST do người dịch điền hoặc duyệt (không dùng bản dịch sinh tự động chưa duyệt).
+- **FR-004**: Bảng MUST bao phủ tối thiểu mọi term trong `content/en/glossary.md` và các term được ghi kèm tiếng Anh ở lần đầu trong các chương, dù in nghiêng (`*thuật ngữ*（*english term*）`) hay không in nghiêng (`thuật ngữ（english term）`). Khung danh sách term MUST được trích tự động từ các nguồn này; bản dịch tiếng Việt MUST do người dịch điền hoặc duyệt (không dùng bản dịch sinh tự động chưa duyệt).
 - **FR-005**: Chính sách mặc định MUST là cân bằng theo thực tế dùng: dịch term khi bản tiếng Việt đã phổ biến trong giới IT/DEV; giữ nguyên tiếng Anh khi giới này quen dùng term gốc hơn (ví dụ "cache", "commit", "shard", "leader"). Mỗi ca chọn giữ nguyên MUST có ghi chú lý do (xem FR-006).
 - **FR-006**: Mỗi quyết định không hiển nhiên (giữ nguyên vs. dịch) SHOULD có ghi chú lý do ngắn.
 - **FR-007**: Bảng MUST được xuất bản thành một trang riêng trên site (tách khỏi trang `glossary` của sách), tra được theo cả hai chiều Anh→Việt và Việt→Anh; link tới và từ trang này MUST hoạt động dưới đường dẫn con của site.
 - **FR-008**: Có quy trình thêm/sửa term được ghi lại. Sửa một bản dịch đã có MUST kèm sửa mọi chương đã dịch dùng bản cũ trong cùng thay đổi; kiểm tra tự động (FR-009) MUST chặn thay đổi nếu còn cặp thuật ngữ lần đầu trong chương dùng bản cũ (các chỗ dùng khác trong văn bản do người dịch rà soát).
 - **FR-009**: Có lệnh kiểm tra tự động, chạy được cục bộ và trong CI bằng cùng một lệnh, MUST: (a) phát hiện term trùng, term có nhiều bản dịch không ghi ngữ cảnh và dòng thiếu trường bắt buộc; (b) với mỗi cặp `*thuật ngữ* (*english term*)` ở lần xuất hiện đầu trong chương, nếu term tiếng Anh có trong bảng thì bản dịch MUST khớp bảng. Kiểm tra KHÔNG quét toàn văn chương tìm bản dịch cũ.
 - **FR-010**: Bảng MUST không sửa file upstream (theo quy tắc vàng của dự án), ngoại trừ thêm vào cuối khối `vi-*` của `Makefile`; nằm trong file/thư mục có hậu tố `vi`.
+- **FR-011**: Mục có `show_en = true` MUST được ghi kèm tiếng Anh ở mọi lần xuất hiện trong văn bản dịch (ngoại lệ của constitution III). Kiểm tra tự động MUST xác nhận trường hợp lệ của `show_en` và SHOULD cảnh báo (`show-en`, không đổi mã thoát) khi chương vi viết thuật ngữ tiếng Việt của mục đó mà không kèm `(*english term*)`; khớp cụm dài nhất trước ("chỉ mục thưa" thay vì "chỉ mục").
 
 ### Key Entities
 
@@ -103,6 +107,7 @@ Người bảo trì chạy lệnh kiểm tra (cục bộ và CI) để phát hi�
 - **SC-003**: 0 term tiếng Anh có hai bản dịch mâu thuẫn không kèm ngữ cảnh (kiểm tra tự động thông qua).
 - **SC-004**: Sau khi dịch xong 3 chương đầu, lệnh kiểm tra báo 100% cặp `*thuật ngữ* (*english term*)` ở lần đầu trong các chương đó khớp bảng (không có lỗi `mismatch`).
 - **SC-005**: Rà soát bởi ít nhất một người đọc là dân IT/DEV: ≥ 90% bản dịch được đánh giá "tự nhiên, dùng được trong công việc".
+- **SC-006**: Sau khi dịch xong 3 chương đầu, lệnh kiểm tra không cảnh báo `show-en` cho các mục `show_en` (hoặc người dịch đã xem xét từng cảnh báo).
 
 ## Assumptions
 

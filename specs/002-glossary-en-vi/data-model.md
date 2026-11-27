@@ -11,11 +11,13 @@
 | `note` | có nếu `keep = true` hoặc quyết định không hiển nhiên | chuỗi | lý do ngắn (FR-006) |
 | `abbr` | không | chuỗi | dạng đầy đủ nếu `en` là từ viết tắt |
 | `def` | không | chuỗi | định nghĩa ngắn |
+| `show_en` | không (mặc định false) | bool | luôn ghi kèm tiếng Anh ở mọi lần xuất hiện trong văn bản (vd. `chỉ mục thưa (*sparse index*)`); không dùng cùng `keep = true` |
 | `status` | không | `"todo"` \| `"ok"` (mặc định `ok`) | `todo` = mới trích, chưa dịch |
 
 ### Ràng buộc (kiểm bởi `check`)
 - Cặp (`en` chuẩn hóa, `ctx`) là duy nhất; cùng `en` nhưng khác `ctx` được phép, thiếu `ctx` thì lỗi (FR-003).
 - `vi` rỗng chỉ hợp lệ khi `status = "todo"`; `check --release` coi `todo` là lỗi với mục thuộc glossary sách hoặc dùng trong chương không-nháp (SC-001 trước xuất bản).
+- `show_en` phải là bool và không đi cùng `keep = true` (đã là tiếng Anh).
 - `keep = true` ⇒ phải có `note`.
 
 ## Bảng thuật ngữ
