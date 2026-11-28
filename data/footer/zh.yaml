@@ -6,7 +6,7 @@ brand:
 columns:
   - title: 阅读
     links:
-      - { label: 章节目录, url: '#chapters' }
+      - { label: 章节目录, url: '/#chapters' }
       - { label: 开始阅读, url: preface/ }
       - { label: 完整目录, url: toc/ }
       - { label: 打印本书, url: _print/ }
